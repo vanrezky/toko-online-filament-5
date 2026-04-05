@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Settings\GeneralSettings;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -59,7 +60,7 @@ class EmailTemplate extends Model
     {
         $content = $this->replacePlaceholders($this->body, $placeholders);
 
-        $generalSettings = settings('general');
+        $generalSettings = app(GeneralSettings::class);
         $websiteName = $generalSettings?->site_name ?? config('app.name');
         $logoUrl = $generalSettings?->getLogo() ?? asset('images/logo.png');
 
@@ -79,7 +80,7 @@ class EmailTemplate extends Model
     protected function replacePlaceholders(string $content, array $placeholders): string
     {
         foreach ($placeholders as $key => $value) {
-            $content = str_replace('{{'.$key.'}}', (string) $value, $content);
+            $content = str_replace('{{' . $key . '}}', (string) $value, $content);
         }
 
         return $content;

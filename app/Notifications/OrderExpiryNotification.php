@@ -25,7 +25,7 @@ class OrderExpiryNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $transaction = $this->transaction;
-        $websiteName = settings('general')->site_name ?? env('APP_NAME', 'Toko Online');
+        $websiteName = settings('site_name') ?? env('APP_NAME', 'Toko Online');
 
         $placeholders = [
             'customer_name' => $notifiable->full_name ?? trim($notifiable->first_name.' '.$notifiable->last_name),
