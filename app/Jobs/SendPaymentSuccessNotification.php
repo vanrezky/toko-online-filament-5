@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Transaction;
 use App\Services\EmailTemplateService;
+use App\Settings\GeneralSettings;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -32,12 +33,12 @@ class SendPaymentSuccessNotification implements ShouldQueue
             return;
         }
 
-        $generalSettings = settings('general');
+        $generalSettings = app(GeneralSettings::class);
         $websiteName = $generalSettings?->site_name ?? config('app.name');
         $logoUrl = $generalSettings?->getLogo() ?? asset('images/logo.png');
 
         $placeholders = [
-            'customer_name' => $customer->full_name ?? trim($customer->first_name.' '.$customer->last_name),
+            'customer_name' => $customer->full_name ?? trim($customer->first_name . ' ' . $customer->last_name),
             'order_id' => $transaction->uuid,
             'order_total' => number_format($transaction->total_amount, 0, ',', '.'),
             'payment_method' => $this->paymentMethod,

@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\OrderStatus;
 use App\Models\Transaction;
 use App\Services\EmailTemplateService;
+use App\Settings\GeneralSettings;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -36,7 +37,7 @@ class SendOrderStatusChangedNotification implements ShouldQueue
 
         $shippingDetail = $transaction->shippingDetails()->latest()->first();
 
-        $generalSettings = settings('general');
+        $generalSettings = app(GeneralSettings::class);
         $websiteName = $generalSettings?->site_name ?? config('app.name');
         $logoUrl = $generalSettings?->getLogo() ?? asset('images/logo.png');
 

@@ -30,6 +30,10 @@ class Transaction extends Model
         'timelimit',
     ];
 
+    protected $casts = [
+        'timelimit' => 'datetime',
+    ];
+
     public function getRouteKeyName(): string
     {
         return 'uuid';

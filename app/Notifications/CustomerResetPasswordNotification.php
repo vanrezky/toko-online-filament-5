@@ -50,16 +50,15 @@ class CustomerResetPasswordNotification extends Notification implements ShouldQu
             'guard' => $this->guard,
         ]);
 
-        $expiryMinutes = config('auth.passwords.'.$this->getPasswordBrokerKey().'.expire', 60);
-        $generalSettings = settings('general');
-        $websiteName = $generalSettings?->site_name ?? env('APP_NAME', 'Toko Online');
-        $logoUrl = $generalSettings?->getLogo() ?? asset('images/logo.png');
+        $expiryMinutes = config('auth.passwords.' . $this->getPasswordBrokerKey() . '.expire', 60);
+        $websiteName = settings('site_name') ?? env('APP_NAME', 'Toko Online');
+        $logoUrl = settings('logo') ?? asset('images/logo.png');
 
         $emailTemplateService = app(EmailTemplateService::class);
         $template = $emailTemplateService->getTemplate('reset_password');
 
         $placeholders = [
-            'customer_name' => $notifiable->full_name ?? trim($notifiable->first_name.' '.$notifiable->last_name),
+            'customer_name' => $notifiable->full_name ?? trim($notifiable->first_name . ' ' . $notifiable->last_name),
             'reset_url' => $resetUrl,
             'expiry_minutes' => $expiryMinutes,
             'website_name' => $websiteName,

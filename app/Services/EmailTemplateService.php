@@ -51,7 +51,7 @@ class EmailTemplateService
     public function sendToCustomer(string $code, Customer $customer, array $placeholders = [], bool $queue = true, string $queuePriority = 'default'): ?EmailLog
     {
         $customerPlaceholders = array_merge($placeholders, [
-            'customer_name' => $customer->full_name ?? trim($customer->first_name.' '.$customer->last_name),
+            'customer_name' => $customer->full_name ?? trim($customer->first_name . ' ' . $customer->last_name),
             'email' => $customer->email,
         ]);
 
@@ -65,7 +65,7 @@ class EmailTemplateService
 
     protected function sendToAdmins(EmailTemplate $template, array $placeholders, bool $queue = true, string $queuePriority = 'default'): void
     {
-        $adminEmails = settings('general')->admin_emails;
+        $adminEmails = settings('admin_emails');
 
         if (! $adminEmails) {
             return;
@@ -86,7 +86,7 @@ class EmailTemplateService
         ]);
 
         foreach ($emails as $adminEmail) {
-            $renderedSubject = '[Admin Copy] '.$template->renderSubject($placeholders);
+            $renderedSubject = '[Admin Copy] ' . $template->renderSubject($placeholders);
             $renderedBody = $template->renderBody($adminPlaceholders);
 
             $emailLog = EmailLog::create([
