@@ -1,5 +1,7 @@
 <?php
 
+use App\Filament\Resources\SliderResource;
+
 return [
     'shield_resource' => [
         'should_register_navigation' => true,
@@ -76,7 +78,9 @@ return [
             'FilamentInfoWidget',
         ],
 
-        'resources' => [],
+        'resources' => [
+            SliderResource::class
+        ],
     ],
 
     'discovery' => [

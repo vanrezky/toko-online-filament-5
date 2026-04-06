@@ -23,6 +23,7 @@ class SliderResource extends Resource
     protected static ?string $navigationGroup = 'Promo';
     protected static ?string $slug = 'sliders';
     protected static ?int $navigationSort = 2;
+    static bool $shouldRegisterNavigation = false;
 
     public static function form(Form $form): Form
     {
