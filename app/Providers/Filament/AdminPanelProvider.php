@@ -90,6 +90,7 @@ class AdminPanelProvider extends PanelProvider
                     ]),
                 \BezhanSalleh\FilamentExceptions\FilamentExceptionsPlugin::make()
 
-            ]);
+            ])
+            ->topNavigation();
     }
 }
