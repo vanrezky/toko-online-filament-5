@@ -3,12 +3,9 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Transaction;
-use App\Models\TransactionProduct;
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 
 class RecentOrdersTable extends BaseWidget
 {
@@ -37,17 +34,19 @@ class RecentOrdersTable extends BaseWidget
         return [
             Tables\Columns\TextColumn::make('uuid')
                 ->label('Order ID')
+                ->formatStateUsing(fn (string $state): string => strtoupper(substr($state, 0, 8)))
+                ->url(fn (Transaction $record): string => route('filament.admin.resources.transactions.view', $record->uuid))
                 ->searchable(),
-            
+
             Tables\Columns\TextColumn::make('customer.full_name')
                 ->label('Customer')
                 ->searchable(),
-            
+
             Tables\Columns\TextColumn::make('total_amount')
                 ->label('Amount')
                 ->money('IDR')
                 ->sortable(),
-            
+
             Tables\Columns\TextColumn::make('status')
                 ->label('Status')
                 ->badge()
@@ -58,7 +57,7 @@ class RecentOrdersTable extends BaseWidget
                     'rejected' => 'danger',
                     'completed' => 'success',
                 }),
-            
+
             Tables\Columns\TextColumn::make('created_at')
                 ->label('Date')
                 ->dateTime('d M Y, H:i')

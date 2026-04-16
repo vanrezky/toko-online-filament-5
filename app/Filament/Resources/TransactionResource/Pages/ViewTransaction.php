@@ -2,12 +2,10 @@
 
 namespace App\Filament\Resources\TransactionResource\Pages;
 
-use App\Filament\Resources\CustomerResource;
 use App\Filament\Resources\TransactionResource;
 use App\Models\Transaction;
 use Filament\Actions;
 use Filament\Infolists\Components\IconEntry;
-use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
@@ -36,14 +34,14 @@ class ViewTransaction extends ViewRecord
                     ->icon('heroicon-o-truck')
                     ->color('info')
                     ->requiresConfirmation()
-                    ->action(fn() => $this->updateStatus('shipped'));
+                    ->action(fn () => $this->updateStatus('shipped'));
 
                 $actions[] = Actions\Action::make('markRejected')
                     ->label('Mark as Rejected')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->action(fn() => $this->updateStatus('rejected'));
+                    ->action(fn () => $this->updateStatus('rejected'));
                 break;
 
             case 'shipped':
@@ -52,14 +50,14 @@ class ViewTransaction extends ViewRecord
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->action(fn() => $this->updateStatus('delivered'));
+                    ->action(fn () => $this->updateStatus('delivered'));
 
                 $actions[] = Actions\Action::make('markRejected')
                     ->label('Mark as Rejected')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->action(fn() => $this->updateStatus('rejected'));
+                    ->action(fn () => $this->updateStatus('rejected'));
                 break;
 
             case 'delivered':
@@ -68,7 +66,7 @@ class ViewTransaction extends ViewRecord
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->action(fn() => $this->updateStatus('completed'));
+                    ->action(fn () => $this->updateStatus('completed'));
                 break;
         }
 
@@ -117,13 +115,16 @@ class ViewTransaction extends ViewRecord
                     ->schema([
                         TextEntry::make('uuid')
                             ->label('Order ID')
+                            ->formatStateUsing(fn (string $state): string => strtoupper(substr($state, 0, 8)))
                             ->copyable()
+                            ->copyMessage('Copied!')
+                            ->copyMessageDuration(1500)
                             ->weight('bold')
                             ->size('lg'),
                         TextEntry::make('status')
                             ->label('Status')
                             ->badge()
-                            ->color(fn(string $state): string => match ($state) {
+                            ->color(fn (string $state): string => match ($state) {
                                 'unpaid' => 'warning',
                                 'shipped' => 'info',
                                 'delivered' => 'success',
@@ -155,7 +156,7 @@ class ViewTransaction extends ViewRecord
                         TextEntry::make('cod_fee')
                             ->label('COD Fee')
                             ->money('IDR')
-                            ->visible(fn(Transaction $record) => $record->cod),
+                            ->visible(fn (Transaction $record) => $record->cod),
                         TextEntry::make('total_amount')
                             ->label('Total Amount')
                             ->money('IDR')
@@ -188,7 +189,7 @@ class ViewTransaction extends ViewRecord
 
                 Section::make('Products')
                     ->icon('heroicon-o-shopping-cart')
-                    ->description(fn(Transaction $record) => $record->total_items . ' items')
+                    ->description(fn (Transaction $record) => $record->total_items.' items')
                     ->schema([
                         \Filament\Infolists\Components\RepeatableEntry::make('products')
                             ->schema([
@@ -233,7 +234,7 @@ class ViewTransaction extends ViewRecord
 
                 Section::make('Vouchers Applied')
                     ->icon('heroicon-o-ticket')
-                    ->visible(fn(Transaction $record) => $record->vouchers->count() > 0)
+                    ->visible(fn (Transaction $record) => $record->vouchers->count() > 0)
                     ->schema([
                         \Filament\Infolists\Components\RepeatableEntry::make('vouchers')
                             ->schema([
@@ -242,7 +243,7 @@ class ViewTransaction extends ViewRecord
                                 TextEntry::make('voucher_type')
                                     ->label('Type')
                                     ->badge()
-                                    ->formatStateUsing(fn(string $state) => ucfirst($state)),
+                                    ->formatStateUsing(fn (string $state) => ucfirst($state)),
                                 TextEntry::make('formatted_discount')
                                     ->label('Discount'),
                             ])->columns(3),
@@ -250,7 +251,7 @@ class ViewTransaction extends ViewRecord
 
                 Section::make('Digital Products')
                     ->icon('heroicon-o-cloud-arrow-down')
-                    ->visible(fn(Transaction $record) => $record->hasDigitalProducts())
+                    ->visible(fn (Transaction $record) => $record->hasDigitalProducts())
                     ->schema([
                         TextEntry::make('digital_products_count')
                             ->label('This order contains digital products')
@@ -263,16 +264,16 @@ class ViewTransaction extends ViewRecord
                     ->schema([
                         TextEntry::make('cod')
                             ->label('Payment Method')
-                            ->formatStateUsing(fn(bool $state) => $state ? 'COD (Cash on Delivery)' : 'Transfer')
+                            ->formatStateUsing(fn (bool $state) => $state ? 'COD (Cash on Delivery)' : 'Transfer')
                             ->badge()
-                            ->color(fn(bool $state) => $state ? 'warning' : 'info'),
+                            ->color(fn (bool $state) => $state ? 'warning' : 'info'),
                         TextEntry::make('payment_method')
                             ->label('Payment Gateway')
                             ->placeholder('Not specified'),
                         TextEntry::make('request_cancellation')
                             ->label('Cancellation Request')
-                            ->formatStateUsing(fn(bool $state) => $state ? 'Yes' : 'No')
-                            ->color(fn(bool $state) => $state ? 'danger' : 'gray'),
+                            ->formatStateUsing(fn (bool $state) => $state ? 'Yes' : 'No')
+                            ->color(fn (bool $state) => $state ? 'danger' : 'gray'),
                         TextEntry::make('notes')
                             ->label('Notes')
                             ->placeholder('No notes'),
@@ -291,6 +292,7 @@ class ViewTransaction extends ViewRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $this->record->load(['customer', 'products.product', 'vouchers', 'shippingDetails']);
+
         return $data;
     }
 }

@@ -18,7 +18,9 @@ class TransactionResource extends Resource
     protected static ?string $model = Transaction::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+
     protected static ?string $navigationGroup = 'Transaction';
+
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
@@ -60,13 +62,14 @@ class TransactionResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('uuid')
                     ->label('Order')
+                    ->formatStateUsing(fn (string $state): string => strtoupper(substr($state, 0, 8)))
                     ->searchable()
-                    ->description(fn(Transaction $record) => $record->created_at->format('d M Y, H:i'))
-                    ->tooltip(fn(Transaction $record) => $record->uuid),
+                    ->description(fn (Transaction $record) => $record->created_at->format('d M Y, H:i'))
+                    ->tooltip(fn (Transaction $record) => $record->uuid),
 
                 Tables\Columns\TextColumn::make('customer.full_name')
                     ->label('Customer')
-                    ->description(fn(Transaction $record) => $record->customer?->email)
+                    ->description(fn (Transaction $record) => $record->customer?->email)
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('total_amount')
@@ -86,7 +89,7 @@ class TransactionResource extends Resource
                         'danger' => 'rejected',
                         'success' => 'completed',
                     ])
-                    ->formatStateUsing(fn(string $state): string => ucfirst($state))
+                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('cod')
@@ -106,7 +109,7 @@ class TransactionResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
-            ->modifyQueryUsing(fn(Builder $query) => $query->with('customer'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with('customer'))
             ->filters([
                 SelectFilter::make('status')
                     ->options([
@@ -128,7 +131,7 @@ class TransactionResource extends Resource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn(Builder $query): Builder => $query->whereDate(
+                                fn (Builder $query): Builder => $query->whereDate(
                                     'created_at',
                                     '>=',
                                     $data['created_from']
@@ -136,7 +139,7 @@ class TransactionResource extends Resource
                             )
                             ->when(
                                 $data['created_until'],
-                                fn(Builder $query): Builder => $query->whereDate(
+                                fn (Builder $query): Builder => $query->whereDate(
                                     'created_at',
                                     '<=',
                                     $data['created_until']
@@ -152,13 +155,14 @@ class TransactionResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
                             $data['cod_only'],
-                            fn(Builder $query): Builder => $query->where('cod', true)
+                            fn (Builder $query): Builder => $query->where('cod', true)
                         );
                     })
                     ->indicateUsing(function (array $data): ?string {
-                        if (!$data['cod_only']) {
+                        if (! $data['cod_only']) {
                             return null;
                         }
+
                         return 'COD orders only';
                     }),
             ])
