@@ -7,6 +7,7 @@ const props = defineProps({
     title: String,
     description: String,
     keywords: String,
+    socialImage: String,
     template: {
         type: String,
         default: "default",
@@ -43,7 +44,7 @@ const Layout = computed(() => {
 </script>
 
 <template>
-    <component :is="Layout" :title="title" :description="description" :keywords="keywords">
+    <component :is="Layout" :title="title" :description="description" :keywords="keywords" :social-image="socialImage">
         <slot />
     </component>
 </template>

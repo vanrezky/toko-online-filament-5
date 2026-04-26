@@ -46,6 +46,11 @@ class HandleInertiaRequests extends Middleware
                     'logo' => $settings->getLogo() ?? '',
                     'favicon' => $settings->getFavicon() ?? '',
                     'site_name' => $settings->site_name ?? '',
+                    'site_description' => $settings->site_description ?? '',
+                    'site_keywords' => $settings->site_keywords ?? '',
+                    'social_title' => $settings->social_title ?? '',
+                    'social_description' => $settings->social_description ?? '',
+                    'social_image' => $settings->social_image ? getUrlImage($settings->social_image) : '',
                 ];
             },
             'flash' => [

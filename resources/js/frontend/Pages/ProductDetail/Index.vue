@@ -143,7 +143,7 @@ const addToCart = () => {
 </script>
 
 <template>
-    <TemplateWrapper :title="seoTitle" :description="seoDescription" :keywords="seoKeywords">
+    <TemplateWrapper :title="seoTitle" :description="seoDescription" :keywords="seoKeywords" :social-image="product.thumbnail">
         <div class="bg-secondary/30 py-8 md:py-12">
             <div class="container mx-auto px-4">
                 <nav class="mb-8 flex items-center gap-2 text-xs text-muted-foreground">

@@ -20,6 +20,7 @@ const props = defineProps({
 });
 
 const page = usePage();
+const settings = computed(() => page.props.settings);
 const colorScheme = computed(() => page.props.colorScheme);
 
 const allProducts = ref([...(props.products?.data || [])]);
@@ -69,7 +70,13 @@ const flashSaleSubtitle = computed(() => getSectionContent("flash_sale", "subtit
 </script>
 
 <template>
-    <TemplateWrapper title="Home" :color-scheme="colorScheme">
+    <TemplateWrapper
+        :title="settings.social_title || settings.site_name"
+        :description="settings.site_description"
+        :keywords="settings.site_keywords"
+        :social-image="settings.social_image"
+        :color-scheme="colorScheme"
+    >
         <!-- Hero Section -->
         <HeroSection
             :title="heroTitle || 'Diskon Spesial Hari Ini'"

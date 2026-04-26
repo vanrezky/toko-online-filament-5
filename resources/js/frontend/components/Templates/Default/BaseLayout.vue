@@ -12,13 +12,14 @@ const props = defineProps({
   title: String,
   description: String,
   keywords: String,
+  socialImage: String,
 });
 
 const settings = computed(() => usePage().props.settings);
 </script>
 
 <template>
-  <AppHead :title="title" :description="description" :keywords="keywords" />
+  <AppHead :title="title" :description="description" :keywords="keywords" :social-image="socialImage" />
   <Toaster position="top-right" richColors closeButton />
   <FlashMessages />
   <vue3-confirm-dialog />
