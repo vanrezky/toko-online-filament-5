@@ -1,0 +1,14 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "laravel-vibes": {
+      "type": "local",
+      "command": ["php", "/Users/vannababan/Codes/Project/toko-online/artisan", "mcp:serve", "vibes"],
+      "enabled": true,
+      "environment": {
+        "APP_ENV": "local",
+        "APP_URL": "http://localhost:81"
+      }
+    }
+  }
+}
