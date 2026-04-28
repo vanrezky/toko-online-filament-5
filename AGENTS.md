@@ -10,6 +10,15 @@
 - **Validation:** VeeValidate + Zod (frontend)
 - **UI:** Radix Vue / Reka UI + Flowbite
 
+## Environment Setup
+
+> **Important:** Before running any PHP/Composer commands, ensure the correct environment is active.
+
+- **PHP Version Manager:** Use `sphp` to switch PHP versions.  
+  Example: `sphp 8.3` (project requires PHP 8.2+)
+- **Node Version Manager:** Use `nvm` to switch Node versions.  
+  Example: `nvm use default` (currently set to Node v24)
+
 ## Architecture
 
 - Server-side rendered via Inertia (not SPA)

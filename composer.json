@@ -30,6 +30,7 @@
         "njxqlus/filament-progressbar": "^1.0",
         "openai-php/laravel": "^0.8.1",
         "ryangjchandler/blade-tabler-icons": "^2.3",
+        "superconductor/laravel-vibes": "^0.6",
         "tightenco/ziggy": "^2.5",
         "z3d0x/filament-logger": "^0.7.1"
     },
@@ -77,6 +78,12 @@
             "dont-discover": []
         }
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/projectsaturnstudios/laravel-vibes"
+        }
+    ],
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
@@ -86,6 +93,6 @@
             "php-http/discovery": true
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true
 }
