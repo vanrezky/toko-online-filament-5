@@ -6,6 +6,7 @@ use App\Http\Controllers\Frontend\Auth\LoginController;
 use App\Http\Controllers\Frontend\Auth\RegisterController;
 use App\Http\Controllers\Frontend\Auth\ResetPasswordController;
 use App\Http\Controllers\Frontend\CartController;
+use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProductDetailController;
 use App\Http\Controllers\Frontend\VoucherController;
@@ -79,6 +80,8 @@ Route::name('frontend.')->group(function () {
     Route::get('/page/{slug}', [\App\Http\Controllers\Frontend\PageController::class, 'show'])->name('page.show');
     Route::get('/wishlist', [\App\Http\Controllers\Frontend\WishlistController::class, 'index'])->name('wishlist');
     Route::get('/faq', \App\Http\Controllers\Frontend\FaqController::class)->name('faq');
+    Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+    Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
     Route::post('/wishlist/toggle', [\App\Http\Controllers\Frontend\WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
     // Voucher routes

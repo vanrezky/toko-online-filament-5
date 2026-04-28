@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\VoucherController;
+use App\Http\Controllers\Frontend\ContactController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,4 +38,12 @@ Route::middleware([
     Route::post('/vouchers/apply', [VoucherController::class, 'apply']);
     Route::post('/vouchers/remove', [VoucherController::class, 'remove']);
     Route::get('/vouchers/validate-cookie', [VoucherController::class, 'validateCookie']);
+});
+
+// Contact message API routes
+Route::prefix('contact-messages')->group(function () {
+    Route::get('/', [ContactController::class, 'apiIndex']);
+    Route::get('/{contactMessage}', [ContactController::class, 'apiShow']);
+    Route::patch('/{contactMessage}/read', [ContactController::class, 'apiMarkAsRead']);
+    Route::delete('/{contactMessage}', [ContactController::class, 'apiDestroy']);
 });
