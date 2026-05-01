@@ -46,7 +46,7 @@ class VoucherCookieService
 
         return response()->json([
             'success' => true,
-            'message' => 'Voucher cleared',
+            'message' => __('messages.success.voucher_cleared'),
         ])->withCookie($cookie);
     }
 

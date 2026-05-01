@@ -5,6 +5,9 @@ import axios from "axios";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import VoucherCard from "../../components/UI/VoucherCard.vue";
 import { Filter, Ticket, Truck, Tag } from "lucide-vue-next";
+import { useTranslations } from "../../composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     vouchers: Array,
@@ -16,9 +19,9 @@ const activeFilter = ref("all");
 const applyingCode = ref(null);
 
 const filters = [
-    { key: "all", label: "Semua", icon: Ticket },
-    { key: "shipping", label: "Ongkir", icon: Truck },
-    { key: "product", label: "Produk", icon: Tag },
+    { key: "all", icon: Ticket },
+    { key: "shipping", icon: Truck },
+    { key: "product", icon: Tag },
 ];
 
 const filteredVouchers = computed(() => {
@@ -61,13 +64,13 @@ const setFilter = (filter) => {
 </script>
 
 <template>
-    <TemplateWrapper title="Voucher & Promo">
+    <TemplateWrapper :title="t('meta.vouchers.title')">
         <div class="min-h-screen bg-secondary/30 py-8 md:py-12">
             <div class="container mx-auto px-4">
                 <!-- Header -->
                 <div class="mb-8 text-center">
-                    <h1 class="mb-2 text-3xl font-bold text-foreground md:text-4xl">Voucher & Promo</h1>
-                    <p class="text-muted-foreground">Temukan voucher menarik untuk hemat lebih banyak</p>
+                    <h1 class="mb-2 text-3xl font-bold text-foreground md:text-4xl">{{ t('labels.vouchers.heading') }}</h1>
+                    <p class="text-muted-foreground">{{ t('labels.vouchers.subheading') }}</p>
                 </div>
 
                 <!-- Filter Tabs -->
@@ -84,7 +87,7 @@ const setFilter = (filter) => {
                         "
                     >
                         <component :is="filter.icon" class="h-4 w-4" />
-                        <span>{{ filter.label }}</span>
+                        <span>{{ t('labels.filters.' + filter.key) }}</span>
                     </button>
                 </div>
 
@@ -105,15 +108,15 @@ const setFilter = (filter) => {
                     <div class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gray-100">
                         <Ticket class="h-12 w-12 text-gray-400" />
                     </div>
-                    <h3 class="mb-2 text-xl font-bold text-foreground">Tidak Ada Voucher</h3>
-                    <p class="text-muted-foreground">Voucher dengan filter "{{ activeFilter }}" belum tersedia. Coba filter lain.</p>
+                    <h3 class="mb-2 text-xl font-bold text-foreground">{{ t('labels.vouchers.empty_title') }}</h3>
+                    <p class="text-muted-foreground">{{ t('labels.vouchers.empty_description', { filter: activeFilter }) }}</p>
                 </div>
 
                 <!-- Info Box -->
                 <div class="mt-12 rounded-2xl bg-white p-6 shadow-sm">
                     <h3 class="mb-4 flex items-center gap-2 text-lg font-bold text-foreground">
                         <span class="text-2xl">💡</span>
-                        Cara Menggunakan Voucher
+                        {{ t('labels.vouchers.how_to_title') }}
                     </h3>
                     <ul class="space-y-3 text-sm text-muted-foreground">
                         <li class="flex items-start gap-2">
@@ -121,27 +124,26 @@ const setFilter = (filter) => {
                                 class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary"
                                 >1</span
                             >
-                            <span>Pilih voucher yang kamu inginkan dan klik "Gunakan Voucher"</span>
+                            <span>{{ t('labels.vouchers.how_to_step_1') }}</span>
                         </li>
                         <li class="flex items-start gap-2">
                             <span
                                 class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary"
                                 >2</span
                             >
-                            <span>Voucher akan otomatis diterapkan ke checkout</span>
+                            <span>{{ t('labels.vouchers.how_to_step_2') }}</span>
                         </li>
                         <li class="flex items-start gap-2">
                             <span
                                 class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary"
                                 >3</span
                             >
-                            <span>Selesaikan pembayaran dan nikmati hematnya!</span>
+                            <span>{{ t('labels.vouchers.how_to_step_3') }}</span>
                         </li>
                     </ul>
                     <div class="mt-4 rounded-xl bg-amber-50 p-4">
                         <p class="text-sm text-amber-800">
-                            <strong>💡 Tips:</strong> Kamu bisa menggunakan 1 voucher ongkir dan 1 voucher produk secara bersamaan untuk hemat lebih
-                            maksimal!
+                            {{ t('labels.vouchers.tip') }}
                         </p>
                     </div>
                 </div>

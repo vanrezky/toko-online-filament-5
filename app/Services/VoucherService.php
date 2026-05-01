@@ -48,33 +48,33 @@ class VoucherService
         $voucher = Voucher::where('code', $code)->first();
 
         if (!$voucher) {
-            return ValidationResult::error('VOUCHER_NOT_FOUND', 'Kode voucher tidak valid');
+            return ValidationResult::error('VOUCHER_NOT_FOUND', __('messages.error.voucher_invalid_code'));
         }
 
         if (!$voucher->is_active) {
-            return ValidationResult::error('VOUCHER_INACTIVE', 'Voucher sudah tidak aktif');
+            return ValidationResult::error('VOUCHER_INACTIVE', __('messages.error.voucher_inactive'));
         }
 
         if (!$voucher->is_public) {
-            return ValidationResult::error('VOUCHER_NOT_PUBLIC', 'Voucher tidak tersedia');
+            return ValidationResult::error('VOUCHER_NOT_PUBLIC', __('messages.error.voucher_not_public'));
         }
 
         if (Carbon::now()->lt(Carbon::parse($voucher->start_at))) {
-            return ValidationResult::error('VOUCHER_NOT_STARTED', 'Voucher belum dimulai');
+            return ValidationResult::error('VOUCHER_NOT_STARTED', __('messages.error.voucher_not_started'));
         }
 
         if (Carbon::now()->gt(Carbon::parse($voucher->end_at))) {
-            return ValidationResult::error('VOUCHER_EXPIRED', 'Voucher sudah berakhir');
+            return ValidationResult::error('VOUCHER_EXPIRED', __('messages.error.voucher_expired'));
         }
 
         if ($voucher->is_fully_used) {
-            return ValidationResult::error('VOUCHER_MAX_USAGE', 'Voucher sudah mencapai batas penggunaan');
+            return ValidationResult::error('VOUCHER_MAX_USAGE', __('messages.error.voucher_max_usage_global'));
         }
 
         if ($customer && $voucher->max_user_used > 0) {
             $userUsage = $this->getUserUsageCount($voucher, $customer);
             if ($userUsage >= $voucher->max_user_used) {
-                return ValidationResult::error('VOUCHER_MAX_USAGE', 'Anda sudah mencapai batas penggunaan voucher ini');
+                return ValidationResult::error('VOUCHER_MAX_USAGE', __('messages.error.voucher_max_usage_user'));
             }
         }
 
@@ -82,7 +82,7 @@ class VoucherService
             if ($voucher->discount_min && $cart->subtotal < $voucher->discount_min) {
                 return ValidationResult::error(
                     'VOUCHER_MIN_PURCHASE',
-                    'Minimal belanja ' . number_format($voucher->discount_min, 0, ',', '.') . ' untuk gunakan voucher ini'
+                    __('messages.error.voucher_min_purchase', ['amount' => 'Rp ' . number_format($voucher->discount_min, 0, ',', '.')])
                 );
             }
         }
@@ -113,7 +113,7 @@ class VoucherService
                     'name' => null,
                     'discount_amount' => 0,
                     'formatted_discount' => 'Rp 0',
-                    'error' => 'Kode voucher tidak valid',
+                    'error' => __('messages.error.voucher_invalid_code'),
                 ];
                 continue;
             }

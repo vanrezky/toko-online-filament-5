@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch } from "vue";
+import { useTranslations } from "../../composables/useTranslations";
 import { Link, usePage, router } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { ShoppingBag, Heart, ShieldCheck, Truck, RefreshCw, ChevronRight, Plus, Minus, Warehouse, Scale } from "lucide-vue-next";
@@ -13,6 +14,8 @@ const selectedImage = ref(props.product.thumbnail);
 const quantity = ref(1);
 const selectedAttributes = ref({});
 const activeFaq = ref(null);
+
+const { t } = useTranslations();
 
 const isWishlisted = computed(() => {
     return page.props.wishlist_product_ids?.includes(props.product.id);
@@ -123,7 +126,7 @@ const toggleFaq = (index) => {
 
 const addToCart = () => {
     if (hasVariants.value && !selectedVariant.value) {
-        alert("Silakan pilih semua opsi sebelum menambahkan ke keranjang.");
+        alert(t("messages.error.select_options"));
         return;
     }
 
@@ -147,9 +150,9 @@ const addToCart = () => {
         <div class="bg-secondary/30 py-8 md:py-12">
             <div class="container mx-auto px-4">
                 <nav class="mb-8 flex items-center gap-2 text-xs text-muted-foreground">
-                    <Link :href="route('frontend.home')" class="transition-colors hover:text-foreground">Beranda</Link>
+                    <Link :href="route('frontend.home')" class="transition-colors hover:text-foreground">{{ t("labels.breadcrumb.home") }}</Link>
                     <ChevronRight class="h-3 w-3" />
-                    <Link :href="route('frontend.products')" class="transition-colors hover:text-foreground">Produk</Link>
+                    <Link :href="route('frontend.products')" class="transition-colors hover:text-foreground">{{ t("labels.breadcrumb.products") }}</Link>
                     <ChevronRight v-if="product.category" class="h-3 w-3" />
                     <Link
                         v-if="product.category"
@@ -208,10 +211,10 @@ const addToCart = () => {
                             </div>
 
                             <p v-if="activeWholesale" class="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700">
-                                Harga Grosir! Min. {{ activeWholesale.min_qty }} unit @ Rp{{ activeWholesale.price?.toLocaleString("id-ID") }}
+                                {{ t("labels.product.wholesale_active", { qty: activeWholesale.min_qty, price: "Rp" + activeWholesale.price?.toLocaleString("id-ID") }) }}
                             </p>
                             <p v-else-if="nextWholesale" class="rounded-xl bg-secondary p-3 text-sm text-muted-foreground">
-                                Beli {{ nextWholesale.min_qty }}+ unit untuk harga grosir Rp{{ nextWholesale.price?.toLocaleString("id-ID") }}
+                                {{ t("labels.product.wholesale_next", { qty: nextWholesale.min_qty, price: "Rp" + nextWholesale.price?.toLocaleString("id-ID") }) }}
                             </p>
 
                             <p class="text-sm leading-relaxed text-muted-foreground">
@@ -250,8 +253,8 @@ const addToCart = () => {
                                         <Warehouse class="h-5 w-5 text-muted-foreground" />
                                     </div>
                                     <div>
-                                        <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Dikirim Dari</p>
-                                        <p class="text-sm font-semibold">{{ product.warehouse?.name || "Gudang Utama" }}</p>
+                                        <p class="text-[10px] uppercase tracking-wider text-muted-foreground">{{ t("labels.product.shipped_from") }}</p>
+                                        <p class="text-sm font-semibold">{{ product.warehouse?.name || t("labels.product.default_warehouse") }}</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-3 border-l border-border/50 pl-4">
@@ -259,7 +262,7 @@ const addToCart = () => {
                                         <Scale class="h-5 w-5 text-muted-foreground" />
                                     </div>
                                     <div>
-                                        <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Berat</p>
+                                        <p class="text-[10px] uppercase tracking-wider text-muted-foreground">{{ t("labels.product.weight") }}</p>
                                         <p class="text-sm font-semibold">{{ ((product.weight || 0) / 1000).toFixed(2) }} kg</p>
                                     </div>
                                 </div>
@@ -267,15 +270,15 @@ const addToCart = () => {
 
                             <div class="flex items-center gap-4">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-sm text-muted-foreground">Tersedia:</span>
+                                    <span class="text-sm text-muted-foreground">{{ t("labels.product.availability") }}:</span>
                                     <span :class="displayStock > 0 ? 'text-green-600' : 'text-red-500'" class="text-sm font-semibold">
-                                        {{ displayStock > 0 ? `${displayStock} unit` : "Stok Habis" }}
+                                        {{ displayStock > 0 ? t("labels.product.stock_unit", { stock: displayStock }) : t("labels.product.out_of_stock") }}
                                     </span>
                                 </div>
                             </div>
 
                             <div class="space-y-3">
-                                <label class="text-sm font-semibold">Jumlah</label>
+                                <label class="text-sm font-semibold">{{ t("labels.product.quantity") }}</label>
                                 <div class="flex w-fit items-center rounded-full border border-border bg-white">
                                     <button
                                         @click="updateQuantity(-1)"
@@ -299,7 +302,7 @@ const addToCart = () => {
                                     </button>
                                 </div>
                                 <p v-if="product.min_order && product.min_order > 1" class="text-xs text-muted-foreground">
-                                    Min. pemesanan: {{ product.min_order }} unit
+                                    {{ t("labels.product.min_order", { min: product.min_order }) }}
                                 </p>
                             </div>
 
@@ -310,7 +313,7 @@ const addToCart = () => {
                                     class="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <ShoppingBag class="h-5 w-5" />
-                                    <span>{{ hasVariants && !selectedVariant ? "Pilih Opsi" : "Tambah ke Keranjang" }}</span>
+                                    <span>{{ hasVariants && !selectedVariant ? t("labels.actions.select_options") : t("labels.actions.add_to_cart") }}</span>
                                 </button>
                                 <button
                                     @click="toggleWishlist"
@@ -328,18 +331,18 @@ const addToCart = () => {
                         <div class="grid grid-cols-3 gap-4">
                             <div class="rounded-xl bg-white p-4 text-center">
                                 <Truck class="mx-auto mb-2 h-6 w-6 text-primary" />
-                                <h4 class="text-xs font-semibold">Gratis Ongkir</h4>
-                                <p class="text-[10px] text-muted-foreground">Min. pembelanjaan tertentu</p>
+                                <h4 class="text-xs font-semibold">{{ t("labels.trust.free_shipping") }}</h4>
+                                <p class="text-[10px] text-muted-foreground">{{ t("labels.trust.free_shipping_note") }}</p>
                             </div>
                             <div class="rounded-xl bg-white p-4 text-center">
                                 <ShieldCheck class="mx-auto mb-2 h-6 w-6 text-primary" />
-                                <h4 class="text-xs font-semibold">Pembayaran Aman</h4>
-                                <p class="text-[10px] text-muted-foreground">100% checkout aman</p>
+                                <h4 class="text-xs font-semibold">{{ t("labels.trust.secure_payment") }}</h4>
+                                <p class="text-[10px] text-muted-foreground">{{ t("labels.trust.secure_payment_note") }}</p>
                             </div>
                             <div class="rounded-xl bg-white p-4 text-center">
                                 <RefreshCw class="mx-auto mb-2 h-6 w-6 text-primary" />
-                                <h4 class="text-xs font-semibold">Easy Returns</h4>
-                                <p class="text-[10px] text-muted-foreground">30 hari kebijakan pengembalian</p>
+                                <h4 class="text-xs font-semibold">{{ t("labels.trust.easy_returns") }}</h4>
+                                <p class="text-[10px] text-muted-foreground">{{ t("labels.trust.easy_returns_note") }}</p>
                             </div>
                         </div>
                     </div>
@@ -347,8 +350,8 @@ const addToCart = () => {
 
                 <div v-if="product.faqs && product.faqs.length > 0" class="mt-16">
                     <div class="mb-8 text-center">
-                        <h2 class="text-xl font-bold text-foreground md:text-2xl">Pertanyaan yang Sering Diajukan</h2>
-                        <p class="mt-2 text-sm text-muted-foreground">Yang perlu Anda ketahui tentang {{ product.name }}</p>
+                        <h2 class="text-xl font-bold text-foreground md:text-2xl">{{ t("labels.faq.heading") }}</h2>
+                        <p class="mt-2 text-sm text-muted-foreground">{{ t("labels.faq.subheading", { name: product.name }) }}</p>
                     </div>
 
                     <div class="mx-auto max-w-3xl space-y-3">

@@ -4,6 +4,9 @@ import { Link, router } from '@inertiajs/vue3';
 import TemplateWrapper from '../../components/TemplateWrapper.vue';
 import ProductCard from '../../components/UI/ProductCard.vue';
 import { Heart, ShoppingBag, ArrowRight } from 'lucide-vue-next';
+import { useTranslations } from '../../composables/useTranslations';
+
+const { t } = useTranslations();
 
 const props = defineProps({
   products: [Object, Array]
@@ -18,17 +21,17 @@ const items = computed(() => {
 </script>
 
 <template>
-  <TemplateWrapper title="My Wishlist">
+  <TemplateWrapper :title="t('meta.wishlist.title')">
     <div class="py-12 md:py-20">
       <div class="container mx-auto px-4 md:px-6">
         <div class="max-w-6xl mx-auto space-y-12">
           <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div class="space-y-2">
-              <h1 class="text-3xl md:text-4xl font-bold text-black tracking-tight uppercase">My Wishlist</h1>
-              <p class="text-gray-500 text-sm">Products you've saved for later.</p>
+              <h1 class="text-3xl md:text-4xl font-bold text-black tracking-tight uppercase">{{ t('labels.wishlist.heading') }}</h1>
+              <p class="text-gray-500 text-sm">{{ t('labels.wishlist.description') }}</p>
             </div>
             <span v-if="items.length > 0" class="text-xs font-bold uppercase tracking-widest text-gray-400">
-              {{ items.length }} Items Saved
+              {{ t('labels.wishlist.item_count', { count: items.length }) }}
             </span>
           </div>
 
@@ -46,11 +49,11 @@ const items = computed(() => {
               <Heart class="w-10 h-10 text-gray-300" />
             </div>
             <div class="space-y-3">
-              <h2 class="text-2xl font-bold text-black uppercase tracking-tight">Your wishlist is empty</h2>
-              <p class="text-gray-500 text-sm max-w-sm mx-auto">Save your favorite items to your wishlist so you can find them easily later.</p>
+              <h2 class="text-2xl font-bold text-black uppercase tracking-tight">{{ t('labels.wishlist.empty_title') }}</h2>
+              <p class="text-gray-500 text-sm max-w-sm mx-auto">{{ t('labels.wishlist.empty_description') }}</p>
             </div>
             <Link :href="route('frontend.products')" class="inline-block bg-black text-white px-10 py-4 text-sm font-bold uppercase tracking-widest hover:bg-gray-800 transition-all shadow-lg">
-              Explore Products
+              {{ t('labels.actions.explore_products') }}
             </Link>
           </div>
         </div>

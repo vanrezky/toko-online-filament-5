@@ -4,6 +4,9 @@ import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import ProductCard from "../../components/UI/ProductCard.vue";
 import { Clock, ChevronRight, ChevronLeft, Zap, Tag, Percent } from "lucide-vue-next";
 import { Link } from "@inertiajs/vue3";
+import { useTranslations } from "../../composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     flashSale: Object,
@@ -91,7 +94,7 @@ const stats = computed(() => {
 </script>
 
 <template>
-    <TemplateWrapper title="Flash Sale">
+    <TemplateWrapper :title="t('meta.flash_sale.title')">
         <section class="relative overflow-hidden bg-gradient-to-br from-destructive/5 via-white to-destructive/10 py-8 md:py-12">
             <!-- Decorative -->
             <div class="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-destructive/10 blur-3xl"></div>
@@ -101,21 +104,21 @@ const stats = computed(() => {
             <div class="container mx-auto px-4">
                 <!-- Breadcrumb -->
                 <div class="relative z-10 mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-                    <Link href="/" class="transition-colors hover:text-foreground">Beranda</Link>
+                    <Link href="/" class="transition-colors hover:text-foreground">{{ t('labels.breadcrumb.home') }}</Link>
                     <ChevronRight class="h-4 w-4" />
-                    <span class="font-medium text-foreground">Flash Sale</span>
+                    <span class="font-medium text-foreground">{{ t('labels.breadcrumb.flash_sale') }}</span>
                 </div>
 
                 <!-- Header -->
                 <div class="relative z-10 mb-8">
                     <div class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-destructive/20 to-rose-500/20 px-4 py-2">
                         <Zap class="h-5 w-5 text-destructive" />
-                        <span class="text-sm font-bold uppercase tracking-widest text-destructive">Promo Terbatas</span>
+                        <span class="text-sm font-bold uppercase tracking-widest text-destructive">{{ t('labels.flash_sale.limited_promo') }}</span>
                     </div>
                     <h1
                         class="mt-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-3xl font-bold text-transparent md:text-4xl lg:text-5xl"
                     >
-                        {{ flashSale?.name || "Flash Sale" }}
+                        {{ flashSale?.name || t('meta.flash_sale.title') }}
                     </h1>
                     <p v-if="flashSale?.description" class="mt-2 max-w-xl text-base text-muted-foreground md:text-lg">
                         {{ flashSale.description }}
@@ -127,14 +130,14 @@ const stats = computed(() => {
                             <Tag class="h-5 w-5 text-primary" />
                             <div>
                                 <span class="text-lg font-bold text-foreground">{{ stats.count }}</span>
-                                <span class="ml-1 text-sm text-muted-foreground">Produk Promo</span>
+                                <span class="ml-1 text-sm text-muted-foreground">{{ t('labels.flash_sale.promo_products') }}</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 rounded-xl bg-white px-4 py-2 shadow-md">
                             <Percent class="h-5 w-5 text-destructive" />
                             <div>
                                 <span class="text-lg font-bold text-destructive">~{{ stats.avgDiscount }}%</span>
-                                <span class="ml-1 text-sm text-muted-foreground">Rata-rata Diskon</span>
+                                <span class="ml-1 text-sm text-muted-foreground">{{ t('labels.flash_sale.avg_discount') }}</span>
                             </div>
                         </div>
                     </div>
@@ -165,7 +168,7 @@ const stats = computed(() => {
                         <div class="flex items-center gap-4">
                             <div class="hidden items-center gap-2 sm:flex">
                                 <Clock class="h-5 w-5 text-white/70" />
-                                <span class="text-sm font-medium text-white/70">Berakhir dalam:</span>
+                                <span class="text-sm font-medium text-white/70">{{ t('labels.flash_sale.ends_in') }}</span>
                             </div>
                             <div class="flex items-center gap-2 font-bold">
                                 <div class="flex flex-col items-center">
@@ -173,7 +176,7 @@ const stats = computed(() => {
                                         class="flex min-w-[48px] items-center justify-center rounded-xl bg-white px-3 py-2.5 text-xl font-bold text-destructive shadow-xl md:text-2xl"
                                         >{{ timeLeft.hours }}</span
                                     >
-                                    <span class="mt-1.5 text-[10px] uppercase tracking-wider text-white/70">Jam</span>
+                                    <span class="mt-1.5 text-[10px] uppercase tracking-wider text-white/70">{{ t('labels.time.hours') }}</span>
                                 </div>
                                 <span class="mb-6 text-2xl font-bold text-white/50 md:text-3xl">:</span>
                                 <div class="flex flex-col items-center">
@@ -181,7 +184,7 @@ const stats = computed(() => {
                                         class="flex min-w-[48px] items-center justify-center rounded-xl bg-white px-3 py-2.5 text-xl font-bold text-destructive shadow-xl md:text-2xl"
                                         >{{ timeLeft.minutes }}</span
                                     >
-                                    <span class="mt-1.5 text-[10px] uppercase tracking-wider text-white/70">Min</span>
+                                    <span class="mt-1.5 text-[10px] uppercase tracking-wider text-white/70">{{ t('labels.time.minutes') }}</span>
                                 </div>
                                 <span class="mb-6 text-2xl font-bold text-white/50 md:text-3xl">:</span>
                                 <div class="flex flex-col items-center">
@@ -189,7 +192,7 @@ const stats = computed(() => {
                                         class="flex min-w-[48px] items-center justify-center rounded-xl bg-white px-3 py-2.5 text-xl font-bold text-destructive shadow-xl md:text-2xl"
                                         >{{ timeLeft.seconds }}</span
                                     >
-                                    <span class="mt-1.5 text-[10px] uppercase tracking-wider text-white/70">Detik</span>
+                                    <span class="mt-1.5 text-[10px] uppercase tracking-wider text-white/70">{{ t('labels.time.seconds') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -200,7 +203,7 @@ const stats = computed(() => {
                     <!-- Scroll Controls -->
                     <div class="relative z-10 mb-6 flex items-center justify-between">
                         <p class="text-sm text-muted-foreground">
-                            <span class="font-semibold text-foreground">{{ flashSaleProducts.length }}</span> produk promo
+                            <span class="font-semibold text-foreground">{{ flashSaleProducts.length }}</span> {{ t('labels.flash_sale.product_count_suffix') }}
                         </p>
                         <div class="flex items-center gap-2">
                             <button
@@ -258,7 +261,7 @@ const stats = computed(() => {
                                         class="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-destructive/10 transition-transform duration-500 group-hover:scale-150"
                                     ></div>
                                     <div class="mb-3 text-5xl transition-transform duration-300 group-hover:scale-110">🔥</div>
-                                    <span class="mb-1 text-sm font-semibold text-foreground">Lihat Semua</span>
+                                    <span class="mb-1 text-sm font-semibold text-foreground">{{ t('labels.actions.view_all') }}</span>
                                     <span class="text-xs text-muted-foreground">{{ flashSaleProducts.length }}+ Promo</span>
                                 </Link>
                             </div>
@@ -271,7 +274,7 @@ const stats = computed(() => {
                             :href="route('frontend.products')"
                             class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary/90 px-8 py-4 text-sm font-bold text-primary-foreground shadow-xl shadow-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/40"
                         >
-                            Lihat Semua Produk
+                            {{ t('labels.actions.view_all_products') }}
                             <ChevronRight class="h-5 w-5" />
                         </Link>
                     </div>
@@ -295,15 +298,15 @@ const stats = computed(() => {
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                             </svg>
                         </div>
-                        <h3 class="mb-2 text-xl font-bold text-foreground">Tidak Ada Flash Sale</h3>
+                        <h3 class="mb-2 text-xl font-bold text-foreground">{{ t('labels.flash_sale.empty_title') }}</h3>
                         <p class="mx-auto mb-8 max-w-sm text-sm text-muted-foreground">
-                            Sepertinya tidak ada flash sale yang aktif saat ini. Yuk, cek kembali nanti!
+                            {{ t('labels.flash_sale.empty_description') }}
                         </p>
                         <Link
                             :href="route('frontend.products')"
                             class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/90 px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/40"
                         >
-                            Lihat Koleksi Produk
+                            {{ t('labels.actions.view_products') }}
                             <ChevronRight class="h-4 w-4" />
                         </Link>
                     </div>

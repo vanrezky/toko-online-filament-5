@@ -1,6 +1,9 @@
 <script setup>
 import { computed, ref } from "vue";
 import { Copy, Check, Ticket, Truck, Tag, Clock, Users, Loader2 } from "lucide-vue-next";
+import { useTranslations } from "../../composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     voucher: {
@@ -43,7 +46,7 @@ const typeIcon = computed(() => {
 });
 
 const typeLabel = computed(() => {
-    return props.voucher.is_shipping ? "FREE ONGKIR" : "DISKON";
+    return props.voucher.is_shipping ? t('labels.voucher.type_free_shipping') : t('labels.voucher.type_discount');
 });
 
 const isExpiringSoon = computed(() => {
@@ -52,12 +55,12 @@ const isExpiringSoon = computed(() => {
 
 const timeRemaining = computed(() => {
     if (props.voucher.remaining_days > 0) {
-        return `${props.voucher.remaining_days} hari lagi`;
+        return t('labels.time.days_remaining', { days: props.voucher.remaining_days });
     }
     if (props.voucher.remaining_hours > 0) {
-        return `${props.voucher.remaining_hours} jam lagi`;
+        return t('labels.time.hours_remaining', { hours: props.voucher.remaining_hours });
     }
-    return "Segera berakhir";
+    return t('labels.time.expiring_soon');
 });
 
 const copyCode = async () => {
@@ -131,7 +134,7 @@ const applyVoucher = () => {
                 </p>
 
                 <!-- Min Purchase -->
-                <p class="mb-3 text-xs opacity-70">Min. Belanja: {{ voucher.min_purchase_formatted }}</p>
+                <p class="mb-3 text-xs opacity-70">{{ t('labels.voucher.min_purchase', { amount: voucher.min_purchase_formatted }) }}</p>
             </div>
 
             <!-- Code & Actions -->
@@ -159,7 +162,7 @@ const applyVoucher = () => {
                                   ? 'bg-white/20 text-white hover:bg-white/30'
                                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         "
-                        :title="copied ? 'Copied!' : 'Salin kode'"
+                        :title="copied ? t('labels.voucher.copied') : t('labels.voucher.copy_code')"
                     >
                         <Check v-if="copied" class="h-5 w-5" />
                         <Copy v-else class="h-5 w-5" />
@@ -174,7 +177,7 @@ const applyVoucher = () => {
                     </div>
                     <div class="flex items-center gap-1">
                         <Users class="h-3.5 w-3.5" />
-                        <span>{{ voucher.usage_count }}x digunakan</span>
+                        <span>{{ t('labels.voucher.usage_count', { count: voucher.usage_count }) }}</span>
                     </div>
                 </div>
 
@@ -199,7 +202,7 @@ const applyVoucher = () => {
                     <Loader2 v-if="isApplying" class="h-4 w-4 animate-spin" />
                     <Ticket v-else class="h-4 w-4" />
                     <span>{{
-                        isApplied ? "Ganti Voucher" : voucher.is_fully_used ? "Habis Digunakan" : isApplying ? "Menerapkan..." : "Gunakan Voucher"
+                        isApplied ? t('labels.voucher.change') : voucher.is_fully_used ? t('labels.voucher.fully_used') : isApplying ? t('labels.voucher.applying') : t('labels.voucher.use')
                     }}</span>
                 </button>
             </div>
@@ -207,7 +210,7 @@ const applyVoucher = () => {
 
         <!-- Applied Overlay -->
         <div v-if="isApplied" class="absolute -right-4 -top-4 rotate-12">
-            <div class="rounded-lg bg-green-500 px-4 py-1 text-sm font-bold text-white shadow-lg">✓ AKTIF</div>
+            <div class="rounded-lg bg-green-500 px-4 py-1 text-sm font-bold text-white shadow-lg">✓ {{ t('labels.voucher.active_badge') }}</div>
         </div>
     </div>
 </template>

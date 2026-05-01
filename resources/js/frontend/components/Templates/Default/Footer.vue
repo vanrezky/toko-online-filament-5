@@ -4,6 +4,9 @@ import { computed } from "vue";
 import { Instagram, Facebook, Twitter, Mail } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import PromotionBanner from "../../UI/PromotionBanner.vue";
+import { useTranslations } from "../../../composables/useTranslations";
+
+const { t } = useTranslations();
 
 const { props } = usePage();
 const settings = computed(() => props.settings);
@@ -17,22 +20,22 @@ const submitNewsletter = () => {
     newsletterForm.post(route("frontend.newsletter.subscribe"), {
         preserveScroll: true,
         onSuccess: () => {
-            toast.success("Berhasil berlangganan newsletter! Cek email Anda untuk konfirmasi.");
+            toast.success(t('messages.success.subscribed'));
             newsletterForm.reset();
         },
         onError: (errors) => {
-            const message = errors.email || "Gagal berlangganan newsletter. Silakan coba lagi.";
+            const message = errors.email || t('messages.error.generic');
             toast.error(message);
         },
     });
 };
 
 const customerServiceLinks = [
-  { name: 'Contact Us', href: route('frontend.contact') },
-  { name: 'FAQ', href: route('frontend.faq') },
-  { name: 'Shipping Info', href: '#' },
-  { name: 'Returns & Exchanges', href: '#' },
-  { name: 'Track Order', href: '#' },
+  { name: t('labels.footer.contact_us'), href: route('frontend.contact') },
+  { name: t('labels.footer.faq'), href: route('frontend.faq') },
+  { name: t('labels.footer.shipping_info'), href: '#' },
+  { name: t('labels.footer.returns_exchanges'), href: '#' },
+  { name: t('labels.footer.track_order'), href: '#' },
 ];
 
 const companyLinks = computed(() => [...(usePage().props.menu?.footer || [])]);
@@ -59,8 +62,7 @@ const footerPromos = computed(() => {
                         <span v-else class="text-2xl font-bold tracking-tight text-black">{{ settings.site_name }}</span>
                     </Link>
                     <p class="max-w-xs text-sm leading-relaxed text-gray-500">
-                        Experience the finest in fashion and lifestyle. We bring you curated collections that blend quality, comfort, and timeless
-                        style.
+                        {{ t('text.footer.brand_description') }}
                     </p>
                     <div class="flex space-x-5">
                         <a href="#" class="text-gray-400 transition-colors hover:text-black">
@@ -77,7 +79,7 @@ const footerPromos = computed(() => {
 
                 <!-- Customer Service -->
                 <div>
-                    <h3 class="mb-6 text-sm font-bold uppercase tracking-widest text-black">Customer Service</h3>
+                    <h3 class="mb-6 text-sm font-bold uppercase tracking-widest text-black">{{ t('labels.footer.customer_service') }}</h3>
                     <ul class="space-y-4">
                         <li v-for="link in customerServiceLinks" :key="link.name">
                             <a :href="link.href" class="text-sm text-gray-500 transition-colors hover:text-black">{{ link.name }}</a>
@@ -87,7 +89,7 @@ const footerPromos = computed(() => {
 
                 <!-- Pages -->
                 <div>
-                    <h3 class="mb-6 text-sm font-bold uppercase tracking-widest text-black">Pages</h3>
+                    <h3 class="mb-6 text-sm font-bold uppercase tracking-widest text-black">{{ t('labels.footer.pages') }}</h3>
                     <ul class="space-y-4">
                         <li v-for="link in companyLinks" :key="link.name">
                             <Link :href="link.href" class="text-sm text-gray-500 transition-colors hover:text-black">{{ link.name }}</Link>
@@ -97,14 +99,14 @@ const footerPromos = computed(() => {
 
                 <!-- Newsletter -->
                 <div>
-                    <h3 class="mb-6 text-sm font-bold uppercase tracking-widest text-black">Newsletter</h3>
-                    <p class="mb-6 text-sm text-gray-500">Subscribe to receive updates, access to exclusive deals, and more.</p>
+                    <h3 class="mb-6 text-sm font-bold uppercase tracking-widest text-black">{{ t('labels.footer.newsletter') }}</h3>
+                    <p class="mb-6 text-sm text-gray-500">{{ t('labels.footer.newsletter_description') }}</p>
                     <form class="space-y-3" @submit.prevent="submitNewsletter">
                         <div class="relative">
                             <input
                                 v-model="newsletterForm.email"
                                 type="email"
-                                placeholder="Enter your email"
+                                :placeholder="t('placeholders.email')"
                                 class="w-full rounded-none border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-black focus:outline-none"
                                 :class="newsletterForm.errors.email && 'border-destructive'"
                             />
@@ -127,9 +129,9 @@ const footerPromos = computed(() => {
             <div
                 class="mt-16 flex flex-col items-center justify-between space-y-4 border-t border-gray-100 pt-8 text-xs text-gray-400 md:flex-row md:space-y-0"
             >
-                <p>&copy; {{ currentYear }} {{ settings.site_name }}. All rights reserved.</p>
+                <p>&copy; {{ currentYear }} {{ settings.site_name }}. {{ t('labels.footer.all_rights_reserved') }}</p>
                 <div class="flex space-x-6">
-                    <span>Secure Payment:</span>
+                    <span>{{ t('labels.footer.secure_payment') }}</span>
                     <div class="flex space-x-3 opacity-50 grayscale">
                         <img src="https://cdn-icons-png.flaticon.com/512/196/196578.png" alt="Visa" class="h-4 w-auto" />
                         <img src="https://cdn-icons-png.flaticon.com/512/196/196561.png" alt="Mastercard" class="h-4 w-auto" />

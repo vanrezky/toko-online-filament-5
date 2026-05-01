@@ -4,6 +4,9 @@ import { Link, router } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { Search, Calendar, User, ArrowRight, Tag } from "lucide-vue-next";
 import debounce from "lodash/debounce";
+import { useTranslations } from "../../composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     posts: Object,
@@ -35,16 +38,16 @@ watch([search, selectedCategory], () => {
 </script>
 
 <template>
-    <TemplateWrapper title="Blog & Artikel" description="Temukan berita terkini, tips fashion, dan artikel gaya hidup menarik.">
+    <TemplateWrapper :title="t('meta.blog.title')" :description="t('meta.blog.description')">
         <div class="bg-gradient-to-br from-secondary/50 via-white to-secondary/30 py-12 md:py-20">
             <div class="container mx-auto px-4">
                 <div class="mx-auto max-w-6xl space-y-12">
                     <!-- Header -->
                     <div class="flex flex-col justify-between gap-8 border-b border-border/50 pb-12 md:flex-row md:items-end">
                         <div class="space-y-4">
-                            <h1 class="text-4xl font-bold tracking-tight text-foreground md:text-5xl">Blog & Artikel</h1>
+                            <h1 class="text-4xl font-bold tracking-tight text-foreground md:text-5xl">{{ t('meta.blog.title') }}</h1>
                             <p class="max-w-md text-lg text-muted-foreground">
-                                Temukan berita terkini, tips, dan artikel menarik untuk gaya hidup Anda.
+                                {{ t('meta.blog.description') }}
                             </p>
                         </div>
 
@@ -53,7 +56,7 @@ watch([search, selectedCategory], () => {
                                 <input
                                     v-model="search"
                                     type="text"
-                                    placeholder="Cari artikel..."
+                                    :placeholder="t('placeholders.search_articles')"
                                     class="w-full rounded-xl border border-border bg-white py-4 pl-12 pr-6 text-sm shadow-sm transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                                 />
                                 <Search class="absolute left-4 top-4 h-4 w-4 text-muted-foreground" />
@@ -72,7 +75,7 @@ watch([search, selectedCategory], () => {
                                     : 'bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground'
                             "
                         >
-                            Semua
+                            {{ t('labels.filters.all') }}
                         </button>
                         <button
                             v-for="cat in categories"
@@ -130,7 +133,7 @@ watch([search, selectedCategory], () => {
                                     :href="route('frontend.blog.show', post.slug)"
                                     class="mt-auto inline-flex items-center text-sm font-semibold text-primary transition-all group-hover:gap-3"
                                 >
-                                    Baca Selengkapnya <ArrowRight class="ml-2 h-4 w-4" />
+                                    {{ t('labels.actions.read_more') }} <ArrowRight class="ml-2 h-4 w-4" />
                                 </Link>
                             </div>
                         </article>
@@ -142,8 +145,8 @@ watch([search, selectedCategory], () => {
                             <Search class="h-10 w-10 text-muted-foreground" />
                         </div>
                         <div class="space-y-2">
-                            <h3 class="text-xl font-bold text-foreground">Artikel Tidak Ditemukan</h3>
-                            <p class="text-sm text-muted-foreground">Kami tidak dapat menemukan artikel yang sesuai dengan pencarian Anda.</p>
+                            <h3 class="text-xl font-bold text-foreground">{{ t('labels.blog.empty_title') }}</h3>
+                            <p class="text-sm text-muted-foreground">{{ t('labels.blog.empty_description') }}</p>
                         </div>
                         <button
                             @click="
@@ -152,7 +155,7 @@ watch([search, selectedCategory], () => {
                             "
                             class="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-colors hover:bg-primary/90"
                         >
-                            Reset Filter
+                            {{ t('labels.actions.reset_filters') }}
                         </button>
                     </div>
 

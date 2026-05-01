@@ -20,7 +20,7 @@ class LoginController extends Controller
     public function __invoke(GeneralSettings $settings)
     {
         if (! $settings->registration) {
-            return redirect()->back()->with('error', 'Registration is disabled.');
+            return redirect()->back()->with('error', __('messages.error.registration_disabled'));
         }
 
         return Inertia::render('Auth/Login');
@@ -29,7 +29,7 @@ class LoginController extends Controller
     public function login(Request $request, GeneralSettings $settings)
     {
         if (! $settings->registration) {
-            return redirect()->back()->with('error', 'Registration is disabled.');
+            return redirect()->back()->with('error', __('messages.error.registration_disabled'));
         }
 
         $credentials = $request->validate([

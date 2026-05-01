@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import { useForm, Link, router } from "@inertiajs/vue3";
 import axios from "axios";
 import { Loader2, Ticket, X, Truck, Tag, AlertCircle } from "lucide-vue-next";
+import { useTranslations } from "../../composables/useTranslations";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 
 const props = defineProps({
@@ -13,6 +14,8 @@ const props = defineProps({
     validatedVouchers: Object,
     activeGateway: String,
 });
+
+const { t } = useTranslations();
 
 const form = useForm({
     address_id: props.addresses?.find((a) => a.is_featured)?.id || props.addresses?.[0]?.id || null,
@@ -195,7 +198,7 @@ const submitOrder = async () => {
         if (error.response && error.response.status === 422) {
             form.errors = error.response.data.errors || {};
         } else {
-            alert(error.response?.data?.error || 'Gagal memproses pesanan. Silakan coba lagi.');
+            alert(error.response?.data?.error || t('messages.error.checkout_failed'));
         }
     } finally {
         isProcessingOrder.value = false;
@@ -232,10 +235,10 @@ const applyVoucher = async () => {
             }
             await validateVouchers();
         } else {
-            voucherError.value = response.data.error?.message || "Voucher tidak valid";
+            voucherError.value = response.data.error?.message || t('messages.error.voucher_invalid');
         }
     } catch (error) {
-        voucherError.value = error.response?.data?.error?.message || "Terjadi kesalahan";
+        voucherError.value = error.response?.data?.error?.message || t('messages.error.generic');
     } finally {
         isApplyingVoucher.value = false;
     }
@@ -243,11 +246,11 @@ const applyVoucher = async () => {
 </script>
 
 <template>
-    <TemplateWrapper title="Checkout">
+    <TemplateWrapper :title="t('labels.checkout.heading')">
         <div class="min-h-screen bg-[#f8f7fc] py-12 font-sans md:py-20">
             <div class="container mx-auto px-4 md:px-6">
                 <div class="mx-auto max-w-6xl">
-                    <h1 class="mb-12 text-3xl font-bold text-[#2d1b0e]">Checkout</h1>
+                    <h1 class="mb-12 text-3xl font-bold text-[#2d1b0e]">{{ t('labels.checkout.heading') }}</h1>
 
                     <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
                         <!-- Left Side: Forms -->
@@ -259,12 +262,12 @@ const applyVoucher = async () => {
                                         <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">
                                             1
                                         </div>
-                                        <h2 class="text-base font-bold text-[#2d1b0e]">Alamat Pengiriman</h2>
+                                        <h2 class="text-base font-bold text-[#2d1b0e]">{{ t('labels.checkout.shipping_address') }}</h2>
                                     </div>
                                     <Link
                                         :href="route('frontend.account', { section: 'addresses' })"
                                         class="text-xs font-semibold text-[#fa8456] transition-colors hover:text-[#e56f3f]"
-                                        >Kelola</Link
+                                        >{{ t('labels.actions.manage') }}</Link
                                     >
                                 </div>
 
@@ -326,7 +329,7 @@ const applyVoucher = async () => {
                                         >
                                             +
                                         </div>
-                                        <span class="text-xs font-semibold">Alamat Baru</span>
+                                        <span class="text-xs font-semibold">{{ t('labels.checkout.new_address') }}</span>
                                     </Link>
                                 </div>
                                 <p v-if="form.errors.address_id" class="mt-3 text-xs text-red-500">{{ form.errors.address_id }}</p>
@@ -339,11 +342,11 @@ const applyVoucher = async () => {
                                         <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">
                                             2
                                         </div>
-                                        <h2 class="text-base font-bold text-[#2d1b0e]">Metode Pengiriman</h2>
+                                        <h2 class="text-base font-bold text-[#2d1b0e]">{{ t('labels.checkout.shipping_method') }}</h2>
                                     </div>
                                     <div v-if="isLoadingShipping" class="flex items-center gap-2">
                                         <Loader2 class="h-4 w-4 animate-spin text-[#fa8456]" />
-                                        <span class="text-xs font-semibold text-[#6b5a4d]">Memperbarui...</span>
+                                        <span class="text-xs font-semibold text-[#6b5a4d]">{{ t('labels.actions.updating') }}</span>
                                     </div>
                                 </div>
 
@@ -367,7 +370,7 @@ const applyVoucher = async () => {
                                 <div v-else-if="shippingResults.length > 0" class="space-y-6">
                                     <div v-for="warehouse in shippingResults" :key="warehouse.warehouse_id" class="space-y-4">
                                         <h3 class="border-b border-[#f0eef5] pb-2 text-xs font-semibold text-[#6b5a4d]">
-                                            Dikirim dari {{ warehouse.warehouse_name }}
+                                            {{ t('labels.checkout.shipped_from', { warehouse: warehouse.warehouse_name }) }}
                                         </h3>
                                         <div class="space-y-2">
                                             <label
@@ -399,7 +402,7 @@ const applyVoucher = async () => {
                                                     </div>
                                                     <div class="ml-4">
                                                         <span class="block text-sm font-bold text-[#2d1b0e]">{{ option.courier_name }}</span>
-                                                        <span class="text-xs text-[#6b5a4d]">Estimasi: {{ option.estimation }}</span>
+                                                        <span class="text-xs text-[#6b5a4d]">{{ t('labels.checkout.estimation', { estimation: option.estimation }) }}</span>
                                                     </div>
                                                 </div>
                                                 <span class="text-sm font-bold text-[#fa8456]">{{ formatCurrency(option.price) }}</span>
@@ -411,10 +414,10 @@ const applyVoucher = async () => {
                                     v-else-if="!isLoadingShipping && form.address_id"
                                     class="rounded-xl border border-dashed border-[#e8e6ef] p-8 text-center"
                                 >
-                                    <p class="text-xs text-[#6b5a4d]">Tidak ada opsi pengiriman untuk alamat ini.</p>
+                                    <p class="text-xs text-[#6b5a4d]">{{ t('messages.error.no_shipping_options') }}</p>
                                 </div>
                                 <div v-else-if="!form.address_id" class="rounded-xl border border-dashed border-[#e8e6ef] p-8 text-center">
-                                    <p class="text-xs text-[#6b5a4d]">Silakan pilih alamat pengiriman terlebih dahulu.</p>
+                                    <p class="text-xs text-[#6b5a4d]">{{ t('messages.error.select_address_first') }}</p>
                                 </div>
                                 <p v-if="form.errors.shipping_methods" class="mt-3 text-xs text-red-500">{{ form.errors.shipping_methods }}</p>
                             </section>
@@ -423,14 +426,14 @@ const applyVoucher = async () => {
                             <section v-if="activeGateway !== 'midtrans'" class="rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                                 <div class="mb-6 flex items-center gap-3">
                                     <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">3</div>
-                                    <h2 class="text-base font-bold text-[#2d1b0e]">Metode Pembayaran</h2>
+                                    <h2 class="text-base font-bold text-[#2d1b0e]">{{ t('labels.checkout.payment_method') }}</h2>
                                 </div>
 
                                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                                     <label
                                         v-for="method in [
-                                            { id: 'bank_transfer', name: 'Transfer Bank' },
-                                            { id: 'qris', name: 'QRIS' },
+                                            { id: 'bank_transfer', name: t('labels.payment.bank_transfer') },
+                                            { id: 'qris', name: t('labels.payment.qris') },
                                         ]"
                                         :key="method.id"
                                         class="flex cursor-pointer items-center rounded-xl border p-4 transition-all hover:bg-[#fafafa]"
@@ -450,12 +453,12 @@ const applyVoucher = async () => {
 
                             <!-- Notes Section -->
                             <section class="rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
-                                <h2 class="mb-4 text-sm font-bold text-[#2d1b0e]">Catatan Pesanan (Opsional)</h2>
+                                <h2 class="mb-4 text-sm font-bold text-[#2d1b0e]">{{ t('labels.checkout.order_notes') }}</h2>
                                 <textarea
                                     v-model="form.notes"
                                     rows="3"
                                     class="w-full rounded-xl border border-[#e8e6ef] p-4 text-sm transition-all focus:border-[#fa8456] focus:outline-none focus:ring-2 focus:ring-[#fa8456]/20"
-                                    placeholder="Instruksi khusus untuk pengiriman Anda..."
+                                    :placeholder="t('placeholders.order_notes')"
                                 ></textarea>
                             </section>
                         </div>
@@ -463,13 +466,13 @@ const applyVoucher = async () => {
                         <!-- Right Side: Order Summary -->
                         <div class="lg:col-span-5">
                             <div class="sticky top-32 space-y-6 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
-                                <h2 class="border-b border-[#f0eef5] pb-4 text-sm font-bold text-[#2d1b0e]">Ringkasan Pesanan</h2>
+                                <h2 class="border-b border-[#f0eef5] pb-4 text-sm font-bold text-[#2d1b0e]">{{ t('labels.checkout.order_summary') }}</h2>
 
                                 <!-- Pending Vouchers Section -->
                                 <div v-if="hasAnyVoucher || isValidatingVouchers" class="space-y-3">
                                     <div class="mb-2 flex items-center gap-2">
                                         <Ticket class="h-4 w-4 text-[#fa8456]" />
-                                        <span class="text-xs font-semibold text-[#2d1b0e]">Voucher Dipilih</span>
+                                        <span class="text-xs font-semibold text-[#2d1b0e]">{{ t('labels.voucher.selected') }}</span>
                                     </div>
 
                                     <!-- Shipping Voucher -->
@@ -488,7 +491,7 @@ const applyVoucher = async () => {
                                                         {{ localValidatedVouchers.shipping.name || localValidatedVouchers.shipping.code }}
                                                     </p>
                                                     <p v-if="localValidatedVouchers.shipping.valid" class="text-xs text-green-600">
-                                                        Hemat {{ localValidatedVouchers.shipping.formatted_discount }}
+                                                        {{ t('labels.voucher.save_amount', { amount: localValidatedVouchers.shipping.formatted_discount }) }}
                                                     </p>
                                                     <p v-else class="flex items-center gap-1 text-xs text-red-600">
                                                         <AlertCircle class="h-3 w-3" />
@@ -518,7 +521,7 @@ const applyVoucher = async () => {
                                                         {{ localValidatedVouchers.product.name || localValidatedVouchers.product.code }}
                                                     </p>
                                                     <p v-if="localValidatedVouchers.product.valid" class="text-xs text-green-600">
-                                                        Hemat {{ localValidatedVouchers.product.formatted_discount }}
+                                                        {{ t('labels.voucher.save_amount', { amount: localValidatedVouchers.product.formatted_discount }) }}
                                                     </p>
                                                     <p v-else class="flex items-center gap-1 text-xs text-red-600">
                                                         <AlertCircle class="h-3 w-3" />
@@ -543,13 +546,13 @@ const applyVoucher = async () => {
                                 <div class="rounded-lg border border-dashed border-[#e8e6ef] p-4">
                                     <div class="mb-2 flex items-center gap-2">
                                         <Ticket class="h-4 w-4 text-[#fa8456]" />
-                                        <span class="text-xs font-semibold text-[#2d1b0e]">Masukkan Kode Voucher</span>
+                                        <span class="text-xs font-semibold text-[#2d1b0e]">{{ t('labels.voucher.enter_code') }}</span>
                                     </div>
                                     <div class="flex gap-2">
                                         <input
                                             v-model="voucherCode"
                                             type="text"
-                                            placeholder="Contoh: DISKON10"
+                                            :placeholder="t('placeholders.voucher_code')"
                                             class="flex-1 rounded-lg border border-[#e8e6ef] bg-[#fafafa] px-3 py-2 text-xs uppercase transition-all focus:border-[#fa8456] focus:bg-white focus:outline-none"
                                             @keyup.enter="applyVoucher"
                                         />
@@ -559,7 +562,7 @@ const applyVoucher = async () => {
                                             class="flex items-center justify-center gap-1 rounded-lg bg-[#fa8456] px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-[#e56f3f] disabled:bg-[#c4bfc9]"
                                         >
                                             <Loader2 v-if="isApplyingVoucher" class="h-3 w-3 animate-spin" />
-                                            <span>Pakai</span>
+                                            <span>{{ t('labels.actions.apply') }}</span>
                                         </button>
                                     </div>
                                     <p v-if="voucherError" class="mt-2 text-xs text-red-500">{{ voucherError }}</p>
@@ -571,7 +574,7 @@ const applyVoucher = async () => {
                                     class="flex items-center justify-center gap-2 rounded-lg border border-dashed border-[#e8e6ef] py-3 text-xs font-semibold text-[#6b5a4d] transition-all hover:border-[#fa8456] hover:text-[#fa8456]"
                                 >
                                     <Ticket class="h-4 w-4" />
-                                    <span>List Voucher</span>
+                                    <span>{{ t('labels.actions.voucher_list') }}</span>
                                 </Link>
 
                                 <!-- Order Items (Mini list) -->
@@ -596,11 +599,11 @@ const applyVoucher = async () => {
 
                                 <div class="space-y-3 border-t border-[#f0eef5] pt-6">
                                     <div class="flex justify-between text-sm">
-                                        <span class="text-[#6b5a4d]">Subtotal</span>
+                                        <span class="text-[#6b5a4d]">{{ t('labels.checkout.subtotal') }}</span>
                                         <span class="font-semibold text-[#2d1b0e]">{{ formatCurrency(subtotal) }}</span>
                                     </div>
                                     <div class="flex justify-between text-sm">
-                                        <span class="text-[#6b5a4d]">Pengiriman</span>
+                                        <span class="text-[#6b5a4d]">{{ t('labels.checkout.shipping') }}</span>
                                         <span class="font-semibold text-[#2d1b0e]">
                                             {{ formatCurrency(discountedShippingFee) }}
                                             <span v-if="shippingDiscount > 0" class="ml-1 text-xs text-green-600">
@@ -609,15 +612,15 @@ const applyVoucher = async () => {
                                         </span>
                                     </div>
                                     <div v-if="productDiscount > 0" class="flex justify-between text-sm text-green-600">
-                                        <span>Diskon Produk</span>
+                                        <span>{{ t('labels.checkout.product_discount') }}</span>
                                         <span class="font-semibold">-{{ formatCurrency(productDiscount) }}</span>
                                     </div>
                                     <div class="flex justify-between border-t border-[#e8e6ef] pt-4">
-                                        <span class="text-sm font-bold text-[#2d1b0e]">Total</span>
+                                        <span class="text-sm font-bold text-[#2d1b0e]">{{ t('labels.checkout.total') }}</span>
                                         <span class="text-xl font-bold text-[#fa8456]">{{ formatCurrency(grandTotal) }}</span>
                                     </div>
                                     <div v-if="totalVoucherDiscount > 0" class="rounded-lg bg-green-50 p-3 text-center">
-                                        <p class="text-sm font-semibold text-green-700">💰 Hemat {{ formatCurrency(totalVoucherDiscount) }}</p>
+                                        <p class="text-sm font-semibold text-green-700">💰 {{ t('labels.checkout.total_savings', { amount: formatCurrency(totalVoucherDiscount) }) }}</p>
                                     </div>
                                 </div>
 
@@ -642,14 +645,11 @@ const applyVoucher = async () => {
                                             d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                                         ></path>
                                     </svg>
-                                    <span>{{ isProcessingOrder ? "Memproses..." : "Buat Pesanan" }}</span>
+                                    <span>{{ isProcessingOrder ? t('labels.actions.processing') : t('labels.actions.place_order') }}</span>
                                 </button>
 
                                 <div class="pt-2">
-                                    <p class="text-center text-xs leading-relaxed text-[#6b5a4d]">
-                                        Transaksi terenkripsi dengan aman. Dengan menyelesaikan pembelian, Anda menyetujui
-                                        <a href="#" class="text-[#fa8456] underline underline-offset-2 hover:text-[#e56f3f]">Syarat & Ketentuan</a>.
-                                    </p>
+                                    <p class="text-center text-xs leading-relaxed text-[#6b5a4d]" v-html="t('labels.checkout.terms_agreement')"></p>
                                 </div>
                             </div>
                         </div>

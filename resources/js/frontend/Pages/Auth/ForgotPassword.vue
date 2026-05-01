@@ -2,7 +2,10 @@
 import { watch } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
+import { useTranslations } from "../../composables/useTranslations";
 import { Mail, ArrowRight, ArrowLeft } from "lucide-vue-next";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     status: String,
@@ -28,13 +31,13 @@ const submit = () => {
 </script>
 
 <template>
-    <TemplateWrapper title="Lupa Kata Sandi">
+    <TemplateWrapper :title="t('meta.forgot_password.title')">
         <div class="flex min-h-[70vh] items-center justify-center bg-secondary/30 px-4 py-12 sm:px-6 lg:px-8">
             <div class="w-full max-w-md space-y-8">
                 <div class="rounded-2xl bg-white p-8 shadow-sm">
                     <div class="mb-8 space-y-2 text-center">
-                        <h2 class="text-2xl font-bold text-foreground md:text-3xl">Lupa Kata Sandi?</h2>
-                        <p class="text-sm text-muted-foreground">Masukkan email Anda dan kami akan mengirim link untuk mereset kata sandi.</p>
+                        <h2 class="text-2xl font-bold text-foreground md:text-3xl">{{ t('labels.auth.forgot_password_heading') }}</h2>
+                        <p class="text-sm text-muted-foreground">{{ t('labels.auth.forgot_password_description') }}</p>
                     </div>
 
                     <div v-if="status" class="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
@@ -43,7 +46,7 @@ const submit = () => {
 
                     <form class="space-y-5" @submit.prevent="submit">
                         <div class="space-y-2">
-                            <label for="email" class="text-sm font-semibold text-foreground">Email</label>
+                            <label for="email" class="text-sm font-semibold text-foreground">{{ t('labels.form.email') }}</label>
                             <div class="relative">
                                 <input
                                     id="email"
@@ -51,7 +54,7 @@ const submit = () => {
                                     type="email"
                                     required
                                     class="w-full rounded-xl border border-border bg-secondary px-4 py-3.5 pl-11 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                    placeholder="nama@email.com"
+                                    :placeholder="t('placeholders.email')"
                                 />
                                 <Mail class="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                             </div>
@@ -63,7 +66,7 @@ const submit = () => {
                             :disabled="form.processing"
                             class="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            Kirim Link Reset
+                            {{ t('labels.actions.send_reset_link') }}
                             <ArrowRight class="h-4 w-4" />
                         </button>
                     </form>
@@ -74,7 +77,7 @@ const submit = () => {
                             class="inline-flex items-center gap-2 text-sm font-semibold text-foreground transition-colors hover:text-primary"
                         >
                             <ArrowLeft class="h-4 w-4" />
-                            Kembali ke Masuk
+                            {{ t('labels.actions.back_to_login') }}
                         </Link>
                     </div>
                 </div>

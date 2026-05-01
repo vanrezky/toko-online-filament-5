@@ -43,7 +43,7 @@ class CheckoutController extends Controller
             ->first();
 
         if (! $cart || $cart->items->isEmpty()) {
-            return redirect()->route('frontend.cart')->with('error', 'Your cart is empty.');
+            return redirect()->route('frontend.cart')->with('error', __('messages.error.cart_empty'));
         }
 
         $addresses = CustomerAddress::with(['province', 'district', 'subDistrict', 'village'])
@@ -78,7 +78,7 @@ class CheckoutController extends Controller
         $address = CustomerAddress::with('village')->findOrFail($request->address_id);
 
         if (! $address->village) {
-            return response()->json(['error' => 'Selected address does not have village information.'], 422);
+            return response()->json(['error' => __('messages.error.address_no_village')], 422);
         }
 
         $cartHash = md5($cart->items->sortBy('id')->map(function ($item) {
@@ -98,16 +98,16 @@ class CheckoutController extends Controller
 
             $pickupOption = $isPickupActive ? [
                 'courier_code' => CourierCode::PICKUP->value,
-                'courier_name' => 'Pick Up',
+                'courier_name' => __('labels.shipping.pick_up'),
                 'price' => 0,
-                'estimation' => 'Hari yang sama',
+                'estimation' => __('labels.shipping.estimation_same_day'),
             ] : null;
 
             $kurirTokoOption = $isKurirTokoActive ? [
                 'courier_code' => CourierCode::KURIR_TOKO->value,
-                'courier_name' => 'Kurir Toko',
+                'courier_name' => __('labels.shipping.kurir_toko'),
                 'price' => $courierSettings->kurir_toko_price,
-                'estimation' => '1-2 Hari',
+                'estimation' => __('labels.shipping.estimation_1_2_days'),
             ] : null;
 
             $results = [];
@@ -172,10 +172,10 @@ class CheckoutController extends Controller
 
         if ($cart->items->isEmpty()) {
             if ($request->wantsJson()) {
-                return response()->json(['error' => 'Your cart is empty.'], 400);
+                return response()->json(['error' => __('messages.error.cart_empty')], 400);
             }
 
-            return redirect()->route('frontend.cart')->with('error', 'Your cart is empty.');
+            return redirect()->route('frontend.cart')->with('error', __('messages.error.cart_empty'));
         }
 
         $address = CustomerAddress::findOrFail($request->address_id);
@@ -276,7 +276,7 @@ class CheckoutController extends Controller
                 ]);
             }
 
-            return redirect()->route('frontend.orders.show', $transaction->uuid)->with('success', 'Order placed successfully!');
+            return redirect()->route('frontend.orders.show', $transaction->uuid)->with('success', __('messages.success.order_placed'));
         });
     }
 }

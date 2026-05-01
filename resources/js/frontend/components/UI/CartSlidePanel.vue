@@ -3,6 +3,9 @@ import { computed, ref } from "vue";
 import { Link, router, usePage } from "@inertiajs/vue3";
 import { X, Minus, Plus, ShoppingBag, Trash2 } from "lucide-vue-next";
 import { formatCurrency } from "../../lib/utils";
+import { useTranslations } from "../../composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     isOpen: {
@@ -75,7 +78,7 @@ const continueShopping = () => {
             <div v-if="isOpen" class="fixed bottom-0 right-0 top-0 z-[110] flex w-full flex-col bg-white shadow-2xl sm:w-[360px]">
                 <!-- Header -->
                 <div class="flex items-center justify-between border-b border-border p-4">
-                    <h2 class="text-lg font-bold text-foreground">Keranjang Anda</h2>
+                    <h2 class="text-lg font-bold text-foreground">{{ t('labels.cart.your_cart') }}</h2>
                     <button @click="closeCart" class="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                         <X class="h-5 w-5" />
                     </button>
@@ -88,13 +91,13 @@ const continueShopping = () => {
                         <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
                             <ShoppingBag class="h-8 w-8 text-muted-foreground" />
                         </div>
-                        <h3 class="mb-2 text-lg font-bold text-foreground">Keranjang Anda kosong</h3>
-                        <p class="mb-6 text-sm text-muted-foreground">Yuk mulai belanja dan temukan produk favoritmu!</p>
+                        <h3 class="mb-2 text-lg font-bold text-foreground">{{ t('labels.cart.empty_title') }}</h3>
+                        <p class="mb-6 text-sm text-muted-foreground">{{ t('labels.cart.empty_description') }}</p>
                         <button
                             @click="continueShopping"
                             class="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                         >
-                            Mulai Belanja
+                            {{ t('labels.actions.start_shopping') }}
                         </button>
                     </div>
 
@@ -161,15 +164,15 @@ const continueShopping = () => {
                     <!-- Summary -->
                     <div class="space-y-2">
                         <div class="flex justify-between text-sm">
-                            <span class="text-muted-foreground">Subtotal</span>
+                            <span class="text-muted-foreground">{{ t('labels.cart.subtotal') }}</span>
                             <span class="font-medium text-foreground">{{ formatCurrency(subtotal) }}</span>
                         </div>
                         <div class="flex justify-between text-sm">
-                            <span class="text-muted-foreground">Estimasi Pajak (10%)</span>
+                            <span class="text-muted-foreground">{{ t('labels.cart.estimated_tax') }}</span>
                             <span class="font-medium text-foreground">{{ formatCurrency(tax) }}</span>
                         </div>
                         <div class="flex justify-between border-t border-border pt-2">
-                            <span class="text-base font-bold text-foreground">Total</span>
+                            <span class="text-base font-bold text-foreground">{{ t('labels.cart.total') }}</span>
                             <span class="text-lg font-bold text-primary">{{ formatCurrency(total) }}</span>
                         </div>
                     </div>
@@ -180,13 +183,13 @@ const continueShopping = () => {
                             @click="proceedToCheckout"
                             class="w-full rounded-full bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-md transition-colors hover:bg-primary/90 hover:shadow-lg"
                         >
-                            Lanjut ke Pembayaran
+                            {{ t('labels.actions.proceed_to_checkout') }}
                         </button>
                         <button
                             @click="continueShopping"
                             class="w-full rounded-full bg-secondary py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
                         >
-                            Lanjut Belanja
+                            {{ t('labels.actions.continue_shopping') }}
                         </button>
                     </div>
                 </div>

@@ -21,7 +21,7 @@ class NewsletterController extends Controller
 
         if ($existingSubscriber) {
             if ($existingSubscriber->is_active) {
-                return redirect()->back()->with('info', 'Email Anda sudah terdaftar dalam newsletter.');
+                return redirect()->back()->with('info', __('messages.info.already_subscribed'));
             }
 
             $existingSubscriber->resubscribe();
@@ -29,7 +29,7 @@ class NewsletterController extends Controller
             // Send welcome newsletter via queue
             SendNewsletterJob::dispatch($existingSubscriber, 'welcome');
 
-            return redirect()->back()->with('success', 'Berhasil berlangganan kembali! Selamat datang kembali.');
+            return redirect()->back()->with('success', __('messages.success.resubscribed'));
         }
 
         $subscriber = NewsletterSubscriber::create([
@@ -39,7 +39,7 @@ class NewsletterController extends Controller
         // Send welcome/test newsletter via queue
         SendNewsletterJob::dispatch($subscriber, 'welcome');
 
-        return redirect()->back()->with('success', 'Berhasil berlangganan newsletter! Cek email Anda untuk konfirmasi.');
+        return redirect()->back()->with('success', __('messages.success.subscribed'));
     }
 
     public function unsubscribe(Request $request, string $token)
@@ -70,7 +70,7 @@ class NewsletterController extends Controller
         $template = EmailTemplate::getByCode('newsletter');
 
         if (! $template) {
-            return redirect()->back()->with('error', 'Template newsletter tidak ditemukan.');
+            return redirect()->back()->with('error', __('messages.error.newsletter_template_not_found'));
         }
 
         $subscriber = NewsletterSubscriber::firstOrCreate(
@@ -80,6 +80,6 @@ class NewsletterController extends Controller
 
         SendNewsletterJob::dispatch($subscriber, 'test');
 
-        return redirect()->back()->with('success', 'Email test newsletter telah dikirim ke ' . $validated['email']);
+        return redirect()->back()->with('success', __('messages.success.test_newsletter_sent', ['email' => $validated['email']]));
     }
 }

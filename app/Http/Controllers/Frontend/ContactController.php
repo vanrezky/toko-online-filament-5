@@ -31,7 +31,7 @@ class ContactController extends Controller
 
         $contactMessage = ContactMessage::create($validated);
 
-        return redirect()->back()->with('success', 'Pesan berhasil dikirim! Kami akan menghubungi Anda segera.');
+        return redirect()->back()->with('success', __('messages.success.contact_sent'));
     }
 
     public function apiIndex(Request $request): JsonResponse
@@ -64,7 +64,7 @@ class ContactController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Message marked as read',
+            'message' => __('messages.success.message_marked_read'),
             'data' => new ContactMessageResource($contactMessage),
         ]);
     }
@@ -75,7 +75,7 @@ class ContactController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Message deleted successfully',
+            'message' => __('messages.success.message_deleted'),
         ]);
     }
 }

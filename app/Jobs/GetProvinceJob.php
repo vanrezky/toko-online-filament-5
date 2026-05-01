@@ -34,7 +34,7 @@ class GetProvinceJob implements ShouldQueue
             $response = Http::get('https://vanrezky.github.io/api-wilayah-indonesia/api/provinces.json');
 
             if ($response->failed()) {
-                throw new Exception("Failed to get response data provinces from server");
+                throw new Exception(__('messages.error.provinces_fetch_failed'));
             }
 
             $provinces = $response->collect();

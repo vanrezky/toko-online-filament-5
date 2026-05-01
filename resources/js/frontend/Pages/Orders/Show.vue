@@ -3,11 +3,14 @@ import { computed, ref } from "vue";
 import { Link, router } from "@inertiajs/vue3";
 import axios from "axios";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
+import { useTranslations } from "../../composables/useTranslations";
 import { Package, ChevronLeft, Clock, MapPin, Truck, CreditCard, CheckCircle2, AlertCircle, ArrowRight, ExternalLink, Loader2 } from "lucide-vue-next";
 
 const props = defineProps({
     order: Object,
 });
+
+const { t } = useTranslations();
 
 const statusColors = {
     unpaid: "text-[#fa8456] bg-[#fff5f0] border-[#fed7aa]",
@@ -17,13 +20,13 @@ const statusColors = {
     rejected: "text-[#ef4444] bg-[#fef2f2] border-[#fecaca]",
 };
 
-const statusLabels = {
-    unpaid: "Menunggu Pembayaran",
-    shipped: "Dikirim",
-    delivered: "Diterima",
-    completed: "Selesai",
-    rejected: "Ditolak",
-};
+const statusLabels = computed(() => ({
+    unpaid: t("labels.order.status.unpaid"),
+    shipped: t("labels.order.status.shipped"),
+    delivered: t("labels.order.status.delivered"),
+    completed: t("labels.order.status.completed"),
+    rejected: t("labels.order.status.rejected"),
+}));
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
@@ -102,7 +105,7 @@ const payOrder = async () => {
         }
     } catch (error) {
         console.error("Payment initiation failed", error);
-        alert(error.response?.data?.error || 'Gagal memulai pembayaran. Silakan coba lagi.');
+        alert(error.response?.data?.error || t("messages.error.payment_start_failed"));
     } finally {
         isProcessingPayment.value = false;
     }
@@ -110,7 +113,7 @@ const payOrder = async () => {
 </script>
 
 <template>
-    <TemplateWrapper title="Detail Pesanan">
+    <TemplateWrapper :title="t('meta.order_detail.title')">
         <div class="min-h-screen bg-[#f8f7fc] py-12 font-sans md:py-20">
             <div class="container mx-auto px-4 md:px-6">
                 <div class="mx-auto max-w-5xl space-y-8">
@@ -122,9 +125,9 @@ const payOrder = async () => {
                                 class="group flex items-center gap-2 text-sm text-[#6b5a4d] transition-colors hover:text-[#fa8456]"
                             >
                                 <ChevronLeft class="h-4 w-4" />
-                                <span>Kembali ke Pesanan</span>
+                                <span>{{ t("labels.actions.back_to_orders") }}</span>
                             </Link>
-                            <h1 class="text-2xl font-bold text-[#2d1b0e]">Pesanan #{{ order.id.substring(0, 8).toUpperCase() }}</h1>
+                            <h1 class="text-2xl font-bold text-[#2d1b0e]">{{ t("labels.order.order_number", { id: order.id.substring(0, 8).toUpperCase() }) }}</h1>
                             <p class="text-sm text-[#6b5a4d]">{{ formatDate(order.created_at) }}</p>
                         </div>
                         <div class="flex items-center gap-4">
@@ -144,10 +147,10 @@ const payOrder = async () => {
                             <Clock class="h-6 w-6" />
                             <div>
                                 <p class="font-semibold text-[#2d1b0e]">
-                                    {{ isExpired ? "Pesanan ini sudah kedaluwarsa" : "Menunggu Pembayaran" }}
+                                    {{ isExpired ? t("labels.order.expired") : t("labels.order.awaiting_payment") }}
                                 </p>
                                 <p class="text-sm text-[#6b5a4d]">
-                                    {{ isExpired ? "Silakan buat pesanan baru" : "Selesaikan pembayaran sebelum" }} {{ formatDate(order.timelimit) }}
+                                    {{ isExpired ? t("labels.order.create_new") : t("labels.order.complete_payment_before") }} {{ formatDate(order.timelimit) }}
                                 </p>
                             </div>
                         </div>
@@ -159,7 +162,7 @@ const payOrder = async () => {
                             class="flex-shrink-0 flex items-center gap-2 rounded-full bg-[#fa8456] px-8 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-[#e56f3f] hover:shadow-lg disabled:bg-[#c4bfc9]"
                         >
                             <Loader2 v-if="isProcessingPayment" class="h-4 w-4 animate-spin" />
-                            <span>{{ isProcessingPayment ? "Memproses..." : "Bayar Sekarang" }}</span>
+                            <span>{{ isProcessingPayment ? t("labels.actions.processing") : t("labels.actions.pay_now") }}</span>
                         </button>
                     </div>
 
@@ -168,7 +171,7 @@ const payOrder = async () => {
                         <div class="space-y-6 lg:col-span-8">
                             <!-- Items Section -->
                             <section class="rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
-                                <h2 class="mb-6 border-b border-[#f0eef5] pb-4 text-base font-bold text-[#2d1b0e]">Item Pesanan</h2>
+                                <h2 class="mb-6 border-b border-[#f0eef5] pb-4 text-base font-bold text-[#2d1b0e]">{{ t("labels.order.items_title") }}</h2>
                                 <div class="space-y-6">
                                     <div v-for="item in order.products" :key="item.uuid" class="flex gap-5">
                                         <div class="h-24 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-[#f5f3fc]">
@@ -186,9 +189,9 @@ const payOrder = async () => {
                                                 <p class="text-sm font-bold text-[#fa8456]">{{ formatCurrency(item.price) }}</p>
                                             </div>
                                             <div class="mt-auto flex items-center justify-between text-sm text-[#6b5a4d]">
-                                                <span>Jumlah: {{ item.quantity }}</span>
+                                                <span>{{ t("labels.order.quantity", { qty: item.quantity }) }}</span>
                                                 <span class="font-semibold text-[#2d1b0e]"
-                                                    >Total: {{ formatCurrency(item.price * item.quantity) }}</span
+                                                    >{{ t("labels.order.line_total", { amount: formatCurrency(item.price * item.quantity) }) }}</span
                                                 >
                                             </div>
                                         </div>
@@ -201,7 +204,7 @@ const payOrder = async () => {
                                 <div class="space-y-4 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm">
                                     <div class="flex items-center gap-3 text-[#fa8456]">
                                         <MapPin class="h-5 w-5" />
-                                        <h2 class="text-sm font-bold text-[#2d1b0e]">Alamat Pengiriman</h2>
+                                        <h2 class="text-sm font-bold text-[#2d1b0e]">{{ t("labels.order.shipping_address") }}</h2>
                                     </div>
                                     <div class="space-y-1 text-sm leading-relaxed text-[#6b5a4d]">
                                         <p class="font-semibold text-[#2d1b0e]">{{ order.address.name || "Alamat Pengiriman" }}</p>
@@ -214,11 +217,11 @@ const payOrder = async () => {
                                 <div class="space-y-4 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm">
                                     <div class="flex items-center gap-3 text-[#fa8456]">
                                         <Truck class="h-5 w-5" />
-                                        <h2 class="text-sm font-bold text-[#2d1b0e]">Metode Pengiriman</h2>
+                                        <h2 class="text-sm font-bold text-[#2d1b0e]">{{ t("labels.order.shipping_method") }}</h2>
                                     </div>
                                     <div class="space-y-1 text-sm text-[#6b5a4d]">
-                                        <p class="font-semibold text-[#2d1b0e]">{{ order.shipping_method || "Standard Shipping" }}</p>
-                                        <p>Biaya: {{ formatCurrency(order.shipping_cost) }}</p>
+                                        <p class="font-semibold text-[#2d1b0e]">{{ order.shipping_method || t("labels.order.standard_shipping") }}</p>
+                                        <p>{{ t("labels.order.shipping_cost", { amount: formatCurrency(order.shipping_cost) }) }}</p>
                                     </div>
                                 </div>
                             </section>
@@ -230,13 +233,13 @@ const payOrder = async () => {
                             <section class="space-y-5 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                                 <div class="flex items-center gap-3 border-b border-[#f0eef5] pb-4 text-[#fa8456]">
                                     <CreditCard class="h-5 w-5" />
-                                    <h2 class="text-sm font-bold text-[#2d1b0e]">Pembayaran</h2>
+                                    <h2 class="text-sm font-bold text-[#2d1b0e]">{{ t("labels.order.payment") }}</h2>
                                 </div>
                                 <div class="space-y-1 text-sm text-[#6b5a4d]">
                                     <p>
-                                        Status:
+                                        {{ t("labels.order.payment_status_label") }}
                                         <span class="font-semibold" :class="order.status === 'unpaid' ? 'text-[#fa8456]' : 'text-[#22c55e]'">{{ 
-                                            order.status === "unpaid" ? "Menunggu Pembayaran" : "Lunas"
+                                            order.status === "unpaid" ? t("labels.order.status.unpaid") : t("labels.order.status.paid")
                                         }}</span>
                                     </p>
                                 </div>
@@ -244,22 +247,22 @@ const payOrder = async () => {
 
                             <!-- Totals Section -->
                             <section class="space-y-5 rounded-xl bg-[#2d1b0e] p-6 text-white shadow-lg md:p-8">
-                                <h2 class="border-b border-white/10 pb-4 text-sm font-bold text-[#c4bfc9]">Ringkasan Pesanan</h2>
+                                <h2 class="border-b border-white/10 pb-4 text-sm font-bold text-[#c4bfc9]">{{ t("labels.order.summary_title") }}</h2>
                                 <div class="space-y-3">
                                     <div class="flex justify-between text-sm">
-                                        <span class="text-[#c4bfc9]">Subtotal</span>
+                                        <span class="text-[#c4bfc9]">{{ t("labels.order.subtotal") }}</span>
                                         <span class="font-semibold">{{ formatCurrency(order.subtotal) }}</span>
                                     </div>
                                     <div class="flex justify-between text-sm">
-                                        <span class="text-[#c4bfc9]">Pengiriman</span>
+                                        <span class="text-[#c4bfc9]">{{ t("labels.order.shipping") }}</span>
                                         <span class="font-semibold">{{ formatCurrency(order.shipping_cost) }}</span>
                                     </div>
                                     <div v-if="order.discount > 0" class="flex justify-between text-sm text-[#86efac]">
-                                        <span>Diskon</span>
+                                        <span>{{ t("labels.order.discount") }}</span>
                                         <span>- {{ formatCurrency(order.discount) }}</span>
                                     </div>
                                     <div class="flex justify-between border-t border-white/20 pt-4">
-                                        <span class="text-sm font-bold">Total</span>
+                                        <span class="text-sm font-bold">{{ t("labels.order.total") }}</span>
                                         <span class="text-xl font-bold text-[#fa8456]">{{ formatCurrency(order.total) }}</span>
                                     </div>
                                 </div>

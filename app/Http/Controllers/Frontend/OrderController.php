@@ -68,7 +68,7 @@ class OrderController extends Controller
         }
 
         if ($transaction->status !== 'unpaid') {
-            return response()->json(['error' => 'Order is already paid or cancelled.'], 400);
+            return response()->json(['error' => __('messages.error.order_already_paid')], 400);
         }
 
         try {
@@ -88,7 +88,7 @@ class OrderController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to initiate payment: ' . $e->getMessage()], 500);
+            return response()->json(['error' => __('messages.error.payment_initiation_failed', ['message' => $e->getMessage()])], 500);
         }
     }
 

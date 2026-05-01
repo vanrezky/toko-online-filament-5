@@ -2,6 +2,9 @@
 import { useForm } from "@inertiajs/vue3";
 import { toast } from "vue-sonner";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
+import { useTranslations } from "../../composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     settings: Object,
@@ -17,11 +20,11 @@ const form = useForm({
 const submit = () => {
     form.post(route("frontend.contact.store"), {
         onSuccess: () => {
-            toast.success("Pesan berhasil dikirim! Kami akan menghubungi Anda segera.");
+            toast.success(t('messages.success.contact_sent'));
             form.reset();
         },
         onError: () => {
-            toast.error("Gagal mengirim pesan. Silakan periksa kembali isian Anda.");
+            toast.error(t('messages.error.generic'));
         },
     });
 };
@@ -29,15 +32,15 @@ const submit = () => {
 
 <template>
     <TemplateWrapper
-        :title="`Hubungi Kami - ${settings?.site_name || 'Toko Online'}`"
-        :description="`Hubungi kami untuk pertanyaan, saran, atau bantuan.`"
+        :title="`${t('labels.contact.heading')} - ${settings?.site_name || 'Toko Online'}`"
+        :description="t('labels.contact.subheading')"
         :keywords="'kontak, hubungi kami, customer service, bantuan'"
     >
         <!-- Breadcrumb -->
         <section class="py-4">
             <div class="container mx-auto px-4">
                 <div class="text-sm text-muted-foreground">
-                    <span class="text-foreground">Hubungi Kami</span>
+                    <span class="text-foreground">{{ t('labels.contact.heading') }}</span>
                 </div>
             </div>
         </section>
@@ -49,10 +52,10 @@ const submit = () => {
                     <!-- Header -->
                     <div class="mb-8 text-center">
                         <h1 class="text-2xl font-bold text-foreground md:text-3xl">
-                            Hubungi Kami
+                            {{ t('labels.contact.heading') }}
                         </h1>
                         <p class="mt-2 text-sm text-muted-foreground">
-                            Punya pertanyaan atau butuh bantuan? Kirim pesan kepada kami.
+                            {{ t('labels.contact.subheading') }}
                         </p>
                     </div>
 
@@ -62,12 +65,12 @@ const submit = () => {
                             <!-- Name -->
                             <div class="space-y-1.5">
                                 <label class="text-sm font-medium text-foreground">
-                                    Nama Lengkap <span class="text-destructive">*</span>
+                                    {{ t('labels.form.full_name') }} <span class="text-destructive">*</span>
                                 </label>
                                 <input
                                     v-model="form.name"
                                     type="text"
-                                    placeholder="Masukkan nama Anda"
+                                    :placeholder="t('placeholders.full_name')"
                                     class="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground shadow-sm transition-all duration-200 placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                                     :class="form.errors.name && 'border-destructive focus:border-destructive focus:ring-destructive/20'"
                                 />
@@ -79,12 +82,12 @@ const submit = () => {
                             <!-- Email -->
                             <div class="space-y-1.5">
                                 <label class="text-sm font-medium text-foreground">
-                                    Email <span class="text-destructive">*</span>
+                                    {{ t('labels.form.email') }} <span class="text-destructive">*</span>
                                 </label>
                                 <input
                                     v-model="form.email"
                                     type="email"
-                                    placeholder="email@example.com"
+                                    :placeholder="t('placeholders.email')"
                                     class="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground shadow-sm transition-all duration-200 placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                                     :class="form.errors.email && 'border-destructive focus:border-destructive focus:ring-destructive/20'"
                                 />
@@ -96,12 +99,12 @@ const submit = () => {
                             <!-- Subject -->
                             <div class="space-y-1.5">
                                 <label class="text-sm font-medium text-foreground">
-                                    Subjek <span class="text-destructive">*</span>
+                                    {{ t('labels.form.subject') }} <span class="text-destructive">*</span>
                                 </label>
                                 <input
                                     v-model="form.subject"
                                     type="text"
-                                    placeholder="Apa yang ingin Anda tanyakan?"
+                                    :placeholder="t('placeholders.subject')"
                                     class="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground shadow-sm transition-all duration-200 placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                                     :class="form.errors.subject && 'border-destructive focus:border-destructive focus:ring-destructive/20'"
                                 />
@@ -113,12 +116,12 @@ const submit = () => {
                             <!-- Message -->
                             <div class="space-y-1.5">
                                 <label class="text-sm font-medium text-foreground">
-                                    Pesan <span class="text-destructive">*</span>
+                                    {{ t('labels.form.message') }} <span class="text-destructive">*</span>
                                 </label>
                                 <textarea
                                     v-model="form.message"
                                     rows="5"
-                                    placeholder="Tulis pesan Anda di sini..."
+                                    :placeholder="t('placeholders.message')"
                                     class="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground shadow-sm transition-all duration-200 placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                                     :class="form.errors.message && 'border-destructive focus:border-destructive focus:ring-destructive/20'"
                                 ></textarea>
@@ -133,8 +136,8 @@ const submit = () => {
                                 :disabled="form.processing"
                                 class="w-full rounded-xl bg-gradient-to-r from-primary to-primary/90 px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/40 active:scale-95 disabled:opacity-70"
                             >
-                                <span v-if="form.processing">Mengirim...</span>
-                                <span v-else>Kirim Pesan</span>
+                                <span v-if="form.processing">{{ t('labels.actions.sending') }}</span>
+                                <span v-else>{{ t('labels.actions.send_message') }}</span>
                             </button>
                         </form>
                     </div>

@@ -5,6 +5,9 @@ import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { Trash2, ShoppingBag, ArrowRight, Minus, Plus } from "lucide-vue-next";
 import { formatCurrency } from "../../lib/utils";
 import debounce from "lodash/debounce";
+import { useTranslations } from "../../composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     cart: Object,
@@ -54,11 +57,11 @@ const removeItem = (id) => {
 </script>
 
 <template>
-    <TemplateWrapper title="Keranjang Belanja">
+    <TemplateWrapper :title="t('labels.cart.heading')">
         <div class="min-h-screen bg-secondary/30 py-8 md:py-12">
             <div class="container mx-auto px-4">
                 <div v-if="localItems.length > 0">
-                    <h1 class="mb-8 text-2xl font-bold text-foreground md:text-3xl">Keranjang Belanja</h1>
+                    <h1 class="mb-8 text-2xl font-bold text-foreground md:text-3xl">{{ t('labels.cart.heading') }}</h1>
 
                     <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
                         <!-- Cart Items List -->
@@ -140,13 +143,13 @@ const removeItem = (id) => {
                                         class="flex items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary"
                                     >
                                         <ShoppingBag class="h-4 w-4" />
-                                        Lanjut Belanja
+                                        {{ t('labels.actions.continue_shopping') }}
                                     </Link>
                                     <Link
                                         :href="route('frontend.home')"
                                         class="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary"
                                     >
-                                        Beranda
+                                        {{ t('labels.actions.home') }}
                                     </Link>
                                 </div>
                             </div>
@@ -156,22 +159,22 @@ const removeItem = (id) => {
                         <div>
                             <div class="sticky top-24 space-y-4">
                                 <div class="rounded-2xl bg-white p-6 shadow-sm">
-                                    <h2 class="mb-6 text-lg font-bold text-foreground">Ringkasan Belanja</h2>
+                                    <h2 class="mb-6 text-lg font-bold text-foreground">{{ t('labels.cart.summary_title') }}</h2>
 
                                     <div class="space-y-4 border-b border-border pb-4">
                                         <div class="flex justify-between text-sm">
-                                            <span class="text-muted-foreground">Subtotal ({{ localItems.length }} item)</span>
+                                            <span class="text-muted-foreground">{{ t('labels.cart.subtotal_with_count', { count: localItems.length }) }}</span>
                                             <span class="font-medium text-foreground">{{ formatCurrency(subtotal) }}</span>
                                         </div>
                                         <div class="flex justify-between text-sm">
-                                            <span class="text-muted-foreground">Ongkos Kirim</span>
-                                            <span class="font-medium text-foreground">Dihitung saat checkout</span>
+                                            <span class="text-muted-foreground">{{ t('labels.cart.shipping_cost') }}</span>
+                                            <span class="font-medium text-foreground">{{ t('messages.info.shipping_calculated_at_checkout') }}</span>
                                         </div>
                                     </div>
 
                                     <div class="py-4">
                                         <div class="mb-2 flex items-center justify-between">
-                                            <span class="text-lg font-bold text-foreground">Total</span>
+                                            <span class="text-lg font-bold text-foreground">{{ t('labels.cart.total') }}</span>
                                             <span class="text-2xl font-bold text-primary">{{ formatCurrency(subtotal) }}</span>
                                         </div>
                                     </div>
@@ -180,7 +183,7 @@ const removeItem = (id) => {
                                         :href="route('frontend.checkout')"
                                         class="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-4 text-sm font-bold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg"
                                     >
-                                        <span>Checkout</span>
+                                        <span>{{ t('labels.actions.checkout') }}</span>
                                         <ArrowRight class="h-4 w-4" />
                                     </Link>
                                 </div>
@@ -194,14 +197,14 @@ const removeItem = (id) => {
                     <div class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-secondary">
                         <ShoppingBag class="h-12 w-12 text-muted-foreground" />
                     </div>
-                    <h2 class="mb-2 text-2xl font-bold text-foreground">Keranjang Anda kosong</h2>
-                    <p class="mx-auto mb-8 max-w-md text-muted-foreground">Yuk mulai belanja dan temukan produk favoritmu!</p>
+                    <h2 class="mb-2 text-2xl font-bold text-foreground">{{ t('labels.cart.empty_title') }}</h2>
+                    <p class="mx-auto mb-8 max-w-md text-muted-foreground">{{ t('labels.cart.empty_description') }}</p>
                     <Link
                         :href="route('frontend.products')"
                         class="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-bold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg"
                     >
                         <ShoppingBag class="h-5 w-5" />
-                        Mulai Belanja
+                        {{ t('labels.actions.start_shopping') }}
                     </Link>
                 </div>
             </div>

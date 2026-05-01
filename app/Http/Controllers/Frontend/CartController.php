@@ -43,13 +43,13 @@ class CartController extends Controller
         if (! Auth::guard('customer')->check()) {
             if ($request->expectsJson()) {
                 return response()->json([
-                    'error' => 'Please login to add items to cart.',
+                    'error' => __('messages.error.login_required_to_add_cart'),
                     'redirect' => route('frontend.login'),
                 ], 401);
             }
             session()->put('url.intended', url()->previous());
 
-            return redirect()->route('frontend.login')->with('error', 'Please login to add items to cart.');
+            return redirect()->route('frontend.login')->with('error', __('messages.error.login_required_to_add_cart'));
         }
 
         $request->validate([
@@ -64,10 +64,10 @@ class CartController extends Controller
 
         if (! $request->product_variant_id && $product->product_variants_count > 0) {
             if ($request->expectsJson()) {
-                return response()->json(['error' => 'Please choose the variant product.'], 422);
+                return response()->json(['error' => __('messages.error.variant_required')], 422);
             }
 
-            return redirect()->back()->with('error', 'Please choose the variant product.');
+            return redirect()->back()->with('error', __('messages.error.variant_required'));
         }
 
         $variant = null;
@@ -109,12 +109,12 @@ class CartController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Item added to cart successfully.',
+                'message' => __('messages.success.item_added_to_cart'),
                 'cart_count' => $cart->items()->sum('quantity'),
             ]);
         }
 
-        return redirect()->back()->with('success', 'Item added to bag successfully.');
+        return redirect()->back()->with('success', __('messages.success.item_added_to_bag'));
     }
 
     public function update(Request $request, CartItem $item)
@@ -132,10 +132,10 @@ class CartController extends Controller
         ]);
 
         if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Cart updated.']);
+            return response()->json(['success' => true, 'message' => __('messages.success.cart_updated')]);
         }
 
-        return redirect()->back()->with('success', 'Cart updated successfully.');
+        return redirect()->back()->with('success', __('messages.success.cart_updated'));
     }
 
     public function destroy(Request $request, CartItem $item)
@@ -143,9 +143,9 @@ class CartController extends Controller
         $item->delete();
 
         if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Item removed.']);
+            return response()->json(['success' => true, 'message' => __('messages.success.item_removed')]);
         }
 
-        return redirect()->back()->with('success', 'Item removed from bag.');
+        return redirect()->back()->with('success', __('messages.success.item_removed_from_bag'));
     }
 }

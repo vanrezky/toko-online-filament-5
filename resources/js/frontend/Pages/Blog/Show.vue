@@ -3,6 +3,9 @@ import { computed } from "vue";
 import { Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { Calendar, User, ArrowLeft, Tag, Facebook, Twitter, Link as LinkIcon, ArrowRight } from "lucide-vue-next";
+import { useTranslations } from "../../composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     post: Object,
@@ -82,7 +85,7 @@ const allRelatedPosts = computed(() => {
                         <div class="mt-10 flex flex-col justify-between gap-6 border-t border-border/50 pt-8 md:flex-row md:items-center">
                             <!-- Tags -->
                             <div v-if="post.tags && post.tags.length > 0" class="flex flex-wrap items-center gap-2">
-                                <span class="mr-2 text-sm font-semibold text-foreground">Tags:</span>
+                                <span class="mr-2 text-sm font-semibold text-foreground">{{ t('labels.blog.tags') }}</span>
                                 <Link
                                     v-for="tag in post.tags"
                                     :key="tag"
@@ -95,7 +98,7 @@ const allRelatedPosts = computed(() => {
 
                             <!-- Share Buttons -->
                             <div class="flex items-center gap-3">
-                                <span class="text-sm font-semibold text-foreground">Bagikan:</span>
+                                <span class="text-sm font-semibold text-foreground">{{ t('labels.blog.share') }}</span>
                                 <button
                                     @click="share('facebook')"
                                     class="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
@@ -121,13 +124,13 @@ const allRelatedPosts = computed(() => {
                     <!-- Related Articles Section -->
                     <div v-if="allRelatedPosts.length > 0" class="mt-12">
                         <div class="mb-8 flex items-center justify-between">
-                            <h2 class="text-2xl font-bold text-foreground">Baca Juga</h2>
+                            <h2 class="text-2xl font-bold text-foreground">{{ t('labels.blog.related_articles') }}</h2>
                             <Link
                                 v-if="post.category"
                                 :href="route('frontend.blog.index', { category: post.category?.slug })"
                                 class="flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
                             >
-                                Lihat semua
+                                {{ t('labels.actions.view_all') }}
                                 <ArrowRight class="h-4 w-4" />
                             </Link>
                         </div>
@@ -164,7 +167,7 @@ const allRelatedPosts = computed(() => {
                             class="inline-flex items-center gap-2 text-sm font-semibold text-foreground transition-colors hover:text-primary"
                         >
                             <ArrowLeft class="h-4 w-4" />
-                            Kembali ke Blog
+                            {{ t('labels.actions.back_to_blog') }}
                         </Link>
                     </div>
                 </div>

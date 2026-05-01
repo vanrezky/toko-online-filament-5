@@ -2,11 +2,14 @@
 import { computed } from "vue";
 import { Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
+import { useTranslations } from "../../composables/useTranslations";
 import { Package, ChevronRight, Clock, CheckCircle2, Truck, AlertCircle } from "lucide-vue-next";
 
 const props = defineProps({
     orders: Array,
 });
+
+const { t } = useTranslations();
 
 const statusColors = {
     unpaid: "text-[#fa8456] bg-[#fff5f0]",
@@ -16,13 +19,13 @@ const statusColors = {
     rejected: "text-[#ef4444] bg-[#fef2f2]",
 };
 
-const statusLabels = {
-    unpaid: "Menunggu Pembayaran",
-    shipped: "Dikirim",
-    delivered: "Diterima",
-    completed: "Selesai",
-    rejected: "Ditolak",
-};
+const statusLabels = computed(() => ({
+    unpaid: t("labels.order.status.unpaid"),
+    shipped: t("labels.order.status.shipped"),
+    delivered: t("labels.order.status.delivered"),
+    completed: t("labels.order.status.completed"),
+    rejected: t("labels.order.status.rejected"),
+}));
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
@@ -49,12 +52,12 @@ const isExpired = (dateString) => {
 </script>
 
 <template>
-    <TemplateWrapper title="Pesanan Saya">
+    <TemplateWrapper :title="t('meta.orders.title')">
         <div class="min-h-screen bg-[#f8f7fc] py-12 font-sans md:py-20">
             <div class="container mx-auto px-4 md:px-6">
                 <div class="mx-auto max-w-4xl space-y-8">
                     <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                        <h1 class="text-3xl font-bold text-[#2d1b0e]">Pesanan Saya</h1>
+                        <h1 class="text-3xl font-bold text-[#2d1b0e]">{{ t("labels.orders.heading") }}</h1>
                     </div>
 
                     <div v-if="orders && orders.length > 0" class="space-y-5">
@@ -69,7 +72,7 @@ const isExpired = (dateString) => {
                                         <Package class="h-5 w-5 text-[#fa8456]" />
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-bold text-[#2d1b0e]">Order #{{ order.id.substring(0, 8).toUpperCase() }}</h3>
+                                        <h3 class="text-sm font-bold text-[#2d1b0e]">{{ t("labels.order.order_number", { id: order.id.substring(0, 8).toUpperCase() }) }}</h3>
                                         <p class="mt-0.5 text-xs text-[#6b5a4d]">{{ formatDate(order.created_at) }}</p>
                                     </div>
                                 </div>
@@ -98,7 +101,7 @@ const isExpired = (dateString) => {
                             >
                                 <Clock class="h-4 w-4 flex-shrink-0" />
                                 <span class="text-xs font-semibold">
-                                    {{ isExpired(order.timelimit) ? "Pembayaran berakhir pada" : "Selesaikan pembayaran sebelum" }}
+                                    {{ isExpired(order.timelimit) ? t("labels.order.payment_ended") : t("labels.order.complete_payment_before") }}
                                     {{ formatDate(order.timelimit) }} {{ formatTime(order.timelimit) }}
                                 </span>
                             </div>
@@ -128,14 +131,14 @@ const isExpired = (dateString) => {
                             <Package class="h-10 w-10 text-[#c4bfc9]" />
                         </div>
                         <div class="space-y-2">
-                            <h2 class="text-base font-bold text-[#2d1b0e]">Belum Ada Pesanan</h2>
-                            <p class="text-sm text-[#6b5a4d]">Anda belum melakukan transaksi apapun.</p>
+                            <h2 class="text-base font-bold text-[#2d1b0e]">{{ t("labels.orders.empty_title") }}</h2>
+                            <p class="text-sm text-[#6b5a4d]">{{ t("labels.orders.empty_description") }}</p>
                         </div>
                         <Link
                             :href="route('frontend.products')"
                             class="inline-block rounded-full bg-[#fa8456] px-10 py-4 text-sm font-bold text-white shadow-md transition-all hover:bg-[#e56f3f] hover:shadow-lg"
                         >
-                            Mulai Belanja
+                            {{ t("labels.actions.start_shopping") }}
                         </Link>
                     </div>
                 </div>

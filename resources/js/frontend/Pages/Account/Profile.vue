@@ -2,6 +2,7 @@
 import { ref, computed, watch, getCurrentInstance } from "vue";
 import { Link, useForm, router, usePage } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
+import { useTranslations } from "../../composables/useTranslations";
 import {
     User,
     Package,
@@ -20,6 +21,8 @@ import {
     Clock,
 } from "lucide-vue-next";
 import axios from "axios";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     user: Object,
@@ -74,10 +77,10 @@ const addressForm = useForm({
 });
 
 const menuItems = [
-    { id: "overview", name: "Ringkasan", icon: User },
-    { id: "orders", name: "Pesanan Saya", icon: Package, href: route("frontend.orders") },
-    { id: "addresses", name: "Alamat Pengiriman", icon: MapPin },
-    { id: "settings", name: "Pengaturan", icon: Settings },
+    { id: "overview", name: t("labels.account.menu.overview"), icon: User },
+    { id: "orders", name: t("labels.account.menu.orders"), icon: Package, href: route("frontend.orders") },
+    { id: "addresses", name: t("labels.account.menu.addresses"), icon: MapPin },
+    { id: "settings", name: t("labels.account.menu.settings"), icon: Settings },
 ];
 
 const handleImageChange = (e) => {
@@ -192,11 +195,11 @@ const submitAddress = () => {
 
 const deleteAddress = (id, addressName) => {
     proxy.$confirm({
-        title: "Hapus Alamat",
-        message: `Apakah Anda yakin ingin menghapus alamat "${addressName}"?`,
+        title: t("labels.dialogs.delete_address_title"),
+        message: t("labels.dialogs.delete_address_message", { name: addressName }),
         button: {
-            no: "Batal",
-            yes: "Ya, Hapus",
+            no: t("labels.dialogs.cancel"),
+            yes: t("labels.dialogs.confirm_delete"),
         },
         callback: (confirm) => {
             if (confirm) {
@@ -225,7 +228,7 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
 </script>
 
 <template>
-    <TemplateWrapper title="Akun Saya">
+    <TemplateWrapper :title="t('labels.account.heading')">
         <div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-secondary/50 via-white to-secondary/30 py-8 md:py-12">
             <!-- Decorative -->
             <div class="absolute -left-20 -top-20 h-80 w-80 rounded-full bg-primary/5 blur-3xl"></div>
@@ -234,9 +237,9 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
             <div class="container mx-auto px-4">
                 <!-- Breadcrumb -->
                 <div class="relative z-10 mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-                    <span class="cursor-pointer transition-colors hover:text-foreground" @click="$inertia.get(route('frontend.home'))">Beranda</span>
+                    <span class="cursor-pointer transition-colors hover:text-foreground" @click="$inertia.get(route('frontend.home'))">{{ t("labels.breadcrumb.home") }}</span>
                     <ChevronRight class="h-4 w-4" />
-                    <span class="font-medium text-foreground">Akun Saya</span>
+                    <span class="font-medium text-foreground">{{ t("labels.account.heading") }}</span>
                 </div>
 
                 <div class="relative z-10 mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[300px_1fr]">
@@ -304,7 +307,7 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                             class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-500 transition-all hover:bg-red-50"
                                         >
                                             <LogOut class="h-5 w-5" />
-                                            <span>Keluar</span>
+                                            <span>{{ t("labels.actions.logout") }}</span>
                                         </Link>
                                     </nav>
                                 </div>
@@ -312,21 +315,21 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
 
                             <!-- Quick Links -->
                             <div class="overflow-hidden rounded-2xl bg-white p-4 shadow-lg">
-                                <h4 class="mb-3 text-sm font-semibold text-foreground">Akses Cepat</h4>
+                                <h4 class="mb-3 text-sm font-semibold text-foreground">{{ t("labels.account.quick_links") }}</h4>
                                 <div class="space-y-2">
                                     <Link
                                         :href="route('frontend.wishlist')"
                                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
                                     >
                                         <Heart class="h-4 w-4" />
-                                        <span>Daftar Keinginan</span>
+                                        <span>{{ t("labels.account.wishlist") }}</span>
                                     </Link>
                                     <Link
                                         :href="route('frontend.orders')"
                                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
                                     >
                                         <Clock class="h-4 w-4" />
-                                        <span>Riwayat Pesanan</span>
+                                        <span>{{ t("labels.account.order_history") }}</span>
                                     </Link>
                                 </div>
                             </div>
@@ -348,7 +351,7 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                                 <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
                                                     <Package class="h-5 w-5 text-white" />
                                                 </div>
-                                                <span class="text-xs font-semibold uppercase tracking-wider text-white/80">Total Pesanan</span>
+                                                <span class="text-xs font-semibold uppercase tracking-wider text-white/80">{{ t("labels.account.total_orders") }}</span>
                                             </div>
                                             <h3 class="text-4xl font-bold text-white">0</h3>
                                         </div>
@@ -363,26 +366,26 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                                             <MapPin class="h-5 w-5 text-primary" />
                                         </div>
-                                        <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Alamat Default</span>
+                                        <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t("labels.account.default_address") }}</span>
                                     </div>
                                     <div v-if="featuredAddress" class="space-y-2">
                                         <div class="flex items-center gap-2">
                                             <h4 class="font-bold text-foreground">{{ featuredAddress.name }}</h4>
-                                            <span class="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">Default</span>
+                                            <span class="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{{ t("labels.address.default_badge") }}</span>
                                         </div>
                                         <p class="line-clamp-2 text-sm text-muted-foreground">
                                             {{ featuredAddress.address }}, {{ featuredAddress.village_name }}, {{ featuredAddress.sub_district_name }}
                                         </p>
                                     </div>
                                     <div v-else class="py-2">
-                                        <p class="mb-3 text-sm text-muted-foreground">Belum ada alamat default</p>
+                                        <p class="mb-3 text-sm text-muted-foreground">{{ t("labels.address.no_default") }}</p>
                                     </div>
                                     <button
                                         @click="activeSection = 'addresses'"
                                         class="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-primary/80"
                                     >
                                         <Edit3 class="h-3 w-3" />
-                                        Kelola Alamat
+                                        {{ t("labels.actions.manage_addresses") }}
                                     </button>
                                 </div>
                             </div>
@@ -391,7 +394,7 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                             <div class="overflow-hidden rounded-2xl bg-white p-6 shadow-lg">
                                 <h3 class="mb-6 flex items-center gap-2 text-lg font-bold text-foreground">
                                     <Clock class="h-5 w-5 text-primary" />
-                                    Aktivitas Terbaru
+                                    {{ t("labels.account.recent_activity") }}
                                 </h3>
                                 <div class="flex flex-col items-center justify-center py-12 text-center">
                                     <div
@@ -399,13 +402,13 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                     >
                                         <Package class="h-10 w-10 text-muted-foreground" />
                                     </div>
-                                    <p class="mb-2 font-semibold text-foreground">Belum ada aktivitas terbaru</p>
-                                    <p class="text-sm text-muted-foreground">Mulai belanja untuk melihat aktivitas Anda di sini</p>
+                                    <p class="mb-2 font-semibold text-foreground">{{ t("labels.account.no_activity") }}</p>
+                                    <p class="text-sm text-muted-foreground">{{ t("labels.account.no_activity_description") }}</p>
                                     <Link
                                         :href="route('frontend.products')"
                                         class="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/90 px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
                                     >
-                                        Mulai Belanja
+                                        {{ t("labels.actions.start_shopping") }}
                                         <ChevronRight class="h-4 w-4" />
                                     </Link>
                                 </div>
@@ -415,8 +418,8 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                         <!-- SETTINGS SECTION -->
                         <div v-if="activeSection === 'settings'" class="overflow-hidden rounded-2xl bg-white p-6 shadow-xl md:p-8">
                             <div class="mb-8">
-                                <h2 class="text-xl font-bold text-foreground">Pengaturan Akun</h2>
-                                <p class="mt-1 text-sm text-muted-foreground">Kelola informasi profil dan preferensi akun Anda</p>
+                                <h2 class="text-xl font-bold text-foreground">{{ t("labels.account.settings_heading") }}</h2>
+                                <p class="mt-1 text-sm text-muted-foreground">{{ t("labels.account.settings_description") }}</p>
                             </div>
 
                             <form @submit.prevent="submitProfile" class="space-y-8">
@@ -443,30 +446,30 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                         <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleImageChange" />
                                     </div>
                                     <div class="text-center md:text-left">
-                                        <p class="text-sm font-semibold text-foreground">Foto Profil</p>
-                                        <p class="text-xs text-muted-foreground">JPEG, PNG atau WEBP. Maks 2MB.</p>
+                                        <p class="text-sm font-semibold text-foreground">{{ t("labels.account.profile_photo") }}</p>
+                                        <p class="text-xs text-muted-foreground">{{ t("labels.account.photo_requirements") }}</p>
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">Nama Depan</label>
+                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.first_name") }}</label>
                                         <input v-model="profileForm.first_name" type="text" class="input-field" />
                                         <p v-if="profileForm.errors.first_name" class="text-xs text-red-500">{{ profileForm.errors.first_name }}</p>
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">Nama Belakang</label>
+                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.last_name") }}</label>
                                         <input v-model="profileForm.last_name" type="text" class="input-field" />
                                         <p v-if="profileForm.errors.last_name" class="text-xs text-red-500">{{ profileForm.errors.last_name }}</p>
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">Email</label>
+                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.email") }}</label>
                                         <input v-model="profileForm.email" type="email" class="input-field" />
                                         <p v-if="profileForm.errors.email" class="text-xs text-red-500">{{ profileForm.errors.email }}</p>
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">Nomor Telepon</label>
-                                        <input v-model="profileForm.phone" type="text" class="input-field" placeholder="08..." />
+                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.phone") }}</label>
+                                        <input v-model="profileForm.phone" type="text" class="input-field" :placeholder="t('placeholders.phone')" />
                                         <p v-if="profileForm.errors.phone" class="text-xs text-red-500">{{ profileForm.errors.phone }}</p>
                                     </div>
                                 </div>
@@ -478,14 +481,14 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                         class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/90 px-8 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-lg"
                                     >
                                         <Save class="h-4 w-4" />
-                                        <span>{{ profileForm.processing ? "Menyimpan..." : "Simpan" }}</span>
+                                        <span>{{ profileForm.processing ? t("labels.actions.saving") : t("labels.actions.save") }}</span>
                                     </button>
                                     <button
                                         type="button"
                                         @click="activeSection = 'overview'"
                                         class="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-white px-8 py-3 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-secondary"
                                     >
-                                        Batal
+                                        {{ t("labels.actions.cancel") }}
                                     </button>
                                 </div>
                             </form>
@@ -495,15 +498,15 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                         <div v-if="activeSection === 'addresses'" class="space-y-6">
                             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <h2 class="text-xl font-bold text-foreground">Alamat Pengiriman</h2>
-                                    <p class="mt-1 text-sm text-muted-foreground">Kelola alamat pengiriman pesanan Anda</p>
+                                    <h2 class="text-xl font-bold text-foreground">{{ t("labels.address.heading") }}</h2>
+                                    <p class="mt-1 text-sm text-muted-foreground">{{ t("labels.address.description") }}</p>
                                 </div>
                                 <button
                                     @click="openAddressForm()"
                                     class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/90 px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
                                 >
                                     <Plus class="h-4 w-4" />
-                                    <span>Tambah Baru</span>
+                                    <span>{{ t("labels.actions.add_new") }}</span>
                                 </button>
                             </div>
 
@@ -521,7 +524,7 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                                 <span
                                                     v-if="address.is_featured"
                                                     class="rounded-full bg-gradient-to-r from-primary to-primary/80 px-3 py-1 text-xs font-bold text-primary-foreground shadow-sm"
-                                                    >Default</span
+                                                    >{{ t("labels.address.default_badge") }}</span
                                                 >
                                             </div>
                                             <p class="text-sm font-medium text-primary">{{ address.phone }}</p>
@@ -539,7 +542,7 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                                 class="inline-flex items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-primary/80"
                                             >
                                                 <CheckCircle2 class="h-3 w-3" />
-                                                Jadikan Default
+                                                {{ t("labels.actions.set_default") }}
                                             </button>
                                             <div class="flex items-center gap-3">
                                                 <button
@@ -547,14 +550,14 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                                     class="inline-flex items-center gap-1 text-sm font-medium text-foreground underline transition-colors hover:text-primary"
                                                 >
                                                     <Edit3 class="h-3 w-3" />
-                                                    Edit
+                                                    {{ t("labels.actions.edit") }}
                                                 </button>
                                                 <button
                                                     @click="deleteAddress(address.id, address.name)"
                                                     class="inline-flex items-center gap-1 text-sm font-medium text-red-500 transition-colors hover:text-red-700"
                                                 >
                                                     <Trash2 class="h-3 w-3" />
-                                                    Hapus
+                                                    {{ t("labels.actions.delete") }}
                                                 </button>
                                             </div>
                                         </div>
@@ -572,13 +575,13 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                         <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-lg">
                                             <MapPin class="h-10 w-10 text-muted-foreground" />
                                         </div>
-                                        <p class="mb-6 text-sm font-medium text-muted-foreground">Belum ada alamat tersimpan</p>
+                                        <p class="mb-6 text-sm font-medium text-muted-foreground">{{ t("labels.address.empty") }}</p>
                                         <button
                                             @click="openAddressForm()"
                                             class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/90 px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
                                         >
                                             <Plus class="h-4 w-4" />
-                                            Tambah Alamat Pertama
+                                            {{ t("labels.actions.add_first_address") }}
                                         </button>
                                     </div>
                                 </div>
@@ -589,9 +592,9 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                         <div v-if="activeSection === 'address_form'" class="overflow-hidden rounded-2xl bg-white p-6 shadow-xl md:p-8">
                             <div class="mb-8 flex items-center justify-between">
                                 <div>
-                                    <h2 class="text-xl font-bold text-foreground">{{ editingAddress ? "Edit Alamat" : "Alamat Pengiriman Baru" }}</h2>
+                                    <h2 class="text-xl font-bold text-foreground">{{ editingAddress ? t("labels.address.edit_heading") : t("labels.address.new_heading") }}</h2>
                                     <p class="mt-1 text-sm text-muted-foreground">
-                                        {{ editingAddress ? "Perbarui informasi alamat Anda" : "Tambahkan alamat baru untuk pengiriman" }}
+                                        {{ editingAddress ? t("labels.address.edit_description") : t("labels.address.new_description") }}
                                     </p>
                                 </div>
                                 <button
@@ -605,52 +608,52 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                             <form @submit.prevent="submitAddress" class="space-y-6">
                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">Nama Penerima</label>
-                                        <input v-model="addressForm.name" type="text" class="input-field" placeholder="Nama lengkap" />
+                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.recipient_name") }}</label>
+                                        <input v-model="addressForm.name" type="text" class="input-field" :placeholder="t('placeholders.full_name')" />
                                         <p v-if="addressForm.errors.name" class="text-xs text-red-500">{{ addressForm.errors.name }}</p>
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">Nomor Telepon</label>
-                                        <input v-model="addressForm.phone" type="text" class="input-field" placeholder="08..." />
+                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.phone") }}</label>
+                                        <input v-model="addressForm.phone" type="text" class="input-field" :placeholder="t('placeholders.phone')" />
                                         <p v-if="addressForm.errors.phone" class="text-xs text-red-500">{{ addressForm.errors.phone }}</p>
                                     </div>
 
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">Provinsi</label>
+                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.province") }}</label>
                                         <select
                                             v-model="addressForm.province_id"
                                             @change="fetchDistricts(addressForm.province_id)"
                                             class="select-field"
                                         >
-                                            <option value="" disabled>Pilih Provinsi</option>
+                                            <option value="" disabled>{{ t("placeholders.select_province") }}</option>
                                             <option v-for="p in provinces" :key="p.id" :value="p.id">{{ p.name }}</option>
                                         </select>
                                         <p v-if="addressForm.errors.province_id" class="text-xs text-red-500">{{ addressForm.errors.province_id }}</p>
                                     </div>
 
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">Kabupaten/Kota</label>
+                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.district") }}</label>
                                         <select
                                             v-model="addressForm.district_id"
                                             @change="fetchSubDistricts(addressForm.district_id)"
                                             :disabled="!addressForm.province_id"
                                             class="select-field"
                                         >
-                                            <option value="" disabled>Pilih Kabupaten/Kota</option>
+                                            <option value="" disabled>{{ t("placeholders.select_district") }}</option>
                                             <option v-for="d in districts" :key="d.id" :value="d.id">{{ d.name }}</option>
                                         </select>
                                         <p v-if="addressForm.errors.district_id" class="text-xs text-red-500">{{ addressForm.errors.district_id }}</p>
                                     </div>
 
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">Kecamatan</label>
+                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.sub_district") }}</label>
                                         <select
                                             v-model="addressForm.sub_district_id"
                                             @change="fetchVillages(addressForm.sub_district_id)"
                                             :disabled="!addressForm.district_id"
                                             class="select-field"
                                         >
-                                            <option value="" disabled>Pilih Kecamatan</option>
+                                            <option value="" disabled>{{ t("placeholders.select_sub_district") }}</option>
                                             <option v-for="sd in subDistricts" :key="sd.id" :value="sd.id">{{ sd.name }}</option>
                                         </select>
                                         <p v-if="addressForm.errors.sub_district_id" class="text-xs text-red-500">
@@ -659,40 +662,40 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                     </div>
 
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">Kelurahan/Desa</label>
+                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.village") }}</label>
                                         <select
                                             v-model="addressForm.village_id"
                                             @change="onVillageChange"
                                             :disabled="!addressForm.sub_district_id"
                                             class="select-field"
                                         >
-                                            <option value="" disabled>Pilih Kelurahan/Desa</option>
+                                            <option value="" disabled>{{ t("placeholders.select_village") }}</option>
                                             <option v-for="v in villages" :key="v.id" :value="v.id">{{ v.name }}</option>
                                         </select>
                                         <p v-if="addressForm.errors.village_id" class="text-xs text-red-500">{{ addressForm.errors.village_id }}</p>
                                     </div>
 
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">Kode Pos</label>
+                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.postal_code") }}</label>
                                         <input
                                             v-model="addressForm.postal_code"
                                             type="text"
                                             inputmode="numeric"
                                             @input="addressForm.postal_code = addressForm.postal_code.replace(/\D/g, '')"
                                             class="input-field"
-                                            placeholder="12345"
+                                            :placeholder="t('placeholders.postal_code')"
                                         />
                                         <p v-if="addressForm.errors.postal_code" class="text-xs text-red-500">{{ addressForm.errors.postal_code }}</p>
                                     </div>
                                 </div>
 
                                 <div class="space-y-2">
-                                    <label class="text-sm font-semibold text-foreground">Alamat Lengkap</label>
+                                    <label class="text-sm font-semibold text-foreground">{{ t("labels.form.full_address") }}</label>
                                     <textarea
                                         v-model="addressForm.address"
                                         rows="3"
                                         class="input-field"
-                                        placeholder="Nama jalan, nomor rumah..."
+                                        :placeholder="t('placeholders.street_address')"
                                     ></textarea>
                                     <p v-if="addressForm.errors.address" class="text-xs text-red-500">{{ addressForm.errors.address }}</p>
                                 </div>
@@ -704,7 +707,7 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                         v-model="addressForm.is_featured"
                                         class="h-5 w-5 rounded border-border bg-white text-primary focus:ring-primary"
                                     />
-                                    <label for="is_featured" class="cursor-pointer text-sm font-medium">Jadikan alamat default</label>
+                                    <label for="is_featured" class="cursor-pointer text-sm font-medium">{{ t("labels.form.set_as_default") }}</label>
                                 </div>
 
                                 <div class="flex flex-col gap-3 border-t border-border pt-6 sm:flex-row">
@@ -714,14 +717,14 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                         class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/90 px-8 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-lg"
                                     >
                                         <Save class="h-4 w-4" />
-                                        <span>{{ addressForm.processing ? "Menyimpan..." : "Simpan Alamat" }}</span>
+                                        <span>{{ addressForm.processing ? t("labels.actions.saving") : t("labels.actions.save_address") }}</span>
                                     </button>
                                     <button
                                         type="button"
                                         @click="activeSection = 'addresses'"
                                         class="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-white px-8 py-3 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-secondary"
                                     >
-                                        Batal
+                                        {{ t("labels.actions.cancel") }}
                                     </button>
                                 </div>
                             </form>

@@ -54,7 +54,7 @@ class VoucherController extends Controller
         $cart = $this->getActiveCart($customer);
 
         if (!$cart) {
-            return redirect()->back()->with('error', 'Keranjang tidak ditemukan');
+            return redirect()->back()->with('error', __('messages.error.cart_not_found'));
         }
 
         $result = $this->voucherService->validateVoucher($request->code, $cart, $customer);
@@ -74,7 +74,7 @@ class VoucherController extends Controller
 
         $redirect = $request->get('redirect', route('frontend.checkout'));
 
-        return redirect($redirect)->with('success', 'Voucher "' . $voucher->code . '" berhasil dipilih!');
+        return redirect($redirect)->with('success', __('messages.success.voucher_applied', ['code' => $voucher->code]));
     }
 
     public function remove(Request $request)
@@ -85,7 +85,7 @@ class VoucherController extends Controller
 
         $this->cookieService->removeVoucher($request->type);
 
-        return redirect()->back()->with('success', 'Voucher berhasil dihapus');
+        return redirect()->back()->with('success', __('messages.success.voucher_removed'));
     }
 
     protected function getActiveCart(?Customer $customer): ?Cart

@@ -11,6 +11,9 @@ import VoucherSection from "../../components/UI/VoucherSection.vue";
 import { Link } from "@inertiajs/vue3";
 import { ChevronRight } from "lucide-vue-next";
 import { toast } from "vue-sonner";
+import { useTranslations } from "../../composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     flashsales: Object,
@@ -77,11 +80,11 @@ const submitNewsletter = () => {
     newsletterForm.post(route("frontend.newsletter.subscribe"), {
         preserveScroll: true,
         onSuccess: () => {
-            toast.success("Berhasil berlangganan newsletter! Cek email Anda untuk konfirmasi.");
+            toast.success(t('messages.success.subscribed'));
             newsletterForm.reset();
         },
         onError: (errors) => {
-            const message = errors.email || "Gagal berlangganan newsletter. Silakan coba lagi.";
+            const message = errors.email || t('messages.error.generic');
             toast.error(message);
         },
     });
@@ -98,8 +101,8 @@ const submitNewsletter = () => {
     >
         <!-- Hero Section -->
         <HeroSection
-            :title="heroTitle || 'Diskon Spesial Hari Ini'"
-            :subtitle="heroSubtitle || 'Dapatkan penawaran terbaik untuk produk pilihan Anda. Promo terbatas, jangan sampai kehabisan!'"
+            :title="heroTitle || t('labels.hero.default_title')"
+            :subtitle="heroSubtitle || t('labels.hero.default_subtitle')"
             :badge="heroBadge"
             :image-url="heroImage"
             :overlay-color="heroOverlay"
@@ -122,7 +125,7 @@ const submitNewsletter = () => {
         <FlashSaleSection v-if="flashsales" :flashsales="flashsales" :title="flashSaleTitle" :subtitle="flashSaleSubtitle" />
 
         <!-- Voucher Section -->
-        <VoucherSection title="Voucher Tersedia" subtitle="Simpan dan gunakan saat checkout" :limit="4" />
+        <VoucherSection :title="t('labels.voucher.available_title')" :subtitle="t('labels.voucher.available_subtitle')" :limit="4" />
 
         <!-- All Products Section -->
         <section class="py-8 md:py-12">
@@ -164,15 +167,15 @@ const submitNewsletter = () => {
                                 />
                             </svg>
                         </div>
-                        <h3 class="mb-2 text-xl font-bold text-foreground">Belum Ada Produk</h3>
+                        <h3 class="mb-2 text-xl font-bold text-foreground">{{ t('labels.products.empty_title') }}</h3>
                         <p class="mx-auto mb-8 max-w-sm text-sm text-muted-foreground">
-                            Sepertinya belum ada produk yang tersedia saat ini. Yuk, cek kembali nanti!
+                            {{ t('labels.products.empty_description') }}
                         </p>
                         <Link
                             :href="route('frontend.home')"
                             class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary/90 px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/40"
                         >
-                            Kembali ke Beranda
+                            {{ t('labels.actions.back_to_home') }}
                             <ChevronRight class="h-4 w-4" />
                         </Link>
                     </div>
@@ -184,7 +187,7 @@ const submitNewsletter = () => {
                         :href="route('frontend.products')"
                         class="inline-flex items-center gap-2 rounded-full bg-secondary px-8 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
                     >
-                        Lihat Lebih Banyak
+                        {{ t('labels.actions.view_more') }}
                         <ChevronRight class="h-4 w-4" />
                     </Link>
                 </div>
@@ -226,7 +229,7 @@ const submitNewsletter = () => {
                         <input
                             v-model="newsletterForm.email"
                             type="email"
-                            placeholder="Masukkan email Anda"
+                            :placeholder="t('placeholders.email')"
                             class="flex-grow rounded-xl border border-white/50 bg-white px-5 py-3.5 text-sm shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/30"
                             :class="newsletterForm.errors.email && 'border-destructive focus:border-destructive focus:ring-destructive/20'"
                         />
@@ -235,7 +238,7 @@ const submitNewsletter = () => {
                             :disabled="newsletterForm.processing"
                             class="rounded-xl bg-gradient-to-r from-primary to-primary/90 px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/40 active:scale-95 disabled:opacity-70"
                         >
-                            <span v-if="newsletterForm.processing">Mengirim...</span>
+                            <span v-if="newsletterForm.processing">{{ t('labels.actions.sending') }}</span>
                             <span v-else>{{ newsletterButtonText }}</span>
                         </button>
                     </form>

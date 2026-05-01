@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue';
 import TemplateWrapper from '../../components/TemplateWrapper.vue';
 import { ChevronDown, HelpCircle } from 'lucide-vue-next';
+import { useTranslations } from '../../composables/useTranslations';
+
+const { t } = useTranslations();
 
 const props = defineProps({
   faqs: [Object, Array]
@@ -21,16 +24,16 @@ const toggle = (index) => {
 
 <template>
   <TemplateWrapper 
-    title="FAQ"
-    description="Frequently asked questions about our products, shipping, and services."
+    :title="t('meta.faq.title')"
+    :description="t('meta.faq.description')"
   >
     <div class="py-12 md:py-24 bg-white">
       <div class="container mx-auto px-4 md:px-6">
         <div class="max-w-3xl mx-auto space-y-12">
           <!-- Header -->
           <div class="text-center space-y-4">
-            <h1 class="text-4xl md:text-5xl font-bold text-black tracking-tight uppercase">How can we help?</h1>
-            <p class="text-gray-500 text-lg">Find answers to the most frequently asked questions below.</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-black tracking-tight uppercase">{{ t('labels.faq.page_heading') }}</h1>
+            <p class="text-gray-500 text-lg">{{ t('labels.faq.page_subheading') }}</p>
           </div>
 
           <!-- FAQ Accordion -->
@@ -66,14 +69,14 @@ const toggle = (index) => {
               <HelpCircle class="w-6 h-6 text-black" />
             </div>
             <div class="space-y-2">
-              <h3 class="text-xl font-bold text-black uppercase tracking-tight">Still have questions?</h3>
-              <p class="text-gray-500 text-sm">If you couldn't find the answer you were looking for, please don't hesitate to reach out to our team.</p>
+              <h3 class="text-xl font-bold text-black uppercase tracking-tight">{{ t('labels.faq.still_have_questions') }}</h3>
+              <p class="text-gray-500 text-sm">{{ t('labels.faq.contact_team') }}</p>
             </div>
             <a 
               href="mailto:support@example.com" 
               class="inline-block bg-black text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-800 transition-all shadow-lg"
             >
-              Contact Support
+              {{ t('labels.actions.contact_support') }}
             </a>
           </div>
         </div>

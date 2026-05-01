@@ -5,6 +5,9 @@ import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import ProductCard from "../../components/UI/ProductCard.vue";
 import { Search, X, Loader2, SlidersHorizontal } from "lucide-vue-next";
 import debounce from "lodash/debounce";
+import { useTranslations } from "../../composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     products: Object,
@@ -105,13 +108,13 @@ const hasActiveFilters = computed(() => {
 </script>
 
 <template>
-    <TemplateWrapper title="Semua Produk">
+    <TemplateWrapper :title="t('meta.products.title')">
         <div class="bg-secondary/30 py-8 md:py-12">
             <div class="container mx-auto px-4">
                 <div class="mb-6 flex items-center justify-between">
                     <div>
-                        <h1 class="text-2xl font-bold text-foreground md:text-3xl">Semua Produk</h1>
-                        <p class="mt-1 text-sm text-muted-foreground">{{ totalProducts }} produk tersedia</p>
+                        <h1 class="text-2xl font-bold text-foreground md:text-3xl">{{ t('labels.products.default_title') }}</h1>
+                        <p class="mt-1 text-sm text-muted-foreground">{{ t('labels.products.available_count', { count: totalProducts }) }}</p>
                     </div>
 
                     <button
@@ -119,7 +122,7 @@ const hasActiveFilters = computed(() => {
                         class="flex items-center justify-center gap-2 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium md:hidden"
                     >
                         <SlidersHorizontal class="h-4 w-4" />
-                        Filter
+                        {{ t('labels.actions.filter') }}
                         <span
                             v-if="hasActiveFilters"
                             class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground"
@@ -132,20 +135,20 @@ const hasActiveFilters = computed(() => {
                     <!-- Filters Sidebar -->
                     <aside :class="['rounded-xl bg-white p-6', isFilterOpen ? 'block' : 'hidden md:block']">
                         <div class="mb-6 flex items-center justify-between">
-                            <h3 class="text-lg font-semibold">Filter & Urutan</h3>
+                            <h3 class="text-lg font-semibold">{{ t('labels.products.filter_and_sort') }}</h3>
                             <button v-if="hasActiveFilters" @click="resetFilters" class="text-xs font-medium text-primary hover:underline">
-                                Reset
+                                {{ t('labels.actions.reset') }}
                             </button>
                         </div>
 
                         <!-- Search -->
                         <div class="mb-6">
-                            <label class="mb-2 block text-sm font-medium">Pencarian</label>
+                            <label class="mb-2 block text-sm font-medium">{{ t('labels.form.search') }}</label>
                             <div class="relative">
                                 <input
                                     v-model="search"
                                     type="text"
-                                    placeholder="Cari produk..."
+                                    :placeholder="t('placeholders.search_products')"
                                     class="w-full rounded-lg border border-border bg-secondary py-2.5 pl-10 pr-4 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                                 <Search class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
@@ -161,26 +164,26 @@ const hasActiveFilters = computed(() => {
 
                         <!-- Sort -->
                         <div class="mb-6">
-                            <label class="mb-2 block text-sm font-medium">Urutkan</label>
+                            <label class="mb-2 block text-sm font-medium">{{ t('labels.form.sort') }}</label>
                             <select
                                 v-model="selectedSort"
                                 class="w-full cursor-pointer rounded-lg border border-border bg-secondary px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                             >
-                                <option value="newest">Terbaru</option>
-                                <option value="price_low">Harga: Rendah ke Tinggi</option>
-                                <option value="price_high">Harga: Tinggi ke Rendah</option>
-                                <option value="name_asc">Nama: A-Z</option>
-                                <option value="name_desc">Nama: Z-A</option>
+                                <option value="newest">{{ t('labels.sort.newest') }}</option>
+                                <option value="price_low">{{ t('labels.sort.price_low_high') }}</option>
+                                <option value="price_high">{{ t('labels.sort.price_high_low') }}</option>
+                                <option value="name_asc">{{ t('labels.sort.name_asc') }}</option>
+                                <option value="name_desc">{{ t('labels.sort.name_desc') }}</option>
                             </select>
                         </div>
 
                         <!-- Category Filter -->
                         <div class="mb-6">
-                            <h4 class="mb-3 text-sm font-semibold">Kategori</h4>
+                            <h4 class="mb-3 text-sm font-semibold">{{ t('labels.form.category') }}</h4>
                             <div class="space-y-2">
                                 <label class="flex cursor-pointer items-center gap-2">
                                     <input type="radio" v-model="selectedCategory" value="" class="h-4 w-4 accent-primary" />
-                                    <span class="text-sm">Semua Kategori</span>
+                                    <span class="text-sm">{{ t('labels.filters.all_categories') }}</span>
                                 </label>
                                 <label v-for="category in categories" :key="category.id" class="flex cursor-pointer items-center gap-2">
                                     <input type="radio" v-model="selectedCategory" :value="category.slug" class="h-4 w-4 accent-primary" />
@@ -191,13 +194,13 @@ const hasActiveFilters = computed(() => {
 
                         <!-- Price Filter -->
                         <div class="mb-6">
-                            <h4 class="mb-3 text-sm font-semibold">Harga</h4>
+                            <h4 class="mb-3 text-sm font-semibold">{{ t('labels.form.price') }}</h4>
                             <div class="flex items-center gap-2">
                                 <input
                                     v-model="priceMin"
                                     type="number"
                                     min="0"
-                                    placeholder="Min"
+                                    :placeholder="t('placeholders.price_min')"
                                     class="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                                 <span class="text-muted-foreground">-</span>
@@ -205,7 +208,7 @@ const hasActiveFilters = computed(() => {
                                     v-model="priceMax"
                                     type="number"
                                     min="0"
-                                    placeholder="Max"
+                                    :placeholder="t('placeholders.price_max')"
                                     class="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                             </div>
@@ -213,7 +216,7 @@ const hasActiveFilters = computed(() => {
 
                         <!-- Active Filters Tags -->
                         <div v-if="hasActiveFilters" class="border-t border-border pt-4">
-                            <h4 class="mb-3 text-sm font-semibold">Filter Aktif</h4>
+                            <h4 class="mb-3 text-sm font-semibold">{{ t('labels.filters.active') }}</h4>
                             <div class="flex flex-wrap gap-2">
                                 <span
                                     v-if="search"
@@ -260,13 +263,13 @@ const hasActiveFilters = computed(() => {
 
                         <div v-else class="py-20 text-center">
                             <div class="mb-4 text-6xl">📭</div>
-                            <h3 class="mb-2 text-xl font-bold text-foreground">Produk tidak ditemukan</h3>
-                            <p class="mb-6 text-sm text-muted-foreground">Coba ubah filter atau kata kunci pencarian Anda.</p>
+                            <h3 class="mb-2 text-xl font-bold text-foreground">{{ t('labels.products.not_found') }}</h3>
+                            <p class="mb-6 text-sm text-muted-foreground">{{ t('labels.products.adjust_filters') }}</p>
                             <button
                                 @click="resetFilters"
                                 class="inline-block rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                             >
-                                Reset Filter
+                                {{ t('labels.actions.reset_filters') }}
                             </button>
                         </div>
 
@@ -278,11 +281,11 @@ const hasActiveFilters = computed(() => {
                                 class="flex min-w-[200px] items-center justify-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-primary hover:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <Loader2 v-if="isLoadingMore" class="h-4 w-4 animate-spin" />
-                                <span>{{ isLoadingMore ? "Memuat..." : "Lihat Lebih Banyak" }}</span>
+                                <span>{{ isLoadingMore ? t('labels.actions.loading') : t('labels.actions.load_more') }}</span>
                             </button>
                         </div>
                         <div v-else-if="allProducts.length > 0" class="pt-12 text-center">
-                            <p class="text-sm text-muted-foreground">Anda telah melihat semua produk</p>
+                            <p class="text-sm text-muted-foreground">{{ t('labels.products.all_viewed') }}</p>
                         </div>
                     </div>
                 </div>

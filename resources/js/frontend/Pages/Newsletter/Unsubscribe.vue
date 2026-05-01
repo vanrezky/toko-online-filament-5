@@ -1,5 +1,8 @@
 <script setup>
 import { Link } from "@inertiajs/vue3";
+import { useTranslations } from "../../composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
     status: {
@@ -18,7 +21,7 @@ const isAlreadyUnsubscribed = props.status === "already_unsubscribed";
 
 <template>
     <TemplateWrapper
-        title="Newsletter - Kelola Langganan"
+        :title="t('meta.newsletter_manage.title')"
         description="Kelola langganan newsletter Anda"
     >
         <section class="py-12 md:py-20">
@@ -41,12 +44,12 @@ const isAlreadyUnsubscribed = props.status === "already_unsubscribed";
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <h1 class="mb-3 text-2xl font-bold text-foreground">Berhasil Unsubscribe</h1>
+                            <h1 class="mb-3 text-2xl font-bold text-foreground">{{ t('labels.newsletter.unsubscribed_title') }}</h1>
                             <p class="mb-2 text-sm text-muted-foreground">
-                                Email <strong>{{ email }}</strong> telah berhasil dihapus dari daftar newsletter kami.
+                                {{ t('labels.newsletter.unsubscribed_text', { email }) }}
                             </p>
                             <p class="text-sm text-muted-foreground">
-                                Anda tidak akan lagi menerima email newsletter dari kami.
+                                {{ t('labels.newsletter.unsubscribed_note') }}
                             </p>
                         </div>
 
@@ -70,12 +73,12 @@ const isAlreadyUnsubscribed = props.status === "already_unsubscribed";
                                     />
                                 </svg>
                             </div>
-                            <h1 class="mb-3 text-2xl font-bold text-foreground">Sudah Unsubscribe</h1>
+                            <h1 class="mb-3 text-2xl font-bold text-foreground">{{ t('labels.newsletter.already_unsubscribed_title') }}</h1>
                             <p class="mb-2 text-sm text-muted-foreground">
-                                Email <strong>{{ email }}</strong> sudah tidak berlangganan newsletter kami.
+                                {{ t('labels.newsletter.already_unsubscribed_text', { email }) }}
                             </p>
                             <p class="text-sm text-muted-foreground">
-                                Jika Anda ingin berlangganan kembali, silakan daftar di halaman utama.
+                                {{ t('labels.newsletter.resubscribe_note') }}
                             </p>
                         </div>
 
@@ -99,7 +102,7 @@ const isAlreadyUnsubscribed = props.status === "already_unsubscribed";
                                         d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
                                     />
                                 </svg>
-                                Kembali ke Beranda
+                                {{ t('labels.actions.back_to_home') }}
                             </Link>
                         </div>
                     </div>

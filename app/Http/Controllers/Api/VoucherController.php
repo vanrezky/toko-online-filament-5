@@ -90,7 +90,7 @@ class VoucherController extends Controller
                 'success' => false,
                 'error' => [
                     'code' => 'UNAUTHORIZED',
-                    'message' => 'Silakan login untuk menggunakan voucher',
+                    'message' => __('messages.error.login_required_voucher'),
                 ],
             ], 401);
         }
@@ -102,7 +102,7 @@ class VoucherController extends Controller
                 'success' => false,
                 'error' => [
                     'code' => 'NO_CART',
-                    'message' => 'Keranjang tidak ditemukan',
+                    'message' => __('messages.error.cart_not_found'),
                 ],
             ], 400);
         }
@@ -132,7 +132,7 @@ class VoucherController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Voucher berhasil dipilih',
+            'message' => __('messages.success.voucher_applied'),
             'data' => [
                 'vouchers' => $validatedVouchers,
                 'pending' => $result['vouchers'],
@@ -153,7 +153,7 @@ class VoucherController extends Controller
                 'success' => false,
                 'error' => [
                     'code' => 'UNAUTHORIZED',
-                    'message' => 'Silakan login untuk menghapus voucher',
+                    'message' => __('messages.error.login_required_remove_voucher'),
                 ],
             ], 401);
         }
@@ -162,7 +162,7 @@ class VoucherController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Voucher berhasil dihapus',
+            'message' => __('messages.success.voucher_removed'),
             'data' => [
                 'pending' => $result['vouchers'],
             ],
