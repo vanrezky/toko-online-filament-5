@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from "vue";
-import { usePage } from "@inertiajs/vue3";
+import { useForm, usePage } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import HeroSection from "../../components/UI/HeroSection.vue";
 import FeaturedProducts from "../../components/UI/FeaturedProducts.vue";
@@ -10,6 +10,7 @@ import CategoryMenu from "../../components/UI/CategoryMenu.vue";
 import VoucherSection from "../../components/UI/VoucherSection.vue";
 import { Link } from "@inertiajs/vue3";
 import { ChevronRight } from "lucide-vue-next";
+import { toast } from "vue-sonner";
 
 const props = defineProps({
     flashsales: Object,
@@ -22,6 +23,10 @@ const props = defineProps({
 const page = usePage();
 const settings = computed(() => page.props.settings);
 const colorScheme = computed(() => page.props.colorScheme);
+
+const newsletterForm = useForm({
+    email: "",
+});
 
 const allProducts = ref([...(props.products?.data || [])]);
 
@@ -67,6 +72,20 @@ const allProductsSubtitle = computed(() => getSectionContent("products_grid", "s
 
 const flashSaleTitle = computed(() => getSectionContent("flash_sale", "title", ""));
 const flashSaleSubtitle = computed(() => getSectionContent("flash_sale", "subtitle", "Dapatkan harga spesial dengan periode terbatas"));
+
+const submitNewsletter = () => {
+    newsletterForm.post(route("frontend.newsletter.subscribe"), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success("Berhasil berlangganan newsletter! Cek email Anda untuk konfirmasi.");
+            newsletterForm.reset();
+        },
+        onError: (errors) => {
+            const message = errors.email || "Gagal berlangganan newsletter. Silakan coba lagi.";
+            toast.error(message);
+        },
+    });
+};
 </script>
 
 <template>
@@ -203,19 +222,26 @@ const flashSaleSubtitle = computed(() => getSectionContent("flash_sale", "subtit
                         {{ newsletterSubtitle }}
                     </p>
 
-                    <form class="flex flex-col gap-3 sm:flex-row" @submit.prevent>
+                    <form class="flex flex-col gap-3 sm:flex-row" @submit.prevent="submitNewsletter">
                         <input
+                            v-model="newsletterForm.email"
                             type="email"
                             placeholder="Masukkan email Anda"
                             class="flex-grow rounded-xl border border-white/50 bg-white px-5 py-3.5 text-sm shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            :class="newsletterForm.errors.email && 'border-destructive focus:border-destructive focus:ring-destructive/20'"
                         />
                         <button
                             type="submit"
-                            class="rounded-xl bg-gradient-to-r from-primary to-primary/90 px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/40 active:scale-95"
+                            :disabled="newsletterForm.processing"
+                            class="rounded-xl bg-gradient-to-r from-primary to-primary/90 px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/40 active:scale-95 disabled:opacity-70"
                         >
-                            {{ newsletterButtonText }}
+                            <span v-if="newsletterForm.processing">Mengirim...</span>
+                            <span v-else>{{ newsletterButtonText }}</span>
                         </button>
                     </form>
+                    <p v-if="newsletterForm.errors.email" class="mt-2 text-xs text-destructive">
+                        {{ newsletterForm.errors.email }}
+                    </p>
                 </div>
             </div>
         </section>

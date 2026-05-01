@@ -9,6 +9,7 @@ use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProductDetailController;
+use App\Http\Controllers\Frontend\NewsletterController;
 use App\Http\Controllers\Frontend\VoucherController;
 use Illuminate\Support\Facades\Route;
 
@@ -88,6 +89,11 @@ Route::name('frontend.')->group(function () {
     Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers');
     Route::post('/vouchers/apply', [VoucherController::class, 'apply'])->name('vouchers.apply');
     Route::post('/vouchers/remove', [VoucherController::class, 'remove'])->name('vouchers.remove');
+
+    // Newsletter routes
+    Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
+    Route::get('/newsletter/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
+    Route::post('/newsletter/send-test', [NewsletterController::class, 'sendTest'])->name('newsletter.send-test');
 
     // Webhook routes
     Route::post('/webhooks/payment/{gateway}', \App\Http\Controllers\PaymentWebhookController::class)->name('webhooks.payment');

@@ -1,15 +1,34 @@
 <script setup>
-import { Link, usePage } from "@inertiajs/vue3";
+import { Link, useForm, usePage } from "@inertiajs/vue3";
 import { computed } from "vue";
 import { Instagram, Facebook, Twitter, Mail } from "lucide-vue-next";
+import { toast } from "vue-sonner";
 import PromotionBanner from "../../UI/PromotionBanner.vue";
 
 const { props } = usePage();
 const settings = computed(() => props.settings);
 const currentYear = new Date().getFullYear();
 
+const newsletterForm = useForm({
+    email: "",
+});
+
+const submitNewsletter = () => {
+    newsletterForm.post(route("frontend.newsletter.subscribe"), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success("Berhasil berlangganan newsletter! Cek email Anda untuk konfirmasi.");
+            newsletterForm.reset();
+        },
+        onError: (errors) => {
+            const message = errors.email || "Gagal berlangganan newsletter. Silakan coba lagi.";
+            toast.error(message);
+        },
+    });
+};
+
 const customerServiceLinks = [
-  { name: 'Contact Us', href: '#' },
+  { name: 'Contact Us', href: route('frontend.contact') },
   { name: 'FAQ', href: route('frontend.faq') },
   { name: 'Shipping Info', href: '#' },
   { name: 'Returns & Exchanges', href: '#' },
@@ -80,17 +99,26 @@ const footerPromos = computed(() => {
                 <div>
                     <h3 class="mb-6 text-sm font-bold uppercase tracking-widest text-black">Newsletter</h3>
                     <p class="mb-6 text-sm text-gray-500">Subscribe to receive updates, access to exclusive deals, and more.</p>
-                    <form class="space-y-3" @submit.prevent>
+                    <form class="space-y-3" @submit.prevent="submitNewsletter">
                         <div class="relative">
                             <input
+                                v-model="newsletterForm.email"
                                 type="email"
                                 placeholder="Enter your email"
                                 class="w-full rounded-none border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-black focus:outline-none"
+                                :class="newsletterForm.errors.email && 'border-destructive'"
                             />
-                            <button class="absolute right-0 top-0 h-full px-4 text-black hover:text-gray-600">
+                            <button
+                                type="submit"
+                                :disabled="newsletterForm.processing"
+                                class="absolute right-0 top-0 h-full px-4 text-black hover:text-gray-600 disabled:opacity-50"
+                            >
                                 <Mail class="h-5 w-5" />
                             </button>
                         </div>
+                        <p v-if="newsletterForm.errors.email" class="text-xs text-red-500">
+                            {{ newsletterForm.errors.email }}
+                        </p>
                     </form>
                 </div>
             </div>

@@ -82,6 +82,18 @@ class EmailTemplateSeeder extends Seeder
                 'is_default' => true,
                 'send_to_admin' => true,
             ],
+            [
+                'code' => 'newsletter',
+                'name' => 'Newsletter',
+                'subject' => '{{newsletter_title}} - {{website_name}}',
+                'header_title' => 'Newsletter',
+                'header_gradient' => '#4F46E5 0%, #7C3AED 100%',
+                'body' => '{{newsletter_content}}',
+                'placeholders' => ['subscriber_email', 'website_name', 'logo_url', 'unsubscribe_url', 'current_year', 'newsletter_title', 'newsletter_content'],
+                'is_active' => true,
+                'is_default' => true,
+                'send_to_admin' => false,
+            ],
         ];
 
         foreach ($templates as $template) {
