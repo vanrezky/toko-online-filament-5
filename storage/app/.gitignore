@@ -4,7 +4,8 @@
 !locations/indonesia/
 !locations/indonesia/provinces.json
 !locations/indonesia/districts.json
-!locations/indonesia/subdistricts.json
+!locations/indonesia/sub_districts.json
+!locations/indonesia/villages.json
 
 !.gitignore
 
