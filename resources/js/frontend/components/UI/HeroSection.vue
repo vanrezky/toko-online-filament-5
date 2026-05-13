@@ -40,6 +40,10 @@ const props = defineProps({
         type: String,
         default: "",
     },
+    hasFlashsales: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const hasBackgroundImage = computed(() => props.imageUrl && props.imageUrl.length > 0);
@@ -121,6 +125,7 @@ const secondaryLink = computed(() => props.secondaryButtonLink || route("fronten
                         </Link>
 
                         <Link
+                            v-if="hasFlashsales"
                             :href="secondaryLink"
                             class="group inline-flex items-center gap-2 rounded-xl border-2 border-primary/30 bg-white/80 px-6 py-4 text-sm font-semibold text-foreground shadow-lg backdrop-blur-sm transition-all duration-300 hover:border-primary hover:bg-white dark:bg-gray-800/80 dark:text-white"
                         >

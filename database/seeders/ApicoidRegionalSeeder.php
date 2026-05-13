@@ -76,8 +76,8 @@ class ApicoidRegionalSeeder extends Seeder
             }
 
             // Optimization: If this is an existing province and all its districts already have codes,
-            // we might still need to check deeper. But to save API calls, we only proceed if 
-            // there's a reason to believe it's incomplete. 
+            // we might still need to check deeper. But to save API calls, we only proceed if
+            // there's a reason to believe it's incomplete.
             // Better: Let the deeper methods handle skipping.
             $this->syncDistricts($province, $apiCode);
         }
@@ -161,7 +161,7 @@ class ApicoidRegionalSeeder extends Seeder
     protected function syncVillages(SubDistrict $subDistrict, string $subDistrictCode)
     {
         // RESUME LOGIC: This is the most critical part (~80k villages).
-        // If all villages in our DB for this sub-district already have apicoid_code, 
+        // If all villages in our DB for this sub-district already have apicoid_code,
         // we SKIP the API call entirely for this sub-district.
         // This effectively "continues" from where it stopped.
         $exists = Village::where('sub_district_id', $subDistrict->id)->exists();

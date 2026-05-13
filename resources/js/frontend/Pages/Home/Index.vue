@@ -108,6 +108,7 @@ const submitNewsletter = () => {
             :overlay-color="heroOverlay"
             :button-text="heroButtonText"
             :button-link="heroButtonLink"
+            :hasFlashsales="flashsales?.length > 0"
         />
 
         <!-- Category Menu -->
