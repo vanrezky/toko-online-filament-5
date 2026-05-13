@@ -20,9 +20,9 @@ class TemplateSectionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
     protected static ?string $navigationLabel = 'Template Sections';
-    protected static ?string $navigationGroup = 'Appearance';
+    protected static ?string $navigationGroup = 'Setting';
     protected static ?string $slug = 'template-sections';
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 99;
 
     public static function form(Form $form): Form
     {

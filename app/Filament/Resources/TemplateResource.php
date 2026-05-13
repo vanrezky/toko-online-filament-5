@@ -18,9 +18,9 @@ class TemplateResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-paint-brush';
     protected static ?string $navigationLabel = 'Templates';
-    protected static ?string $navigationGroup = 'Appearance';
+    protected static ?string $navigationGroup = 'Setting';
     protected static ?string $slug = 'templates';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 99;
 
     public static function form(Form $form): Form
     {
