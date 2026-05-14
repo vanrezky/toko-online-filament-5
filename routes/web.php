@@ -3,14 +3,24 @@
 use App\Http\Controllers\Frontend\AccountController;
 use App\Http\Controllers\Frontend\Auth\ForgotPasswordController;
 use App\Http\Controllers\Frontend\Auth\LoginController;
+use App\Http\Controllers\Frontend\Auth\LogoutController;
 use App\Http\Controllers\Frontend\Auth\RegisterController;
 use App\Http\Controllers\Frontend\Auth\ResetPasswordController;
+use App\Http\Controllers\Frontend\BlogController;
 use App\Http\Controllers\Frontend\CartController;
+use App\Http\Controllers\Frontend\CheckoutController;
 use App\Http\Controllers\Frontend\ContactController;
+use App\Http\Controllers\Frontend\FaqController;
+use App\Http\Controllers\Frontend\FlashsaleController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProductDetailController;
 use App\Http\Controllers\Frontend\NewsletterController;
+use App\Http\Controllers\Frontend\OrderController;
+use App\Http\Controllers\Frontend\PageController;
+use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\VoucherController;
+use App\Http\Controllers\Frontend\WishlistController;
+use App\Http\Controllers\PaymentWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -59,13 +69,13 @@ Route::name('frontend.')->group(function () {
         Route::get('/regions/sub-districts/{district}', [AccountController::class, 'getSubDistricts'])->name('regions.sub-districts');
         Route::get('/regions/villages/{subDistrict}', [AccountController::class, 'getVillages'])->name('regions.villages');
 
-        Route::post('/logout', \App\Http\Controllers\Frontend\Auth\LogoutController::class)->name('logout');
-        Route::get('/checkout', \App\Http\Controllers\Frontend\CheckoutController::class)->name('checkout');
-        Route::get('/checkout/shipping-costs', [\App\Http\Controllers\Frontend\CheckoutController::class, 'getShippingCosts'])->name('checkout.shipping-costs');
-        Route::post('/checkout', [\App\Http\Controllers\Frontend\CheckoutController::class, 'store'])->name('checkout.store');
-        Route::get('/orders', [\App\Http\Controllers\Frontend\OrderController::class, 'index'])->name('orders');
-        Route::get('/orders/{transaction}', [\App\Http\Controllers\Frontend\OrderController::class, 'show'])->name('orders.show');
-        Route::post('/orders/{transaction}/pay', [\App\Http\Controllers\Frontend\OrderController::class, 'pay'])->name('orders.pay');
+        Route::post('/logout', LogoutController::class)->name('logout');
+        Route::get('/checkout', CheckoutController::class)->name('checkout');
+        Route::get('/checkout/shipping-costs', [CheckoutController::class, 'getShippingCosts'])->name('checkout.shipping-costs');
+        Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+        Route::get('/orders', [OrderController::class, 'index'])->name('orders');
+        Route::get('/orders/{transaction}', [OrderController::class, 'show'])->name('orders.show');
+        Route::post('/orders/{transaction}/pay', [OrderController::class, 'pay'])->name('orders.pay');
     });
 
     // Public shop routes
@@ -74,16 +84,16 @@ Route::name('frontend.')->group(function () {
     Route::patch('/cart/{item}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
 
-    Route::get('/flash-sale', \App\Http\Controllers\Frontend\FlashsaleController::class)->name('flashsales');
-    Route::get('/products', \App\Http\Controllers\Frontend\ProductController::class)->name('products');
-    Route::get('/blog', [\App\Http\Controllers\Frontend\BlogController::class, 'index'])->name('blog.index');
-    Route::get('/blog/{slug}', [\App\Http\Controllers\Frontend\BlogController::class, 'show'])->name('blog.show');
-    Route::get('/page/{slug}', [\App\Http\Controllers\Frontend\PageController::class, 'show'])->name('page.show');
-    Route::get('/wishlist', [\App\Http\Controllers\Frontend\WishlistController::class, 'index'])->name('wishlist');
-    Route::get('/faq', \App\Http\Controllers\Frontend\FaqController::class)->name('faq');
+    Route::get('/flash-sale', FlashsaleController::class)->name('flashsales');
+    Route::get('/products', ProductController::class)->name('products');
+    Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+    Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
+    Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
+    Route::get('/faq', FaqController::class)->name('faq');
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
     Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
-    Route::post('/wishlist/toggle', [\App\Http\Controllers\Frontend\WishlistController::class, 'toggle'])->name('wishlist.toggle');
+    Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
     // Voucher routes
     Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers');
@@ -96,7 +106,7 @@ Route::name('frontend.')->group(function () {
     Route::post('/newsletter/send-test', [NewsletterController::class, 'sendTest'])->name('newsletter.send-test');
 
     // Webhook routes
-    Route::post('/webhooks/payment/{gateway}', \App\Http\Controllers\PaymentWebhookController::class)->name('webhooks.payment');
+    Route::post('/webhooks/payment/{gateway}', PaymentWebhookController::class)->name('webhooks.payment');
 
     // Wildcard for product detail - MUST BE LAST
     Route::get('{product}', ProductDetailController::class)->name('product-detail');

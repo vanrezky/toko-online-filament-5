@@ -13,11 +13,7 @@ class ContactController extends Controller
 {
     public function index(Request $request)
     {
-        $settings = $request->attributes->get('settings');
-
-        return Inertia::render('Contact/Index', [
-            'settings' => $settings,
-        ]);
+        return Inertia::render('Contact/Index');
     }
 
     public function store(Request $request)

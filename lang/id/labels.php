@@ -146,6 +146,11 @@ return [
         'newsletter_description' => 'Berlangganan untuk menerima update, akses ke penawaran eksklusif, dan lainnya.',
         'all_rights_reserved' => 'Hak cipta dilindungi undang-undang.',
         'secure_payment' => 'Pembayaran Aman:',
+        'contact_us' => 'Hubungi Kami',
+        'faq' => 'Sering Ditanyakan',
+        'shipping_info' => 'Info Pengiriman',
+        'track_order' => 'Lacak Order',
+        'returns_exchanges' => 'Pengembalian & Penukaran',
     ],
 
     'form' => [
@@ -356,6 +361,7 @@ return [
         'all_viewed' => 'Anda telah melihat semua produk',
         'empty_title' => 'Belum Ada Produk',
         'empty_description' => 'Sepertinya belum ada produk yang tersedia saat ini. Yuk, cek kembali nanti!',
+        'filter_and_sort' => 'Filter'
     ],
 
     'vouchers' => [

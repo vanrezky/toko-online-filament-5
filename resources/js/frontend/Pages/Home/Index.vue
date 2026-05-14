@@ -115,6 +115,9 @@ const submitNewsletter = () => {
         <CategoryMenu :categories="categories" />
 
         <!-- Pilihan Terbaik (Featured Products) -->
+        <!-- Flash Sale Section -->
+        <FlashSaleSection v-if="flashsales" :flashsales="flashsales" :title="flashSaleTitle" :subtitle="flashSaleSubtitle" />
+
         <FeaturedProducts
             v-if="featuredProducts.length > 0 && !filters?.category"
             :products="featuredProducts"
@@ -122,8 +125,6 @@ const submitNewsletter = () => {
             :subtitle="featuredSubtitle"
         />
 
-        <!-- Flash Sale Section -->
-        <FlashSaleSection v-if="flashsales" :flashsales="flashsales" :title="flashSaleTitle" :subtitle="flashSaleSubtitle" />
 
         <!-- Voucher Section -->
         <VoucherSection :title="t('labels.voucher.available_title')" :subtitle="t('labels.voucher.available_subtitle')" :limit="4" />

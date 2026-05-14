@@ -62,7 +62,7 @@ const footerPromos = computed(() => {
                         <span v-else class="text-2xl font-bold tracking-tight text-black">{{ settings.site_name }}</span>
                     </Link>
                     <p class="max-w-xs text-sm leading-relaxed text-gray-500">
-                        {{ t('text.footer.brand_description') }}
+                        {{ settings.site_description }}
                     </p>
                     <div class="flex space-x-5">
                         <a href="#" class="text-gray-400 transition-colors hover:text-black">
@@ -82,7 +82,7 @@ const footerPromos = computed(() => {
                     <h3 class="mb-6 text-sm font-bold uppercase tracking-widest text-black">{{ t('labels.footer.customer_service') }}</h3>
                     <ul class="space-y-4">
                         <li v-for="link in customerServiceLinks" :key="link.name">
-                            <a :href="link.href" class="text-sm text-gray-500 transition-colors hover:text-black">{{ link.name }}</a>
+                            <Link :href="link.href" class="text-sm text-gray-500 transition-colors hover:text-black">{{ link.name }}</Link>
                         </li>
                     </ul>
                 </div>
