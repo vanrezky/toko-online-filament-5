@@ -1,5 +1,5 @@
 <script setup>
-import { Link, router } from "@inertiajs/vue3";
+import { Link, router, usePage } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
 import { ShoppingCart, Heart } from "lucide-vue-next";
 import { formatCurrency } from "../../lib/utils";
@@ -17,7 +17,11 @@ const props = defineProps({
 });
 
 const isHovered = ref(false);
-const isWishlisted = ref(false);
+const page = usePage();
+
+const isWishlisted = computed(() => {
+    return page.props.wishlist_product_ids?.includes(props.product.id);
+});
 
 const isSale = computed(() => !!props.product.sale_price);
 
@@ -76,7 +80,22 @@ const addToCart = (e) => {
 const toggleWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    isWishlisted.value = !isWishlisted.value;
+
+    if (!page.props.auth.user) {
+        router.get(route("frontend.login"));
+        return;
+    }
+
+    router.post(route("frontend.wishlist.toggle"), {
+        product_id: props.product.id,
+    }, {
+        preserveScroll: true,
+        onError: (errors) => {
+            if (errors?.redirect) {
+                window.location.href = errors.redirect;
+            }
+        },
+    });
 };
 
 const sizeClasses = computed(() => {
