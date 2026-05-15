@@ -82,11 +82,10 @@ class CheckoutController extends Controller
         }
 
         $cartHash = md5($cart->items->sortBy('id')->map(function ($item) {
-            return $item->product_id.'-'.($item->product_variant_id ?? '0').'-'.$item->quantity.'-'.$item->price;
+            return $item->product_id . '-' . ($item->product_variant_id ?? '0') . '-' . $item->quantity . '-' . $item->price;
         })->implode('|'));
 
-        $cacheKey = "shipping_costs_{$customer->id}_{$address->id}_{$cartHash}";
-
+        $cacheKey = "shipping_costs_{$customer->id}_{$address->id}_{$cartHash}_";
         $shippingResults = CacheService::remember($cacheKey, 1800, function () use ($cart, $address, $ongkirService, $courierSettings) {
             $warehouseGroups = $cart->items->groupBy(function ($item) {
                 return $item->product->warehouse_id ?: 0;
@@ -118,7 +117,7 @@ class CheckoutController extends Controller
                     continue;
                 }
 
-                $totalWeight = $items->sum(fn ($item) => ($item->productVariant?->weight ?: $item->product->weight) * $item->quantity);
+                $totalWeight = $items->sum(fn($item) => ($item->productVariant?->weight ?: $item->product->weight) * $item->quantity);
 
                 $costs = $ongkirService->getShippingCost(
                     $warehouse->village->apicoid_code,
@@ -148,6 +147,7 @@ class CheckoutController extends Controller
                     ];
                 }
             }
+
 
             return $results;
         });
