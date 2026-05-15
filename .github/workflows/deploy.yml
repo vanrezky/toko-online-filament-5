@@ -81,23 +81,23 @@ jobs:
 
       - name: Generate .env file from template
         run: |
-          sed -e "s/__APP_ENV__/${{ secrets.APP_ENV }}/g" \
-              -e "s/__APP_KEY__/${{ secrets.APP_KEY }}/g" \
-              -e "s/__APP_DEBUG__/${{ secrets.APP_DEBUG }}/g" \
-              -e "s/__APP_URL__/${{ secrets.APP_URL }}/g" \
-              -e "s/__DB_HOST__/${{ secrets.DB_HOST }}/g" \
-              -e "s/__DB_PORT__/${{ secrets.DB_PORT }}/g" \
-              -e "s/__DB_DATABASE__/${{ secrets.DB_DATABASE }}/g" \
-              -e "s/__DB_USERNAME__/${{ secrets.DB_USERNAME }}/g" \
+          sed -e "s/__APP_ENV__/${{ vars.APP_ENV }}/g" \
+              -e "s/__APP_KEY__/${{ vars.APP_KEY }}/g" \
+              -e "s/__APP_DEBUG__/${{ vars.APP_DEBUG }}/g" \
+              -e "s/__APP_URL__/${{ vars.APP_URL }}/g" \
+              -e "s/__DB_HOST__/${{ vars.DB_HOST }}/g" \
+              -e "s/__DB_PORT__/${{ vars.DB_PORT }}/g" \
+              -e "s/__DB_DATABASE__/${{ vars.DB_DATABASE }}/g" \
+              -e "s/__DB_USERNAME__/${{ vars.DB_USERNAME }}/g" \
               -e "s/__DB_PASSWORD__/${{ secrets.DB_PASSWORD }}/g" \
-              -e "s/__QUEUE_CONNECTION__/${{ secrets.QUEUE_CONNECTION }}/g" \
-              -e "s/__MAIL_HOST__/${{ secrets.MAIL_HOST }}/g" \
-              -e "s/__MAIL_PORT__/${{ secrets.MAIL_PORT }}/g" \
-              -e "s/__MAIL_USERNAME__/${{ secrets.MAIL_USERNAME }}/g" \
-              -e "s/__MAIL_PASSWORD__/${{ secrets.MAIL_PASSWORD }}/g" \
-              -e "s/__MAIL_FROM_ADDRESS__/${{ secrets.MAIL_FROM_ADDRESS }}/g" \
-              -e "s/__OPENAI_API_KEY__/${{ secrets.OPENAI_API_KEY }}/g" \
-              -e "s/__APICOID_API_KEY__/${{ secrets.APICOID_API_KEY }}/g" \
+              -e "s/__QUEUE_CONNECTION__/${{ vars.QUEUE_CONNECTION }}/g" \
+              -e "s/__MAIL_HOST__/${{ vars.MAIL_HOST }}/g" \
+              -e "s/__MAIL_PORT__/${{ vars.MAIL_PORT }}/g" \
+              -e "s/__MAIL_USERNAME__/${{ vars.MAIL_USERNAME }}/g" \
+              -e "s/__MAIL_PASSWORD__/${{ vars.MAIL_PASSWORD }}/g" \
+              -e "s/__MAIL_FROM_ADDRESS__/${{ vars.MAIL_FROM_ADDRESS }}/g" \
+              -e "s/__OPENAI_API_KEY__/${{ vars.OPENAI_API_KEY }}/g" \
+              -e "s/__APICOID_API_KEY__/${{ vars.APICOID_API_KEY }}/g" \
               .env.template > .env
 
       - name: Upload .env to server

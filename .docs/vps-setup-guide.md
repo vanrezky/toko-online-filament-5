@@ -283,7 +283,7 @@ sudo mysql
 
 ```sql
 CREATE DATABASE tokoonline CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'deploy'@'localhost' IDENTIFIED BY 'Sesfyv-gukhet-3bonso';
+CREATE USER 'deploy'@'localhost' IDENTIFIED BY 'db_password';
 GRANT ALL PRIVILEGES ON tokoonline.* TO 'deploy'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
