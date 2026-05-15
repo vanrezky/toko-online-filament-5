@@ -86,9 +86,11 @@ jobs:
               -e "s/__APP_DEBUG__/${{ secrets.APP_DEBUG }}/g" \
               -e "s/__APP_URL__/${{ secrets.APP_URL }}/g" \
               -e "s/__DB_HOST__/${{ secrets.DB_HOST }}/g" \
+              -e "s/__DB_PORT__/${{ secrets.DB_PORT }}/g" \
               -e "s/__DB_DATABASE__/${{ secrets.DB_DATABASE }}/g" \
               -e "s/__DB_USERNAME__/${{ secrets.DB_USERNAME }}/g" \
               -e "s/__DB_PASSWORD__/${{ secrets.DB_PASSWORD }}/g" \
+              -e "s/__QUEUE_CONNECTION__/${{ secrets.QUEUE_CONNECTION }}/g" \
               -e "s/__MAIL_HOST__/${{ secrets.MAIL_HOST }}/g" \
               -e "s/__MAIL_PORT__/${{ secrets.MAIL_PORT }}/g" \
               -e "s/__MAIL_USERNAME__/${{ secrets.MAIL_USERNAME }}/g" \
