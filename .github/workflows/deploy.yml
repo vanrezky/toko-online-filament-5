@@ -45,7 +45,7 @@ jobs:
         run: |
           rm -rf .git
           rm -rf .github
-          rm -f .env*
+          rm -f .env
           rm -f Homestead*
           rm -f auth.json
           rm -rf .phpunit.cache
@@ -79,7 +79,28 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Post deploy script
+      - name: Generate .env file from template
+        run: |
+          sed -e "s/__APP_KEY__/${{ secrets.APP_KEY }}/g" \
+              -e "s/__APP_URL__/${{ secrets.APP_URL }}/g" \
+              -e "s/__DB_HOST__/${{ secrets.DB_HOST }}/g" \
+              -e "s/__DB_DATABASE__/${{ secrets.DB_DATABASE }}/g" \
+              -e "s/__DB_USERNAME__/${{ secrets.DB_USERNAME }}/g" \
+              -e "s/__DB_PASSWORD__/${{ secrets.DB_PASSWORD }}/g" \
+              -e "s/__MAIL_HOST__/${{ secrets.MAIL_HOST }}/g" \
+              -e "s/__MAIL_PORT__/${{ secrets.MAIL_PORT }}/g" \
+              -e "s/__MAIL_USERNAME__/${{ secrets.MAIL_USERNAME }}/g" \
+              -e "s/__MAIL_PASSWORD__/${{ secrets.MAIL_PASSWORD }}/g" \
+              -e "s/__MAIL_FROM_ADDRESS__/${{ secrets.MAIL_FROM_ADDRESS }}/g" \
+              -e "s/__OPENAI_API_KEY__/${{ secrets.OPENAI_API_KEY }}/g" \
+              -e "s/__APICOID_API_KEY__/${{ secrets.APICOID_API_KEY }}/g" \
+              .env.template > .env
+
+      - name: Upload .env to server
+        run: |
+          scp -o StrictHostKeyChecking=no -P ${{ secrets.SERVER_SSH_PORT || 22 }} .env ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_DEPLOY_PATH }}/.env
+
+      - name: Run post-deploy scripts
         run: |
           ssh -o StrictHostKeyChecking=no -p ${{ secrets.SERVER_SSH_PORT || 22 }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             cd ${{ secrets.SERVER_DEPLOY_PATH }}
