@@ -72,91 +72,94 @@ class CustomerResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\FileUpload::make('image')
-                    ->label('Profile Image')
-                    ->image()
-                    ->avatar()
-                    ->directory(UploadPath::PROFILE_UPLOAD_PATH)
-                    ->imageCropAspectRatio('1:1')
-                    ->imageEditorAspectRatios([
-                        '1:1',
-                    ])
-                    ->rules(['nullable', 'mimes:png,jpg,jpeg', 'max:1024'])
-                    ->columnSpanFull()
-                    ->alignCenter()
-                    ->helperText(__('Ratio Is 1:1. Maximum size is 1MB')),
-
-                Forms\Components\Group::make([
-                    Forms\Components\TextInput::make('first_name')
-                        ->placeholder(__('e.g: ') . 'John')
-                        ->required()
-                        ->maxLength(100),
-                    Forms\Components\TextInput::make('last_name')
-                        ->placeholder(__('e.g: ') . 'Smith')
-                        ->maxLength(100),
-                    Forms\Components\TextInput::make('email')
-                        ->placeholder(__('e.g: ') . 'Johnsmith@example.com')
-                        ->email()
-                        ->required()
-                        ->maxLength(100)
-                        ->unique(ignoreRecord: true),
-                    Forms\Components\TextInput::make('username')
-                        ->placeholder(__('e.g: ') . 'johnsmith')
-                        ->minLength(6)
-                        ->maxLength(15)
-                        ->unique(ignoreRecord: true),
-                    Forms\Components\TextInput::make('phone')
-                        ->placeholder(__('e.g: ') . '+6281234567890')
-                        ->tel()
-                        ->maxLength(20),
-                    Forms\Components\TextInput::make('balance')
-                        ->required()
-                        ->default(0.00)
-                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
-                    Forms\Components\Select::make('customer_level_id')
-                        ->label('Level Anggota')
-                        ->relationship('customerLevel', 'name')
-                        ->nullable()
-                        ->searchable(),
-                    Forms\Components\TextInput::make('password')
-                        ->password()
-                        ->rules([securePassword()])
-                        ->required()
-                        ->same('confirm_password')
-                        ->minLength(8)
-                        ->maxLength(20)
-                        ->visible(fn(string $operation): bool  => $operation === 'create'),
-                    Forms\Components\TextInput::make('confirm_password')
-                        ->password()
-                        ->required()
-                        ->maxLength(255)
-                        ->visible(fn(string $operation): bool  => $operation === 'create'),
-                ])->columnSpanFull(),
-
-                Forms\Components\Section::make('Pengaturan Kredit')
+                Forms\Components\Section::make()
                     ->schema([
-                        Forms\Components\TextInput::make('credit_limit')
-                            ->label('Custom Credit Limit')
-                            ->placeholder('Kosongkan untuk gunakan default dari level')
-                            ->numeric()
-                            ->nullable()
-                            ->prefix('Rp')
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
-                        Forms\Components\Placeholder::make('effective_credit_limit')
-                            ->label('Effective Credit Limit')
-                            ->content(fn (Customer $record): string => 'Rp ' . number_format($record->effective_credit_limit, 0, ',', '.')),
-                        Forms\Components\Placeholder::make('outstanding_balance')
-                            ->label('Outstanding Balance')
-                            ->content(fn (Customer $record): string => 'Rp ' . number_format($record->outstanding_balance, 0, ',', '.')),
-                        Forms\Components\Placeholder::make('remaining_credit_limit')
-                            ->label('Sisa Limit Kredit')
-                            ->content(fn (Customer $record): string => 'Rp ' . number_format($record->remaining_credit_limit, 0, ',', '.')),
-                    ])
-                    ->collapsible()
-                    ->collapsed(false),
+                        Forms\Components\FileUpload::make('image')
+                            ->label('Profile Image')
+                            ->image()
+                            ->avatar()
+                            ->directory(UploadPath::PROFILE_UPLOAD_PATH)
+                            ->imageCropAspectRatio('1:1')
+                            ->imageEditorAspectRatios([
+                                '1:1',
+                            ])
+                            ->rules(['nullable', 'mimes:png,jpg,jpeg', 'max:1024'])
+                            ->columnSpanFull()
+                            ->alignCenter()
+                            ->helperText(__('Ratio Is 1:1. Maximum size is 1MB')),
 
-                Forms\Components\Hidden::make('email_verified_at')
-                    ->default(now())->dehydrated(),
+                        Forms\Components\Group::make([
+                            Forms\Components\TextInput::make('first_name')
+                                ->placeholder(__('e.g: ') . 'John')
+                                ->required()
+                                ->maxLength(100),
+                            Forms\Components\TextInput::make('last_name')
+                                ->placeholder(__('e.g: ') . 'Smith')
+                                ->maxLength(100),
+                            Forms\Components\TextInput::make('email')
+                                ->placeholder(__('e.g: ') . 'Johnsmith@example.com')
+                                ->email()
+                                ->required()
+                                ->maxLength(100)
+                                ->unique(ignoreRecord: true),
+                            Forms\Components\TextInput::make('username')
+                                ->placeholder(__('e.g: ') . 'johnsmith')
+                                ->minLength(6)
+                                ->maxLength(15)
+                                ->unique(ignoreRecord: true),
+                            Forms\Components\TextInput::make('phone')
+                                ->placeholder(__('e.g: ') . '+6281234567890')
+                                ->tel()
+                                ->maxLength(20),
+                            Forms\Components\TextInput::make('balance')
+                                ->required()
+                                ->default(0.00)
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                            Forms\Components\Select::make('customer_level_id')
+                                ->label('Level Anggota')
+                                ->relationship('customerLevel', 'name')
+                                ->nullable()
+                                ->searchable(),
+                            Forms\Components\TextInput::make('password')
+                                ->password()
+                                ->rules([securePassword()])
+                                ->required()
+                                ->same('confirm_password')
+                                ->minLength(8)
+                                ->maxLength(20)
+                                ->visible(fn(string $operation): bool  => $operation === 'create'),
+                            Forms\Components\TextInput::make('confirm_password')
+                                ->password()
+                                ->required()
+                                ->maxLength(255)
+                                ->visible(fn(string $operation): bool  => $operation === 'create'),
+                        ])->columnSpanFull(),
+
+                        Forms\Components\Section::make('Pengaturan Kredit')
+                            ->schema([
+                                Forms\Components\TextInput::make('credit_limit')
+                                    ->label('Custom Credit Limit')
+                                    ->placeholder('Kosongkan untuk gunakan default dari level')
+                                    ->numeric()
+                                    ->nullable()
+                                    ->prefix('Rp')
+                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                                Forms\Components\Placeholder::make('effective_credit_limit')
+                                    ->label('Effective Credit Limit')
+                                    ->content(fn($record): string => 'Rp ' . number_format($record?->effective_credit_limit ?? 0, 0, ',', '.')),
+                                Forms\Components\Placeholder::make('outstanding_balance')
+                                    ->label('Outstanding Balance')
+                                    ->content(fn($record): string => 'Rp ' . number_format($record?->outstanding_balance ?? 0, 0, ',', '.')),
+                                Forms\Components\Placeholder::make('remaining_credit_limit')
+                                    ->label('Sisa Limit Kredit')
+                                    ->content(fn($record): string => 'Rp ' . number_format($record?->remaining_credit_limit ?? 0, 0, ',', '.')),
+                            ])
+                            ->collapsible()
+                            ->collapsed(false),
+                        Forms\Components\Hidden::make('email_verified_at')
+                            ->default(now())->dehydrated(),
+                    ])
+
             ])->columns(2);
     }
 
@@ -176,8 +179,8 @@ class CustomerResource extends Resource
                 Tables\Columns\TextColumn::make('last_name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
-                    ->icon(fn(Customer $record): string => $record->email_verified_at ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
-                    ->iconColor(fn(Customer $record): string => $record->email_verified_at ? 'success' : 'warning')
+                    ->icon(fn($record): string => $record?->email_verified_at ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                    ->iconColor(fn($record): string => $record?->email_verified_at ? 'success' : 'warning')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('phone')
                     ->searchable(),
@@ -243,7 +246,7 @@ class CustomerResource extends Resource
     {
         return [
             CustomerAddressRelationManager::class,
-            BalancesRelationManager::class
+            // BalancesRelationManager::class
         ];
     }
 
@@ -251,7 +254,7 @@ class CustomerResource extends Resource
     {
         return [
             'index' => Pages\ListCustomers::route('/'),
-            // 'create' => Pages\CreateCustomer::route('/create'),
+            'create' => Pages\CreateCustomer::route('/create'),
             'view' => Pages\Profile::route('/{record}/profile'),
             'edit' => Pages\EditCustomer::route('/{record}/edit'),
         ];

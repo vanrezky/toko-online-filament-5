@@ -35,37 +35,36 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Global login route for Laravel default auth redirects
 Route::get('/login', function () {
     return redirect()->route('frontend.login');
 })->name('login');
 
 Route::name('frontend.')->group(function () {
-    Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/', [HomeController::class, 'index'])->middleware('auth.customer')->name('home');
 
-    // Guest routes for customers
+    // Guest routes for customers - login only (disabled for fully private)
     Route::middleware('auth.customer.guest')->group(function () {
         Route::get('/login', LoginController::class)->name('login');
         Route::post('/login', [LoginController::class, 'login'])->name('login.post');
-        Route::get('/register', RegisterController::class)->name('signup');
-        Route::post('/register', [RegisterController::class, 'register'])->name('signup.post');
-        Route::get('/forgot-password', ForgotPasswordController::class)->name('forgot-password');
-        Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('forgot-password.send');
-        Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('reset-password');
-        Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('reset-password.update');
+
+        // @feature-toggle: toko-private — comment to re-enable registration
+        // Route::get('/register', RegisterController::class)->name('signup');
+        // Route::post('/register', [RegisterController::class, 'register'])->name('signup.post');
+        // Route::get('/forgot-password', ForgotPasswordController::class)->name('forgot-password');
+        // Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('forgot-password.send');
+        // Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('reset-password');
+        // Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('reset-password.update');
     });
 
-    // Authenticated routes for customers
+    // All routes require authentication (fully private)
     Route::middleware('auth.customer')->group(function () {
         Route::get('/account', AccountController::class)->name('account');
         Route::post('/account/update', [AccountController::class, 'updateProfile'])->name('account.update');
 
-        // Address management
         Route::post('/account/address', [AccountController::class, 'storeAddress'])->name('account.address.store');
         Route::patch('/account/address/{address}', [AccountController::class, 'updateAddress'])->name('account.address.update');
         Route::delete('/account/address/{address}', [AccountController::class, 'deleteAddress'])->name('account.address.delete');
 
-        // Regions
         Route::get('/regions/districts/{province}', [AccountController::class, 'getDistricts'])->name('regions.districts');
         Route::get('/regions/sub-districts/{district}', [AccountController::class, 'getSubDistricts'])->name('regions.sub-districts');
         Route::get('/regions/villages/{subDistrict}', [AccountController::class, 'getVillages'])->name('regions.villages');
@@ -78,42 +77,37 @@ Route::name('frontend.')->group(function () {
         Route::get('/orders/{transaction}', [OrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{transaction}/pay', [OrderController::class, 'pay'])->name('orders.pay');
 
-        // Installment routes
         Route::get('/installments', [InstallmentController::class, 'index'])->name('installments');
         Route::get('/installments/{uuid}', [InstallmentController::class, 'show'])->name('installments.show');
+
+        Route::get('/cart', CartController::class)->name('cart');
+        Route::post('/cart/add', [CartController::class, 'store'])->name('cart.store');
+        Route::patch('/cart/{item}', [CartController::class, 'update'])->name('cart.update');
+        Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
+
+        Route::get('/products', ProductController::class)->name('products');
+        Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+        Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
+        Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
+        Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
+        Route::get('/faq', FaqController::class)->name('faq');
+        Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+        Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+        Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+
+        Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers');
+        Route::post('/vouchers/apply', [VoucherController::class, 'apply'])->name('vouchers.apply');
+        Route::post('/vouchers/remove', [VoucherController::class, 'remove'])->name('vouchers.remove');
+
+        // @feature-toggle: flashsale — uncomment to re-enable
+        // Route::get('/flash-sale', FlashsaleController::class)->name('flashsales');
     });
 
-    // Public shop routes
-    Route::get('/cart', CartController::class)->name('cart');
-    Route::post('/cart/add', [CartController::class, 'store'])->name('cart.store');
-    Route::patch('/cart/{item}', [CartController::class, 'update'])->name('cart.update');
-    Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
-
-    // @feature-toggle: flashsale — uncomment to re-enable
-    // Route::get('/flash-sale', FlashsaleController::class)->name('flashsales');
-    Route::get('/products', ProductController::class)->name('products');
-    Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
-    Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
-    Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
-    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
-    Route::get('/faq', FaqController::class)->name('faq');
-    Route::get('/contact', [ContactController::class, 'index'])->name('contact');
-    Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
-    Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
-
-    // Voucher routes
-    Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers');
-    Route::post('/vouchers/apply', [VoucherController::class, 'apply'])->name('vouchers.apply');
-    Route::post('/vouchers/remove', [VoucherController::class, 'remove'])->name('vouchers.remove');
-
-    // @feature-toggle: newsletter — uncomment to re-enable
-    // Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
-    // Route::get('/newsletter/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
-    // Route::post('/newsletter/send-test', [NewsletterController::class, 'sendTest'])->name('newsletter.send-test');
-
-    // Webhook routes
+    // Webhook routes (no auth - webhook handles its own auth)
     Route::post('/webhooks/payment/{gateway}', PaymentWebhookController::class)->name('webhooks.payment');
 
-    // Wildcard for product detail - MUST BE LAST
-    Route::get('{product}', ProductDetailController::class)->name('product-detail');
+    // Wildcard for product detail - MUST BE LAST, requires auth
+    Route::middleware('auth.customer')->group(function () {
+        Route::get('{product}', ProductDetailController::class)->name('product-detail');
+    });
 });

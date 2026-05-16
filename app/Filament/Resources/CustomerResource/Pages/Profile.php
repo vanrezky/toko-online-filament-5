@@ -117,49 +117,6 @@ class Profile extends ViewRecord
                             ->tooltip(fn(Customer $record): string => $record->has_verified_email ? __('Email Verified') : __('Email Unverified')),
                         TextEntry::make('username')->default('-'),
                         TextEntry::make('phone'),
-                        TextEntry::make('balance')->numeric(decimalPlaces: 2)
-                            ->icon('heroicon-o-banknotes')
-                            ->iconColor('primary')
-                            ->color('primary')
-                            ->weight('bold')
-                            ->size('xl')
-                            ->id('balance')
-                            ->prefix(settings('currency_text')  . ' ')
-                            ->suffixActions([
-                                Action::make('addBalance')
-                                    ->tooltip(__('Add Balance'))
-                                    ->form([
-                                        TextInput::make('balance')
-                                            ->required()
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
-                                        TextInput::make('notes')
-                                            ->required(),
-                                    ])
-                                    ->icon('heroicon-m-plus')
-                                    ->action(function (array $data, Customer $record) {
-                                        return $this->balance($data, $record, '+');
-                                    })
-                                    ->after(function (Component $livewire) {
-                                        $livewire->dispatch('refreshBalanceRelationManager');
-                                    }),
-                                Action::make('reduceBalance')
-                                    ->tooltip(__('Reduce Balance'))
-                                    ->form([
-                                        TextInput::make('balance')
-                                            ->required()
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
-                                        TextInput::make('notes')
-                                            ->required(),
-                                    ])
-                                    ->icon('heroicon-m-minus')
-                                    ->action(function (array $data, Customer $record) {
-                                        return $this->balance($data, $record, '-');
-                                    })
-                                    ->after(function (Component $livewire) {
-                                        $livewire->dispatch('refreshBalanceRelationManager');
-                                    }),
-                            ])
-                            ->inlineLabel(),
                     ])->inlineLabel()->columnSpan(2)
 
             ])->columns(3);

@@ -184,7 +184,7 @@ const clearSearch = () => {
                         class="flex items-center space-x-3 text-sm font-semibold text-foreground/70 hover:text-primary"
                     >
                         <User class="h-5 w-5" />
-                        <span>{{ isLoggedIn ? "Akun Saya" : "Masuk / Daftar" }}</span>
+                        <span>{{ isLoggedIn ? "Akun Saya" : "Masuk" }}</span>
                     </Link>
                 </div>
             </div>

@@ -92,13 +92,14 @@ class EditCustomer extends EditRecord
                             ->password()
                             ->maxLength(255),
                     ])->columnSpan(2),
-                FormsComponents\Section::make('Reseller Level')
-                    ->schema([
-                        FormsComponents\Select::make('reseller_level')
-                            ->relationship('reseller', titleAttribute: 'name')
-                            ->searchable()
-                            ->preload()
-                    ])->columnSpan(1),
+                //@toogle-feature: reseller level - uncomment to active feature
+                // FormsComponents\Section::make('Reseller Level')
+                //     ->schema([
+                //         FormsComponents\Select::make('reseller_level')
+                //             ->relationship('reseller', titleAttribute: 'name')
+                //             ->searchable()
+                //             ->preload()
+                //     ])->columnSpan(1),
 
             ])->columns(3);
     }

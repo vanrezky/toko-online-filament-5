@@ -17,21 +17,13 @@ class LoginController extends Controller
 
     protected int $decayMinutes = 1;
 
-    public function __invoke(GeneralSettings $settings)
+    public function __invoke()
     {
-        if (! $settings->registration) {
-            return redirect()->back()->with('error', __('messages.error.registration_disabled'));
-        }
-
         return Inertia::render('Auth/Login');
     }
 
-    public function login(Request $request, GeneralSettings $settings)
+    public function login(Request $request)
     {
-        if (! $settings->registration) {
-            return redirect()->back()->with('error', __('messages.error.registration_disabled'));
-        }
-
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
