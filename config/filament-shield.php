@@ -1,7 +1,6 @@
 <?php
 
 use App\Filament\Resources\BalanceResource;
-use App\Filament\Resources\FlashsaleResource;
 use App\Filament\Resources\NewsletterSubscriberResource;
 use App\Filament\Resources\PromotionResource;
 use App\Filament\Resources\ResellerResource;
@@ -87,7 +86,6 @@ return [
 'resources' => [
             SliderResource::class,
             // @feature-toggle: uncomment to re-generate permissions when re-enabling
-            FlashsaleResource::class,
             PromotionResource::class,
             NewsletterSubscriberResource::class,
             BalanceResource::class,

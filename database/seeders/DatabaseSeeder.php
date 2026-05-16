@@ -25,7 +25,6 @@ class DatabaseSeeder extends Seeder
             SliderSeeder::class,
             PromotionSeeder::class,
             ProductSeeder::class,
-            FlashsaleSeeder::class,
             VoucherSeeder::class,
             CustomerSeeder::class,
             ResellerSeeder::class,

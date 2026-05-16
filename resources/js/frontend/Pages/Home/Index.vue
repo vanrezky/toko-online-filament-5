@@ -4,7 +4,6 @@ import { useForm, usePage } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import HeroSection from "../../components/UI/HeroSection.vue";
 import FeaturedProducts from "../../components/UI/FeaturedProducts.vue";
-import FlashSaleSection from "../../components/UI/FlashSaleSection.vue";
 import ProductCard from "../../components/UI/ProductCard.vue";
 import CategoryMenu from "../../components/UI/CategoryMenu.vue";
 import VoucherSection from "../../components/UI/VoucherSection.vue";
@@ -16,7 +15,6 @@ import { useTranslations } from "../../composables/useTranslations";
 const { t } = useTranslations();
 
 const props = defineProps({
-    flashsales: Object,
     products: Object,
     categories: Array,
     filters: Object,
@@ -73,9 +71,6 @@ const allProductsTitle = computed(() => {
 });
 const allProductsSubtitle = computed(() => getSectionContent("products_grid", "subtitle", "Jelajahi koleksi lengkap produk kami"));
 
-const flashSaleTitle = computed(() => getSectionContent("flash_sale", "title", ""));
-const flashSaleSubtitle = computed(() => getSectionContent("flash_sale", "subtitle", "Dapatkan harga spesial dengan periode terbatas"));
-
 const submitNewsletter = () => {
     newsletterForm.post(route("frontend.newsletter.subscribe"), {
         preserveScroll: true,
@@ -108,16 +103,12 @@ const submitNewsletter = () => {
             :overlay-color="heroOverlay"
             :button-text="heroButtonText"
             :button-link="heroButtonLink"
-            :hasFlashsales="flashsales?.length > 0"
         />
 
         <!-- Category Menu -->
         <CategoryMenu :categories="categories" />
 
         <!-- Pilihan Terbaik (Featured Products) -->
-        <!-- Flash Sale Section -->
-        <FlashSaleSection v-if="flashsales" :flashsales="flashsales" :title="flashSaleTitle" :subtitle="flashSaleSubtitle" />
-
         <FeaturedProducts
             v-if="featuredProducts.length > 0 && !filters?.category"
             :products="featuredProducts"

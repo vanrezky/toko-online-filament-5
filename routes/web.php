@@ -11,7 +11,6 @@ use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\CheckoutController;
 use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\FaqController;
-use App\Http\Controllers\Frontend\FlashsaleController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProductDetailController;
 use App\Http\Controllers\Frontend\NewsletterController;
@@ -99,8 +98,7 @@ Route::name('frontend.')->group(function () {
         Route::post('/vouchers/apply', [VoucherController::class, 'apply'])->name('vouchers.apply');
         Route::post('/vouchers/remove', [VoucherController::class, 'remove'])->name('vouchers.remove');
 
-        // @feature-toggle: flashsale — uncomment to re-enable
-        // Route::get('/flash-sale', FlashsaleController::class)->name('flashsales');
+
     });
 
     // Webhook routes (no auth - webhook handles its own auth)
