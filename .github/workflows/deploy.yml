@@ -138,10 +138,27 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -p ${{ secrets.SERVER_SSH_PORT || 22 }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             cd ${{ secrets.SERVER_DEPLOY_PATH }}
-            chmod -R 775 storage bootstrap/cache 2>/dev/null || true
+
+            # Set ownership
+            sudo chown -R www-data:www-data storage bootstrap/cache
+
+            # Set permissions
+            sudo find storage -type d -exec chmod 775 {} \;
+            sudo find storage -type f -exec chmod 664 {} \;
+
+            sudo find bootstrap/cache -type d -exec chmod 775 {} \;
+            sudo find bootstrap/cache -type f -exec chmod 664 {} \;
+
+            # Clear cache sebelum caching ulang
+            php artisan optimize:clear
+
+            # Cache baru
+            php artisan optimize
+            php artisan icons:cache
+            php artisan filament:optimize
+
+            # Run migrations dan seeds
             php artisan migrate --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            php artisan queue:restart 2>/dev/null || true
+
+            php artisan queue:restart || true
           EOF
