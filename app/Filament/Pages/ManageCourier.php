@@ -157,9 +157,4 @@ class ManageCourier extends Page
             ->success()
             ->send();
     }
-
-    public static function canAccess(): bool
-    {
-        return isSuperUser();
-    }
 }
