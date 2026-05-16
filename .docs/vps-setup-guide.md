@@ -436,7 +436,7 @@ sudo nano /etc/nginx/sites-available/tokoonline
 server {
     listen 80;
     server_name domain.com www.domain.com;
-    root /var/www/tokoonline/public;
+    root /var/www/html/public;
 
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
