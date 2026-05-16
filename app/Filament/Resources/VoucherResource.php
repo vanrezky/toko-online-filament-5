@@ -23,10 +23,28 @@ class VoucherResource extends Resource
     protected static ?string $model = Voucher::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-scissors';
-    protected static ?string $navigationLabel = 'Vouchers';
-    protected static ?string $navigationGroup = 'Promo';
     protected static ?string $slug = 'vouchers';
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/voucher-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/voucher-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/voucher-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/voucher-resource.plural_model_label');
+    }
 
     public static function form(Form $form): Form
     {
@@ -34,20 +52,21 @@ class VoucherResource extends Resource
             ->schema([
 
                 Forms\Components\Group::make([
-                    Forms\Components\Section::make(__('Voucher Information'))
+                    Forms\Components\Section::make(__('admin/voucher-resource.sections.voucher_information'))
                         ->schema([
                             Forms\Components\TextInput::make('name')
-                                ->label(__('Voucher Name'))
+                                ->label(__('admin/voucher-resource.fields.name'))
                                 ->required()
                                 ->maxLength(255),
                             Forms\Components\Textarea::make('description')
+                                ->label(__('admin/voucher-resource.fields.description'))
                                 ->maxLength(255)
                                 ->columnSpanFull(),
                             Forms\Components\Group::make([
                                 Forms\Components\Select::make('voucher_type')
                                     ->options([
-                                        VoucherType::PRODUCT->value => __('Voucher For Product'),
-                                        VoucherType::SHIPPING_COST->value => __('Voucher For Shipping Cost')
+                                        VoucherType::PRODUCT->value => __('admin/voucher-resource.fields.voucher_for_product'),
+                                        VoucherType::SHIPPING_COST->value => __('admin/voucher-resource.fields.voucher_for_shipping_cost')
                                     ])
                                     ->default(VoucherType::PRODUCT->value)
                                     ->live()
@@ -57,39 +76,40 @@ class VoucherResource extends Resource
                                     }),
                                 Forms\Components\Select::make('discount_type')
                                     ->options([
-                                        VoucherDiscountType::FIXED->value => __('Fixed'),
-                                        VoucherDiscountType::PERCENTAGE->value => __('Percentage'),
+                                        VoucherDiscountType::FIXED->value => __('admin/voucher-resource.fields.fixed'),
+                                        VoucherDiscountType::PERCENTAGE->value => __('admin/voucher-resource.fields.percentage'),
                                     ])
                                     ->default(VoucherDiscountType::FIXED->value)
                                     ->required()
                                     ->live(),
                                 Forms\Components\Select::make('product_type')
                                     ->options([
-                                        VoucherProductType::ALL_PRODUCT->value => __('All Product'),
-                                        VoucherProductType::PHYSICAL_PRODUCT->value => __('Physical Product'),
-                                        VoucherProductType::DIGITAL_PRODUCT->value => __('Digital Product'),
+                                        VoucherProductType::ALL_PRODUCT->value => __('admin/voucher-resource.fields.all_product'),
+                                        VoucherProductType::PHYSICAL_PRODUCT->value => __('admin/voucher-resource.fields.physical_product'),
+                                        VoucherProductType::DIGITAL_PRODUCT->value => __('admin/voucher-resource.fields.digital_product'),
                                     ])
                                     ->default(VoucherProductType::ALL_PRODUCT->value)
                                     ->disabled(fn(Get $get) => $get('voucher_type') == VoucherType::SHIPPING_COST->value)
                                     ->required(),
                             ])->columns(3),
                             Forms\Components\TextInput::make('code')
-                                ->label(__('Voucher Code'))
+                                ->label(__('admin/voucher-resource.fields.code'))
                                 ->required()
                                 ->maxLength(10),
                             Forms\Components\Group::make([
                                 Forms\Components\TextInput::make('discount_min')
-                                    ->label(__('Minimum Order Total'))
+                                    ->label(__('admin/voucher-resource.fields.discount_min'))
                                     ->required()
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
 
                                 Forms\Components\TextInput::make('discount')
-                                    ->label(fn(Get $get) => $get('discount_type') == VoucherDiscountType::FIXED->value ? __('Discount/Price Cut Value') : __('Discount Percentage'))
+                                    ->label(fn(Get $get) => $get('discount_type') == VoucherDiscountType::FIXED->value ? __('admin/voucher-resource.fields.discount') : __('admin/voucher-resource.fields.discount_percentage'))
                                     ->required()
                                     ->rules('numeric')
                                     ->maxLength(fn(Get $get) => $get('discount_type') == VoucherDiscountType::PERCENTAGE->value ? 100 : null)
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                                 Forms\Components\TextInput::make('discount_max')
+                                    ->label(__('admin/voucher-resource.fields.discount_max'))
                                     ->required(fn(Get $get): bool => $get('discount_type') == VoucherDiscountType::PERCENTAGE->value)
                                     ->visible(fn(Get $get): bool => $get('discount_type') == VoucherDiscountType::PERCENTAGE->value)
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
@@ -98,9 +118,10 @@ class VoucherResource extends Resource
 
                 ])->columnSpan(2),
                 Forms\Components\Group::make([
-                    Forms\Components\Section::make(__('Validity period'))
+                    Forms\Components\Section::make(__('admin/voucher-resource.sections.validity_period'))
                         ->schema([
                             Forms\Components\DatePicker::make('start_at')
+                                ->label(__('admin/voucher-resource.fields.start_at'))
                                 ->required()
                                 ->minDate(
                                     function (string $operation, ?string $state) {
@@ -114,37 +135,39 @@ class VoucherResource extends Resource
                                 ->native(false)
                                 ->live(),
                             Forms\Components\DatePicker::make('end_at')
+                                ->label(__('admin/voucher-resource.fields.end_at'))
                                 ->required()
                                 ->native(false)
                                 ->minDate(fn(Get $get): ?string => $get('start_at')),
                         ]),
-                    Forms\Components\Section::make(__('Other Information'))
+                    Forms\Components\Section::make(__('admin/voucher-resource.sections.other_information'))
                         ->schema([
                             SpatieMediaLibraryFileUpload::make('image')
-                                ->label(__('Voucher Image'))
+                                ->label(__('admin/voucher-resource.fields.image'))
                                 ->rules(['nullable', 'mimes:png,jpg,jpeg', 'max:1024'])
                                 ->maxSize(1024)
                                 ->image()
                                 ->columnSpanFull()
                                 ->imageCropAspectRatio('1:1')
-                                ->helperText(__('Ratio Is 1:1. Maximum size is 1MB'))
+                                ->helperText(__('admin/voucher-resource.fields.image_helper'))
                                 ->directory(UploadPath::VOUCHER_UPLOAD_PATH)
                                 ->disk(getActiveDisk()),
                             Forms\Components\Select::make('category_id')
-                                ->placeholder(__('All Category'))
+                                ->label(__('admin/voucher-resource.fields.category_id'))
+                                ->placeholder(__('admin/voucher-resource.fields.all_category'))
                                 ->relationship('category', 'name')
                                 ->searchable()
                                 ->preload(),
                             Forms\Components\Toggle::make('is_public')
-                                ->label(__('Is for public'))
+                                ->label(__('admin/voucher-resource.fields.is_public'))
                                 ->default(true)
                                 ->required(),
                             Forms\Components\Toggle::make('is_active')
-                                ->label('Is active')
+                                ->label(__('admin/voucher-resource.fields.is_active'))
                                 ->default(true)
                                 ->required(),
                             Forms\Components\TextInput::make('max_user_used')
-                                ->label(__('Max usage per user'))
+                                ->label(__('admin/voucher-resource.fields.max_user_used'))
                                 ->required()
                                 ->numeric()
                                 ->default(1),
@@ -159,13 +182,13 @@ class VoucherResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label(__('Voucher Name'))
+                    ->label(__('admin/voucher-resource.columns.name'))
                     ->icon(fn(Voucher $record): string => $record->is_public ? 'heroicon-o-eye' : 'heroicon-o-eye-slash')
                     ->iconColor(fn(Voucher $record): string => $record->is_public ? 'success' : 'warning')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('code')
-                    ->label(__('Voucher Code'))
+                    ->label(__('admin/voucher-resource.columns.code'))
                     ->weight('bold')
                     ->color('info')
                     ->searchable(),
@@ -232,11 +255,11 @@ class VoucherResource extends Resource
     {
         if (self::shouldCanUpdate()) {
             return Tables\Columns\ToggleColumn::make('is_active')
-                ->afterStateUpdated(fn() => notification(__('Activation status updated successfully'), 'success'))
-                ->label(__('Active'));
+                ->afterStateUpdated(fn() => notification(__('admin/voucher-resource.notifications.activation_updated'), 'success'))
+                ->label(__('admin/voucher-resource.columns.active'));
         }
 
-        return Tables\Columns\IconColumn::make('is_active')->boolean()->label(__('Active'));
+        return Tables\Columns\IconColumn::make('is_active')->boolean()->label(__('admin/voucher-resource.columns.active'));
     }
 
     public static function shouldCanUpdate(): bool
