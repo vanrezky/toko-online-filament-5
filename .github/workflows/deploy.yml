@@ -65,15 +65,20 @@ jobs:
 
       - name: Sync files to server
         run: |
-          rsync -avz --delete \
+          rsync -rlptz --delete \
+            --no-perms --no-owner --no-group \
+            --chmod=D775,F664 \
             --exclude='.env' \
             --exclude='.git' \
             --exclude='node_modules' \
-            --exclude='storage/logs/*' \
-            --exclude='storage/framework/cache/data/*' \
-            --exclude='storage/framework/sessions/*' \
-            --exclude='storage/framework/views/*' \
+            --exclude='storage/logs/' \
+            --exclude='storage/framework/cache/data/' \
+            --exclude='storage/framework/sessions/' \
+            --exclude='storage/framework/views/' \
             --exclude='bootstrap/cache/*.php' \
+            --exclude='.DS_Store' \
+            --filter='P storage/logs/' \
+            --filter='P storage/framework/' \
             -e "ssh -p ${{ secrets.SERVER_SSH_PORT || 22 }}" \
             ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_PATH }}
 
