@@ -76,6 +76,7 @@ return [
 
         'pages' => [
             'Dashboard',
+            \App\Filament\Pages\ManagePaymentGateway::class,
         ],
 
         'widgets' => [

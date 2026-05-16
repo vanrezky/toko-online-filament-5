@@ -28,18 +28,19 @@ class ListCustomers extends ListRecords
 
         $tabs = [
             'Normal' => Tab::make()->label(__('Normal'))
-                ->modifyQueryUsing(fn (Builder $query): Builder => $query->normalUser())
+                ->modifyQueryUsing(fn(Builder $query): Builder => $query->normalUser())
                 ->badge(Customer::normalUser()->count()),
         ];
 
-        $resellers = Reseller::active()->orderBy('level', 'ASC')->get();
+        //  @feature-toggle: reseller - uncomment to ativate the reselller level tab
+        // $resellers = Reseller::active()->orderBy('level', 'ASC')->get();
 
-        foreach ($resellers as $resel) {
-            $tabs[$resel->name] = Tab::make()
-                ->label($resel->name)
-                ->modifyQueryUsing(fn (Builder $query): Builder => $query->resellerUser($resel->id))
-                ->badge(Customer::resellerUser($resel->id)->count());
-        }
+        // foreach ($resellers as $resel) {
+        //     $tabs[$resel->name] = Tab::make()
+        //         ->label($resel->name)
+        //         ->modifyQueryUsing(fn (Builder $query): Builder => $query->resellerUser($resel->id))
+        //         ->badge(Customer::resellerUser($resel->id)->count());
+        // }
 
         return $tabs;
     }
