@@ -44,6 +44,7 @@ class ManageCourier extends Page
                         Tab::make('rajaongkir')
                             ->label('RajaOngkir')
                             ->icon('heroicon-o-truck')
+                            ->visible(false)
                             ->schema([
                                 Grid::make(2)
                                     ->schema([
@@ -77,6 +78,7 @@ class ManageCourier extends Page
                         Tab::make('apicoid')
                             ->label('ApiCoId')
                             ->icon('heroicon-o-truck')
+                            ->visible(false)
                             ->schema([
                                 Grid::make(2)
                                     ->schema([
