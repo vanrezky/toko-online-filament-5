@@ -118,12 +118,14 @@ class HandleInertiaRequests extends Middleware
                     );
                 });
             },
+            // @feature-toggle: promotion — uncomment to re-enable
             'promotions' => function () {
-                return Cache::remember('frontend_promotions', 3600, function () {
-                    return PromotionResource::collection(
-                        Promotion::active()->with('media')->get()
-                    );
-                });
+                return [];
+                // return Cache::remember('frontend_promotions', 3600, function () {
+                //     return PromotionResource::collection(
+                //         Promotion::active()->with('media')->get()
+                //     );
+                // });
             },
             'colorScheme' => function () {
                 return app(TemplateService::class)->getColorScheme();

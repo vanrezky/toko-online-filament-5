@@ -22,6 +22,14 @@ class PromotionResource extends Resource
     protected static ?string $navigationGroup = 'Promo';
     protected static ?string $slug = 'promotions';
     protected static ?int $navigationSort = 3;
+
+    // @feature-toggle: promotion — set to true & remove canAccess() to re-enable
+    static bool $shouldRegisterNavigation = false;
+
+    public static function canAccess(): bool
+    {
+        return false; // @feature-toggle: promotion — change to parent::canAccess() to re-enable
+    }
     public Promotion $record;
 
     public static function form(Form $form): Form

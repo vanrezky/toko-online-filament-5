@@ -18,8 +18,9 @@ class ProvinceResource extends Resource
     protected static ?string $model = Province::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
-    protected static ?string $navigationGroup = 'Master';
-    protected static ?int $navigationSort = 91;
+    protected static ?string $navigationLabel = 'Provinsi';
+    protected static ?string $navigationGroup = 'Wilayah';
+    protected static ?int $navigationSort = 2;
 
     public static function canCreate(): bool
     {
@@ -58,7 +59,7 @@ class ProvinceResource extends Resource
                     ->schema([
                         TextEntry::make('country.name')->label('Country name'),
                         TextEntry::make('name')->label('Pronvice name'),
-                        TextEntry::make('rajaongkir')->label('Rajaongkir code'),
+                        // TextEntry::make('rajaongkir')->label('Rajaongkir code'),
                     ])->columns(2)
             ]);
     }
@@ -74,9 +75,9 @@ class ProvinceResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('rajaongkir')
-                    ->searchable()
-                    ->sortable(),
+                // Tables\Columns\TextColumn::make('rajaongkir')
+                //     ->searchable()
+                //     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

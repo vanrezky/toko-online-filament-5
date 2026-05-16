@@ -19,6 +19,14 @@ class ResellerResource extends Resource
     protected static ?string $slug = 'reseller-level';
     protected static ?int $navigationSort = 5;
 
+    // @feature-toggle: reseller — set to true & remove canAccess() to re-enable
+    static bool $shouldRegisterNavigation = false;
+
+    public static function canAccess(): bool
+    {
+        return false; // @feature-toggle: reseller — change to parent::canAccess() to re-enable
+    }
+
     public static function getNavigationBadge(): ?string
     {
         $count = \App\Services\NavigationBadgeCache::getResellerCount();

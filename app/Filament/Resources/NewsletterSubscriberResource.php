@@ -28,6 +28,14 @@ class NewsletterSubscriberResource extends Resource
 
     protected static ?string $slug = 'newsletter-subscribers';
 
+    // @feature-toggle: newsletter — set to true & remove canAccess() to re-enable
+    static bool $shouldRegisterNavigation = false;
+
+    public static function canAccess(): bool
+    {
+        return false; // @feature-toggle: newsletter — change to parent::canAccess() to re-enable
+    }
+
     public static function getNavigationBadge(): ?string
     {
         $count = NewsletterSubscriber::active()->count();

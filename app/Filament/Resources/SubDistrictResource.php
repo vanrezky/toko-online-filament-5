@@ -17,8 +17,9 @@ class SubDistrictResource extends Resource
 {
     protected static ?string $model = SubDistrict::class;
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
-    protected static ?string $navigationGroup = 'Master';
-    protected static ?int $navigationSort = 93;
+    protected static ?string $navigationLabel = 'Kecamatan';
+    protected static ?string $navigationGroup = 'Wilayah';
+    protected static ?int $navigationSort = 4;
 
     public static function canCreate(): bool
     {
@@ -38,12 +39,12 @@ class SubDistrictResource extends Resource
                         Forms\Components\TextInput::make('name')
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('rajaongkir')
-                            ->required()
-                            ->maxLength(50),
-                        Forms\Components\TextInput::make('postal_code')
-                            ->required()
-                            ->maxLength(10),
+                        // Forms\Components\TextInput::make('rajaongkir')
+                        //     ->required()
+                        //     ->maxLength(50),
+                        // Forms\Components\TextInput::make('postal_code')
+                        //     ->required()
+                        //     ->maxLength(10),
                     ])->columns(2)
             ]);
     }
@@ -56,8 +57,8 @@ class SubDistrictResource extends Resource
                     ->schema([
                         TextEntry::make('district.name')->label('District'),
                         TextEntry::make('name')->label('Subdistrict name'),
-                        TextEntry::make('postal_code'),
-                        TextEntry::make('rajaongkir')->label('Rajaongkir code'),
+                        // TextEntry::make('postal_code'),
+                        // TextEntry::make('rajaongkir')->label('Rajaongkir code'),
                     ])->columns(2)
             ]);
     }
@@ -72,11 +73,11 @@ class SubDistrictResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('rajaongkir')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('postal_code')
-                    ->searchable(),
+                // Tables\Columns\TextColumn::make('rajaongkir')
+                // ->searchable()
+                // ->sortable(),
+                // Tables\Columns\TextColumn::make('postal_code')
+                //     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

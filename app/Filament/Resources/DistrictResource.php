@@ -18,11 +18,10 @@ class DistrictResource extends Resource
     protected static ?string $model = District::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
-    // protected static ?string $navigationLabel = 'District';
-    // protected static ?string $modelLabel = 'Master District';
-    protected static ?string $navigationGroup = 'Master';
+    protected static ?string $navigationLabel = 'Kota/Kabupaten';
+    protected static ?string $navigationGroup = 'Wilayah';
     // protected static ?string $slug = 'district';
-    protected static ?int $navigationSort = 92;
+    protected static ?int $navigationSort = 3;
 
     public static function canCreate(): bool
     {
@@ -42,9 +41,9 @@ class DistrictResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('rajaongkir')
-                    ->required()
-                    ->maxLength(20),
+                // Forms\Components\TextInput::make('rajaongkir')
+                //     ->required()
+                //     ->maxLength(20),
                 Forms\Components\TextInput::make('postal_code')
                     ->maxLength(255),
             ]);
@@ -60,7 +59,7 @@ class DistrictResource extends Resource
                         TextEntry::make('name')->label('District'),
                         TextEntry::make('type'),
                         TextEntry::make('postal_code'),
-                        TextEntry::make('rajaongkir')->label('Rajaongkir code'),
+                        // TextEntry::make('rajaongkir')->label('Rajaongkir code'),
                     ])->columns(2)
             ]);
     }
@@ -76,8 +75,8 @@ class DistrictResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('rajaongkir')
-                    ->searchable(),
+                // Tables\Columns\TextColumn::make('rajaongkir')
+                //     ->searchable(),
                 Tables\Columns\TextColumn::make('postal_code')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')

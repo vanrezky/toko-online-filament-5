@@ -10,6 +10,11 @@ class ListCategories extends ListRecords
 {
     protected static string $resource = CategoryResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/category-resource.pages.list.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [

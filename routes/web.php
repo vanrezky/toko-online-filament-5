@@ -89,7 +89,8 @@ Route::name('frontend.')->group(function () {
     Route::patch('/cart/{item}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
 
-    Route::get('/flash-sale', FlashsaleController::class)->name('flashsales');
+    // @feature-toggle: flashsale — uncomment to re-enable
+    // Route::get('/flash-sale', FlashsaleController::class)->name('flashsales');
     Route::get('/products', ProductController::class)->name('products');
     Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
     Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
@@ -105,10 +106,10 @@ Route::name('frontend.')->group(function () {
     Route::post('/vouchers/apply', [VoucherController::class, 'apply'])->name('vouchers.apply');
     Route::post('/vouchers/remove', [VoucherController::class, 'remove'])->name('vouchers.remove');
 
-    // Newsletter routes
-    Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
-    Route::get('/newsletter/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
-    Route::post('/newsletter/send-test', [NewsletterController::class, 'sendTest'])->name('newsletter.send-test');
+    // @feature-toggle: newsletter — uncomment to re-enable
+    // Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
+    // Route::get('/newsletter/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
+    // Route::post('/newsletter/send-test', [NewsletterController::class, 'sendTest'])->name('newsletter.send-test');
 
     // Webhook routes
     Route::post('/webhooks/payment/{gateway}', PaymentWebhookController::class)->name('webhooks.payment');

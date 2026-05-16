@@ -39,7 +39,7 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Orange,
             ])
             ->font('Karla')
-            ->navigationGroups(['Produk', 'Promo', 'Customer', 'Laporan', 'Master', 'Transaksi', 'Blog', 'Pengaturan', 'Logs'])
+            ->navigationGroups(['Master', 'Produk', 'Promo', 'Customer', 'Laporan', 'Transaksi', 'Blog', 'Pengaturan', 'Logs'])
             ->favicon(settings('favicon'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -91,6 +91,6 @@ class AdminPanelProvider extends PanelProvider
                 \BezhanSalleh\FilamentExceptions\FilamentExceptionsPlugin::make()
 
             ])
-            ->topNavigation();
+            ->sidebarCollapsibleOnDesktop();
     }
 }

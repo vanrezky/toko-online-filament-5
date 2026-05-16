@@ -9,7 +9,6 @@ use App\Filament\Resources\ProductResource\RelationManagers\ProductVariantsRelat
 use App\Filament\Resources\Schema\MetaSchema;
 use App\Filament\Resources\Schema\TitleSchema;
 use App\Models\Product;
-use App\Models\Reseller;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
@@ -36,10 +35,12 @@ class ProductResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
 
     protected static ?string $navigationGroup = 'Produk';
+    protected static ?string $navigationLabel = 'Produk';
 
     protected static ?string $slug = 'products';
 
     protected static ?int $navigationSort = 1;
+
 
     public static function form(Form $form): Form
     {
@@ -62,7 +63,7 @@ class ProductResource extends Resource
                                     Forms\Components\Select::make('category_id')
                                         ->label(__('Product Category'))
                                         ->helperText(__('Select the category that corresponds to the product.'))
-                                        ->relationship('category', 'name', fn (Builder $query): Builder => $query->active())
+                                        ->relationship('category', 'name', fn(Builder $query): Builder => $query->active())
                                         ->searchable()
                                         ->preload()
                                         ->required()
@@ -83,8 +84,8 @@ class ProductResource extends Resource
                                         ->placeholder('https://urlweb.com/path/to/file/download.zip')
                                         ->helperText(__('Enter the URL address for product access for buyers, such as the file download URL if the product is in the form of a file and the like.'))
                                         ->columnSpanFull()
-                                        ->visible(fn (Get $get): bool => $get('digital'))
-                                        ->required(fn (Get $get): bool => $get('digital'))
+                                        ->visible(fn(Get $get): bool => $get('digital'))
+                                        ->required(fn(Get $get): bool => $get('digital'))
                                         ->url()
                                         ->columnSpanFull(),
                                 ]
@@ -125,7 +126,7 @@ class ProductResource extends Resource
                                         ->required()
                                         ->default(1)
                                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                        ->maxValue(fn (Get $get) => $get('stock')),
+                                        ->maxValue(fn(Get $get) => $get('stock')),
                                     Forms\Components\TextInput::make('sale_price')
                                         ->rules('nullable|numeric')
                                         ->label(__('Price Before Discount'))
@@ -151,17 +152,17 @@ class ProductResource extends Resource
                                     ->rules('nullable|numeric')
                                     ->label(__('Product Weight (Gram)'))
                                     ->helperText(__('Only enter numbers. e.g: 1000'))
-                                    ->visible(fn (Get $get): bool => ! $get('digital'))
-                                    ->required(fn (Get $get): bool => ! $get('digital'))
+                                    ->visible(fn(Get $get): bool => ! $get('digital'))
+                                    ->required(fn(Get $get): bool => ! $get('digital'))
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                                 Forms\Components\Select::make('warehouse_id')
                                     ->label(__('Shipping Warehouse'))
                                     ->helperText(str(__('Select the warehouse where the product will be shipped from, to change the warehouse can be seen in the **<a href="/admin/setting/warehouse" target="_blank">Warehouse Location</a>** menu.'))->inlineMarkdown()->toHtmlString())
-                                    ->relationship('warehouse', 'name', fn (Builder $query): Builder => $query->active())
+                                    ->relationship('warehouse', 'name', fn(Builder $query): Builder => $query->active())
                                     ->searchable()
                                     ->preload()
-                                    ->visible(fn (Get $get): bool => ! $get('digital'))
-                                    ->required(fn (Get $get): bool => ! $get('digital'))
+                                    ->visible(fn(Get $get): bool => ! $get('digital'))
+                                    ->required(fn(Get $get): bool => ! $get('digital'))
                                     ->columnSpanFull(),
                                 Forms\Components\TextInput::make('stock')
                                     ->rules('nullable|numeric')
@@ -175,7 +176,7 @@ class ProductResource extends Resource
                                     ->helperText(__('The safety stock is the limit stock for your products which alerts you if the product stock will soon be out of stock.'))
                                     ->required()
                                     ->default(0)
-                                    ->maxValue(fn (Get $get) => $get('stock'))
+                                    ->maxValue(fn(Get $get) => $get('stock'))
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                             ])->inlineLabel(),
                         Tabs\Tab::make('Images')
@@ -244,61 +245,55 @@ class ProductResource extends Resource
                     ]),
                 Tabs::make('Advanced Settings')
                     ->schema([
-                        Tabs\Tab::make('Reseller Price')
-                            ->schema([
-                                Forms\Components\Repeater::make('resellerPrices')
-                                    ->relationship('resellerPrices')
-                                    ->hiddenLabel()
-                                    ->reorderable(false)
-                                    // ->collapsible()
-                                    ->deleteAction(function (Action $action) {
-                                        $action->requiresConfirmation();
-                                        // ->action(function (array $arguments, Repeater $component) {
-                                        //     $itemData = $component->getItemState($arguments['item']);
-                                        // });
-                                    })
-                                    ->defaultItems(0)
-                                    ->schema([
-                                        Forms\Components\Select::make('reseller_id')
-                                            ->label(__('Reseller Level'))
-                                            ->options(Reseller::active()->get()->pluck('name_level', 'id')->toArray())
-                                            ->disableOptionsWhenSelectedInSiblingRepeaterItems()
-                                            ->hintAction(
-                                                Action::make('wholesale')
-                                                    ->icon('heroicon-m-currency-dollar')
-                                                    ->label('Add wholesale')
-                                                    ->form([
-                                                        Forms\Components\Repeater::make('wholesales')
-                                                            ->default(fn ($record): array => $record ? $record->wholesales->toArray() : [])
-                                                            ->schema(self::getWholesalesSchema())
-                                                            ->hiddenLabel()
-                                                            ->grid(['lg' => 2]),
-
-                                                    ])
-                                                    ->action(fn (array $data, $record) => self::setActionWholesales($data, $record))
-                                                    ->visible(fn ($record): bool => ! empty($record))
-                                            ),
-
-                                        Forms\Components\TextInput::make('price')
-                                            ->required()
-                                            ->numeric()
-                                            ->default(fn (Get $get) => $get('../../price'))
-                                            ->live(onBlur: true)
-                                            ->hint(fn (Get $get): string => 'Normal Price: Rp '.number_format($get('../../price') ?? 0, 0, ',', '.'))
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
-
-                                    ])->grid(['md' => 2]),
-
-                            ]),
+                        // @feature-toggle: reseller — uncomment to re-enable Reseller Price tab
+                        // Tabs\Tab::make('Reseller Price')
+                        //     ->schema([
+                        //         Forms\Components\Repeater::make('resellerPrices')
+                        //             ->relationship('resellerPrices')
+                        //             ->hiddenLabel()
+                        //             ->reorderable(false)
+                        //             ->deleteAction(function (Action $action) {
+                        //                 $action->requiresConfirmation();
+                        //             })
+                        //             ->defaultItems(0)
+                        //             ->schema([
+                        //                 Forms\Components\Select::make('reseller_id')
+                        //                     ->label(__('Reseller Level'))
+                        //                     ->options(Reseller::active()->get()->pluck('name_level', 'id')->toArray())
+                        //                     ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                        //                     ->hintAction(
+                        //                         Action::make('wholesale')
+                        //                             ->icon('heroicon-m-currency-dollar')
+                        //                             ->label('Add wholesale')
+                        //                             ->form([
+                        //                                 Forms\Components\Repeater::make('wholesales')
+                        //                                     ->default(fn($record): array => $record ? $record->wholesales->toArray() : [])
+                        //                                     ->schema(self::getWholesalesSchema())
+                        //                                     ->hiddenLabel()
+                        //                                     ->grid(['lg' => 2]),
+                        //                             ])
+                        //                             ->action(fn(array $data, $record) => self::setActionWholesales($data, $record))
+                        //                             ->visible(fn($record): bool => ! empty($record))
+                        //                     ),
+                        //                 Forms\Components\TextInput::make('price')
+                        //                     ->required()
+                        //                     ->numeric()
+                        //                     ->default(fn(Get $get) => $get('../../price'))
+                        //                     ->live(onBlur: true)
+                        //                     ->hint(fn(Get $get): string => 'Normal Price: Rp ' . number_format($get('../../price') ?? 0, 0, ',', '.'))
+                        //                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                        //             ])->grid(['md' => 2]),
+                        //     ]),
                         Tabs\Tab::make('Wholesales')
+                            ->label(__('product.wholesales'))
                             ->schema([
                                 Forms\Components\Repeater::make('wholesales')
-                                    ->relationship('wholesales', fn (Builder $query): Builder => $query->whereNull('reseller_id'))
+                                    ->relationship('wholesales', fn(Builder $query): Builder => $query->whereNull('reseller_id'))
                                     ->reorderable(false)
                                     ->hiddenLabel()
                                     // ->collapsible()
                                     ->deleteAction(
-                                        fn (Action $action) => $action->requiresConfirmation(),
+                                        fn(Action $action) => $action->requiresConfirmation(),
                                     )
                                     ->cloneable()
                                     ->defaultItems(0)
@@ -386,9 +381,9 @@ class ProductResource extends Resource
                     ->indicateUsing(function (array $data): ?string {
                         $text = null;
                         if ($data['created_from']) {
-                            $text = 'Created at '.Carbon::parse($data['created_from'])->toFormattedDateString();
+                            $text = 'Created at ' . Carbon::parse($data['created_from'])->toFormattedDateString();
                             if ($data['created_until']) {
-                                $text .= ' - '.Carbon::parse($data['created_until'])->toFormattedDateString();
+                                $text .= ' - ' . Carbon::parse($data['created_until'])->toFormattedDateString();
                             }
                         }
 
@@ -398,11 +393,11 @@ class ProductResource extends Resource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
 
@@ -443,7 +438,7 @@ class ProductResource extends Resource
         if (self::shouldCanUpdate()) {
             return Tables\Columns\ToggleColumn::make('is_active')
                 ->label(__('Published'))
-                ->afterStateUpdated(fn () => notification(__('Published status updated successfully'), 'success'));
+                ->afterStateUpdated(fn() => notification(__('Published status updated successfully'), 'success'));
         }
 
         return Tables\Columns\IconColumn::make('is_active')->boolean()->label(__('Published'));
@@ -466,9 +461,9 @@ class ProductResource extends Resource
                 ->label(__('Price per item'))
                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                 ->required()
-                ->default(fn (Get $get) => $get('../../price'))
+                ->default(fn(Get $get) => $get('../../price'))
                 ->live(onBlur: true)
-                ->hint(fn (Get $get): string => 'Normal Price: Rp '.number_format($get('../../price') ?? 0, 0, ',', '.'))
+                ->hint(fn(Get $get): string => 'Normal Price: Rp ' . number_format($get('../../price') ?? 0, 0, ',', '.'))
                 ->distinct(),
         ];
     }

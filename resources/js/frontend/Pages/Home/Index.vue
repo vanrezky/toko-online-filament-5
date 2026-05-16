@@ -196,8 +196,8 @@ const submitNewsletter = () => {
             </div>
         </section>
 
-        <!-- Newsletter Section -->
-        <section class="relative overflow-hidden bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-12 md:py-16">
+        <!-- @feature-toggle: newsletter — remove v-if="false" to re-enable -->
+        <section v-if="false" class="relative overflow-hidden bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-12 md:py-16">
             <div class="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl"></div>
             <div class="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl"></div>
 

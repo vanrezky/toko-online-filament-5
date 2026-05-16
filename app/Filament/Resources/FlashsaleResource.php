@@ -26,6 +26,14 @@ class FlashsaleResource extends Resource
     protected static ?string $slug = 'flashsales';
     protected static ?int $navigationSort = 2;
 
+    // @feature-toggle: flashsale — set to true & remove canAccess() to re-enable
+    static bool $shouldRegisterNavigation = false;
+
+    public static function canAccess(): bool
+    {
+        return false; // @feature-toggle: flashsale — change to parent::canAccess() to re-enable
+    }
+
     public static function form(Form $form): Form
     {
         return $form
