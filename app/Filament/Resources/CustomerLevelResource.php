@@ -54,7 +54,9 @@ class CustomerLevelResource extends Resource
                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                         Forms\Components\Toggle::make('is_active')
                             ->label('Aktif')
-                            ->default(true),
+                            ->default(true)
+                            ->disabled(fn(?CustomerLevel $record) => $record?->hasCustomers())
+                            ->helperText(fn(?CustomerLevel $record) => $record?->hasCustomers() ? 'Tidak bisa dinonaktifkan — level sudah memiliki anggota' : null),
                     ])->columns(2),
             ]);
     }
@@ -97,6 +99,9 @@ class CustomerLevelResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->hidden(fn(CustomerLevel $record) => $record->hasCustomers())
+                    ->tooltip(fn(CustomerLevel $record) => $record->hasCustomers() ? 'Tidak bisa dihapus — sudah ada anggota' : 'Hapus level'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

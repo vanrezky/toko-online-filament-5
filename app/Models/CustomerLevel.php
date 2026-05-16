@@ -34,4 +34,18 @@ class CustomerLevel extends Model
     {
         return $query->where('is_active', true);
     }
+
+    public function hasCustomers(): bool
+    {
+        return $this->customers()->exists();
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (CustomerLevel $level) {
+            if ($level->hasCustomers()) {
+                return false;
+            }
+        });
+    }
 }
