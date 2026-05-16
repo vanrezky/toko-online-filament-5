@@ -13,7 +13,7 @@ class CustomerLevelResource extends Resource
 {
     protected static ?string $model = CustomerLevel::class;
     protected static ?string $navigationIcon = 'heroicon-o-users';
-    protected static ?string $navigationGroup = 'Toko Private';
+    protected static ?string $navigationGroup = 'Customer';
     protected static ?string $slug = 'customer-levels';
     protected static ?int $navigationSort = 1;
 

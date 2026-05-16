@@ -15,7 +15,7 @@ class InstallmentPaymentResource extends Resource
 {
     protected static ?string $model = InstallmentPayment::class;
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
-    protected static ?string $navigationGroup = 'Toko Private';
+    protected static ?string $navigationGroup = 'Master';
     protected static ?string $slug = 'installment-payments';
     protected static ?int $navigationSort = 4;
 
