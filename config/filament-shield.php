@@ -2,7 +2,6 @@
 
 use App\Filament\Resources\BalanceResource;
 use App\Filament\Resources\NewsletterSubscriberResource;
-use App\Filament\Resources\PromotionResource;
 use App\Filament\Resources\ResellerResource;
 use App\Filament\Resources\SliderResource;
 
@@ -86,7 +85,6 @@ return [
 'resources' => [
             SliderResource::class,
             // @feature-toggle: uncomment to re-generate permissions when re-enabling
-            PromotionResource::class,
             NewsletterSubscriberResource::class,
             BalanceResource::class,
             ResellerResource::class,

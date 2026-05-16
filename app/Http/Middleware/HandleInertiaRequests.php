@@ -5,11 +5,9 @@ namespace App\Http\Middleware;
 use App\Enums\CartStatus;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\CustomerResource;
-use App\Http\Resources\PromotionResource;
 use App\Models\CartItem;
 use App\Models\Category;
 use App\Models\Page;
-use App\Models\Promotion;
 use App\Models\Wishlist;
 use App\Services\TemplateService;
 use App\Settings\GeneralSettings;
@@ -117,15 +115,6 @@ class HandleInertiaRequests extends Middleware
                         Category::homepage()->with('media')->get()
                     );
                 });
-            },
-            // @feature-toggle: promotion — uncomment to re-enable
-            'promotions' => function () {
-                return [];
-                // return Cache::remember('frontend_promotions', 3600, function () {
-                //     return PromotionResource::collection(
-                //         Promotion::active()->with('media')->get()
-                //     );
-                // });
             },
             'colorScheme' => function () {
                 return app(TemplateService::class)->getColorScheme();
