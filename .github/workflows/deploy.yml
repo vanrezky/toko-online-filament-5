@@ -139,26 +139,36 @@ jobs:
           ssh -o StrictHostKeyChecking=no -p ${{ secrets.SERVER_SSH_PORT || 22 }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             cd ${{ secrets.SERVER_DEPLOY_PATH }}
 
-            # Set ownership
-            sudo chown -R www-data:www-data storage bootstrap/cache
+            # Create missing directories
+            mkdir -p storage/logs
+            mkdir -p storage/framework/cache/data
+            mkdir -p storage/framework/views
+            mkdir -p storage/framework/sessions
+            mkdir -p storage/framework/testing
+            mkdir -p bootstrap/cache
 
-            # Set permissions
-            sudo find storage -type d -exec chmod 775 {} \;
-            sudo find storage -type f -exec chmod 664 {} \;
+            # Set permissions (www-data user for Apache/Nginx)
+            chown -R www-data:www-data storage bootstrap/cache
+            chmod -R 775 storage
+            chmod -R 775 bootstrap/cache
 
-            sudo find bootstrap/cache -type d -exec chmod 775 {} \;
-            sudo find bootstrap/cache -type f -exec chmod 664 {} \;
+            # Clear all cache
+            php artisan optimize:clear 2>/dev/null || true
+            rm -rf bootstrap/cache/*.php 2>/dev/null || true
+            rm -rf storage/framework/cache/data/* 2>/dev/null || true
 
-            # Clear cache sebelum caching ulang
-            php artisan optimize:clear
+            # Run migrations
+            php artisan migrate --force
 
-            # Cache baru
+            # Cache configs
             php artisan optimize
             php artisan icons:cache
             php artisan filament:optimize
 
-            # Run migrations dan seeds
-            php artisan migrate --force
+            # Re-apply permissions after caching
+            chmod -R 775 storage
+            chmod -R 775 bootstrap/cache
 
-            php artisan queue:restart || true
+            # Restart queue workers
+            php artisan queue:restart 2>/dev/null || true
           EOF
