@@ -6,7 +6,9 @@
       "command": ["php", "/Users/vannababan/Codes/Project/toko-online/artisan", "mcp:serve", "vibes"],
       "environment": {
         "APP_ENV": "local",
-        "APP_URL": "http://localhost:81"
+        "APP_URL": "http://localhost:81",
+        "DB_HOST": "127.0.0.1",
+        "DB_PORT": "3307"
       }
     }
   }

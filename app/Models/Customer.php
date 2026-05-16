@@ -18,7 +18,7 @@ class Customer extends Authenticatable implements HasMedia
 {
     use HasApiTokens, HasFactory, HasProfilePictureTrait, Notifiable, InteractsWithMedia;
 
-    protected $fillable = ['first_name', 'last_name', 'email', 'email_verified_at', 'username', 'password', 'phone', 'balance', 'image', 'is_active', 'is_guest'];
+    protected $fillable = ['first_name', 'last_name', 'email', 'email_verified_at', 'username', 'password', 'phone', 'balance', 'image', 'is_active', 'is_guest', 'customer_level_id', 'credit_limit'];
 
     protected $hidden = [
         'username',
@@ -74,6 +74,46 @@ class Customer extends Authenticatable implements HasMedia
     public function balances(): HasMany
     {
         return $this->hasMany(Balance::class);
+    }
+
+    public function customerLevel(): BelongsTo
+    {
+        return $this->belongsTo(CustomerLevel::class);
+    }
+
+    public function installments(): HasMany
+    {
+        return $this->hasMany(Installment::class);
+    }
+
+    public function getEffectiveCreditLimitAttribute(): float
+    {
+        return (float) ($this->credit_limit ?? $this->customerLevel?->default_credit_limit ?? 0);
+    }
+
+    public function getOutstandingBalanceAttribute(): float
+    {
+        return (float) $this->installments()
+            ->where('status', 'active')
+            ->sum('total_amount') -
+            $this->installments()
+            ->where('status', 'active')
+            ->sum('paid_amount');
+    }
+
+    public function getRemainingCreditLimitAttribute(): float
+    {
+        return $this->effective_credit_limit - $this->outstanding_balance;
+    }
+
+    public function canCreateInstallment(float $amount): bool
+    {
+        return $this->remaining_credit_limit >= $amount;
+    }
+
+    public function scopeWithLevel($query, $levelId)
+    {
+        return $query->where('customer_level_id', $levelId);
     }
 
     public function scopeUnbanned($query)

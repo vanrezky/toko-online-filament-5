@@ -24,6 +24,8 @@ class Transaction extends Model
         'cod',
         'cod_fee',
         'payment_method',
+        'payment_type',
+        'installment_plan_id',
         'status',
         'notes',
         'uuid',
@@ -62,6 +64,11 @@ class Transaction extends Model
     public function vouchers(): HasMany
     {
         return $this->hasMany(TransactionVoucher::class);
+    }
+
+    public function installment(): BelongsTo
+    {
+        return $this->belongsTo(Installment::class);
     }
 
     public function getSubtotalAttribute(): float

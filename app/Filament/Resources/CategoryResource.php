@@ -22,8 +22,8 @@ class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
     protected static ?string $navigationIcon = 'heroicon-o-list-bullet';
-    protected static ?string $navigationLabel = 'Product Categories';
-    protected static ?string $navigationGroup = 'Product';
+    protected static ?string $navigationLabel = 'Produk Kategori';
+    protected static ?string $navigationGroup = 'Produk';
     protected static ?string $slug = 'categories';
     protected static ?int $navigationSort = 2;
 

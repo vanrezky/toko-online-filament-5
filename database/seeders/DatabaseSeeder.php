@@ -39,6 +39,8 @@ class DatabaseSeeder extends Seeder
             CurrencySeeder::class,
             EmailTemplateSeeder::class,
             ContactMessageSeeder::class,
+            CustomerLevelSeeder::class,
+            InstallmentPlanSeeder::class,
         ]);
     }
 }

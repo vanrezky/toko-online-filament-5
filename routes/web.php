@@ -20,6 +20,7 @@ use App\Http\Controllers\Frontend\PageController;
 use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\VoucherController;
 use App\Http\Controllers\Frontend\WishlistController;
+use App\Http\Controllers\Frontend\InstallmentController;
 use App\Http\Controllers\PaymentWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -76,6 +77,10 @@ Route::name('frontend.')->group(function () {
         Route::get('/orders', [OrderController::class, 'index'])->name('orders');
         Route::get('/orders/{transaction}', [OrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{transaction}/pay', [OrderController::class, 'pay'])->name('orders.pay');
+
+        // Installment routes
+        Route::get('/installments', [InstallmentController::class, 'index'])->name('installments');
+        Route::get('/installments/{uuid}', [InstallmentController::class, 'show'])->name('installments.show');
     });
 
     // Public shop routes

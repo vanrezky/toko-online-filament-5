@@ -113,6 +113,11 @@ class CustomerResource extends Resource
                         ->required()
                         ->default(0.00)
                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                    Forms\Components\Select::make('customer_level_id')
+                        ->label('Level Anggota')
+                        ->relationship('customerLevel', 'name')
+                        ->nullable()
+                        ->searchable(),
                     Forms\Components\TextInput::make('password')
                         ->password()
                         ->rules([securePassword()])
@@ -127,6 +132,28 @@ class CustomerResource extends Resource
                         ->maxLength(255)
                         ->visible(fn(string $operation): bool  => $operation === 'create'),
                 ])->columnSpanFull(),
+
+                Forms\Components\Section::make('Pengaturan Kredit')
+                    ->schema([
+                        Forms\Components\TextInput::make('credit_limit')
+                            ->label('Custom Credit Limit')
+                            ->placeholder('Kosongkan untuk gunakan default dari level')
+                            ->numeric()
+                            ->nullable()
+                            ->prefix('Rp')
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                        Forms\Components\Placeholder::make('effective_credit_limit')
+                            ->label('Effective Credit Limit')
+                            ->content(fn (Customer $record): string => 'Rp ' . number_format($record->effective_credit_limit, 0, ',', '.')),
+                        Forms\Components\Placeholder::make('outstanding_balance')
+                            ->label('Outstanding Balance')
+                            ->content(fn (Customer $record): string => 'Rp ' . number_format($record->outstanding_balance, 0, ',', '.')),
+                        Forms\Components\Placeholder::make('remaining_credit_limit')
+                            ->label('Sisa Limit Kredit')
+                            ->content(fn (Customer $record): string => 'Rp ' . number_format($record->remaining_credit_limit, 0, ',', '.')),
+                    ])
+                    ->collapsible()
+                    ->collapsed(false),
 
                 Forms\Components\Hidden::make('email_verified_at')
                     ->default(now())->dehydrated(),
@@ -161,11 +188,15 @@ class CustomerResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('reseller.name')
+                Tables\Columns\TextColumn::make('customerLevel.name')
                     ->label(__('Level'))
                     ->default('None')
                     ->badge()
                     ->color('info'),
+                Tables\Columns\TextColumn::make('effective_credit_limit')
+                    ->label('Credit Limit')
+                    ->money('IDR')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

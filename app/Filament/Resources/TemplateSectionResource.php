@@ -20,7 +20,7 @@ class TemplateSectionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
     protected static ?string $navigationLabel = 'Template Sections';
-    protected static ?string $navigationGroup = 'Setting';
+    protected static ?string $navigationGroup = 'Pengaturan';
     protected static ?string $slug = 'template-sections';
     protected static ?int $navigationSort = 99;
 

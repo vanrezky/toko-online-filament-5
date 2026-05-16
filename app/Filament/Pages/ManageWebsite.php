@@ -22,7 +22,7 @@ class ManageWebsite extends SettingsPage
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
-    protected static ?string $navigationGroup = 'Setting';
+    protected static ?string $navigationGroup = 'Pengaturan';
 
     protected static ?int $navigationSort = 5;
 

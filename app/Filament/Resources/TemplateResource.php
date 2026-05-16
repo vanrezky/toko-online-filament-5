@@ -18,7 +18,7 @@ class TemplateResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-paint-brush';
     protected static ?string $navigationLabel = 'Templates';
-    protected static ?string $navigationGroup = 'Setting';
+    protected static ?string $navigationGroup = 'Pengaturan';
     protected static ?string $slug = 'templates';
     protected static ?int $navigationSort = 99;
 

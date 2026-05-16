@@ -25,6 +25,7 @@
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "livewire/livewire": "^3.5",
+        "maatwebsite/excel": "^3.1",
         "masmerise/livewire-toaster": "^2.1",
         "midtrans/midtrans-php": "^2.6",
         "njxqlus/filament-progressbar": "^1.0",

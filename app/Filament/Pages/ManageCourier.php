@@ -22,7 +22,7 @@ class ManageCourier extends Page
     use HasPageShield;
 
     protected static ?string $navigationIcon = 'heroicon-o-truck';
-    protected static ?string $navigationGroup = 'Setting';
+    protected static ?string $navigationGroup = 'Pengaturan';
     protected static ?int $navigationSort = 6;
     protected static ?string $slug = 'setting/courier';
 
