@@ -9,7 +9,7 @@ import ConfirmDialog from "vue3-confirm-dialog";
 import "vue3-confirm-dialog/style";
 
 createInertiaApp({
-    resolve: (name) => resolvePageComponent(`./pages/${name}.vue`, import.meta.glob("./pages/**/*.vue")),
+    resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob("./Pages/**/*.vue")),
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
