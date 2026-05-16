@@ -14,6 +14,11 @@ class ListProducts extends ListRecords
 {
     protected static string $resource = ProductResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/product-resource.pages.list.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -24,13 +29,13 @@ class ListProducts extends ListRecords
     public function getTabs(): array
     {
         return [
-            'All' => Tab::make()->label(__('All Product')),
-            'Low Stock' => Tab::make()
-                ->label(__('Low Stock'))
+            'all' => Tab::make()->label(__('admin/product-resource.tabs_list.all')),
+            'low_stock' => Tab::make()
+                ->label(__('admin/product-resource.tabs_list.low_stock'))
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query->whereColumn('stock', '<=', 'security_stock')->where('stock', '>', Status::COUNT_OUT_OF_STOCK))
                 ->badge(Product::query()->whereColumn('stock', '<=', 'security_stock')->where('stock', '>', Status::COUNT_OUT_OF_STOCK)->count()),
-            'Out Of Stock' => Tab::make()
-                ->label(__('Out Of Stock'))
+            'out_of_stock' => Tab::make()
+                ->label(__('admin/product-resource.tabs_list.out_of_stock'))
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('stock', Status::COUNT_OUT_OF_STOCK))
                 ->badge(Product::query()->where('stock', Status::COUNT_OUT_OF_STOCK)->count())
                 ->badgeColor('danger'),

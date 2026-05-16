@@ -12,11 +12,15 @@ class EditProduct extends EditRecord
 {
     protected static string $resource = ProductResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/product-resource.pages.edit.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            // Actions\ViewAction::make(),
-            Actions\Action::make('back')->label('Back')->color('warning')->url($this->getResource()::getUrl('index')),
+            Actions\Action::make('back')->label(__('admin/product-resource.fields.back'))->color('warning')->url($this->getResource()::getUrl('index')),
             Actions\DeleteAction::make(),
         ];
     }
