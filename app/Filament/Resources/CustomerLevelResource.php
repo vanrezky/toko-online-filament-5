@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\CustomerLevelResource\Pages;
 use App\Models\CustomerLevel;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,26 +17,45 @@ class CustomerLevelResource extends Resource
     protected static ?string $navigationGroup = 'Customer';
     protected static ?string $slug = 'customer-levels';
     protected static ?int $navigationSort = 1;
+    protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('slug')
-                    ->unique(ignoreRecord: true)
-                    ->maxLength(255),
-                Forms\Components\Textarea::make('description')
-                    ->maxLength(65535),
-                Forms\Components\TextInput::make('default_credit_limit')
-                    ->label('Default Credit Limit')
-                    ->numeric()
-                    ->prefix('Rp')
-                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
-                Forms\Components\Toggle::make('is_active')
-                    ->default(true),
+                Forms\Components\Section::make('Data Level Anggota')
+                    ->description('Kelola level anggota dan batas kredit default')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nama Level')
+                            ->required()
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn(Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state ?? ''))),
+                        Forms\Components\TextInput::make('slug')
+                            ->label('Slug')
+                            ->required()
+                            ->unique(ignoreRecord: true)
+                            ->maxLength(255),
+                        Forms\Components\Textarea::make('description')
+                            ->label('Deskripsi')
+                            ->maxLength(65535)
+                            ->columnSpanFull(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Pengaturan Kredit')
+                    ->description('Atur batas kredit default untuk level ini')
+                    ->schema([
+                        Forms\Components\TextInput::make('default_credit_limit')
+                            ->label('Default Credit Limit')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->default(0)
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                        Forms\Components\Toggle::make('is_active')
+                            ->label('Aktif')
+                            ->default(true),
+                    ])->columns(2),
             ]);
     }
 
@@ -44,16 +64,22 @@ class CustomerLevelResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->label('Nama Level')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('slug')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('default_credit_limit')
+                    ->label('Default Credit Limit')
                     ->money('IDR')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
-                    ->boolean(),
+                    ->label('Aktif')
+                    ->boolean()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('customers_count')
-                    ->label('Customers')
+                    ->label('Anggota')
                     ->counts('customers')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -62,15 +88,11 @@ class CustomerLevelResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\Filter::make('is_active')
-                    ->form([
-                        Forms\Components\Toggle::make('active'),
-                    ])
-                    ->query(function ($query, array $data) {
-                        return $query->when(isset($data['active']), function ($q) use ($data) {
-                            $q->where('is_active', $data['active']);
-                        });
-                    }),
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Status Aktif')
+                    ->placeholder('Semua')
+                    ->trueLabel('Aktif')
+                    ->falseLabel('Tidak Aktif'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -91,10 +113,10 @@ class CustomerLevelResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => \App\Filament\Resources\CustomerLevelResource\Pages\ListCustomerLevels::route('/'),
-            'create' => \App\Filament\Resources\CustomerLevelResource\Pages\CreateCustomerLevel::route('/create'),
-            'view' => \App\Filament\Resources\CustomerLevelResource\Pages\ViewCustomerLevel::route('/{record}'),
-            'edit' => \App\Filament\Resources\CustomerLevelResource\Pages\EditCustomerLevel::route('/{record}/edit'),
+            'index' => Pages\ListCustomerLevels::route('/'),
+            'create' => Pages\CreateCustomerLevel::route('/create'),
+            'view' => Pages\ViewCustomerLevel::route('/{record}'),
+            'edit' => Pages\EditCustomerLevel::route('/{record}/edit'),
         ];
     }
 }
