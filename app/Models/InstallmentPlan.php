@@ -43,4 +43,18 @@ class InstallmentPlan extends Model
     {
         return $this->calculateTotal($principalAmount) / $this->tenor;
     }
+
+    public function hasInstallments(): bool
+    {
+        return $this->installments()->exists();
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (InstallmentPlan $plan) {
+            if ($plan->hasInstallments()) {
+                return false;
+            }
+        });
+    }
 }

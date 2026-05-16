@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\InstallmentPlanResource\Pages;
 use App\Models\InstallmentPlan;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,27 +17,43 @@ class InstallmentPlanResource extends Resource
     protected static ?string $navigationGroup = 'Master';
     protected static ?string $slug = 'installment-plans';
     protected static ?int $navigationSort = 2;
+    protected static ?string $recordTitleAttribute = 'tenor';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('tenor')
-                    ->label('Tenor (Bulan)')
-                    ->numeric()
-                    ->minValue(1)
-                    ->required(),
-                Forms\Components\TextInput::make('fee_percentage')
-                    ->label('Fee Percentage')
-                    ->numeric()
-                    ->suffix('%')
-                    ->minValue(0)
-                    ->step(0.01)
-                    ->default(0),
-                Forms\Components\Textarea::make('description')
-                    ->maxLength(65535),
-                Forms\Components\Toggle::make('is_active')
-                    ->default(true),
+                Forms\Components\Section::make('Tenor Cicilan')
+                    ->description('Atur jangka waktu dan biaya cicilan')
+                    ->schema([
+                        Forms\Components\TextInput::make('tenor')
+                            ->label('Tenor (Bulan)')
+                            ->numeric()
+                            ->minValue(1)
+                            ->required()
+                            ->unique(ignoreRecord: true),
+                        Forms\Components\TextInput::make('fee_percentage')
+                            ->label('Fee / Bunga (%)')
+                            ->numeric()
+                            ->suffix('%')
+                            ->minValue(0)
+                            ->step(0.01)
+                            ->default(0)
+                            ->required(),
+                        Forms\Components\Textarea::make('description')
+                            ->label('Deskripsi')
+                            ->maxLength(65535)
+                            ->columnSpanFull(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Status')
+                    ->schema([
+                        Forms\Components\Toggle::make('is_active')
+                            ->label('Aktif')
+                            ->default(true)
+                            ->disabled(fn(?InstallmentPlan $record) => $record?->installments()->exists())
+                            ->helperText(fn(?InstallmentPlan $record) => $record?->installments()->exists() ? 'Tidak bisa dinonaktifkan — sudah ada cicilan yang menggunakan tenor ini' : null),
+                    ]),
             ]);
     }
 
@@ -46,39 +63,46 @@ class InstallmentPlanResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('tenor')
                     ->label('Tenor')
+                    ->formatStateUsing(fn(int $state) => $state . ' bulan')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('fee_percentage')
-                    ->label('Fee')
+                    ->label('Fee/Bunga')
+                    ->formatStateUsing(fn(float $state) => $state . '%')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('description')
-                    ->searchable(),
+                    ->label('Deskripsi')
+                    ->searchable()
+                    ->limit(50)
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\IconColumn::make('is_active')
-                    ->boolean(),
+                    ->label('Aktif')
+                    ->boolean()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('installments_count')
-                    ->label('Installments')
+                    ->label('Cicilan Aktif')
                     ->counts('installments')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Dibuat')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\Filter::make('is_active')
-                    ->form([
-                        Forms\Components\Toggle::make('active'),
-                    ])
-                    ->query(function ($query, array $data) {
-                        return $query->when(isset($data['active']), function ($q) use ($data) {
-                            $q->where('is_active', $data['active']);
-                        });
-                    }),
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Status')
+                    ->placeholder('Semua')
+                    ->trueLabel('Aktif')
+                    ->falseLabel('Tidak Aktif'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->hidden(fn(InstallmentPlan $record) => $record->installments()->exists())
+                    ->tooltip(fn(InstallmentPlan $record) => $record->installments()->exists() ? 'Tidak bisa dihapus — sudah ada cicilan' : 'Hapus tenor'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -95,10 +119,10 @@ class InstallmentPlanResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => \App\Filament\Resources\InstallmentPlanResource\Pages\ListInstallmentPlans::route('/'),
-            'create' => \App\Filament\Resources\InstallmentPlanResource\Pages\CreateInstallmentPlan::route('/create'),
-            'view' => \App\Filament\Resources\InstallmentPlanResource\Pages\ViewInstallmentPlan::route('/{record}'),
-            'edit' => \App\Filament\Resources\InstallmentPlanResource\Pages\EditInstallmentPlan::route('/{record}/edit'),
+            'index' => Pages\ListInstallmentPlans::route('/'),
+            'create' => Pages\CreateInstallmentPlan::route('/create'),
+            'view' => Pages\ViewInstallmentPlan::route('/{record}'),
+            'edit' => Pages\EditInstallmentPlan::route('/{record}/edit'),
         ];
     }
 }
