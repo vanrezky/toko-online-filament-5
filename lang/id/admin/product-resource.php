@@ -106,6 +106,8 @@ return [
         'published_updated' => 'Status publikasi berhasil diperbarui',
         'wholesale_submited' => 'Harga grosir berhasil diajukan',
         'wholesale_failed' => 'Gagal membuat harga grosir',
+        'sale_price_error' => 'Harga sebelum diskon harus lebih besar dari harga normal.',
+        'generate_code' => 'Generate Kode',
     ],
 
     'back' => 'Kembali',

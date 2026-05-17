@@ -10,14 +10,17 @@ use App\Filament\Resources\Schema\MetaSchema;
 use App\Filament\Resources\Schema\TitleSchema;
 use App\Models\Product;
 use Carbon\Carbon;
+use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -63,7 +66,6 @@ class ProductResource extends Resource
     {
         return $form
             ->schema([
-
                 Tabs::make('Tabs')
                     ->tabs([
                         Tabs\Tab::make(__('admin/product-resource.tabs.code_and_category'))
@@ -76,7 +78,15 @@ class ProductResource extends Resource
                                         ->maxLength(20)
                                         ->columnSpanFull()
                                         ->unique(column: 'code', ignoreRecord: true)
-                                        ->maxLength('20'),
+                                        ->maxLength('20')
+                                        ->suffixAction(
+                                            Action::make('generateCode')
+                                                ->icon('heroicon-m-arrow-path')
+                                                ->tooltip(__('admin/product-resource.notifications.generate_code'))
+                                                ->action(function (Set $set) {
+                                                    $set('code', self::generateProductCode());
+                                                })
+                                        ),
                                     Forms\Components\Select::make('category_id')
                                         ->label(__('admin/product-resource.fields.category_id'))
                                         ->helperText(__('admin/product-resource.fields.category_id_helper'))
@@ -147,7 +157,15 @@ class ProductResource extends Resource
                                         ->rules('nullable|numeric')
                                         ->label(__('admin/product-resource.fields.sale_price'))
                                         ->helperText(__('admin/product-resource.fields.sale_price_helper'))
-                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                        ->rules([
+                                            fn(Get $get, ?Model $record): Closure => function (string $attribute, $value, Closure $fail) use ($get, $record) {
+                                                $price = $get('price');
+                                                if ($value !== null && $price !== null && (float) $value <= (float) $price) {
+                                                    $fail(__('admin/product-resource.notifications.sale_price_error'));
+                                                }
+                                            },
+                                        ]),
                                     Forms\Components\TextInput::make('price')
                                         ->rules('numeric')
                                         ->label(__('admin/product-resource.fields.price'))
@@ -195,27 +213,6 @@ class ProductResource extends Resource
                                     ->maxValue(fn(Get $get) => $get('stock'))
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                             ])->inlineLabel(),
-                        Tabs\Tab::make(__('admin/product-resource.tabs.images'))
-                            ->schema([
-                                SpatieMediaLibraryFileUpload::make('images')
-                                    ->image()
-                                    ->imageEditor()
-                                    ->required()
-                                    ->hiddenLabel()
-                                    ->multiple()
-                                    ->reorderable()
-                                    ->maxFiles(5)
-                                    ->imageCropAspectRatio('1:1')
-                                    ->imageEditorAspectRatios([
-                                        '1:1',
-                                    ])
-                                    ->downloadable()
-                                    ->optimize('webp')
-                                    ->panelLayout('grid')
-                                    ->disk(getActiveDisk())
-                                    ->rules(['required', 'mimes:png,jpg,jpeg,webp,gif'])
-                                    ->directory(UploadPath::PRODUCT_UPLOAD_PATH),
-                            ]),
                         Tabs\Tab::make(__('admin/product-resource.tabs.faqs'))
                             ->schema([
                                 Forms\Components\Repeater::make('faqs')
@@ -244,6 +241,27 @@ class ProductResource extends Resource
                                 MetaSchema::get(),
                             ]),
                     ])->columnSpanFull(),
+                Section::make(__('admin/product-resource.tabs.images'))
+                    ->schema([
+                        SpatieMediaLibraryFileUpload::make('images')
+                            ->image()
+                            ->imageEditor()
+                            ->required()
+                            ->hiddenLabel()
+                            ->multiple()
+                            ->reorderable()
+                            ->maxFiles(5)
+                            ->imageCropAspectRatio('1:1')
+                            ->imageEditorAspectRatios([
+                                '1:1',
+                            ])
+                            ->downloadable()
+                            ->optimize('webp')
+                            ->panelLayout('grid')
+                            ->disk(getActiveDisk())
+                            ->rules(['required', 'mimes:png,jpg,jpeg,webp,gif'])
+                            ->directory(UploadPath::PRODUCT_UPLOAD_PATH),
+                    ]),
                 Forms\Components\Section::make(__('admin/product-resource.fields.other_settings'))
                     ->schema([
                         Forms\Components\TagsInput::make('tags')
@@ -303,7 +321,7 @@ class ProductResource extends Resource
                             ->label(__('admin/product-resource.tabs.wholesales'))
                             ->schema([
                                 Forms\Components\Repeater::make('wholesales')
-                                ->label(__('admin/product-resource.tabs.wholesales_price'))
+                                    ->label(__('admin/product-resource.tabs.wholesales_price'))
                                     ->relationship('wholesales', fn(Builder $query): Builder => $query->whereNull('reseller_id'))
                                     ->reorderable(false)
                                     ->hiddenLabel()
@@ -513,6 +531,14 @@ class ProductResource extends Resource
             Status::INACTIVE => __('admin/product-resource.status.draft'),
             Status::ACTIVE => __('admin/product-resource.status.published'),
         ];
+    }
+
+    public static function generateProductCode(): string
+    {
+        $numbers = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        $letters = strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
+
+        return "PROD-{$numbers}-{$letters}";
     }
 
     public static function saveProductVariants(Model $record, Get $get, array $state, string $context): void
