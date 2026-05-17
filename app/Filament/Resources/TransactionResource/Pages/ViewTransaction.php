@@ -17,6 +17,11 @@ class ViewTransaction extends ViewRecord
 {
     protected static string $resource = TransactionResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/transaction-resource.pages.view.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return $this->getStatusActions();
@@ -30,14 +35,14 @@ class ViewTransaction extends ViewRecord
         switch ($record->status) {
             case 'unpaid':
                 $actions[] = Actions\Action::make('markShipped')
-                    ->label('Mark as Shipped')
+                    ->label(__('admin/transaction-resource.actions.mark_as_shipped'))
                     ->icon('heroicon-o-truck')
                     ->color('info')
                     ->requiresConfirmation()
                     ->action(fn () => $this->updateStatus('shipped'));
 
                 $actions[] = Actions\Action::make('markRejected')
-                    ->label('Mark as Rejected')
+                    ->label(__('admin/transaction-resource.actions.mark_as_rejected'))
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
@@ -46,14 +51,14 @@ class ViewTransaction extends ViewRecord
 
             case 'shipped':
                 $actions[] = Actions\Action::make('markDelivered')
-                    ->label('Mark as Delivered')
+                    ->label(__('admin/transaction-resource.actions.mark_as_delivered'))
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
                     ->action(fn () => $this->updateStatus('delivered'));
 
                 $actions[] = Actions\Action::make('markRejected')
-                    ->label('Mark as Rejected')
+                    ->label(__('admin/transaction-resource.actions.mark_as_rejected'))
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
@@ -62,7 +67,7 @@ class ViewTransaction extends ViewRecord
 
             case 'delivered':
                 $actions[] = Actions\Action::make('markCompleted')
-                    ->label('Mark as Completed')
+                    ->label(__('admin/transaction-resource.actions.mark_as_completed'))
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
@@ -91,15 +96,15 @@ class ViewTransaction extends ViewRecord
             DB::commit();
 
             Notification::make()
-                ->title('Status Updated')
-                ->body("Order status changed to {$status}")
+                ->title(__('admin/transaction-resource.notifications.status_updated'))
+                ->body(__('admin/transaction-resource.notifications.status_changed_to') . " " . __("admin/transaction-resource.status.{$status}"))
                 ->success()
                 ->send();
         } catch (\Exception $e) {
             DB::rollBack();
 
             Notification::make()
-                ->title('Update Failed')
+                ->title(__('admin/transaction-resource.notifications.update_failed'))
                 ->body($e->getMessage())
                 ->danger()
                 ->send();
@@ -110,19 +115,19 @@ class ViewTransaction extends ViewRecord
     {
         return $infolist
             ->schema([
-                Section::make('Order Information')
+                Section::make(__('admin/transaction-resource.sections.order_information'))
                     ->icon('heroicon-o-shopping-bag')
                     ->schema([
                         TextEntry::make('uuid')
-                            ->label('Order ID')
+                            ->label(__('admin/transaction-resource.entries.order_id'))
                             ->formatStateUsing(fn (string $state): string => strtoupper(substr($state, 0, 8)))
                             ->copyable()
-                            ->copyMessage('Copied!')
+                            ->copyMessage(__('admin/transaction-resource.copy.copied'))
                             ->copyMessageDuration(1500)
                             ->weight('bold')
                             ->size('lg'),
                         TextEntry::make('status')
-                            ->label('Status')
+                            ->label(__('admin/transaction-resource.entries.status'))
                             ->badge()
                             ->color(fn (string $state): string => match ($state) {
                                 'unpaid' => 'warning',
@@ -130,86 +135,87 @@ class ViewTransaction extends ViewRecord
                                 'delivered' => 'success',
                                 'rejected' => 'danger',
                                 'completed' => 'success',
-                            }),
+                            })
+                            ->formatStateUsing(fn (string $state): string => __("admin/transaction-resource.status.{$state}")),
                         TextEntry::make('created_at')
-                            ->label('Order Date')
+                            ->label(__('admin/transaction-resource.entries.order_date'))
                             ->dateTime('d M Y, H:i'),
                         TextEntry::make('timelimit')
-                            ->label('Payment Deadline')
+                            ->label(__('admin/transaction-resource.entries.payment_deadline'))
                             ->dateTime('d M Y, H:i')
-                            ->placeholder('Not set'),
+                            ->placeholder(__('admin/transaction-resource.entries.not_set')),
                     ])->columns(4),
 
-                Section::make('Order Summary')
+                Section::make(__('admin/transaction-resource.sections.order_summary'))
                     ->icon('heroicon-o-currency-dollar')
                     ->schema([
                         TextEntry::make('subtotal')
-                            ->label('Subtotal')
+                            ->label(__('admin/transaction-resource.entries.subtotal'))
                             ->money('IDR'),
                         TextEntry::make('total_discount')
-                            ->label('Total Discount')
+                            ->label(__('admin/transaction-resource.entries.total_discount'))
                             ->money('IDR')
                             ->color('danger'),
                         TextEntry::make('shipping_cost')
-                            ->label('Shipping Cost')
+                            ->label(__('admin/transaction-resource.entries.shipping_cost'))
                             ->money('IDR'),
                         TextEntry::make('cod_fee')
-                            ->label('COD Fee')
+                            ->label(__('admin/transaction-resource.entries.cod_fee'))
                             ->money('IDR')
                             ->visible(fn (Transaction $record) => $record->cod),
                         TextEntry::make('total_amount')
-                            ->label('Total Amount')
+                            ->label(__('admin/transaction-resource.entries.total_amount'))
                             ->money('IDR')
                             ->weight('bold')
                             ->size('lg')
                             ->color('primary'),
                     ])->columns(5),
 
-                Section::make('Customer Information')
+                Section::make(__('admin/transaction-resource.sections.customer_information'))
                     ->icon('heroicon-o-user')
                     ->schema([
                         TextEntry::make('customer.full_name')
-                            ->label('Name')
+                            ->label(__('admin/transaction-resource.entries.name'))
                             ->icon('heroicon-o-user')
                             ->iconColor('primary'),
                         TextEntry::make('customer.email')
-                            ->label('Email')
+                            ->label(__('admin/transaction-resource.entries.email'))
                             ->icon('heroicon-o-envelope')
                             ->iconColor('primary'),
                         TextEntry::make('customer.phone')
-                            ->label('Phone')
+                            ->label(__('admin/transaction-resource.entries.phone'))
                             ->icon('heroicon-o-phone')
                             ->iconColor('primary'),
                         TextEntry::make('address.full_address')
-                            ->label('Shipping Address')
+                            ->label(__('admin/transaction-resource.entries.shipping_address'))
                             ->icon('heroicon-o-map-pin')
                             ->iconColor('primary'),
                     ])
                     ->columns(2),
 
-                Section::make('Products')
+                Section::make(__('admin/transaction-resource.sections.products'))
                     ->icon('heroicon-o-shopping-cart')
-                    ->description(fn (Transaction $record) => $record->total_items.' items')
+                    ->description(fn (Transaction $record) => $record->total_items.' ' . strtolower(__('admin/transaction-resource.columns.items')))
                     ->schema([
                         \Filament\Infolists\Components\RepeatableEntry::make('products')
                             ->schema([
                                 TextEntry::make('product.name')
-                                    ->label('Product'),
+                                    ->label(__('admin/transaction-resource.entries.product')),
                                 TextEntry::make('quantity')
-                                    ->label('Qty'),
+                                    ->label(__('admin/transaction-resource.entries.qty')),
                                 TextEntry::make('price')
-                                    ->label('Price')
+                                    ->label(__('admin/transaction-resource.entries.price'))
                                     ->money('IDR'),
                                 TextEntry::make('discount')
-                                    ->label('Discount')
+                                    ->label(__('admin/transaction-resource.entries.discount'))
                                     ->money('IDR')
                                     ->color('danger'),
                                 TextEntry::make('subtotal')
-                                    ->label('Subtotal')
+                                    ->label(__('admin/transaction-resource.entries.subtotal'))
                                     ->money('IDR')
                                     ->weight('bold'),
                                 IconEntry::make('is_digital')
-                                    ->label('Digital')
+                                    ->label(__('admin/transaction-resource.entries.digital'))
                                     ->boolean()
                                     ->trueIcon('heroicon-m-cloud-arrow-down')
                                     ->falseIcon(null)
@@ -217,74 +223,74 @@ class ViewTransaction extends ViewRecord
                             ])->columns(6),
                     ]),
 
-                Section::make('Shipping Information')
+                Section::make(__('admin/transaction-resource.sections.shipping_information'))
                     ->icon('heroicon-o-truck')
                     ->schema([
                         TextEntry::make('shippingDetails courier.name')
-                            ->label('Courier')
-                            ->placeholder('Not set'),
+                            ->label(__('admin/transaction-resource.entries.courier'))
+                            ->placeholder(__('admin/transaction-resource.entries.not_set')),
                         TextEntry::make('receipt_code')
-                            ->label('Receipt Code')
+                            ->label(__('admin/transaction-resource.entries.receipt_code'))
                             ->copyable()
-                            ->placeholder('Not set'),
+                            ->placeholder(__('admin/transaction-resource.entries.not_set')),
                         TextEntry::make('weight')
-                            ->label('Weight')
+                            ->label(__('admin/transaction-resource.entries.weight'))
                             ->suffix(' gram'),
                     ])->columns(3),
 
-                Section::make('Vouchers Applied')
+                Section::make(__('admin/transaction-resource.sections.vouchers_applied'))
                     ->icon('heroicon-o-ticket')
                     ->visible(fn (Transaction $record) => $record->vouchers->count() > 0)
                     ->schema([
                         \Filament\Infolists\Components\RepeatableEntry::make('vouchers')
                             ->schema([
                                 TextEntry::make('voucher_name')
-                                    ->label('Voucher'),
+                                    ->label(__('admin/transaction-resource.entries.voucher')),
                                 TextEntry::make('voucher_type')
-                                    ->label('Type')
+                                    ->label(__('admin/transaction-resource.entries.type'))
                                     ->badge()
                                     ->formatStateUsing(fn (string $state) => ucfirst($state)),
                                 TextEntry::make('formatted_discount')
-                                    ->label('Discount'),
+                                    ->label(__('admin/transaction-resource.entries.discount')),
                             ])->columns(3),
                     ]),
 
-                Section::make('Digital Products')
+                Section::make(__('admin/transaction-resource.sections.digital_products'))
                     ->icon('heroicon-o-cloud-arrow-down')
                     ->visible(fn (Transaction $record) => $record->hasDigitalProducts())
                     ->schema([
                         TextEntry::make('digital_products_count')
-                            ->label('This order contains digital products')
+                            ->label(__('admin/transaction-resource.entries.this_order_contains_digital_products'))
                             ->weight('bold')
                             ->color('info'),
                     ]),
 
-                Section::make('Additional Information')
+                Section::make(__('admin/transaction-resource.sections.additional_information'))
                     ->icon('heroicon-o-information-circle')
                     ->schema([
                         TextEntry::make('cod')
-                            ->label('Payment Method')
-                            ->formatStateUsing(fn (bool $state) => $state ? 'COD (Cash on Delivery)' : 'Transfer')
+                            ->label(__('admin/transaction-resource.entries.payment_method'))
+                            ->formatStateUsing(fn (bool $state) => $state ? 'COD (Bayar di Tempat)' : 'Transfer')
                             ->badge()
                             ->color(fn (bool $state) => $state ? 'warning' : 'info'),
                         TextEntry::make('payment_method')
-                            ->label('Payment Gateway')
-                            ->placeholder('Not specified'),
+                            ->label(__('admin/transaction-resource.entries.payment_gateway'))
+                            ->placeholder(__('admin/transaction-resource.entries.not_set')),
                         TextEntry::make('request_cancellation')
-                            ->label('Cancellation Request')
-                            ->formatStateUsing(fn (bool $state) => $state ? 'Yes' : 'No')
+                            ->label(__('admin/transaction-resource.entries.cancellation_request'))
+                            ->formatStateUsing(fn (bool $state) => $state ? __('Yes') : __('No'))
                             ->color(fn (bool $state) => $state ? 'danger' : 'gray'),
                         TextEntry::make('notes')
-                            ->label('Notes')
-                            ->placeholder('No notes'),
+                            ->label(__('admin/transaction-resource.entries.notes'))
+                            ->placeholder(__('admin/transaction-resource.entries.no_notes')),
                         TextEntry::make('delivery_date')
-                            ->label('Delivery Date')
+                            ->label(__('admin/transaction-resource.entries.delivery_date'))
                             ->dateTime('d M Y, H:i')
-                            ->placeholder('Not delivered yet'),
+                            ->placeholder(__('admin/transaction-resource.entries.not_delivered_yet')),
                         TextEntry::make('complete_date')
-                            ->label('Completed Date')
+                            ->label(__('admin/transaction-resource.entries.completed_date'))
                             ->dateTime('d M Y, H:i')
-                            ->placeholder('Not completed yet'),
+                            ->placeholder(__('admin/transaction-resource.entries.not_completed_yet')),
                     ])->columns(2),
             ]);
     }

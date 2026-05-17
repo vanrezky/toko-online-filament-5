@@ -12,6 +12,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Override;
 
 class TransactionResource extends Resource
 {
@@ -19,39 +20,62 @@ class TransactionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
-    protected static ?string $navigationGroup = 'Transaksi';
-    protected static ?string $navigationLabel = 'Transaksi';
-
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/transaction-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/transaction-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/transaction-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/transaction-resource.plural_model_label');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Order Information')
+                Forms\Components\Section::make(__('admin/transaction-resource.fields.order_information'))
                     ->schema([
                         Forms\Components\TextInput::make('uuid')
-                            ->label('Order ID')
+                            ->label(__('admin/transaction-resource.fields.order_id'))
                             ->disabled(),
                         Forms\Components\Select::make('status')
+                            ->label(__('admin/transaction-resource.fields.status'))
                             ->options([
-                                'unpaid' => 'Unpaid',
-                                'shipped' => 'Shipped',
-                                'delivered' => 'Delivered',
-                                'rejected' => 'Rejected',
-                                'completed' => 'Completed',
+                                'unpaid' => __('admin/transaction-resource.status.unpaid'),
+                                'shipped' => __('admin/transaction-resource.status.shipped'),
+                                'delivered' => __('admin/transaction-resource.status.delivered'),
+                                'rejected' => __('admin/transaction-resource.status.rejected'),
+                                'completed' => __('admin/transaction-resource.status.completed'),
                             ])
                             ->required(),
                         Forms\Components\TextInput::make('receipt_code')
+                            ->label(__('admin/transaction-resource.fields.receipt_code'))
                             ->maxLength(255),
-                        Forms\Components\DateTimePicker::make('timelimit'),
-                        Forms\Components\DateTimePicker::make('delivery_date'),
-                        Forms\Components\DateTimePicker::make('complete_date'),
+                        Forms\Components\DateTimePicker::make('timelimit')
+                            ->label(__('admin/transaction-resource.fields.timelimit')),
+                        Forms\Components\DateTimePicker::make('delivery_date')
+                            ->label(__('admin/transaction-resource.fields.delivery_date')),
+                        Forms\Components\DateTimePicker::make('complete_date')
+                            ->label(__('admin/transaction-resource.fields.complete_date')),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Customer Notes')
+                Forms\Components\Section::make(__('admin/transaction-resource.fields.customer_notes'))
                     ->schema([
                         Forms\Components\Textarea::make('notes')
+                            ->label(__('admin/transaction-resource.fields.notes'))
                             ->rows(3),
                     ]),
             ]);
@@ -62,24 +86,24 @@ class TransactionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('uuid')
-                    ->label('Order')
+                    ->label(__('admin/transaction-resource.columns.order'))
                     ->formatStateUsing(fn (string $state): string => strtoupper(substr($state, 0, 8)))
                     ->searchable()
                     ->description(fn (Transaction $record) => $record->created_at->format('d M Y, H:i'))
                     ->tooltip(fn (Transaction $record) => $record->uuid),
 
                 Tables\Columns\TextColumn::make('customer.full_name')
-                    ->label('Customer')
+                    ->label(__('admin/transaction-resource.columns.customer'))
                     ->description(fn (Transaction $record) => $record->customer?->email)
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('total_amount')
-                    ->label('Total')
+                    ->label(__('admin/transaction-resource.columns.total'))
                     ->money('IDR')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('total_items')
-                    ->label('Items')
+                    ->label(__('admin/transaction-resource.columns.items'))
                     ->suffix(' items'),
 
                 Tables\Columns\BadgeColumn::make('status')
@@ -90,12 +114,12 @@ class TransactionResource extends Resource
                         'danger' => 'rejected',
                         'success' => 'completed',
                     ])
-                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
+                    ->formatStateUsing(fn (string $state): string => ucfirst(__("admin/transaction-resource.status.{$state}")))
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('cod')
                     ->boolean()
-                    ->label('COD')
+                    ->label(__('admin/transaction-resource.columns.cod'))
                     ->trueIcon('heroicon-m-check')
                     ->falseIcon('heroicon-m-x-mark'),
 
@@ -113,12 +137,13 @@ class TransactionResource extends Resource
             ->modifyQueryUsing(fn (Builder $query) => $query->with('customer'))
             ->filters([
                 SelectFilter::make('status')
+                    ->label(__('admin/transaction-resource.fields.status'))
                     ->options([
-                        'unpaid' => 'Unpaid',
-                        'shipped' => 'Shipped',
-                        'delivered' => 'Delivered',
-                        'rejected' => 'Rejected',
-                        'completed' => 'Completed',
+                        'unpaid' => __('admin/transaction-resource.status.unpaid'),
+                        'shipped' => __('admin/transaction-resource.status.shipped'),
+                        'delivered' => __('admin/transaction-resource.status.delivered'),
+                        'rejected' => __('admin/transaction-resource.status.rejected'),
+                        'completed' => __('admin/transaction-resource.status.completed'),
                     ])
                     ->multiple()
                     ->preload(),
@@ -164,7 +189,7 @@ class TransactionResource extends Resource
                             return null;
                         }
 
-                        return 'COD orders only';
+                        return __('admin/transaction-resource.filters.cod_only');
                     }),
             ])
             ->actions([
