@@ -2,6 +2,7 @@
 
 return [
 
+    'navigation_label' => 'Kelola Kurir',
     'navigation_group' => 'Pengaturan',
 
     'tabs' => [

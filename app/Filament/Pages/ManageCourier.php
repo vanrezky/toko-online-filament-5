@@ -39,6 +39,11 @@ class ManageCourier extends Page
         return isSuperUser();
     }
 
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/page-manage-courier.navigation_label');
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return __('admin/page-manage-courier.navigation_group');
