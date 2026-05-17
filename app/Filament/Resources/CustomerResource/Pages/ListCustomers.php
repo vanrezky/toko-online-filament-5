@@ -15,6 +15,11 @@ class ListCustomers extends ListRecords
 {
     protected static string $resource = CustomerResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/customer-resource.pages.list.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -27,7 +32,7 @@ class ListCustomers extends ListRecords
     {
 
         $tabs = [
-            'Normal' => Tab::make()->label(__('Normal'))
+            'Normal' => Tab::make()->label(__('admin/customer-resource.tabs.normal'))
                 ->modifyQueryUsing(fn(Builder $query): Builder => $query->normalUser())
                 ->badge(Customer::normalUser()->count()),
         ];

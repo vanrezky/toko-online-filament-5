@@ -57,7 +57,30 @@ class Profile extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Act\EditAction::make()->label('Edit'),
+            Act\Action::make('change_password')
+                ->label(__('admin/customer-resource.actions.change_password'))
+                ->icon('heroicon-o-lock-closed')
+                ->form([
+                    TextInput::make('password')
+                        ->password()
+                        ->label(__('admin/customer-resource.actions.new_password'))
+                        ->rules([securePassword()])
+                        ->required()
+                        ->minLength(8)
+                        ->maxLength(20),
+                    TextInput::make('password_confirmation')
+                        ->password()
+                        ->label(__('admin/customer-resource.actions.confirm_password'))
+                        ->required()
+                        ->maxLength(255)
+                        ->same('password'),
+                ])
+                ->action(function (Customer $record, array $data) {
+                    $record->update(['password' => $data['password']]);
+                    return notification(__('admin/customer-resource.notifications.password_changed'));
+                })
+                ->color('warning'),
+            Act\EditAction::make()->label(__('admin/customer-resource.actions.edit')),
         ];
     }
 
@@ -67,7 +90,6 @@ class Profile extends ViewRecord
             ->schema([
 
                 Section::make([
-
                     ImageEntry::make('profile_photo_url')
                         ->hiddenLabel()
                         ->extraAttributes([
@@ -80,7 +102,7 @@ class Profile extends ViewRecord
                         ])
                         ->circular(),
                     TextEntry::make('full_name')
-                        ->label(__('Name'))
+                        ->label(__('admin/customer-resource.profile.name'))
                         ->inlineLabel()
                         ->icon('heroicon-o-user')
                         ->iconColor('primary')
@@ -91,33 +113,59 @@ class Profile extends ViewRecord
                         ->alignEnd()
                         ->icon('heroicon-o-envelope')
                         ->iconColor('primary'),
-                    TextEntry::make('reseller.name')
-                        ->label(__('Level'))
+                    TextEntry::make('created_at')
+                        ->label(__('admin/customer-resource.profile.member_since'))
                         ->inlineLabel()
-                        ->icon('heroicon-o-briefcase')
-                        ->iconColor('primary')
-                        ->extraAttributes(['class' => 'font-bold'])
-                        ->visible(fn(Customer $record): bool => !empty($record->reseller_id))
-                        ->alignEnd(),
+                        ->dateTime()
+                        ->alignEnd()
+                        ->icon('heroicon-o-calendar')
+                        ->iconColor('primary'),
                 ])
                     ->columnSpan(1),
 
-                Section::make('Profile Details')
+                Section::make(__('admin/customer-resource.sections.general_information'))
                     ->icon('heroicon-o-user-circle')
                     ->schema([
-                        TextEntry::make('first_name'),
-                        TextEntry::make('last_name'),
+                        TextEntry::make('first_name')
+                            ->label(__('admin/customer-resource.fields.first_name')),
+                        TextEntry::make('last_name')
+                            ->label(__('admin/customer-resource.fields.last_name')),
                         TextEntry::make('email')
+                            ->label(__('admin/customer-resource.fields.email'))
                             ->icon(fn($record): string => match ($record->has_verified_email) {
                                 true => 'heroicon-o-check-badge',
                                 false => 'heroicon-o-x-circle',
                             })
                             ->iconColor(fn(Customer $record): string => $record->has_verified_email ? 'success' : 'danger')
                             ->iconPosition('after')
-                            ->tooltip(fn(Customer $record): string => $record->has_verified_email ? __('Email Verified') : __('Email Unverified')),
-                        TextEntry::make('username')->default('-'),
-                        TextEntry::make('phone'),
-                    ])->inlineLabel()->columnSpan(2)
+                            ->tooltip(fn(Customer $record): string => $record->has_verified_email ? __('admin/customer-resource.profile.email_verified') : __('admin/customer-resource.profile.email_unverified')),
+                        TextEntry::make('phone')
+                            ->label(__('admin/customer-resource.fields.phone')),
+                        TextEntry::make('is_active')
+                            ->label(__('admin/customer-resource.profile.status'))
+                            ->badge()
+                            ->color(fn($record): string => $record->is_active ? 'success' : 'danger')
+                            ->formatStateUsing(fn($state): string => $state ? __('admin/customer-resource.profile.active') : __('admin/customer-resource.profile.inactive')),
+                    ])->inlineLabel()->columnSpan(2),
+
+                Section::make(__('admin/customer-resource.sections.credit_settings'))
+                    ->icon('heroicon-o-star')
+                    ->schema([
+                        TextEntry::make('customerLevel.name')
+                            ->label(__('admin/customer-resource.profile.customer_level'))
+                            ->default('-'),
+                        TextEntry::make('effective_credit_limit')
+                            ->label(__('admin/customer-resource.profile.credit_limit'))
+                            ->money('IDR'),
+                        TextEntry::make('outstanding_balance')
+                            ->label(__('admin/customer-resource.profile.outstanding'))
+                            ->money('IDR'),
+                        TextEntry::make('remaining_credit_limit')
+                            ->label(__('admin/customer-resource.profile.remaining_credit'))
+                            ->money('IDR'),
+                    ])->inlineLabel()->columnSpan(2),
+
+
 
             ])->columns(3);
     }
