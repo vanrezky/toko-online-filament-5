@@ -34,4 +34,10 @@ return [
         'apicoid_get_key' => 'Dapatkan API key di <a href="https://api.co.id/" target="_blank" class="text-primary-600 underline">api.co.id</a>',
     ],
 
+    'view' => [
+        'save_settings' => 'Simpan Pengaturan',
+        'available_couriers' => 'Kurir Tersedia',
+        'toggle_status_description' => 'Ubah status untuk mengaktifkan atau menonaktifkan kurir saat checkout.',
+    ],
+
 ];
