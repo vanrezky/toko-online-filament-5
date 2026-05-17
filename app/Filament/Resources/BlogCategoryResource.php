@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Override;
 
 class BlogCategoryResource extends Resource
 {
@@ -22,10 +23,28 @@ class BlogCategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'Blog';
-    protected static ?string $navigationLabel = 'Post Categories';
     protected static ?int $navigationSort = 2;
     protected static ?string $slug = 'blog/categories';
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/blog-category-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/blog-category-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/blog-category-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/blog-category-resource.plural_model_label');
+    }
 
     public static function getNavigationBadge(): ?string
     {
@@ -39,7 +58,7 @@ class BlogCategoryResource extends Resource
             ->schema([
                 Tabs::make()
                     ->schema([
-                        Tabs\Tab::make('Main')
+                        Tabs\Tab::make(__('admin/blog-category-resource.tabs.main'))
                             ->schema([
                                 TitleSchema::title('name')
                                     ->required()
@@ -48,11 +67,11 @@ class BlogCategoryResource extends Resource
                                     ->maxLength(255),
                                 RichEditor::make('description')->columnSpanFull(),
                                 Toggle::make('is_visible')
-                                    ->label('Visible to customers')
+                                    ->label(__('admin/blog-category-resource.fields.is_visible'))
                                     ->default(true)
 
                             ]),
-                        Tabs\Tab::make('SEO')
+                        Tabs\Tab::make(__('admin/blog-category-resource.tabs.seo'))
                             ->schema([
                                 TitleSchema::slug(),
                                 TitleSchema::hidden(),
@@ -68,11 +87,17 @@ class BlogCategoryResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')->searchable()->sortable(),
-                TextColumn::make('slug')->searchable()->sortable(),
+                TextColumn::make('name')
+                    ->label(__('admin/blog-category-resource.columns.name'))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('slug')
+                    ->label(__('admin/blog-category-resource.columns.slug'))
+                    ->searchable()
+                    ->sortable(),
                 self::getIsVisibleColumn(),
                 TextColumn::make('updated_at')
-                    ->label(__('Last Updated'))
+                    ->label(__('admin/blog-category-resource.columns.updated_at'))
                     ->dateTime()
             ])
             ->filters([
@@ -95,41 +120,25 @@ class BlogCategoryResource extends Resource
                             }
 
                             if (!$delete) {
-                                return notification(__('There are categories that cannot be deleted'), 'warning');
+                                return notification(__('admin/blog-category-resource.notifications.cannot_delete'), 'warning');
                             }
 
                             $records->each->delete();
-                            return notification(__('Categories deleted successfully'));
+                            return notification(__('admin/blog-category-resource.notifications.deleted'));
                         }),
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListBlogCategories::route('/'),
-            'create' => Pages\CreateBlogCategory::route('/create'),
-            'edit' => Pages\EditBlogCategory::route('/{record}/edit'),
-        ];
     }
 
     public static function getIsVisibleColumn()
     {
         if (self::shouldCanUpdate()) {
             return Tables\Columns\ToggleColumn::make('is_visible')
-                ->afterStateUpdated(fn() => notification(__('Visibility status updated successfully'), 'success'))
-                ->label(__('Visibility'));
+                ->afterStateUpdated(fn() => notification(__('admin/blog-category-resource.notifications.visibility_updated'), 'success'))
+                ->label(__('admin/blog-category-resource.fields.is_visible'));
         }
 
-        return Tables\Columns\IconColumn::make('is_visible')->boolean()->label(__('Visibility'));
+        return Tables\Columns\IconColumn::make('is_visible')->boolean()->label(__('admin/blog-category-resource.columns.is_visible'));
     }
 
     public static function shouldCanUpdate(): bool
