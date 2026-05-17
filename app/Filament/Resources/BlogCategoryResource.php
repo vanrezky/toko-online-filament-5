@@ -145,4 +145,13 @@ class BlogCategoryResource extends Resource
     {
         return auth()->user()->can('update_blog::category');
     }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListBlogCategories::route('/'),
+            'create' => Pages\CreateBlogCategory::route('/create'),
+            'edit' => Pages\EditBlogCategory::route('/{record}/edit'),
+        ];
+    }
 }
