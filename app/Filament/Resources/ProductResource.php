@@ -303,6 +303,7 @@ class ProductResource extends Resource
                             ->label(__('admin/product-resource.tabs.wholesales'))
                             ->schema([
                                 Forms\Components\Repeater::make('wholesales')
+                                ->label(__('admin/product-resource.tabs.wholesales_price'))
                                     ->relationship('wholesales', fn(Builder $query): Builder => $query->whereNull('reseller_id'))
                                     ->reorderable(false)
                                     ->hiddenLabel()

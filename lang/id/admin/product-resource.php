@@ -29,6 +29,7 @@ return [
         'faqs' => 'FAQ',
         'seo' => 'SEO',
         'wholesales' => 'Grosir',
+        'wholesales_price' => 'Harga Grosir'
     ],
 
     'fields' => [
@@ -119,5 +120,25 @@ return [
         'low_stock' => 'Stok Rendah',
         'out_of_stock' => 'Habis',
     ],
-
+    'product-variant' => [
+        'label' => 'Varian Produk',
+        'navigation_label' => 'Varian Produk',
+        'fields' => [
+            'variant' => 'Varian',
+            'attribute' => 'Atribut',
+            'options' => 'Opsi',
+            'option' => 'Opsi',
+            'price' => 'Harga',
+            'stock' => 'Stok',
+            'image' => 'Gambar',
+            'image_helper' => 'Rasio 1:1. Ukuran maksimal 1MB',
+        ],
+        'columns' => [
+            'variant' => 'Varian',
+        ],
+        'notifications' => [
+            'option_exists' => 'Opsi ini sudah dibuat.',
+            'attribute_exists' => 'Atribut ini sudah dibuat.',
+        ],
+    ]
 ];

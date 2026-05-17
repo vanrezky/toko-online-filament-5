@@ -3,10 +3,8 @@
 namespace App\Filament\Resources\ProductResource\Pages;
 
 use App\Filament\Resources\ProductResource;
-use App\Models\ProductVariant;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
-use Filement\Forms;
 
 class EditProduct extends EditRecord
 {
