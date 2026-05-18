@@ -6,6 +6,7 @@ use App\Traits\HasProfilePictureTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
@@ -16,7 +17,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Customer extends Authenticatable implements HasMedia
 {
-    use HasApiTokens, HasFactory, HasProfilePictureTrait, Notifiable, InteractsWithMedia;
+    use HasApiTokens, HasFactory, HasProfilePictureTrait, Notifiable, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = ['first_name', 'last_name', 'email', 'email_verified_at', 'username', 'password', 'phone', 'balance', 'image', 'is_active', 'is_guest', 'customer_level_id', 'credit_limit'];
 
@@ -139,4 +140,12 @@ class Customer extends Authenticatable implements HasMedia
     {
         return $query->whereNull('reseller_id');
     }
+
+     // user yang memiliki level user e.g: reseller, agent, distributor
+     public function scopeCustomerLevel($query, $levelId = null)
+     {
+         if ($levelId) {
+             return $query->where('customer_level_id', $levelId);
+         }
+     }
 }

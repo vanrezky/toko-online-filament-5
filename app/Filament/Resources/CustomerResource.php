@@ -187,6 +187,7 @@ class CustomerResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn($query) => $query->withTrashed())
             ->columns([
                 Tables\Columns\ImageColumn::make('profile_photo_url')
                     ->label(__('admin/customer-resource.columns.photo'))
@@ -205,10 +206,6 @@ class CustomerResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('phone')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('balance')
-                    ->money('IDR')
-                    ->sortable(),
-
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
                     ->sortable(),
@@ -236,7 +233,8 @@ class CustomerResource extends Resource
                     ->nullable()
                     ->placeholder(__('admin/customer-resource.filters.all'))
                     ->trueLabel(__('admin/customer-resource.filters.verified'))
-                    ->falseLabel(__('admin/customer-resource.filters.not_verified'))
+                    ->falseLabel(__('admin/customer-resource.filters.not_verified')),
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
@@ -253,12 +251,14 @@ class CustomerResource extends Resource
                     Tables\Actions\ViewAction::make()->label(__('admin/customer-resource.actions.profile'))
                         ->color('info'),
                     Tables\Actions\EditAction::make()->label(__('admin/customer-resource.actions.edit')),
+                    Tables\Actions\RestoreAction::make(),
                 ])->tooltip(__('admin/customer-resource.actions.edit'))
 
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()->label(__('admin/customer-resource.actions.delete')),
+                    Tables\Actions\RestoreBulkAction::make(),
                 ]),
             ]);
     }
