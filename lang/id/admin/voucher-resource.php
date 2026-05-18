@@ -3,7 +3,7 @@
 return [
 
     'navigation_label' => 'Voucher',
-    'navigation_group' => 'Promo',
+    'navigation_group' => 'Master',
 
     'model_label' => 'Voucher',
     'plural_model_label' => 'Voucher',

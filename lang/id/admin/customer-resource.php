@@ -100,6 +100,6 @@ return [
     ],
 
     'tabs' => [
-        'normal' => 'Normal',
+        'all' => 'Semua',
     ],
 ];

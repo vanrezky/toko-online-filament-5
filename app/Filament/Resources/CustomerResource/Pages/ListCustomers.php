@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CustomerResource\Pages;
 
 use App\Filament\Resources\CustomerResource;
 use App\Models\Customer;
+use App\Models\CustomerLevel;
 use App\Models\Reseller;
 use Filament\Actions;
 use Filament\Resources\Components\Tab;
@@ -32,9 +33,9 @@ class ListCustomers extends ListRecords
     {
 
         $tabs = [
-            'Normal' => Tab::make()->label(__('admin/customer-resource.tabs.normal'))
+            'Semua' => Tab::make()->label(__('admin/customer-resource.tabs.all'))
                 ->modifyQueryUsing(fn(Builder $query): Builder => $query->normalUser())
-                ->badge(Customer::normalUser()->count()),
+            // ->badge(Customer::normalUser()->count()),
         ];
 
         //  @feature-toggle: reseller - uncomment to ativate the reselller level tab
@@ -46,6 +47,14 @@ class ListCustomers extends ListRecords
         //         ->modifyQueryUsing(fn (Builder $query): Builder => $query->resellerUser($resel->id))
         //         ->badge(Customer::resellerUser($resel->id)->count());
         // }
+
+        $levels = CustomerLevel::active()->orderBy('id', 'ASC')->get();
+
+        foreach ($levels as $key => $level) {
+            $tabs[$level->slug] = Tab::make()
+                ->label($level->name)
+                ->modifyQueryUsing(fn(Builder $query): Builder => $query->customerLevel($level->id));
+        }
 
         return $tabs;
     }
