@@ -129,6 +129,8 @@ return [
         'total' => 'Total',
         'total_savings' => 'Hemat :amount',
         'terms_agreement' => 'Transaksi terenkripsi dengan aman. Dengan melanjutkan, Anda menyetujui Syarat & Ketentuan kami.',
+        'select_tenor' => 'Pilih Tenor Cicilan',
+        'installment_summary' => 'Ringkasan Cicilan',
     ],
 
     'filters' => [
@@ -222,6 +224,9 @@ return [
     'payment' => [
         'bank_transfer' => 'Transfer Bank',
         'qris' => 'QRIS',
+        'full' => 'Bayar Penuh',
+        'installment' => 'Cicilan',
+        'potong_kredit' => '(Potong Kredit)',
     ],
 
     'product' => [

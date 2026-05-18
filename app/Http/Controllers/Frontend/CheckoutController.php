@@ -9,10 +9,13 @@ use App\Http\Resources\CartResource;
 use App\Jobs\SendPaymentRequestNotification;
 use App\Models\Cart;
 use App\Models\CustomerAddress;
+use App\Models\InstallmentPlan;
 use App\Models\Transaction;
 use App\Models\Warehouse;
 use App\Services\ApicoidOngkirService;
 use App\Services\CacheService;
+use App\Services\CreditLimitService;
+use App\Services\InstallmentService;
 use App\Services\PaymentGatewayService;
 use App\Services\VoucherCookieService;
 use App\Services\VoucherService;
@@ -27,10 +30,20 @@ class CheckoutController extends Controller
 
     protected VoucherService $voucherService;
 
-    public function __construct(VoucherCookieService $cookieService, VoucherService $voucherService)
-    {
+    protected InstallmentService $installmentService;
+
+    protected CreditLimitService $creditLimitService;
+
+    public function __construct(
+        VoucherCookieService $cookieService,
+        VoucherService $voucherService,
+        InstallmentService $installmentService,
+        CreditLimitService $creditLimitService
+    ) {
         $this->cookieService = $cookieService;
         $this->voucherService = $voucherService;
+        $this->installmentService = $installmentService;
+        $this->creditLimitService = $creditLimitService;
     }
 
     public function __invoke(Request $request, PaymentGatewayService $paymentGatewayService)
@@ -60,6 +73,11 @@ class CheckoutController extends Controller
             'pendingVouchers' => $pendingVouchers,
             'validatedVouchers' => $validatedVouchers,
             'activeGateway' => $paymentGatewayService->getActiveGatewayAlias(),
+            'installmentPlans' => \App\Models\InstallmentPlan::active()->get(),
+            'creditLimit' => [
+                'remaining' => $customer->remaining_credit_limit,
+                'effective' => $customer->effective_credit_limit,
+            ],
         ]);
     }
 
@@ -161,6 +179,8 @@ class CheckoutController extends Controller
             'address_id' => 'required|exists:customer_addresses,id',
             'shipping_methods' => 'required|array',
             'payment_method' => 'required',
+            'payment_type' => 'required|in:full,installment',
+            'installment_plan_id' => 'nullable|exists:installment_plans,id',
             'notes' => 'nullable|string',
         ]);
 
@@ -203,7 +223,27 @@ class CheckoutController extends Controller
         $pendingVouchers = $this->cookieService->get();
         $validatedVouchers = $this->voucherService->validateFromCookie($pendingVouchers, $cart, $customer);
 
-        return DB::transaction(function () use ($request, $customer, $cart, $totalShippingCost, $totalWeight, $address, $fromDistrictId, $shippingDetails, $validatedVouchers, $paymentGatewayService) {
+        $subtotal = $cart->items->sum(fn($item) => ($item->price - $item->discount) * $item->quantity);
+        $productDiscount = $validatedVouchers['product']['discount_amount'] ?? 0;
+        $shippingDiscount = $validatedVouchers['shipping']['discount_amount'] ?? 0;
+        $discountedShippingFee = max(0, $totalShippingCost - $shippingDiscount);
+        $grandTotal = $subtotal + $discountedShippingFee - $productDiscount;
+
+        if ($request->payment_type === 'installment' && $request->installment_plan_id) {
+            $plan = InstallmentPlan::find($request->installment_plan_id);
+            $totalWithFee = $plan->calculateTotal($grandTotal);
+
+            if (!$this->creditLimitService->canCreateInstallment($customer, $totalWithFee)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Limit kredit tidak mencukupi',
+                    'remaining_limit' => $customer->remaining_credit_limit,
+                    'required' => $totalWithFee,
+                ], 400);
+            }
+        }
+
+        return DB::transaction(function () use ($request, $customer, $cart, $totalShippingCost, $totalWeight, $address, $fromDistrictId, $shippingDetails, $validatedVouchers, $paymentGatewayService, $grandTotal) {
             $transaction = Transaction::create([
                 'customer_id' => $customer->id,
                 'customer_address_id' => $address->id,
@@ -213,6 +253,8 @@ class CheckoutController extends Controller
                 'from_district_id' => $fromDistrictId,
                 'to_district_id' => $address->district_id,
                 'payment_method' => $request->payment_method,
+                'payment_type' => $request->payment_type,
+                'installment_plan_id' => $request->payment_type === 'installment' ? $request->installment_plan_id : null,
                 'status' => 'unpaid',
                 'notes' => $request->notes,
                 'timelimit' => \Illuminate\Support\Carbon::now()->addDay(),
@@ -255,6 +297,11 @@ class CheckoutController extends Controller
 
             $this->cookieService->clear();
             $cart->update(['status' => CartStatus::Checked_out]);
+
+            if ($request->payment_type === 'installment' && $request->installment_plan_id) {
+                $plan = InstallmentPlan::find($request->installment_plan_id);
+                $this->installmentService->createInstallment($transaction, $plan);
+            }
 
             $paymentResponse = $paymentGatewayService->createPayment($transaction);
 

@@ -1,7 +1,10 @@
 <script setup>
 import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
-import { formatCurrency } from '@/frontend/utils/formatCurrency'
+
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
+};
 
 const props = defineProps({
     installment: Object,

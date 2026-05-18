@@ -1,8 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Link } from '@inertiajs/vue3'
-import { installmentService } from '@/frontend/services/installmentService'
-import { formatCurrency } from '@/frontend/utils/formatCurrency'
+import { installmentService } from '../../services/installmentService'
+
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
+};
 
 const installments = ref([])
 const loading = ref(true)

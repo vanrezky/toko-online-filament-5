@@ -43,6 +43,7 @@ Route::middleware([
     // Installment routes
     Route::get('/installment/plans', [InstallmentController::class, 'plans']);
     Route::post('/installment/simulate', [InstallmentController::class, 'simulate']);
+    Route::post('/installment/calculate', [InstallmentController::class, 'calculate']);
     Route::get('/customer/credit-limit', [InstallmentController::class, 'creditLimit']);
 });
 

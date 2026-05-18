@@ -73,4 +73,31 @@ class InstallmentController extends Controller
             ],
         ]);
     }
+
+    public function calculate(Request $request): JsonResponse
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:1',
+        ]);
+
+        $amount = (float) $request->amount;
+        $plans = InstallmentPlan::active()->get()->map(function ($plan) use ($amount) {
+            return [
+                'id' => $plan->id,
+                'tenor' => $plan->tenor,
+                'fee_percentage' => (float) $plan->fee_percentage,
+                'fee_amount' => $plan->calculateTotal($amount) - $amount,
+                'total_amount' => $plan->calculateTotal($amount),
+                'monthly_amount' => $plan->calculateMonthly($amount),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'principal_amount' => $amount,
+                'plans' => $plans,
+            ],
+        ]);
+    }
 }
