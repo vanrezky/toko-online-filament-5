@@ -1,9 +1,9 @@
 <script setup>
 import { computed, ref } from "vue";
 import { Copy, Check, Ticket, Truck, Tag, Clock, Users, Loader2 } from "lucide-vue-next";
-import { useTranslations } from "../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const props = defineProps({
     voucher: {
@@ -65,7 +65,18 @@ const timeRemaining = computed(() => {
 
 const copyCode = async () => {
     try {
-        await navigator.clipboard.writeText(props.voucher.code);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(props.voucher.code);
+        } else {
+            const textArea = document.createElement('textarea');
+            textArea.value = props.voucher.code;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        }
         copied.value = true;
         emit("copy", props.voucher);
         setTimeout(() => {

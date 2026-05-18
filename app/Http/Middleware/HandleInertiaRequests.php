@@ -38,13 +38,6 @@ class HandleInertiaRequests extends Middleware
         $isFrontend = $this->isFrontendRequest($request);
 
         $shared = [
-            'translations' => function () {
-                return [
-                    'messages' => trans('messages'),
-                    'labels' => trans('labels'),
-                    'placeholders' => trans('placeholders'),
-                ];
-            },
             'settings' => function () {
                 $settings = app(GeneralSettings::class);
                 return [
