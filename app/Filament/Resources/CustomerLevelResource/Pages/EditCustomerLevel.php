@@ -10,6 +10,11 @@ class EditCustomerLevel extends EditRecord
 {
     protected static string $resource = CustomerLevelResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/customer-level-resource.pages.edit.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [
