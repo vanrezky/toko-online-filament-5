@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\HasModelTrait;
+use App\Traits\HasUuidTrait;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Installment extends Model
 {
-    use HasFactory, HasModelTrait, HasUuids, SoftDeletes;
+    use HasFactory, HasModelTrait, HasUuidTrait, SoftDeletes;
 
     protected $fillable = [
         'uuid',

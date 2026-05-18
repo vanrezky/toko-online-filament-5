@@ -46,8 +46,12 @@ class OrderController extends Controller
             'address.province:id,name',
             'address.district:id,name',
             'address.subDistrict:id,name',
+            'shippingDetails.warehouse',
+            'shippingDetails.warehouse.village',
+            'shippingDetails.warehouse.district',
+            'shippingDetails.warehouse.province',
             'products' => function($query) {
-                $query->select('id', 'transaction_id', 'product_id', 'quantity', 'price', 'discount', 'description');
+                $query->select('id', 'transaction_id', 'product_id', 'warehouse_id', 'quantity', 'price', 'discount', 'description');
             },
             'products.product' => function($query) {
                 $query->select('id', 'uuid', 'name', 'slug', 'description');

@@ -17,6 +17,7 @@ class OrderItemResource extends JsonResource
         return [
             'id' => $this->uuid,
             'product_id' => $this->product->uuid,
+            'warehouse_id' => $this->warehouse_id,
             'product' => ProductSimpleResource::make($this->product),
             'product_variant' => $this->productVariant ? [
                 'id' => $this->productVariant->uuid,

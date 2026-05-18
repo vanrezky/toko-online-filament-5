@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Enums\CartStatus;
 use App\Enums\CourierCode;
+use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CartResource;
 use App\Jobs\SendPaymentRequestNotification;
@@ -178,7 +179,6 @@ class CheckoutController extends Controller
         $request->validate([
             'address_id' => 'required|exists:customer_addresses,id',
             'shipping_methods' => 'required|array',
-            'payment_method' => 'required',
             'payment_type' => 'required|in:full,installment',
             'installment_plan_id' => 'nullable|exists:installment_plans,id',
             'notes' => 'nullable|string',
@@ -218,7 +218,7 @@ class CheckoutController extends Controller
         }
 
         $firstItem = $cart->items->first();
-        $fromDistrictId = $firstItem->product->warehouse?->district_id ?: 1;
+        $fromVillageId = $firstItem->product->warehouse?->village_id ?: 1;
 
         $pendingVouchers = $this->cookieService->get();
         $validatedVouchers = $this->voucherService->validateFromCookie($pendingVouchers, $cart, $customer);
@@ -243,19 +243,19 @@ class CheckoutController extends Controller
             }
         }
 
-        return DB::transaction(function () use ($request, $customer, $cart, $totalShippingCost, $totalWeight, $address, $fromDistrictId, $shippingDetails, $validatedVouchers, $paymentGatewayService, $grandTotal) {
+        return DB::transaction(function () use ($request, $customer, $cart, $totalShippingCost, $totalWeight, $address, $fromVillageId, $shippingDetails, $validatedVouchers, $paymentGatewayService, $grandTotal) {
             $transaction = Transaction::create([
                 'customer_id' => $customer->id,
                 'customer_address_id' => $address->id,
                 'weight' => $totalWeight,
                 'shipping_cost' => $totalShippingCost,
                 'courier_id' => 1,
-                'from_district_id' => $fromDistrictId,
-                'to_district_id' => $address->district_id,
-                'payment_method' => $request->payment_method,
+                'from_village_id' => $fromVillageId,
+                'to_village_id' => $address->village_id,
+                'payment_method' => $request->payment_type === 'installment' ? 'cicilan' : 'bayar_penuh',
                 'payment_type' => $request->payment_type,
                 'installment_plan_id' => $request->payment_type === 'installment' ? $request->installment_plan_id : null,
-                'status' => 'unpaid',
+                'status' => TransactionStatus::packed,
                 'notes' => $request->notes,
                 'timelimit' => \Illuminate\Support\Carbon::now()->addDay(),
             ]);
