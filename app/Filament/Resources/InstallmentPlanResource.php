@@ -14,26 +14,45 @@ class InstallmentPlanResource extends Resource
 {
     protected static ?string $model = InstallmentPlan::class;
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
-    protected static ?string $navigationGroup = 'Master';
     protected static ?string $slug = 'installment-plans';
     protected static ?int $navigationSort = 2;
     protected static ?string $recordTitleAttribute = 'tenor';
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/installment-plan-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/installment-plan-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/installment-plan-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/installment-plan-resource.plural_model_label');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Tenor Cicilan')
-                    ->description('Atur jangka waktu dan biaya cicilan')
+                Forms\Components\Section::make(__('admin/installment-plan-resource.sections.tenor'))
+                    ->description(__('admin/installment-plan-resource.sections.tenor_description'))
                     ->schema([
                         Forms\Components\TextInput::make('tenor')
-                            ->label('Tenor (Bulan)')
+                            ->label(__('admin/installment-plan-resource.fields.tenor'))
                             ->numeric()
                             ->minValue(1)
                             ->required()
                             ->unique(ignoreRecord: true),
                         Forms\Components\TextInput::make('fee_percentage')
-                            ->label('Fee / Bunga (%)')
+                            ->label(__('admin/installment-plan-resource.fields.fee_percentage'))
                             ->numeric()
                             ->suffix('%')
                             ->minValue(0)
@@ -41,18 +60,18 @@ class InstallmentPlanResource extends Resource
                             ->default(0)
                             ->required(),
                         Forms\Components\Textarea::make('description')
-                            ->label('Deskripsi')
+                            ->label(__('admin/installment-plan-resource.fields.description'))
                             ->maxLength(65535)
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Status')
+                Forms\Components\Section::make(__('admin/installment-plan-resource.sections.status'))
                     ->schema([
                         Forms\Components\Toggle::make('is_active')
-                            ->label('Aktif')
+                            ->label(__('admin/installment-plan-resource.fields.is_active'))
                             ->default(true)
                             ->disabled(fn(?InstallmentPlan $record) => $record?->installments()->exists())
-                            ->helperText(fn(?InstallmentPlan $record) => $record?->installments()->exists() ? 'Tidak bisa dinonaktifkan — sudah ada cicilan yang menggunakan tenor ini' : null),
+                            ->helperText(fn(?InstallmentPlan $record) => $record?->installments()->exists() ? __('admin/installment-plan-resource.fields.is_active_helper') : null),
                     ]),
             ]);
     }
@@ -62,47 +81,47 @@ class InstallmentPlanResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('tenor')
-                    ->label('Tenor')
-                    ->formatStateUsing(fn(int $state) => $state . ' bulan')
+                    ->label(__('admin/installment-plan-resource.columns.tenor'))
+                    ->formatStateUsing(fn(int $state) => $state . ' ' . __('admin/installment-plan-resource.columns.tenor_format'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('fee_percentage')
-                    ->label('Fee/Bunga')
-                    ->formatStateUsing(fn(float $state) => $state . '%')
+                    ->label(__('admin/installment-plan-resource.columns.fee_percentage'))
+                    ->formatStateUsing(fn(float $state) => $state . __('admin/installment-plan-resource.columns.fee_format'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('description')
-                    ->label('Deskripsi')
+                    ->label(__('admin/installment-plan-resource.columns.description'))
                     ->searchable()
                     ->limit(50)
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label('Aktif')
+                    ->label(__('admin/installment-plan-resource.columns.is_active'))
                     ->boolean()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('installments_count')
-                    ->label('Cicilan Aktif')
+                    ->label(__('admin/installment-plan-resource.columns.installments_count'))
                     ->counts('installments')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Dibuat')
+                    ->label(__('admin/installment-plan-resource.columns.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Status')
-                    ->placeholder('Semua')
-                    ->trueLabel('Aktif')
-                    ->falseLabel('Tidak Aktif'),
+                    ->label(__('admin/installment-plan-resource.filters.is_active'))
+                    ->placeholder(__('admin/installment-plan-resource.filters.is_active_placeholder'))
+                    ->trueLabel(__('admin/installment-plan-resource.filters.is_active_true'))
+                    ->falseLabel(__('admin/installment-plan-resource.filters.is_active_false')),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->hidden(fn(InstallmentPlan $record) => $record->installments()->exists())
-                    ->tooltip(fn(InstallmentPlan $record) => $record->installments()->exists() ? 'Tidak bisa dihapus — sudah ada cicilan' : 'Hapus tenor'),
+                    ->tooltip(fn(InstallmentPlan $record) => $record->installments()->exists() ? __('admin/installment-plan-resource.actions.delete_tooltip') : __('admin/installment-plan-resource.actions.delete_allowed_tooltip')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

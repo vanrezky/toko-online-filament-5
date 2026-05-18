@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateInstallmentPlan extends CreateRecord
 {
     protected static string $resource = InstallmentPlanResource::class;
+
+    public function getTitle(): string
+    {
+        return __('admin/installment-plan-resource.pages.create.title');
+    }
 }
