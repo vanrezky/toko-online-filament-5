@@ -5,9 +5,9 @@ import axios from "axios";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import VoucherCard from "../../components/UI/VoucherCard.vue";
 import { Filter, Ticket, Truck, Tag } from "lucide-vue-next";
-import { useTranslations } from "../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const props = defineProps({
     vouchers: Array,

@@ -2,14 +2,13 @@
 import { computed } from "vue";
 import { Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
-import { useTranslations } from "../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
 import { Package, ChevronRight, Clock, CheckCircle2, Truck, AlertCircle } from "lucide-vue-next";
 
 const props = defineProps({
     orders: Array,
 });
-
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const statusColors = {
     unpaid: "text-[#fa8456] bg-[#fff5f0]",

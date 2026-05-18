@@ -2,24 +2,23 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\CustomerLevel;
 use App\Services\PayrollExportService;
 use Filament\Actions\Action;
 use Filament\Forms;
+use Filament\Forms\Form;
 use Filament\Pages\Page;
 
 class PayrollExportPage extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-document-arrow-down';
-    protected static ?string $navigationGroup = 'Laporan';
-    protected static ?string $navigationLabel = 'Export Payroll';
-    protected static ?string $title = 'Export Potongan Gaji';
-    protected static ?string $slug = 'payroll-export';
+    protected static ?string $navigationGroup = 'Transaksi';
     protected static ?int $navigationSort = 5;
 
     protected static string $view = 'filament.pages.payroll-export';
 
-    public int $selectedMonth;
-    public int $selectedYear;
+    public ?int $selectedMonth = null;
+    public ?int $selectedYear = null;
     public ?int $selectedLevelId = null;
     public array $previewData = [];
 
@@ -29,49 +28,65 @@ class PayrollExportPage extends Page
         $this->selectedYear = now()->year;
     }
 
-    protected function getFormSchema(): array
+    public function getTitle(): string
     {
-        return [
-            Forms\Components\Select::make('selectedMonth')
-                ->label('Bulan')
-                ->options([
-                    1 => 'Januari',
-                    2 => 'Februari',
-                    3 => 'Maret',
-                    4 => 'April',
-                    5 => 'Mei',
-                    6 => 'Juni',
-                    7 => 'Juli',
-                    8 => 'Agustus',
-                    9 => 'September',
-                    10 => 'Oktober',
-                    11 => 'November',
-                    12 => 'Desember',
-                ])
-                ->required(),
-            Forms\Components\Select::make('selectedYear')
-                ->label('Tahun')
-                ->options(array_combine(range(now()->year - 5, now()->year + 1), range(now()->year - 5, now()->year + 1)))
-                ->required(),
-            Forms\Components\Select::make('selectedLevelId')
-                ->label('Level Anggota')
-                ->relationship('customerLevel', 'name')
-                ->nullable()
-                ->searchable(),
-        ];
+        return __('admin/payroll-export-page.title');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/payroll-export-page.navigation_label');
     }
 
     protected function getHeaderActions(): array
     {
         return [
             Action::make('preview')
-                ->label('Preview')
+                ->label(__('admin/payroll-export-page.actions.preview'))
                 ->action('previewData'),
             Action::make('exportExcel')
-                ->label('Export Excel')
+                ->label(__('admin/payroll-export-page.actions.export_excel'))
                 ->action('exportExcel')
                 ->color('success'),
         ];
+    }
+
+    public function form(Form $form): Form
+    {
+        return $form->schema([
+            Forms\Components\Grid::make(3)
+                ->schema([
+                    Forms\Components\Select::make('selectedMonth')
+                        ->label(__('admin/payroll-export-page.fields.month'))
+                        ->options([
+                            1 => __('admin/payroll-export-page.months.january'),
+                            2 => __('admin/payroll-export-page.months.february'),
+                            3 => __('admin/payroll-export-page.months.march'),
+                            4 => __('admin/payroll-export-page.months.april'),
+                            5 => __('admin/payroll-export-page.months.may'),
+                            6 => __('admin/payroll-export-page.months.june'),
+                            7 => __('admin/payroll-export-page.months.july'),
+                            8 => __('admin/payroll-export-page.months.august'),
+                            9 => __('admin/payroll-export-page.months.september'),
+                            10 => __('admin/payroll-export-page.months.october'),
+                            11 => __('admin/payroll-export-page.months.november'),
+                            12 => __('admin/payroll-export-page.months.december'),
+                        ])
+                        ->columnSpan(1)
+                        ->required(),
+                    Forms\Components\Select::make('selectedYear')
+                        ->label(__('admin/payroll-export-page.fields.year'))
+                        ->options(array_combine(range(now()->year - 5, now()->year + 1), range(now()->year - 5, now()->year + 1)))
+                        ->columnSpan(1)
+                        ->required(),
+                    Forms\Components\Select::make('selectedLevelId')
+                        ->label(__('admin/payroll-export-page.fields.customer_level'))
+                        ->options(CustomerLevel::query()->pluck('name', 'id'))
+                        ->columnSpan(1)
+                        ->nullable()
+                        ->searchable(),
+                ]),
+        ]);
     }
 
     public function previewData(): void

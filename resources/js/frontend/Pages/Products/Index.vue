@@ -5,9 +5,9 @@ import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import ProductCard from "../../components/UI/ProductCard.vue";
 import { Search, X, Loader2, SlidersHorizontal } from "lucide-vue-next";
 import debounce from "lodash/debounce";
-import { useTranslations } from "../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const props = defineProps({
     products: Object,

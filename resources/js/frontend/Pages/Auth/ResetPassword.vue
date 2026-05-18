@@ -2,10 +2,10 @@
 import { ref } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
-import { useTranslations } from "../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
 import { Lock, ArrowRight, ArrowLeft, Eye, EyeOff, Check, X } from "lucide-vue-next";
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const props = defineProps({
     token: String,

@@ -4,9 +4,9 @@ import { computed } from "vue";
 import { Instagram, Facebook, Twitter, Mail } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import PromotionBanner from "../../UI/PromotionBanner.vue";
-import { useTranslations } from "../../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const { props } = usePage();
 const settings = computed(() => props.settings);

@@ -3,9 +3,9 @@ import { computed } from "vue";
 import { Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { Calendar, User, ArrowLeft, Tag, Facebook, Twitter, Link as LinkIcon, ArrowRight } from "lucide-vue-next";
-import { useTranslations } from "../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const props = defineProps({
     post: Object,
@@ -22,7 +22,18 @@ const share = (platform) => {
     } else if (platform === "twitter") {
         window.open(`https://twitter.com/intent/tweet?url=${url}&text=${title}`, "_blank");
     } else if (platform === "copy") {
-        navigator.clipboard.writeText(url);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url);
+        } else {
+            const textArea = document.createElement('textarea');
+            textArea.value = url;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        }
     }
 };
 

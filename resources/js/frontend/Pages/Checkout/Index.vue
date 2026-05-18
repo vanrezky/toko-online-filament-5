@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import { useForm, Link, router } from "@inertiajs/vue3";
 import axios from "axios";
 import { Loader2, Ticket, X, Truck, Tag, AlertCircle } from "lucide-vue-next";
-import { useTranslations } from "../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
 import { installmentService } from "../../services/installmentService";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 
@@ -18,7 +18,7 @@ const props = defineProps({
     creditLimit: Object,
 });
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const form = useForm({
     address_id: props.addresses?.find((a) => a.is_featured)?.id || props.addresses?.[0]?.id || null,
@@ -227,7 +227,7 @@ const submitOrder = async () => {
 
             if (payment && payment.provider === 'midtrans' && payment.snap_token) {
                 const isProduction = payment.payment_url && payment.payment_url.includes('app.midtrans.com');
-                const scriptUrl = isProduction 
+                const scriptUrl = isProduction
                     ? 'https://app.midtrans.com/snap/snap.js'
                     : 'https://app.sandbox.midtrans.com/snap/snap.js';
 

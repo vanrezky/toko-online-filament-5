@@ -1,10 +1,9 @@
 <script setup>
 import { useForm, Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
-import { useTranslations } from "../../composables/useTranslations";
-import { User, Mail, Lock, ArrowRight } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const form = useForm({
     first_name: "",

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from "vue";
-import { useTranslations } from "../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
 import { Link, usePage, router } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { ShoppingBag, Heart, ShieldCheck, Truck, RefreshCw, ChevronRight, Plus, Minus, Warehouse, Scale } from "lucide-vue-next";
@@ -14,8 +14,7 @@ const selectedImage = ref(props.product.thumbnail);
 const quantity = ref(1);
 const selectedAttributes = ref({});
 const activeFaq = ref(null);
-
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const isWishlisted = computed(() => {
     return page.props.wishlist_product_ids?.includes(props.product.id);
