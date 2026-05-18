@@ -6,7 +6,7 @@ return [
     'activity_resource' => \Z3d0X\FilamentLogger\Resources\ActivityResource::class,
 
     'resources' => [
-        'enabled' => false,
+        'enabled' => true,
         'log_name' => 'Resource',
         'logger' => \Z3d0X\FilamentLogger\Loggers\ResourceLogger::class,
         'color' => 'success',

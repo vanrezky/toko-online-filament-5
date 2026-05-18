@@ -69,7 +69,7 @@ class AdminPanelProvider extends PanelProvider
             ->plugin(FilamentProgressbarPlugin::make()->color('#29b'))
             ->spa(true)
             ->resources([
-                config('filament-logger.activity_resource')
+                // config('filament-logger.activity_resource')
             ])
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
