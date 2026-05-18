@@ -67,7 +67,11 @@ const selectedVariant = computed(() => {
 });
 
 const displayPrice = computed(() => {
-    let basePrice = selectedVariant.value ? selectedVariant.value.price : props.product.sale_price || props.product.price;
+    let basePrice = parseFloat(props.product.sale_price) || parseFloat(props.product.price);
+
+    if (selectedVariant.value) {
+        basePrice = parseFloat(selectedVariant.value.price);
+    }
 
     if (props.product.wholesales && props.product.wholesales.length > 0) {
         const minOrder = props.product.min_order || 1;
@@ -76,7 +80,7 @@ const displayPrice = computed(() => {
             .sort((a, b) => b.min_qty - a.min_qty)
             .find((w) => quantity.value >= w.min_qty);
 
-        if (applicableWholesale) return applicableWholesale.price;
+        if (applicableWholesale) return parseFloat(applicableWholesale.price);
     }
 
     return basePrice;
@@ -101,7 +105,7 @@ const displayStock = computed(() => {
     return props.product.stock;
 });
 
-const isSale = computed(() => !selectedVariant.value && !!props.product.sale_price);
+const isSale = computed(() => !!props.product.sale_price);
 
 const seoTitle = computed(() => props.product.meta?.title || props.product.name);
 const seoDescription = computed(() => props.product.meta?.description || props.product.description?.substring(0, 160));
@@ -199,7 +203,7 @@ const addToCart = () => {
 
                             <div class="flex flex-wrap items-center gap-3">
                                 <template v-if="isSale && !activeWholesale">
-                                    <span class="text-3xl font-bold text-primary">Rp{{ product.sale_price?.toLocaleString("id-ID") }}</span>
+                                    <span class="text-3xl font-bold text-primary">Rp{{ displayPrice?.toLocaleString("id-ID") }}</span>
                                     <span class="text-lg text-muted-foreground line-through">Rp{{ product.price?.toLocaleString("id-ID") }}</span>
                                     <span v-if="product.discount_percentage" class="rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white">
                                         {{ product.discount_percentage }}% OFF
