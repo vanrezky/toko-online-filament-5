@@ -39,7 +39,7 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Orange,
             ])
             ->font('Karla')
-            ->navigationGroups(['Master', 'Produk', 'Promo', 'Customer', 'Laporan', 'Transaksi', 'Blog', 'Pengaturan', 'Logs'])
+            ->navigationGroups(['Master', 'Produk', 'Promo', 'Customer', 'Pelanggan', 'Report', 'Laporan', 'Transaction', 'Transaksi', 'Settings', 'Pengaturan', 'Blog', 'Logs', 'Wilayah'])
             ->favicon(settings('favicon'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
