@@ -39,8 +39,11 @@ class OrderResource extends JsonResource
             ];
         })->values();
 
+        $hasDelivery = $shippingGroups->contains(fn ($group) => ! $group['is_pickup']);
+
         return [
             'id' => $this->uuid,
+            'code' => $this->code,
             'timelimit' => $this->timelimit,
             'weight' => $this->weight,
             'shipping_cost' => $this->shipping_cost,
@@ -59,15 +62,16 @@ class OrderResource extends JsonResource
             'updated_at' => $this->updated_at,
             'subtotal' => $subtotal,
             'total' => $total,
-            'address' => [
-                'name' => $this->address_name,
-                'phone' => $this->address_phone,
+            'address' => $hasDelivery ? [
+                'name' => $this->address?->name,
+                'phone' => $this->address?->phone,
                 'full_address' => $this->address?->address,
-                'province' => $this->address?->province?->name,
-                'district' => $this->address?->district?->name,
+                'village' => $this->address?->village?->name,
                 'sub_district' => $this->address?->subDistrict?->name,
+                'district' => $this->address?->district?->name,
+                'province' => $this->address?->province?->name,
                 'postal_code' => $this->address?->postal_code,
-            ],
+            ] : null,
             'shipping_groups' => $shippingGroups,
             'products' => OrderItemResource::collection($this->products),
         ];

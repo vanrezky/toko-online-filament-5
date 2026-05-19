@@ -73,6 +73,11 @@ class PayrollExportService
                 'level' => $customer->customerLevel?->name ?? 'N/A',
                 'total_deduction' => $customerTotal,
                 'active_installments' => $customerPayments->count(),
+                'references' => $customerPayments
+                    ->map(fn ($payment) => $payment->installment?->code)
+                    ->filter()
+                    ->unique()
+                    ->implode(', '),
                 'payments' => $customerPayments,
             ];
 

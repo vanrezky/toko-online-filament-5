@@ -136,6 +136,25 @@ const shippingFee = computed(() => {
     return Object.values(form.shipping_methods).reduce((sum, method) => sum + (method.price || 0), 0);
 });
 
+const hasShippingMethodsSelected = computed(() => {
+    return Object.keys(form.shipping_methods || {}).length > 0;
+});
+
+const isPickupOnlySelection = computed(() => {
+    const methods = Object.values(form.shipping_methods || {});
+    if (!methods.length) return false;
+
+    return methods.every((method) => String(method.courier_code || '').toUpperCase() === 'PICKUP');
+});
+
+const requiresAddressSelection = computed(() => {
+    if (!hasShippingMethodsSelected.value) {
+        return true;
+    }
+
+    return !isPickupOnlySelection.value;
+});
+
 const discountedShippingFee = computed(() => {
     return Math.max(0, shippingFee.value - shippingDiscount.value);
 });
@@ -203,7 +222,10 @@ const canSubmitOrder = computed(() => {
     if (isOverLimit.value) {
         return false;
     }
-    return !isValidatingVouchers.value && !hasInvalidVoucher.value && form.address_id && Object.keys(form.shipping_methods).length > 0;
+    return !isValidatingVouchers.value
+        && !hasInvalidVoucher.value
+        && hasShippingMethodsSelected.value
+        && (!requiresAddressSelection.value || !!form.address_id);
 });
 
 const submitOrder = async () => {
@@ -322,13 +344,13 @@ const applyVoucher = async () => {
 
                     <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
                         <!-- Left Side: Forms -->
-                        <div class="space-y-6 lg:col-span-7">
+                        <div class="flex flex-col gap-6 lg:col-span-7">
                             <!-- Shipping Address Section -->
-                            <section class="rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
+                            <section class="order-2 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                                 <div class="mb-6 flex items-center justify-between">
                                     <div class="flex items-center gap-3">
                                         <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">
-                                            1
+                                            2
                                         </div>
                                         <h2 class="text-base font-bold text-[#2d1b0e]">{{ t('labels.checkout.shipping_address') }}</h2>
                                     </div>
@@ -339,7 +361,14 @@ const applyVoucher = async () => {
                                     >
                                 </div>
 
-                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div
+                                    v-if="isPickupOnlySelection"
+                                    class="rounded-xl border border-[#dbeafe] bg-[#eff6ff] p-5 text-sm leading-relaxed text-[#1e3a8a]"
+                                >
+                                    {{ t('labels.checkout.pickup_no_address_required') }}
+                                </div>
+
+                                <div v-else class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div
                                         v-for="address in addresses"
                                         :key="address.id"
@@ -400,15 +429,15 @@ const applyVoucher = async () => {
                                         <span class="text-xs font-semibold">{{ t('labels.checkout.new_address') }}</span>
                                     </Link>
                                 </div>
-                                <p v-if="form.errors.address_id" class="mt-3 text-xs text-red-500">{{ form.errors.address_id }}</p>
+                                <p v-if="form.errors.address_id && !isPickupOnlySelection" class="mt-3 text-xs text-red-500">{{ form.errors.address_id }}</p>
                             </section>
 
                             <!-- Shipping Method Section -->
-                            <section class="rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
+                            <section class="order-1 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                                 <div class="mb-6 flex items-center justify-between">
                                     <div class="flex items-center gap-3">
                                         <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">
-                                            2
+                                            1
                                         </div>
                                         <h2 class="text-base font-bold text-[#2d1b0e]">{{ t('labels.checkout.shipping_method') }}</h2>
                                     </div>
@@ -491,7 +520,7 @@ const applyVoucher = async () => {
                             </section>
 
                             <!-- Payment Method Section -->
-                            <section v-if="activeGateway !== 'midtrans'" class="rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
+                            <section v-if="activeGateway !== 'midtrans'" class="order-3 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                                 <div class="mb-6 flex items-center gap-3">
                                     <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">3</div>
                                     <h2 class="text-base font-bold text-[#2d1b0e]">{{ t('labels.checkout.payment_method') }}</h2>
@@ -596,7 +625,7 @@ const applyVoucher = async () => {
                             </section>
 
                             <!-- Notes Section -->
-                            <section class="rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
+                            <section class="order-4 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                                 <h2 class="mb-4 text-sm font-bold text-[#2d1b0e]">{{ t('labels.checkout.order_notes') }}</h2>
                                 <textarea
                                     v-model="form.notes"

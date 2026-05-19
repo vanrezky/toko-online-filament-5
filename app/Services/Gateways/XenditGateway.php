@@ -62,7 +62,7 @@ class XenditGateway implements PaymentGatewayInterface
                 'external_id' => $transaction->uuid,
                 'amount' => (int) $totalAmount,
                 'payer_email' => $transaction->customer?->email ?? '',
-                'description' => 'Order #' . substr($transaction->uuid, 0, 8),
+                'description' => 'Order #' . ($transaction->code ?? $transaction->uuid),
                 'success_redirect_url' => route('frontend.orders.show', $transaction->uuid) . '?payment=success',
                 'failure_redirect_url' => route('frontend.orders.show', $transaction->uuid) . '?payment=failure',
             ];

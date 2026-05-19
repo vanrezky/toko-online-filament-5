@@ -7,10 +7,14 @@ use App\Filament\Resources\InstallmentResource\RelationManagers\PaymentsRelation
 use App\Models\Installment;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class InstallmentResource extends Resource
 {
@@ -110,6 +114,7 @@ class InstallmentResource extends Resource
                 Tables\Columns\TextColumn::make('uuid')
                     ->label(__('admin/installment-resource.columns.uuid'))
                     ->searchable()
+                    ->formatStateUsing(fn (?string $state): ?string => $state ? Str::before($state, '-') : null)
                     ->copyable(),
                 Tables\Columns\TextColumn::make('customer.full_name')
                     ->label(__('admin/installment-resource.columns.customer_full_name'))
@@ -162,6 +167,65 @@ class InstallmentResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make(__('admin/installment-resource.sections.installment_info'))
+                    ->schema([
+                        TextEntry::make('uuid')
+                            ->label(__('admin/installment-resource.fields.uuid'))
+                            ->formatStateUsing(fn (?string $state): ?string => $state ? Str::before($state, '-') : null),
+                        TextEntry::make('customer.full_name')
+                            ->label(__('admin/installment-resource.fields.customer_id')),
+                        TextEntry::make('installmentPlan.tenor')
+                            ->label(__('admin/installment-resource.fields.installment_plan_id'))
+                            ->suffix(' Bulan'),
+                        TextEntry::make('principal_amount')
+                            ->label(__('admin/installment-resource.fields.principal_amount'))
+                            ->money('IDR'),
+                        TextEntry::make('fee_amount')
+                            ->label(__('admin/installment-resource.fields.fee_amount'))
+                            ->money('IDR'),
+                        TextEntry::make('total_amount')
+                            ->label(__('admin/installment-resource.fields.total_amount'))
+                            ->money('IDR'),
+                        TextEntry::make('monthly_amount')
+                            ->label(__('admin/installment-resource.fields.monthly_amount'))
+                            ->money('IDR'),
+                    ])->columns(2),
+                Section::make(__('admin/installment-resource.sections.payment_progress'))
+                    ->schema([
+                        TextEntry::make('tenor')
+                            ->label(__('admin/installment-resource.fields.tenor')),
+                        TextEntry::make('paid_installments')
+                            ->label(__('admin/installment-resource.fields.paid_installments')),
+                        TextEntry::make('paid_amount')
+                            ->label(__('admin/installment-resource.fields.paid_amount'))
+                            ->money('IDR'),
+                        TextEntry::make('remaining_amount')
+                            ->label(__('admin/installment-resource.fields.remaining_amount'))
+                            ->money('IDR'),
+                        TextEntry::make('status')
+                            ->label(__('admin/installment-resource.fields.status'))
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                'completed' => 'success',
+                                'overdue' => 'danger',
+                                'defaulted' => 'gray',
+                                default => 'warning',
+                            })
+                            ->formatStateUsing(fn (string $state): string => __('admin/installment-resource.status_options.' . $state)),
+                        TextEntry::make('start_date')
+                            ->label(__('admin/installment-resource.fields.start_date'))
+                            ->date(),
+                        TextEntry::make('expected_end_date')
+                            ->label(__('admin/installment-resource.fields.expected_end_date'))
+                            ->date(),
+                    ])->columns(2),
             ]);
     }
 

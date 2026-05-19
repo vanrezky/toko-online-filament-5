@@ -177,7 +177,7 @@ class CheckoutController extends Controller
     public function store(Request $request, PaymentGatewayService $paymentGatewayService)
     {
         $request->validate([
-            'address_id' => 'required|exists:customer_addresses,id',
+            'address_id' => 'nullable|exists:customer_addresses,id',
             'shipping_methods' => 'required|array',
             'payment_type' => 'required|in:full,installment',
             'installment_plan_id' => 'nullable|exists:installment_plans,id',
@@ -198,7 +198,43 @@ class CheckoutController extends Controller
             return redirect()->route('frontend.cart')->with('error', __('messages.error.cart_empty'));
         }
 
-        $address = CustomerAddress::findOrFail($request->address_id);
+        $hasDeliveryMethod = collect($request->shipping_methods)
+            ->contains(fn ($method) => strtoupper((string) ($method['courier_code'] ?? '')) !== CourierCode::PICKUP->value);
+
+        if ($hasDeliveryMethod && ! $request->address_id) {
+            return response()->json([
+                'success' => false,
+                'errors' => [
+                    'address_id' => [__('messages.error.select_address_first')],
+                ],
+            ], 422);
+        }
+
+        $address = null;
+        if ($request->address_id) {
+            $address = CustomerAddress::where('customer_id', $customer->id)
+                ->findOrFail($request->address_id);
+        } elseif (! $hasDeliveryMethod) {
+            $address = CustomerAddress::where('customer_id', $customer->id)
+                ->orderBy('is_featured', 'desc')
+                ->first();
+
+            if (! $address) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => [
+                        'address_id' => [__('messages.error.select_address_first')],
+                    ],
+                ], 422);
+            }
+        } elseif ($hasDeliveryMethod) {
+            return response()->json([
+                'success' => false,
+                'errors' => [
+                    'address_id' => [__('messages.error.select_address_first')],
+                ],
+            ], 422);
+        }
 
         $totalShippingCost = 0;
         $totalWeight = 0;
@@ -216,9 +252,6 @@ class CheckoutController extends Controller
                 'estimation' => $method['estimation'] ?? null,
             ];
         }
-
-        $firstItem = $cart->items->first();
-        $fromVillageId = $firstItem->product->warehouse?->village_id ?: 1;
 
         $pendingVouchers = $this->cookieService->get();
         $validatedVouchers = $this->voucherService->validateFromCookie($pendingVouchers, $cart, $customer);
@@ -243,17 +276,16 @@ class CheckoutController extends Controller
             }
         }
 
-        return DB::transaction(function () use ($request, $customer, $cart, $totalShippingCost, $totalWeight, $address, $fromVillageId, $shippingDetails, $validatedVouchers, $paymentGatewayService, $grandTotal) {
+        return DB::transaction(function () use ($request, $customer, $cart, $totalShippingCost, $totalWeight, $address, $shippingDetails, $validatedVouchers, $paymentGatewayService, $grandTotal) {
             $transaction = Transaction::create([
                 'customer_id' => $customer->id,
-                'customer_address_id' => $address->id,
+                'customer_address_id' => $address?->id,
                 'weight' => $totalWeight,
                 'shipping_cost' => $totalShippingCost,
-                'courier_id' => 1,
-                'from_village_id' => $fromVillageId,
-                'to_village_id' => $address->village_id,
                 'payment_method' => $request->payment_type === 'installment' ? 'cicilan' : 'bayar_penuh',
                 'payment_type' => $request->payment_type,
+                'billing_due_date' => $request->payment_type === 'full' ? now()->addMonthNoOverflow()->startOfMonth() : null,
+                'billing_status' => $request->payment_type === 'full' ? 'pending' : 'not_applicable',
                 'installment_plan_id' => $request->payment_type === 'installment' ? $request->installment_plan_id : null,
                 'status' => TransactionStatus::packed,
                 'notes' => $request->notes,

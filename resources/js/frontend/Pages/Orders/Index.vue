@@ -12,6 +12,7 @@ const { t } = useI18n();
 
 const statusColors = {
     unpaid: "text-[#fa8456] bg-[#fff5f0]",
+    packed: "text-[#6366f1] bg-[#eef2ff]",
     shipped: "text-[#3b82f6] bg-[#eff6ff]",
     delivered: "text-[#22c55e] bg-[#f0fdf4]",
     completed: "text-[#16a34a] bg-[#dcfce7]",
@@ -20,6 +21,7 @@ const statusColors = {
 
 const statusLabels = computed(() => ({
     unpaid: t("labels.order.status.unpaid"),
+    packed: t("labels.order.status.packed"),
     shipped: t("labels.order.status.shipped"),
     delivered: t("labels.order.status.delivered"),
     completed: t("labels.order.status.completed"),
@@ -71,7 +73,7 @@ const isExpired = (dateString) => {
                                         <Package class="h-5 w-5 text-[#fa8456]" />
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-bold text-[#2d1b0e]">{{ t("labels.order.order_number", { id: order.id.substring(0, 8).toUpperCase() }) }}</h3>
+                                        <h3 class="text-sm font-bold text-[#2d1b0e]">{{ t("labels.order.order_number", { id: order.code }) }}</h3>
                                         <p class="mt-0.5 text-xs text-[#6b5a4d]">{{ formatDate(order.created_at) }}</p>
                                     </div>
                                 </div>

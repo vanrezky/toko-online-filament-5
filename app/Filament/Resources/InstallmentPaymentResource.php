@@ -6,6 +6,9 @@ use App\Filament\Resources\InstallmentPaymentResource\Pages;
 use App\Models\InstallmentPayment;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Filters\SelectFilter;
@@ -24,7 +27,7 @@ class InstallmentPaymentResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('installment_id')
-                    ->relationship('installment', 'uuid')
+                    ->relationship('installment', 'code')
                     ->disabled(),
                 Forms\Components\TextInput::make('installment_number')
                     ->disabled(),
@@ -61,6 +64,7 @@ class InstallmentPaymentResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('installment.uuid')
                     ->label('Kode Cicilan')
+                    ->getStateUsing(fn (InstallmentPayment $record): ?string => $record->installment?->code)
                     ->searchable(),
                 Tables\Columns\TextColumn::make('installment.customer.full_name')
                     ->label('Anggota')
@@ -93,6 +97,15 @@ class InstallmentPaymentResource extends Resource
                         'success' => 'manual',
                         'primary' => 'transfer',
                     ]),
+                Tables\Columns\BadgeColumn::make('payroll_status')
+                    ->label('Status Payroll')
+                    ->colors([
+                        'warning' => 'scheduled',
+                        'info' => 'batched',
+                        'primary' => 'submitted',
+                        'success' => 'confirmed_paid',
+                        'danger' => 'failed',
+                    ]),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -108,6 +121,14 @@ class InstallmentPaymentResource extends Resource
                         'manual' => 'Bayar Manual',
                         'transfer' => 'Transfer',
                     ]),
+                SelectFilter::make('payroll_status')
+                    ->options([
+                        'scheduled' => 'Scheduled',
+                        'batched' => 'Batched',
+                        'submitted' => 'Submitted',
+                        'confirmed_paid' => 'Confirmed Paid',
+                        'failed' => 'Failed',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -117,6 +138,69 @@ class InstallmentPaymentResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make('Informasi Pembayaran Cicilan')
+                    ->schema([
+                        TextEntry::make('installment.uuid')
+                            ->label('Kode Cicilan')
+                            ->getStateUsing(fn (InstallmentPayment $record): ?string => $record->installment?->code),
+                        TextEntry::make('installment.customer.full_name')
+                            ->label('Anggota'),
+                        TextEntry::make('installment_number')
+                            ->label('Angsuran Ke'),
+                        TextEntry::make('amount')
+                            ->label('Nominal')
+                            ->money('IDR'),
+                        TextEntry::make('due_date')
+                            ->label('Jatuh Tempo')
+                            ->date(),
+                        TextEntry::make('status')
+                            ->label('Status')
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                'paid' => 'success',
+                                'overdue' => 'danger',
+                                'partial' => 'info',
+                                default => 'warning',
+                            })
+                            ->formatStateUsing(fn (string $state): string => match ($state) {
+                                'unpaid' => 'Belum Bayar',
+                                'partial' => 'Sebagian',
+                                'paid' => 'Lunas',
+                                'overdue' => 'Terlambat',
+                                default => $state,
+                            }),
+                        TextEntry::make('paid_amount')
+                            ->label('Dibayar')
+                            ->money('IDR'),
+                        TextEntry::make('paid_date')
+                            ->label('Tgl Bayar')
+                            ->date(),
+                        TextEntry::make('payment_method')
+                            ->label('Metode')
+                            ->badge()
+                            ->color(fn (?string $state): string => match ($state) {
+                                'payroll_deduction' => 'info',
+                                'manual' => 'success',
+                                'transfer' => 'primary',
+                                default => 'gray',
+                            })
+                            ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                'payroll_deduction' => 'Potong Gaji',
+                                'manual' => 'Bayar Manual',
+                                'transfer' => 'Transfer',
+                                default => '-',
+                            }),
+                        TextEntry::make('notes')
+                            ->label('Catatan')
+                            ->placeholder('-'),
+                    ])->columns(2),
             ]);
     }
 

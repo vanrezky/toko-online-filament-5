@@ -8,7 +8,6 @@ use App\Models\InstallmentPayment;
 use App\Models\InstallmentPlan;
 use App\Models\Transaction;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 
 class InstallmentService
 {
@@ -22,7 +21,6 @@ class InstallmentService
         $expectedEndDate = now()->addMonths($plan->tenor);
 
         $installment = Installment::create([
-            'uuid' => Str::uuid(),
             'transaction_id' => $transaction->id,
             'customer_id' => $transaction->customer_id,
             'installment_plan_id' => $plan->id,
@@ -46,7 +44,6 @@ class InstallmentService
     public function generatePaymentSchedule(Installment $installment): Collection
     {
         $payments = [];
-        $dueDate = $installment->start_date;
 
         for ($i = 1; $i <= $installment->tenor; $i++) {
             $dueDate = $installment->start_date->copy()->addMonths($i);
@@ -56,10 +53,13 @@ class InstallmentService
                 'installment_number' => $i,
                 'amount' => $installment->monthly_amount,
                 'due_date' => $dueDate,
+                'billing_month' => $dueDate->copy()->startOfMonth(),
                 'paid_amount' => 0,
                 'paid_date' => null,
                 'payment_method' => null,
+                'collection_method' => 'payroll_deduction',
                 'status' => 'unpaid',
+                'payroll_status' => 'scheduled',
                 'notes' => null,
             ]);
         }
@@ -76,6 +76,7 @@ class InstallmentService
     {
         $payment->update([
             'payment_method' => 'payroll_deduction',
+            'collection_method' => 'payroll_deduction',
         ]);
     }
 

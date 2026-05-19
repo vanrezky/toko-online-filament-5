@@ -12,6 +12,7 @@ const { t } = useI18n();
 
 const statusColors = {
     unpaid: "text-[#fa8456] bg-[#fff5f0] border-[#fed7aa]",
+    packed: "text-[#6366f1] bg-[#eef2ff] border-[#c7d2fe]",
     shipped: "text-[#3b82f6] bg-[#eff6ff] border-[#bfdbfe]",
     delivered: "text-[#22c55e] bg-[#f0fdf4] border-[#bbf7d0]",
     completed: "text-[#16a34a] bg-[#dcfce7] border-[#86efac]",
@@ -20,6 +21,7 @@ const statusColors = {
 
 const statusLabels = computed(() => ({
     unpaid: t("labels.order.status.unpaid"),
+    packed: t("labels.order.status.packed"),
     shipped: t("labels.order.status.shipped"),
     delivered: t("labels.order.status.delivered"),
     completed: t("labels.order.status.completed"),
@@ -51,6 +53,17 @@ const hasPickup = computed(() => {
 
 const hasDelivery = computed(() => {
     return props.order.shipping_groups?.some(group => !group.is_pickup);
+});
+
+const deliveryCouriers = computed(() => {
+    const groups = props.order.shipping_groups || [];
+
+    return groups
+        .filter(group => !group.is_pickup)
+        .map(group => group.courier_name)
+        .filter(Boolean)
+        .filter((value, index, self) => self.indexOf(value) === index)
+        .join(', ');
 });
 
 const getPaymentLabel = () => {
@@ -87,7 +100,7 @@ const getGroupedProducts = () => {
                                 <ChevronLeft class="h-4 w-4" />
                                 <span>{{ t("labels.actions.back_to_orders") }}</span>
                             </Link>
-                            <h1 class="text-2xl font-bold text-[#2d1b0e]">{{ t("labels.order.order_number", { id: order.id.substring(0, 8).toUpperCase() }) }}</h1>
+                            <h1 class="text-2xl font-bold text-[#2d1b0e]">{{ t("labels.order.order_number", { id: order.code }) }}</h1>
                             <p class="text-sm text-[#6b5a4d]">{{ formatDate(order.created_at) }}</p>
                         </div>
                         <div class="flex items-center gap-4">
@@ -167,11 +180,14 @@ const getGroupedProducts = () => {
                                     <h2 class="text-sm font-bold text-[#2d1b0e]">{{ t("labels.order.shipping_address") }}</h2>
                                 </div>
                                 <div class="space-y-1 text-sm leading-relaxed text-[#6b5a4d]">
-                                    <p class="font-semibold text-[#2d1b0e]">{{ order.address.name || "Alamat Pengiriman" }}</p>
-                                    <p>{{ order.address.phone || "" }}</p>
-                                    <p>{{ order.address.full_address }}</p>
-                                    <p>{{ order.address.sub_district }}, {{ order.address.district }}</p>
-                                    <p>{{ order.address.province }} {{ order.address.postal_code }}</p>
+                                    <p class="font-semibold text-[#2d1b0e]">{{ order.address?.name || "Alamat Pengiriman" }}</p>
+                                    <p>{{ order.address?.phone || "" }}</p>
+                                    <p>{{ order.address?.full_address }}</p>
+                                    <p>{{ order.address?.village }}, {{ order.address?.sub_district }}, {{ order.address?.district }}</p>
+                                    <p>{{ order.address?.province }} {{ order.address?.postal_code }}</p>
+                                    <p v-if="deliveryCouriers" class="pt-1 font-medium text-[#2d1b0e]">
+                                        {{ t('labels.order.shipping_method') }}: {{ deliveryCouriers }}
+                                    </p>
                                 </div>
                             </section>
                         </div>

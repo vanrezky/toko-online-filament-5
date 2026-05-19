@@ -2,6 +2,7 @@
 import { useForm, Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { useI18n } from "vue-i18n";
+import { ArrowRight, Lock, Mail } from "lucide-vue-next";
 
 const { t } = useI18n();
 

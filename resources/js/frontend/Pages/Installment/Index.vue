@@ -1,40 +1,24 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
-import { installmentService } from '../../services/installmentService'
-
-const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
-};
-
-const installments = ref([])
-const loading = ref(true)
-
-onMounted(async () => {
-    try {
-        const response = await installmentService.getPlans()
-        // Get customer's installments from the page data
-        installments.value = props.installments
-    } finally {
-        loading.value = false
-    }
-})
 
 const props = defineProps({
     installments: {
         type: Array,
         default: () => []
+    },
+    monthlyBills: {
+        type: Object,
+        default: () => ({ next_month: null, upcoming: [] })
     }
 })
 
-const getStatusColor = (status) => {
-    const colors = {
-        active: 'bg-yellow-100 text-yellow-800',
-        completed: 'bg-green-100 text-green-800',
-        overdue: 'bg-red-100 text-red-800',
-        defaulted: 'bg-gray-100 text-gray-800'
-    }
-    return colors[status] || colors.active
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0
+    }).format(amount)
 }
 
 const formatDate = (date) => {
@@ -44,40 +28,105 @@ const formatDate = (date) => {
         year: 'numeric'
     })
 }
+
+const getStatusColor = (status) => {
+    const colors = {
+        active: 'bg-yellow-100 text-yellow-800',
+        completed: 'bg-green-100 text-green-800',
+        overdue: 'bg-red-100 text-red-800',
+        defaulted: 'bg-gray-100 text-gray-800',
+        pending: 'bg-yellow-100 text-yellow-800',
+        submitted: 'bg-blue-100 text-blue-800',
+        failed: 'bg-red-100 text-red-800',
+        unpaid: 'bg-yellow-100 text-yellow-800',
+        partial: 'bg-blue-100 text-blue-800',
+    }
+
+    return colors[status] || 'bg-gray-100 text-gray-800'
+}
+
+const getStatusLabel = (status) => {
+    const labels = {
+        active: 'Aktif',
+        completed: 'Lunas',
+        overdue: 'Terlambat',
+        defaulted: 'Wanprestasi',
+        pending: 'Menunggu Diproses',
+        submitted: 'Diajukan ke Keuangan',
+        failed: 'Gagal Dipotong',
+        unpaid: 'Belum Bayar',
+        partial: 'Sebagian',
+        paid: 'Lunas',
+    }
+
+    return labels[status] || status
+}
+
+const monthlySections = computed(() => {
+    const sections = []
+
+    if (props.monthlyBills?.next_month) {
+        sections.push({
+            title: 'Tagihan Bulan Depan',
+            month: props.monthlyBills.next_month.month_label,
+            items: props.monthlyBills.next_month.items,
+        })
+    }
+
+    ;(props.monthlyBills?.upcoming || []).forEach((group) => {
+        sections.push({
+            title: 'Tagihan Bulan Berikutnya',
+            month: group.month_label,
+            items: group.items,
+        })
+    })
+
+    return sections
+})
 </script>
 
 <template>
     <div class="min-h-screen bg-gray-50 py-8">
-        <div class="mx-auto max-w-4xl px-4">
-            <h1 class="mb-6 text-2xl font-bold text-gray-900">Cicilan Aktif</h1>
+        <div class="mx-auto max-w-5xl space-y-6 px-4">
+            <h1 class="text-2xl font-bold text-gray-900">Cicilan & Tagihan Bulanan</h1>
 
-            <div v-if="loading" class="text-center py-12">
-                <div class="h-8 w-8 mx-auto border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div v-if="monthlySections.length" class="space-y-4">
+                <div v-for="(section, index) in monthlySections" :key="`${section.month}-${index}`" class="rounded-lg bg-white p-5 shadow">
+                    <p class="text-sm font-semibold text-gray-600">{{ section.title }} - {{ section.month }}</p>
+                    <ul class="mt-3 space-y-2">
+                        <li v-for="(item, itemIndex) in section.items" :key="`${item.reference}-${itemIndex}`" class="flex items-center justify-between rounded-md bg-gray-50 px-3 py-2">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">{{ itemIndex + 1 }}. {{ item.description }}</p>
+                                <p class="text-xs text-gray-500">Ref: {{ item.reference }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-semibold text-gray-900">{{ formatCurrency(item.amount) }}</p>
+                                <span :class="['mt-1 inline-flex rounded-full px-2 py-0.5 text-xs', getStatusColor(item.status)]">{{ getStatusLabel(item.status) }}</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
-            <div v-else-if="installments.length === 0" class="text-center py-12 bg-white rounded-lg shadow">
+            <div v-if="installments.length === 0" class="rounded-lg bg-white py-12 text-center shadow">
                 <p class="text-gray-500">Belum ada cicilan aktif</p>
-                <Link href="/products" class="mt-4 inline-block text-primary hover:underline">
-                    Mulai Belanja
-                </Link>
+                <Link href="/products" class="mt-4 inline-block text-primary hover:underline">Mulai Belanja</Link>
             </div>
 
             <div v-else class="space-y-4">
-                <div v-for="installment in installments" :key="installment.uuid"
-                    class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center justify-between mb-4">
+                <div v-for="installment in installments" :key="installment.uuid" class="rounded-lg bg-white p-6 shadow">
+                    <div class="mb-4 flex items-center justify-between">
                         <div>
-                            <p class="text-sm text-gray-500">Pesanan #{{ installment.transaction?.uuid }}</p>
+                            <p class="text-sm text-gray-500">Cicilan #{{ installment.code }}</p>
+                            <p class="text-sm text-gray-500">Pesanan #{{ installment.transaction?.code }}</p>
                             <p class="text-lg font-semibold">{{ formatCurrency(installment.total_amount) }}</p>
                         </div>
-                        <span :class="['px-3 py-1 rounded-full text-xs font-medium', getStatusColor(installment.status)]">
-                            {{ installment.status === 'active' ? 'Aktif' :
-                               installment.status === 'completed' ? 'Lunas' :
-                               installment.status === 'overdue' ? 'Terlambat' : 'Wanprestasi' }}
+                        <span :class="['rounded-full px-3 py-1 text-xs font-medium', getStatusColor(installment.status)]">
+                            {{ getStatusLabel(installment.status) }}
                         </span>
                     </div>
 
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div class="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
                         <div>
                             <p class="text-gray-500">Angsuran/bulan</p>
                             <p class="font-medium">{{ formatCurrency(installment.monthly_amount) }}</p>
@@ -96,11 +145,8 @@ const formatDate = (date) => {
                         </div>
                     </div>
 
-                    <div class="mt-4 pt-4 border-t">
-                        <Link :href="`/installments/${installment.uuid}`"
-                            class="text-primary hover:underline text-sm">
-                            Lihat Jadwal Cicilan &rarr;
-                        </Link>
+                    <div class="mt-4 border-t pt-4">
+                        <Link :href="`/installments/${installment.uuid}`" class="text-sm text-primary hover:underline">Lihat Jadwal Cicilan -></Link>
                     </div>
                 </div>
             </div>

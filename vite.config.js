@@ -18,4 +18,19 @@ export default defineConfig({
             "ziggy-js": path.resolve("vendor/tightenco/ziggy/dist/index.esm.js"),
         },
     },
+    // server: {
+    //     host: "0.0.0.0",
+    //     port: 5174,
+    //     strictPort: true,
+    //     origin: "http://localhost:81",
+    //     cors: {
+    //         origin: ["http://100.100.216.84:81", "http://localhost:81", "http://127.0.0.1:81"],
+    //         credentials: true,
+    //     },
+    //     hmr: {
+    //         host: "100.100.216.84",
+    //         port: 5174,
+    //         protocol: "ws",
+    //     },
+    // },
 });

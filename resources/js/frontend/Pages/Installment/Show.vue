@@ -58,7 +58,7 @@ const formatDate = (date) => {
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div>
                         <p class="text-sm text-gray-500">Kode Cicilan</p>
-                        <p class="font-mono text-sm">{{ installment?.uuid }}</p>
+                        <p class="font-mono text-sm">{{ installment?.code || installment?.uuid }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Status</p>

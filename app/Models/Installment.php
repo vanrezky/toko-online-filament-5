@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CodeGeneratorService;
 use App\Traits\HasModelTrait;
 use App\Traits\HasUuidTrait;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -17,6 +18,7 @@ class Installment extends Model
 
     protected $fillable = [
         'uuid',
+        'code',
         'transaction_id',
         'customer_id',
         'installment_plan_id',
@@ -41,6 +43,15 @@ class Installment extends Model
         'start_date' => 'date',
         'expected_end_date' => 'date',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Installment $installment) {
+            if (empty($installment->code)) {
+                $installment->code = CodeGeneratorService::generateUnique($installment, 'code', 'INS');
+            }
+        });
+    }
 
     public function transaction(): BelongsTo
     {

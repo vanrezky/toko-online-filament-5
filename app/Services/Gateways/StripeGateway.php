@@ -67,7 +67,7 @@ class StripeGateway implements PaymentGatewayInterface
                             'price_data' => [
                                 'currency' => 'idr',
                                 'product_data' => [
-                                    'name' => 'Order #' . substr($transaction->uuid, 0, 8),
+                                    'name' => 'Order #' . ($transaction->code ?? $transaction->uuid),
                                 ],
                                 'unit_amount' => (int) ($totalAmount * 1), // IDR smallest unit is the currency itself if no cents
                             ],

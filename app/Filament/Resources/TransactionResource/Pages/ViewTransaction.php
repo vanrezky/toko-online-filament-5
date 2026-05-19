@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TransactionResource\Pages;
 
+use App\Enums\CourierCode;
 use App\Filament\Resources\TransactionResource;
 use App\Models\Transaction;
 use Filament\Actions;
@@ -120,7 +121,7 @@ class ViewTransaction extends ViewRecord
                     ->schema([
                         TextEntry::make('uuid')
                             ->label(__('admin/transaction-resource.entries.order_id'))
-                            ->formatStateUsing(fn (string $state): string => strtoupper(substr($state, 0, 8)))
+                            ->getStateUsing(fn (Transaction $record): string => $record->code ?? '-')
                             ->copyable()
                             ->copyMessage(__('admin/transaction-resource.copy.copied'))
                             ->copyMessageDuration(1500)
@@ -131,10 +132,12 @@ class ViewTransaction extends ViewRecord
                             ->badge()
                             ->color(fn (string $state): string => match ($state) {
                                 'unpaid' => 'warning',
+                                'packed' => 'info',
                                 'shipped' => 'info',
                                 'delivered' => 'success',
                                 'rejected' => 'danger',
                                 'completed' => 'success',
+                                default => 'gray',
                             })
                             ->formatStateUsing(fn (string $state): string => __("admin/transaction-resource.status.{$state}")),
                         TextEntry::make('created_at')
@@ -189,7 +192,38 @@ class ViewTransaction extends ViewRecord
                         TextEntry::make('address.full_address')
                             ->label(__('admin/transaction-resource.entries.shipping_address'))
                             ->icon('heroicon-o-map-pin')
-                            ->iconColor('primary'),
+                            ->iconColor('primary')
+                            ->visible(function (Transaction $record): bool {
+                                $details = $record->shippingDetails;
+
+                                if ($details->isEmpty()) {
+                                    return false;
+                                }
+
+                                return ! $details->every(
+                                    fn ($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value
+                                );
+                            })
+                            ->getStateUsing(function (Transaction $record): string {
+                                $details = $record->shippingDetails;
+
+                                if ($details->isNotEmpty() && $details->every(fn ($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
+                                    return __('admin/transaction-resource.columns.pickup_no_address');
+                                }
+
+                                if (! $record->address) {
+                                    return __('admin/transaction-resource.entries.not_set');
+                                }
+
+                                return implode(', ', array_filter([
+                                    $record->address->address,
+                                    $record->address->village?->name,
+                                    $record->address->subDistrict?->name,
+                                    $record->address->district?->name,
+                                    $record->address->province?->name,
+                                    $record->address->postal_code,
+                                ]));
+                            }),
                     ])
                     ->columns(2),
 
@@ -226,9 +260,25 @@ class ViewTransaction extends ViewRecord
                 Section::make(__('admin/transaction-resource.sections.shipping_information'))
                     ->icon('heroicon-o-truck')
                     ->schema([
-                        TextEntry::make('shippingDetails courier.name')
+                        TextEntry::make('shipping_method')
                             ->label(__('admin/transaction-resource.entries.courier'))
-                            ->placeholder(__('admin/transaction-resource.entries.not_set')),
+                            ->getStateUsing(function (Transaction $record): string {
+                                $details = $record->shippingDetails;
+
+                                if ($details->isEmpty()) {
+                                    return __('admin/transaction-resource.entries.not_set');
+                                }
+
+                                if ($details->every(fn ($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
+                                    return __('admin/transaction-resource.columns.pickup_only');
+                                }
+
+                                return $details
+                                    ->pluck('courier_name')
+                                    ->filter()
+                                    ->unique()
+                                    ->implode(', ');
+                            }),
                         TextEntry::make('receipt_code')
                             ->label(__('admin/transaction-resource.entries.receipt_code'))
                             ->copyable()
@@ -236,6 +286,30 @@ class ViewTransaction extends ViewRecord
                         TextEntry::make('weight')
                             ->label(__('admin/transaction-resource.entries.weight'))
                             ->suffix(' gram'),
+                        \Filament\Infolists\Components\RepeatableEntry::make('shippingDetails')
+                            ->label(__('admin/transaction-resource.sections.shipping_information'))
+                            ->schema([
+                                TextEntry::make('warehouse.name')
+                                    ->label(__('admin/transaction-resource.entries.warehouse'))
+                                    ->placeholder(__('admin/transaction-resource.entries.not_set')),
+                                TextEntry::make('courier_name')
+                                    ->label(__('admin/transaction-resource.entries.courier')),
+                                TextEntry::make('courier_code')
+                                    ->label(__('admin/transaction-resource.entries.code'))
+                                    ->badge(),
+                                TextEntry::make('price')
+                                    ->label(__('admin/transaction-resource.entries.shipping_cost'))
+                                    ->money('IDR'),
+                                TextEntry::make('weight')
+                                    ->label(__('admin/transaction-resource.entries.weight'))
+                                    ->suffix(' gram'),
+                                TextEntry::make('estimation')
+                                    ->label(__('admin/transaction-resource.entries.estimation'))
+                                    ->placeholder(__('admin/transaction-resource.entries.not_set')),
+                            ])
+                            ->columns(6)
+                            ->columnSpanFull()
+                            ->contained(false),
                     ])->columns(3),
 
                 Section::make(__('admin/transaction-resource.sections.vouchers_applied'))
@@ -297,7 +371,16 @@ class ViewTransaction extends ViewRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        $this->record->load(['customer', 'products.product', 'vouchers', 'shippingDetails']);
+        $this->record->load([
+            'customer',
+            'address.province',
+            'address.district',
+            'address.subDistrict',
+            'address.village',
+            'products.product',
+            'vouchers',
+            'shippingDetails.warehouse',
+        ]);
 
         return $data;
     }

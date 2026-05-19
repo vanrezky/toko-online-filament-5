@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\CourierCode;
 use App\Filament\Resources\TransactionResource\Pages;
 use App\Models\Transaction;
 use Filament\Forms;
@@ -55,6 +56,7 @@ class TransactionResource extends Resource
                             ->label(__('admin/transaction-resource.fields.status'))
                             ->options([
                                 'unpaid' => __('admin/transaction-resource.status.unpaid'),
+                                'packed' => __('admin/transaction-resource.status.packed'),
                                 'shipped' => __('admin/transaction-resource.status.shipped'),
                                 'delivered' => __('admin/transaction-resource.status.delivered'),
                                 'rejected' => __('admin/transaction-resource.status.rejected'),
@@ -87,7 +89,7 @@ class TransactionResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('uuid')
                     ->label(__('admin/transaction-resource.columns.order'))
-                    ->formatStateUsing(fn (string $state): string => strtoupper(substr($state, 0, 8)))
+                    ->getStateUsing(fn (Transaction $record): string => $record->code ?? '-')
                     ->searchable()
                     ->description(fn (Transaction $record) => $record->created_at->format('d M Y, H:i'))
                     ->tooltip(fn (Transaction $record) => $record->uuid),
@@ -106,22 +108,69 @@ class TransactionResource extends Resource
                     ->label(__('admin/transaction-resource.columns.items'))
                     ->suffix(' items'),
 
+                Tables\Columns\TextColumn::make('shipping_method')
+                    ->label(__('admin/transaction-resource.columns.shipping_method'))
+                    ->getStateUsing(function (Transaction $record): string {
+                        $details = $record->shippingDetails;
+
+                        if ($details->isEmpty()) {
+                            return '-';
+                        }
+
+                        $allPickup = $details->every(fn ($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value);
+                        if ($allPickup) {
+                            return __('admin/transaction-resource.columns.pickup_only');
+                        }
+
+                        return $details
+                            ->pluck('courier_name')
+                            ->filter()
+                            ->unique()
+                            ->implode(', ');
+                    })
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('shipping_address')
+                    ->label(__('admin/transaction-resource.columns.shipping_address'))
+                    ->getStateUsing(function (Transaction $record): string {
+                        $details = $record->shippingDetails;
+
+                        if ($details->isNotEmpty() && $details->every(fn ($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
+                            return __('admin/transaction-resource.columns.pickup_no_address');
+                        }
+
+                        $address = $record->address;
+                        if (! $address) {
+                            return '-';
+                        }
+
+                        return implode(', ', array_filter([
+                            $address->address,
+                            $address->village?->name,
+                            $address->subDistrict?->name,
+                            $address->district?->name,
+                            $address->province?->name,
+                            $address->postal_code,
+                        ]));
+                    })
+                    ->wrap()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\BadgeColumn::make('status')
                     ->colors([
                         'warning' => 'unpaid',
-                        'info' => 'shipped',
-                        'success' => 'delivered',
+                        'info' => ['packed', 'shipped'],
+                        'success' => ['delivered', 'completed'],
                         'danger' => 'rejected',
-                        'success' => 'completed',
                     ])
                     ->formatStateUsing(fn (string $state): string => ucfirst(__("admin/transaction-resource.status.{$state}")))
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('cod')
-                    ->boolean()
-                    ->label(__('admin/transaction-resource.columns.cod'))
-                    ->trueIcon('heroicon-m-check')
-                    ->falseIcon('heroicon-m-x-mark'),
+                // Tables\Columns\IconColumn::make('cod')
+                //     ->boolean()
+                //     ->label(__('admin/transaction-resource.columns.cod'))
+                //     ->trueIcon('heroicon-m-check')
+                //     ->falseIcon('heroicon-m-x-mark'),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime('d M Y, H:i')
@@ -134,12 +183,20 @@ class TransactionResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
-            ->modifyQueryUsing(fn (Builder $query) => $query->with('customer'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with([
+                'customer',
+                'address.province',
+                'address.district',
+                'address.subDistrict',
+                'address.village',
+                'shippingDetails',
+            ]))
             ->filters([
                 SelectFilter::make('status')
                     ->label(__('admin/transaction-resource.fields.status'))
                     ->options([
                         'unpaid' => __('admin/transaction-resource.status.unpaid'),
+                        'packed' => __('admin/transaction-resource.status.packed'),
                         'shipped' => __('admin/transaction-resource.status.shipped'),
                         'delivered' => __('admin/transaction-resource.status.delivered'),
                         'rejected' => __('admin/transaction-resource.status.rejected'),

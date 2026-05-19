@@ -25,7 +25,7 @@ class OrderController extends Controller
         ])
         ->where('customer_id', Auth::guard('customer')->id())
         ->orderBy('created_at', 'desc')
-        ->get(['id', 'uuid', 'customer_id', 'status', 'shipping_cost', 'cod_fee', 'created_at', 'timelimit']);
+        ->get(['id', 'uuid', 'code', 'customer_id', 'status', 'shipping_cost', 'cod_fee', 'created_at', 'timelimit']);
 
         return Inertia::render('Orders/Index', [
             'orders' => OrderResource::collection($orders)
@@ -40,12 +40,6 @@ class OrderController extends Controller
         }
 
         $transaction->load([
-            'address' => function($query) {
-                $query->select('id', 'name', 'phone', 'address', 'province_id', 'district_id', 'sub_district_id', 'postal_code');
-            },
-            'address.province:id,name',
-            'address.district:id,name',
-            'address.subDistrict:id,name',
             'shippingDetails.warehouse',
             'shippingDetails.warehouse.village',
             'shippingDetails.warehouse.district',
@@ -59,6 +53,21 @@ class OrderController extends Controller
             'products.product.media',
             'products.product.category:id,name'
         ]);
+
+        $hasDelivery = $transaction->shippingDetails
+            ->contains(fn ($detail) => $detail->courier_code !== 'PICKUP');
+
+        if ($hasDelivery) {
+            $transaction->load([
+                'address' => function ($query) {
+                    $query->select('id', 'name', 'phone', 'address', 'province_id', 'district_id', 'sub_district_id', 'village_id', 'postal_code');
+                },
+                'address.province:id,name',
+                'address.district:id,name',
+                'address.subDistrict:id,name',
+                'address.village:id,name',
+            ]);
+        }
 
         return Inertia::render('Orders/Show', [
             'order' => OrderResource::make($transaction),
