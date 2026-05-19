@@ -26,12 +26,21 @@ class CreditLimitService
         return $customer->canCreateInstallment($amount);
     }
 
+    public function canCreateFullBilling(Customer $customer, float $amount): bool
+    {
+        return $customer->remaining_credit_limit >= $amount;
+    }
+
     public function validateCheckout(Customer $customer, float $totalAmount, string $paymentType): bool
     {
-        if ($paymentType !== 'installment') {
-            return true;
+        if ($paymentType === 'installment') {
+            return $this->canCreateInstallment($customer, $totalAmount);
         }
 
-        return $this->canCreateInstallment($customer, $totalAmount);
+        if ($paymentType === 'full') {
+            return $this->canCreateFullBilling($customer, $totalAmount);
+        }
+
+        return true;
     }
 }

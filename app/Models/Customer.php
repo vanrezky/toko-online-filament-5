@@ -94,12 +94,21 @@ class Customer extends Authenticatable implements HasMedia
 
     public function getOutstandingBalanceAttribute(): float
     {
-        return (float) $this->installments()
+        $installmentOutstanding = (float) $this->installments()
             ->where('status', 'active')
             ->sum('total_amount') -
             $this->installments()
             ->where('status', 'active')
             ->sum('paid_amount');
+
+        $fullBillingOutstanding = (float) Transaction::query()
+            ->where('customer_id', $this->id)
+            ->where('payment_type', 'full')
+            ->whereIn('billing_status', ['pending', 'submitted', 'failed'])
+            ->get()
+            ->sum(fn (Transaction $transaction): float => (float) $transaction->total_amount);
+
+        return max(0, $installmentOutstanding) + $fullBillingOutstanding;
     }
 
     public function getRemainingCreditLimitAttribute(): float

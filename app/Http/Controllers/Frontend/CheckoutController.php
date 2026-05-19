@@ -262,6 +262,15 @@ class CheckoutController extends Controller
         $discountedShippingFee = max(0, $totalShippingCost - $shippingDiscount);
         $grandTotal = $subtotal + $discountedShippingFee - $productDiscount;
 
+        if ($request->payment_type === 'full' && ! $this->creditLimitService->canCreateFullBilling($customer, $grandTotal)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Limit kredit tidak mencukupi',
+                'remaining_limit' => $customer->remaining_credit_limit,
+                'required' => $grandTotal,
+            ], 400);
+        }
+
         if ($request->payment_type === 'installment' && $request->installment_plan_id) {
             $plan = InstallmentPlan::find($request->installment_plan_id);
             $totalWithFee = $plan->calculateTotal($grandTotal);
