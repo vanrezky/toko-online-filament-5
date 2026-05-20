@@ -1,5 +1,8 @@
 <?php
 
+use App\Filament\Resources\BalanceResource;
+use App\Filament\Resources\NewsletterSubscriberResource;
+use App\Filament\Resources\ResellerResource;
 use App\Filament\Resources\SliderResource;
 
 return [
@@ -71,6 +74,7 @@ return [
 
         'pages' => [
             'Dashboard',
+            \App\Filament\Pages\ManagePaymentGateway::class,
         ],
 
         'widgets' => [
@@ -78,8 +82,12 @@ return [
             'FilamentInfoWidget',
         ],
 
-        'resources' => [
-            SliderResource::class
+'resources' => [
+            SliderResource::class,
+            // @feature-toggle: uncomment to re-generate permissions when re-enabling
+            NewsletterSubscriberResource::class,
+            BalanceResource::class,
+            ResellerResource::class,
         ],
     ],
 

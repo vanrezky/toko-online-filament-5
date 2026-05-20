@@ -10,6 +10,11 @@ class ListVouchers extends ListRecords
 {
     protected static string $resource = VoucherResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/voucher-resource.pages.list.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [

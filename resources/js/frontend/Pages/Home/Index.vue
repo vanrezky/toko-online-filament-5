@@ -4,19 +4,17 @@ import { useForm, usePage } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import HeroSection from "../../components/UI/HeroSection.vue";
 import FeaturedProducts from "../../components/UI/FeaturedProducts.vue";
-import FlashSaleSection from "../../components/UI/FlashSaleSection.vue";
 import ProductCard from "../../components/UI/ProductCard.vue";
 import CategoryMenu from "../../components/UI/CategoryMenu.vue";
 import VoucherSection from "../../components/UI/VoucherSection.vue";
 import { Link } from "@inertiajs/vue3";
 import { ChevronRight } from "lucide-vue-next";
 import { toast } from "vue-sonner";
-import { useTranslations } from "../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const props = defineProps({
-    flashsales: Object,
     products: Object,
     categories: Array,
     filters: Object,
@@ -73,9 +71,6 @@ const allProductsTitle = computed(() => {
 });
 const allProductsSubtitle = computed(() => getSectionContent("products_grid", "subtitle", "Jelajahi koleksi lengkap produk kami"));
 
-const flashSaleTitle = computed(() => getSectionContent("flash_sale", "title", ""));
-const flashSaleSubtitle = computed(() => getSectionContent("flash_sale", "subtitle", "Dapatkan harga spesial dengan periode terbatas"));
-
 const submitNewsletter = () => {
     newsletterForm.post(route("frontend.newsletter.subscribe"), {
         preserveScroll: true,
@@ -108,16 +103,12 @@ const submitNewsletter = () => {
             :overlay-color="heroOverlay"
             :button-text="heroButtonText"
             :button-link="heroButtonLink"
-            :hasFlashsales="flashsales?.length > 0"
         />
 
         <!-- Category Menu -->
         <CategoryMenu :categories="categories" />
 
         <!-- Pilihan Terbaik (Featured Products) -->
-        <!-- Flash Sale Section -->
-        <FlashSaleSection v-if="flashsales" :flashsales="flashsales" :title="flashSaleTitle" :subtitle="flashSaleSubtitle" />
-
         <FeaturedProducts
             v-if="featuredProducts.length > 0 && !filters?.category"
             :products="featuredProducts"
@@ -196,8 +187,8 @@ const submitNewsletter = () => {
             </div>
         </section>
 
-        <!-- Newsletter Section -->
-        <section class="relative overflow-hidden bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-12 md:py-16">
+        <!-- @feature-toggle: newsletter — remove v-if="false" to re-enable -->
+        <section v-if="false" class="relative overflow-hidden bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-12 md:py-16">
             <div class="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl"></div>
             <div class="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl"></div>
 

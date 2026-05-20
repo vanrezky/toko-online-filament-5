@@ -26,7 +26,7 @@ return new class extends Migration
             $table->decimal('cod_fee', 15, 2)->default(0);
             $table->string('receipt_code')->nullable();
             $table->dateTime('delivery_date')->nullable();
-            $table->enum('status', ['unpaid', 'shipped', 'delivered', 'rejected', 'completed'])->default('unpaid');
+            $table->enum('status', ['unpaid', 'packed', 'shipped', 'delivered', 'rejected', 'completed'])->default('unpaid');
             $table->dateTime('complete_date')->nullable();
             $table->boolean('request_cancellation')->default(false);
             $table->string('notes')->nullable();

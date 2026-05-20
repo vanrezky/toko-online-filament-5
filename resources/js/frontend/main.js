@@ -7,6 +7,19 @@ import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { ZiggyVue } from "ziggy-js";
 import ConfirmDialog from "vue3-confirm-dialog";
 import "vue3-confirm-dialog/style";
+import { createI18n } from "vue-i18n";
+import id from "../locales/id.json";
+import en from "../locales/en.json";
+
+const i18n = createI18n({
+    legacy: false,
+    locale: "id",
+    fallbackLocale: "en",
+    messages: {
+        id,
+        en,
+    },
+});
 
 createInertiaApp({
     resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob("./Pages/**/*.vue")),
@@ -15,6 +28,7 @@ createInertiaApp({
             .use(plugin)
             .use(ZiggyVue)
             .use(ConfirmDialog)
+            .use(i18n)
             .mount(el);
     },
 });

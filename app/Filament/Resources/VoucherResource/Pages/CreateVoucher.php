@@ -10,6 +10,11 @@ class CreateVoucher extends CreateRecord
 {
     protected static string $resource = VoucherResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/voucher-resource.pages.create.title');
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['user_id'] = auth()->id();

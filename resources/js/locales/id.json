@@ -1,0 +1,559 @@
+{
+    "breadcrumb": {
+        "home": "Beranda",
+        "products": "Produk",
+        "flash_sale": "Flash Sale"
+    },
+    "shipping": {
+        "pick_up": "Pick Up",
+        "estimation_same_day": "Hari yang sama",
+        "kurir_toko": "Kurir Toko",
+        "estimation_1_2_days": "1-2 Hari"
+    },
+    "sort": {
+        "newest": "Terbaru",
+        "price_low_high": "Harga: Rendah ke Tinggi",
+        "price_high_low": "Harga: Tinggi ke Rendah",
+        "name_asc": "Nama: A-Z",
+        "name_desc": "Nama: Z-A"
+    },
+    "time": {
+        "hours": "Jam",
+        "minutes": "Menit",
+        "seconds": "Detik",
+        "days_remaining": "{days} hari lagi",
+        "hours_remaining": "{hours} jam lagi",
+        "expiring_soon": "Segera berakhir"
+    },
+    "trust": {
+        "free_shipping": "Gratis Ongkir",
+        "free_shipping_note": "Min. pembelanjaan tertentu",
+        "secure_payment": "Pembayaran Aman",
+        "secure_payment_note": "100% checkout aman",
+        "easy_returns": "Pengembalian Mudah",
+        "easy_returns_note": "30 hari kebijakan pengembalian"
+    },
+    "voucher": {
+        "available_title": "Voucher Tersedia",
+        "available_subtitle": "Simpan dan gunakan saat checkout",
+        "selected": "Voucher Dipilih",
+        "save_amount": "Hemat {amount}",
+        "enter_code": "Masukkan Kode Voucher",
+        "min_purchase": "Min. Belanja: {amount}",
+        "copied": "Copied!",
+        "copy_code": "Salin kode",
+        "usage_count": "{count} digunakan",
+        "change": "Ganti Voucher",
+        "fully_used": "Habis Digunakan",
+        "applying": "Menerapkan...",
+        "use": "Gunakan Voucher",
+        "active_badge": "AKTIF",
+        "type_free_shipping": "FREE ONGKIR",
+        "type_discount": "DISKON"
+    },
+    "account": {
+        "heading": "Akun Saya",
+        "menu": {
+            "overview": "Ringkasan",
+            "orders": "Pesanan Saya",
+            "addresses": "Alamat Pengiriman",
+            "settings": "Pengaturan"
+        },
+        "quick_links": "Akses Cepat",
+        "wishlist": "Daftar Keinginan",
+        "order_history": "Riwayat Pesanan",
+        "total_orders": "Total Pesanan",
+        "default_address": "Alamat Default",
+        "recent_activity": "Aktivitas Terbaru",
+        "no_activity": "Belum ada aktivitas terbaru",
+        "no_activity_description": "Mulai belanja untuk melihat aktivitas Anda di sini",
+        "settings_heading": "Pengaturan Akun",
+        "settings_description": "Kelola informasi profil dan preferensi akun Anda",
+        "profile_photo": "Foto Profil",
+        "photo_requirements": "JPEG, PNG atau WEBP. Maks 2MB."
+    },
+    "blog": {
+        "share": "Bagikan:",
+        "tags": "Tags:",
+        "related_articles": "Baca Juga"
+    },
+    "cart_slide": {
+        "your_cart": "Keranjang Anda",
+        "empty_title": "Keranjang Anda kosong",
+        "empty_description": "Yuk mulai belanja dan temukan produk favoritmu!"
+    },
+
+    "flash_sale": {
+        "limited_promo": "Promo Terbatas",
+        "promo_products": "Produk Promo",
+        "avg_discount": "Rata-rata Diskon",
+        "ends_in": "Berakhir dalam:",
+        "product_count_suffix": "produk promo",
+        "empty_title": "Tidak Ada Flash Sale",
+        "empty_description": "Sepertinya tidak ada flash sale yang aktif saat ini. Silakan cek kembali nanti!"
+    },
+    "hero": {
+        "default_title": "Diskon Spesial Hari Ini",
+        "default_subtitle": "Dapatkan promo terbaik untuk produk favorit Anda. Promo terbatas, jangan sampai ketinggalan!"
+    },
+    "orders": {
+        "heading": "Pesanan Saya",
+        "empty_title": "Belum Ada Pesanan",
+        "empty_description": "Anda belum melakukan transaksi apapun."
+    },
+    "products": {
+        "default_title": "Semua Produk",
+        "available_count": "{count} produk tersedia",
+        "not_found": "Produk tidak ditemukan",
+        "adjust_filters": "Coba ubah filter atau kata kunci pencarian Anda.",
+        "all_viewed": "Anda telah melihat semua produk",
+        "empty_title": "Belum Ada Produk",
+        "empty_description": "Sepertinya belum ada produk yang tersedia saat ini. Yuk, cek kembali nanti!",
+        "filter_and_sort": "Filter"
+    },
+    "messages": {
+        "success": {
+            "saved": "Data berhasil disimpan.",
+            "updated": "Data berhasil diperbarui.",
+            "deleted": "Data berhasil dihapus.",
+            "subscribed": "Berhasil berlangganan newsletter! Cek email Anda untuk konfirmasi.",
+            "resubscribed": "Berhasil berlangganan kembali! Selamat datang kembali.",
+            "test_newsletter_sent": "Email test newsletter telah dikirim ke {email}.",
+            "contact_sent": "Pesan berhasil dikirim! Kami akan menghubungi Anda segera.",
+            "message_marked_read": "Pesan ditandai sebagai sudah dibaca.",
+            "message_deleted": "Pesan berhasil dihapus.",
+            "order_placed": "Pesanan berhasil dibuat!",
+            "item_added_to_cart": "Item berhasil ditambahkan ke keranjang.",
+            "item_added_to_bag": "Item berhasil ditambahkan ke tas.",
+            "cart_updated": "Keranjang berhasil diperbarui.",
+            "item_removed": "Item berhasil dihapus.",
+            "item_removed_from_bag": "Item berhasil dihapus dari tas.",
+            "voucher_applied": "Voucher \"{code}\" berhasil dipilih!",
+            "voucher_removed": "Voucher berhasil dihapus.",
+            "voucher_cleared": "Voucher telah dihapus.",
+            "profile_updated": "Profil berhasil diperbarui.",
+            "address_added": "Alamat berhasil ditambahkan.",
+            "address_updated": "Alamat berhasil diperbarui.",
+            "address_deleted": "Alamat berhasil dihapus.",
+            "password_reset": "Kata sandi berhasil direset."
+        },
+        "error": {
+            "generic": "Terjadi kesalahan. Silakan coba lagi.",
+            "not_found": "Data tidak ditemukan.",
+            "already_subscribed": "Email Anda sudah terdaftar dalam newsletter.",
+            "newsletter_template_not_found": "Template newsletter tidak ditemukan.",
+            "cart_empty": "Keranjang Anda kosong.",
+            "address_no_village": "Alamat yang dipilih tidak memiliki informasi kelurahan/desa.",
+            "order_already_paid": "Pesanan sudah dibayar atau dibatalkan.",
+            "payment_initiation_failed": "Gagal memulai pembayaran: {message}",
+            "payment_start_failed": "Gagal memulai pembayaran. Silakan coba lagi.",
+            "cart_not_found": "Keranjang tidak ditemukan.",
+            "login_required": "Silakan login terlebih dahulu.",
+            "login_required_to_add_cart": "Silakan login untuk menambahkan item ke keranjang.",
+            "login_required_voucher": "Silakan login untuk menggunakan voucher.",
+            "login_required_remove_voucher": "Silakan login untuk menghapus voucher.",
+            "variant_required": "Silakan pilih varian produk.",
+            "checkout_failed": "Gagal memproses pesanan. Silakan coba lagi.",
+            "voucher_invalid": "Voucher tidak valid.",
+            "voucher_invalid_code": "Kode voucher tidak valid.",
+            "voucher_inactive": "Voucher sudah tidak aktif.",
+            "voucher_not_public": "Voucher tidak tersedia.",
+            "voucher_not_started": "Voucher belum dimulai.",
+            "voucher_expired": "Voucher sudah berakhir.",
+            "voucher_max_usage_global": "Voucher sudah mencapai batas penggunaan.",
+            "voucher_max_usage_user": "Anda sudah mencapai batas penggunaan voucher ini.",
+            "voucher_min_purchase": "Minimal belanja {amount} untuk menggunakan voucher ini.",
+            "no_shipping_options": "Tidak ada opsi pengiriman untuk alamat ini.",
+            "select_address_first": "Silakan pilih alamat pengiriman terlebih dahulu.",
+            "address_cannot_delete": "Alamat tidak dapat dihapus.",
+            "registration_disabled": "Pendaftaran dinonaktifkan.",
+            "provinces_fetch_failed": "Gagal mengambil data provinsi dari server."
+        },
+        "info": {
+            "already_subscribed": "Email Anda sudah terdaftar dalam newsletter.",
+            "shipping_calculated_at_checkout": "Dihitung saat checkout."
+        }
+    },
+    "placeholders": {
+        "email": "email{'@'}example.com",
+        "password": "••••••••",
+        "password_min": "Min. 8 karakter",
+        "full_name": "Nama lengkap",
+        "first_name": "Nama depan",
+        "last_name": "Nama belakang",
+        "phone": "08...",
+        "subject": "Apa yang ingin Anda tanyakan?",
+        "message": "Tulis pesan Anda di sini...",
+        "order_notes": "Instruksi khusus untuk pengiriman Anda...",
+        "voucher_code": "Contoh: DISKON10",
+        "search_products": "Cari produk...",
+        "search_articles": "Cari artikel...",
+        "select_province": "Pilih Provinsi",
+        "select_district": "Pilih Kabupaten/Kota",
+        "select_sub_district": "Pilih Kecamatan",
+        "select_village": "Pilih Kelurahan/Desa",
+        "postal_code": "12345",
+        "street_address": "Nama jalan, nomor rumah...",
+        "price_min": "Min",
+        "price_max": "Max",
+        "new_password_confirmation": "Ulangi password baru",
+        "password_confirmation": "Ulangi kata sandi"
+    },
+    "meta": {
+        "products": {
+            "title": "List Produk"
+        },
+        "orders": {
+            "title": "Order"
+        },
+        "order_detail": {
+            "title": "Detail Order"
+        },
+        "login": {
+            "title": "Login"
+        }
+    },
+    "form": {
+        "search": "Cari",
+        "sort": "Urutan",
+        "category": "Kategori",
+        "price": "Harga"
+    },
+    "labels": {
+        "faq": {
+            "heading": "Pertanyaan yang Sering Diajukan",
+            "subheading": "Yang perlu Anda ketahui tentang {name}",
+            "page_heading": "FAQ",
+            "page_subheading": "Temukan jawaban atas pertanyaan yang paling sering diajukan di bawah ini.",
+            "still_have_questions": "Masih punya pertanyaan?",
+            "contact_team": "Jika Anda tidak menemukan jawabannya, tim kami siap membantu."
+        },
+        "contact": {
+            "heading": "Hubungi Kami",
+            "subheading": "Punya pertanyaan atau butuh bantuan? Kirim pesan kepada kami."
+        },
+        "auth": {
+            "welcome": "Selamat Datang",
+            "login_subtitle": "Masuk ke akun Anda untuk melanjutkan.",
+            "create_account": "Buat Akun",
+            "register_subtitle": "Daftar untuk pengalaman belanja terbaik.",
+            "forgot_password": "Lupa kata sandi?",
+            "forgot_password_heading": "Lupa Kata Sandi?",
+            "forgot_password_description": "Masukkan email Anda dan kami akan mengirim link untuk mereset kata sandi.",
+            "reset_password_heading": "Reset Password",
+            "reset_password_description": "Masukkan password baru untuk akun Anda.",
+            "remember_me": "Ingat saya",
+            "no_account": "Belum punya akun?",
+            "has_account": "Sudah punya akun?",
+            "password_requirements_title": "Password harus mengandung:",
+            "password_min_length": "Minimal 8 karakter",
+            "password_uppercase": "1 huruf besar",
+            "password_number": "1 angka",
+            "password_symbol": "1 simbol"
+        },
+        "dialogs": {
+            "delete_address_title": "Hapus Alamat",
+            "delete_address_message": "Apakah Anda yakin ingin menghapus alamat \"{name}\"?",
+            "cancel": "Batal",
+            "confirm_delete": "Ya, Hapus"
+        },
+        "wishlist": {
+            "heading": "Daftar Keinginan",
+            "description": "Produk yang telah Anda simpan untuk nanti.",
+            "item_count": "{count} Item Disimpan",
+            "empty_title": "Daftar keinginan Anda kosong",
+            "empty_description": "Simpan produk favorit Anda untuk melihatnya di sini."
+        },
+        "form": {
+            "full_name": "Nama Lengkap",
+            "email": "Email",
+            "password": "Kata Sandi",
+            "password_confirmation": "Konfirmasi Kata Sandi",
+            "new_password": "Password Baru",
+            "subject": "Subjek",
+            "message": "Pesan",
+            "first_name": "Nama Depan",
+            "last_name": "Nama Belakang",
+            "phone": "Nomor Telepon",
+            "province": "Provinsi",
+            "district": "Kabupaten/Kota",
+            "sub_district": "Kecamatan",
+            "village": "Kelurahan/Desa",
+            "postal_code": "Kode Pos",
+            "full_address": "Alamat Lengkap",
+            "recipient_name": "Nama Penerima",
+            "search": "Pencarian",
+            "sort": "Urutkan",
+            "category": "Kategori",
+            "price": "Harga",
+            "set_as_default": "Jadikan alamat default"
+        },
+        "vouchers": {
+            "heading": "Voucher & Promo",
+            "subheading": "Temukan voucher menarik untuk hemat lebih banyak",
+            "empty_title": "Tidak Ada Voucher",
+            "empty_description": "Voucher dengan filter \"{filter}\" belum tersedia saat ini.",
+            "how_to_title": "Cara Menggunakan Voucher",
+            "how_to_step_1": "Pilih voucher yang kamu inginkan dari daftar di atas.",
+            "how_to_step_2": "Voucher akan otomatis diterapkan ke checkout saat kamu memenuhi syarat.",
+            "how_to_step_3": "Selesaikan pembayaran dan nikmati hematnya!",
+            "tip": "Tips: Kamu bisa menggunakan 1 voucher ongkir dan 1 voucher produk dalam 1 transaksi."
+        },
+        "checkout": {
+            "heading": "Checkout",
+            "shipping_address": "Alamat Pengiriman",
+            "new_address": "Alamat Baru",
+            "shipping_method": "Metode Pengiriman",
+            "pickup_no_address_required": "Anda memilih metode Ambil di Toko (Pickup). Alamat pengiriman tidak diperlukan untuk pesanan ini.",
+            "shipped_from": "Dikirim dari {warehouse}",
+            "estimation": "Estimasi: {estimation}",
+            "payment_method": "Metode Pembayaran",
+            "order_notes": "Catatan Pesanan (Opsional)",
+            "order_summary": "Ringkasan Pesanan",
+            "subtotal": "Subtotal",
+            "shipping": "Pengiriman",
+            "product_discount": "Diskon Produk",
+            "total": "Total",
+            "total_savings": "Hemat {amount}",
+            "terms_agreement": "Transaksi terenkripsi dengan aman. Dengan melanjutkan, Anda menyetujui Syarat & Ketentuan kami.",
+            "select_tenor": "Pilih Tenor Cicilan",
+            "installment_summary": "Ringkasan Cicilan"
+        },
+        "payment": {
+            "bank_transfer": "Transfer Bank",
+            "qris": "QRIS",
+            "full": "Bayar Penuh",
+            "installment": "Cicilan",
+            "potong_kredit": "(Potong Kredit)"
+        },
+        "cart": {
+            "heading": "Keranjang Belanja",
+            "your_cart": "Keranjang Anda",
+            "summary_title": "Ringkasan Belanja",
+            "subtotal": "Subtotal",
+            "subtotal_with_count": "Subtotal ({count} item)",
+            "shipping_cost": "Ongkos Kirim",
+            "total": "Total",
+            "estimated_tax": "Estimasi Pajak (10%)",
+            "empty_title": "Keranjang Anda kosong",
+            "empty_description": "Yuk mulai belanja dan temukan produk favoritmu!"
+        },
+        "actions": {
+            "save": "Simpan",
+            "saving": "Menyimpan...",
+            "cancel": "Batal",
+            "delete": "Hapus",
+            "edit": "Edit",
+            "add_new": "Tambah Baru",
+            "apply": "Pakai",
+            "back": "Kembali",
+            "back_to_home": "Kembali ke Beranda",
+            "back_to_login": "Kembali ke Masuk",
+            "back_to_orders": "Kembali ke Pesanan",
+            "back_to_blog": "Kembali ke Blog",
+            "checkout": "Checkout",
+            "confirm_delete": "Ya, Hapus",
+            "contact_support": "Hubungi Dukungan",
+            "continue_shopping": "Lanjut Belanja",
+            "explore_products": "Jelajahi Produk",
+            "filter": "Filter",
+            "home": "Beranda",
+            "load_more": "Lihat Lebih Banyak",
+            "loading": "Memuat...",
+            "login": "Masuk",
+            "logout": "Keluar",
+            "manage": "Kelola",
+            "manage_addresses": "Kelola Alamat",
+            "pay_now": "Bayar Sekarang",
+            "place_order": "Buat Pesanan",
+            "processing": "Memproses...",
+            "proceed_to_checkout": "Lanjut ke Pembayaran",
+            "read_more": "Baca Selengkapnya",
+            "register": "Daftar",
+            "register_now": "Daftar sekarang",
+            "reset": "Reset",
+            "reset_filters": "Reset Filter",
+            "save_address": "Simpan Alamat",
+            "search": "Cari",
+            "select_options": "Pilih Opsi",
+            "send_message": "Kirim Pesan",
+            "sending": "Mengirim...",
+            "send_reset_link": "Kirim Link Reset",
+            "set_default": "Jadikan Default",
+            "start_shopping": "Mulai Belanja",
+            "update": "Perbarui",
+            "updating": "Memperbarui...",
+            "view_all": "Lihat Semua",
+            "view_all_products": "Lihat Semua Produk",
+            "view_more": "Lihat Lebih Banyak",
+            "view_products": "Lihat Koleksi Produk",
+            "voucher_list": "List Voucher",
+            "add_first_address": "Tambah Alamat Pertama",
+            "add_to_cart": "Tambah ke Keranjang"
+        },
+
+        "sort": {
+            "newest": "Terbaru",
+            "price_low_high": "Harga: Rendah ke Tinggi",
+            "price_high_low": "Harga: Tinggi ke Rendah",
+            "name_asc": "Nama: A-Z",
+            "name_desc": "Nama: Z-A"
+        },
+        "filters": {
+            "all": "Semua",
+            "shipping": "Ongkir",
+            "product": "Produk",
+            "all_categories": "Semua Kategori",
+            "active": "Filter Aktif"
+        },
+
+        "footer": {
+            "customer_service": "Layanan Pelanggan",
+            "pages": "Halaman",
+            "newsletter": "Newsletter",
+            "newsletter_description": "Berlangganan untuk menerima update, akses ke penawaran eksklusif, dan lainnya.",
+            "all_rights_reserved": "Hak cipta dilindungi undang-undang.",
+            "secure_payment": "Pembayaran Aman:",
+            "contact_us": "Hubungi Kami",
+            "faq": "Sering Ditanyakan",
+            "shipping_info": "Info Pengiriman",
+            "track_order": "Lacak Order",
+            "returns_exchanges": "Pengembalian & Penukaran"
+        },
+
+        "voucher": {
+            "available_title": "Voucher Tersedia",
+            "available_subtitle": "Simpan dan gunakan saat checkout",
+            "selected": "Voucher Dipilih",
+            "save_amount": "Hemat {amount}",
+            "enter_code": "Masukkan Kode Voucher",
+            "min_purchase": "Min. Belanja: {amount}",
+            "copied": "Copied!",
+            "copy_code": "Salin kode",
+            "usage_count": "{count}x digunakan",
+            "change": "Ganti Voucher",
+            "fully_used": "Habis Digunakan",
+            "applying": "Menerapkan...",
+            "use": "Gunakan Voucher",
+            "active_badge": "AKTIF",
+            "type_free_shipping": "FREE ONGKIR",
+            "type_discount": "DISKON"
+        },
+        "time": {
+            "hours": "Jam",
+            "minutes": "Menit",
+            "seconds": "Detik",
+            "days_remaining": "{days} hari lagi",
+            "hours_remaining": "{hours} jam lagi",
+            "expiring_soon": "Segera berakhir"
+        },
+        "product": {
+            "shipped_from": "Dikirim Dari",
+            "default_warehouse": "Gudang Utama",
+            "weight": "Berat",
+            "availability": "Tersedia:",
+            "stock_unit": "{stock} unit",
+            "out_of_stock": "Stok Habis",
+            "quantity": "Jumlah",
+            "min_order": "Min. pemesanan: {min} unit",
+            "wholesale_active": "Harga Grosir! Min. {qty} unit @ {price}",
+            "wholesale_next": "Beli {qty}+ unit untuk harga grosir {price}"
+        },
+        "products": {
+            "default_title": "Semua Produk",
+            "available_count": "{count} produk tersedia",
+            "not_found": "Produk tidak ditemukan",
+            "adjust_filters": "Coba ubah filter atau kata kunci pencarian Anda.",
+            "all_viewed": "Anda telah melihat semua produk",
+            "empty_title": "Belum Ada Produk",
+            "empty_description": "Sepertinya belum ada produk yang tersedia saat ini. Yuk, cek kembali nanti!",
+            "filter_and_sort": "Filter"
+        },
+        "trust": {
+            "free_shipping": "Gratis Ongkir",
+            "free_shipping_note": "Min. pembelanjaan tertentu",
+            "secure_payment": "Pembayaran Aman",
+            "secure_payment_note": "100% checkout aman",
+            "easy_returns": "Pengembalian Mudah",
+            "easy_returns_note": "30 hari kebijakan pengembalian"
+        },
+        "breadcrumb": {
+            "home": "Beranda",
+            "products": "Produk",
+            "flash_sale": "Flash Sale"
+        },
+        "account": {
+            "heading": "Akun Saya",
+            "menu": {
+                "overview": "Ringkasan",
+                "orders": "Pesanan Saya",
+                "addresses": "Alamat Pengiriman",
+                "settings": "Pengaturan"
+            },
+            "quick_links": "Akses Cepat",
+            "wishlist": "Daftar Keinginan",
+            "order_history": "Riwayat Pesanan",
+            "total_orders": "Total Pesanan",
+            "default_address": "Alamat Default",
+            "recent_activity": "Aktivitas Terbaru",
+            "no_activity": "Belum ada aktivitas terbaru",
+            "no_activity_description": "Mulai belanja untuk melihat aktivitas Anda di sini",
+            "settings_heading": "Pengaturan Akun",
+            "settings_description": "Kelola informasi profil dan preferensi akun Anda",
+            "profile_photo": "Foto Profil",
+            "photo_requirements": "JPEG, PNG atau WEBP. Maks 2MB."
+        },
+        "address": {
+            "heading": "Alamat Pengiriman",
+            "description": "Kelola alamat pengiriman pesanan Anda",
+            "default_badge": "Default",
+            "no_default": "Belum ada alamat default",
+            "empty": "Belum ada alamat tersimpan",
+            "new_heading": "Alamat Pengiriman Baru",
+            "edit_heading": "Edit Alamat",
+            "new_description": "Tambahkan alamat baru untuk pengiriman",
+            "edit_description": "Perbarui informasi alamat Anda"
+        },
+        "orders": {
+            "heading": "Pesanan Saya",
+            "empty_title": "Belum Ada Pesanan",
+            "empty_description": "Anda belum melakukan transaksi apapun.",
+            "pickup_location": "Lokasi Pengambilan"
+        },
+
+        "order": {
+            "order_number": "Pesanan #{id}",
+            "items_title": "Item Pesanan",
+            "quantity": "Jumlah: {qty}",
+            "line_total": "Total: {amount}",
+            "shipping_address": "Alamat Pengiriman",
+            "shipping_method": "Metode Pengiriman",
+            "shipping_cost": "Biaya: {amount}",
+            "payment": "Pembayaran",
+            "payment_status_label": "Status:",
+            "monthly_amount": "Angsuran per Bulan",
+            "summary_title": "Ringkasan Pesanan",
+            "subtotal": "Subtotal",
+            "shipping": "Pengiriman",
+            "discount": "Diskon",
+            "total": "Total",
+            "expired": "Pesanan ini sudah kedaluwarsa",
+            "awaiting_payment": "Menunggu Pembayaran",
+            "create_new": "Silakan buat pesanan baru",
+            "complete_payment_before": "Selesaikan pembayaran sebelum",
+            "payment_ended": "Pembayaran berakhir pada",
+            "standard_shipping": "Pengiriman Standar",
+            "status": {
+                "unpaid": "Menunggu Pembayaran",
+                "packed": "Dikemas",
+                "paid": "Lunas",
+                "shipped": "Dikirim",
+                "delivered": "Diterima",
+                "completed": "Selesai",
+                "rejected": "Ditolak",
+                "cancelled": "Dibatalkan"
+            },
+            "payment_method": "Metode Pembayaran"
+        }
+    }
+}

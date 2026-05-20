@@ -25,21 +25,27 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Override;
 
 class ProductVariantsRelationManager extends RelationManager
 {
     protected static string $relationship = 'productVariants';
+
+    #[Override]
+    protected static function getModelLabel(): ?string
+    {
+        return __('admin/product-resource.product-variant.label');
+    }
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Repeater::make('variant_attributes')
-                    // ->relationship('variantAttributes')
-                    ->label('Product Variants')
+                    ->label(__('admin/product-resource.product-variant.fields.variant'))
                     ->schema([
                         Select::make('product_attribute_id')
-                            ->label(__('Attribute'))
+                            ->label(__('admin/product-resource.product-variant.fields.attribute'))
                             ->options(fn(): array => $this->getProductAttributes())
                             ->required()
                             ->fixIndistinctState()
@@ -49,7 +55,7 @@ class ProductVariantsRelationManager extends RelationManager
                             ->disabledOn('edit')
                             ->createOptionForm([
                                 Forms\Components\TextInput::make('name')
-                                    ->label(__('Attribute'))
+                                    ->label(__('admin/product-resource.product-variant.fields.attribute'))
                                     ->required()
                                     ->maxLength(100)
                                     ->rules([
@@ -60,7 +66,7 @@ class ProductVariantsRelationManager extends RelationManager
                                                 ->exists();
 
                                             if ($exists) {
-                                                $fail(__('This attribute has already been created.'));
+                                                $fail(__('admin/product-resource.product-variant.notifications.attribute_exists'));
                                             }
                                         },
                                     ]),
@@ -68,11 +74,11 @@ class ProductVariantsRelationManager extends RelationManager
                             ->columnSpanFull(),
 
                         Repeater::make('product_attribute_options')
-                            ->label(__('Options'))
+                            ->label(__('admin/product-resource.product-variant.fields.options'))
                             ->hidden(fn(Get $get) => empty($get('product_attribute_id')))
                             ->simple(
                                 Select::make('product_attribute_option_id')
-                                    ->label(__('Options'))
+                                    ->label(__('admin/product-resource.product-variant.fields.options'))
                                     ->options(fn(Get $get, string $context, ?string $state): array => self::getProductAttributeOptions($get('../../product_attribute_id'), $context, $state))
                                     ->fixIndistinctState()
                                     ->required()
@@ -80,7 +86,7 @@ class ProductVariantsRelationManager extends RelationManager
                                     ->disableOptionsWhenSelectedInSiblingRepeaterItems()
                                     ->createOptionForm([
                                         Forms\Components\TextInput::make('name')
-                                            ->label(__('Option'))
+                                            ->label(__('admin/product-resource.product-variant.fields.option'))
                                             ->required()
                                             ->maxLength(100)
                                             ->rules([
@@ -92,7 +98,7 @@ class ProductVariantsRelationManager extends RelationManager
                                                         ->exists();
 
                                                     if ($exists) {
-                                                        $fail(__('This attribute has already been created.'));
+                                                        $fail(__('admin/product-resource.product-variant.notifications.option_exists'));
                                                     }
                                                 },
                                             ]),
@@ -112,16 +118,16 @@ class ProductVariantsRelationManager extends RelationManager
                     ->minItems(1)
                     ->maxItems(2)
                     ->deletable(fn(string $context): bool => $context === 'create')
-                    ->label(__('Variant'))
+                    ->label(__('admin/product-resource.product-variant.fields.variant'))
                     ->reorderable(false),
                 TextInput::make('price')
-                    ->label(__('Price'))
+                    ->label(__('admin/product-resource.product-variant.fields.price'))
                     ->numeric()
                     ->required()
                     ->default(fn() => $this->getOwnerRecord()->price)
                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                 TextInput::make('stock')
-                    ->label(__('Stock'))
+                    ->label(__('admin/product-resource.product-variant.fields.stock'))
                     ->numeric()
                     ->required(),
                 SpatieMediaLibraryFileUpload::make('image')
@@ -139,7 +145,7 @@ class ProductVariantsRelationManager extends RelationManager
                     ->disk(getActiveDisk())
                     ->rules(['required', 'mimes:png,jpg,jpeg,webp,gif', 'max:1024'])
                     ->maxSize(1024)
-                    ->helperText(__('Ratio Is 1:1. Maximum size is 1MB'))
+                    ->helperText(__('admin/product-resource.product-variant.fields.image_helper'))
                     ->directory(UploadPath::PRODUCT_UPLOAD_PATH)
                     ->columnSpanFull()
             ]);
@@ -148,7 +154,7 @@ class ProductVariantsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('Variants')
+            ->recordTitleAttribute(__('admin/product-resource.product-variant.columns.variant'))
             ->columns([
                 SpatieMediaLibraryImageColumn::make('image')->conversion('thumb')
                     ->square(),
@@ -159,8 +165,10 @@ class ProductVariantsRelationManager extends RelationManager
                     ->badge()
                     ->color('info'),
                 Tables\Columns\TextColumn::make('sku'),
-                Tables\Columns\TextColumn::make('price'),
-                Tables\Columns\TextColumn::make('stock'),
+                Tables\Columns\TextColumn::make('price')
+                    ->label(__('admin/product-resource.product-variant.fields.price')),
+                Tables\Columns\TextColumn::make('stock')
+                    ->label(__('admin/product-resource.product-variant.fields.stock')),
             ])
             ->filters([
                 //

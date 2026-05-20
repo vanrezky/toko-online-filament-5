@@ -33,6 +33,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
+use Override;
 
 class BlogPostResource extends Resource
 {
@@ -40,11 +41,28 @@ class BlogPostResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationLabel = 'Posts';
-    protected static ?string $navigationGroup = 'Blog';
     protected static ?int $navigationSort = 1;
     protected static ?string $slug = 'blog/posts';
 
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/blog-post-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/blog-post-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/blog-post-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/blog-post-resource.plural_model_label');
+    }
 
     public static function getNavigationBadge(): ?string
     {
@@ -58,12 +76,12 @@ class BlogPostResource extends Resource
             ->schema([
                 Tabs::make()
                     ->schema([
-                        Tab::make('Title & Content')
+                        Tab::make(__('admin/blog-post-resource.tabs.title_and_content'))
                             ->schema([
                                 TitleSchema::title()
                                     ->autofocus()
                                     ->hiddenLabel()
-                                    ->placeholder(__('Post title'))
+                                    ->placeholder(__('admin/blog-post-resource.placeholders.post_title'))
                                     ->minLength(5)
                                     ->required()
                                     ->maxLength(255)
@@ -72,21 +90,22 @@ class BlogPostResource extends Resource
                                     ->extraInputAttributes(['class' => 'column-title'], true),
                                 RichEditor::make('content')
                                     ->hiddenLabel()
-                                    ->placeholder('Post Content')
+                                    ->placeholder(__('admin/blog-post-resource.placeholders.post_content'))
                                     ->required()
                                     ->string()
                                     ->columnSpanFull(),
                                 Select::make('blog_category_id')
+                                    ->label(__('admin/blog-post-resource.fields.category_id'))
                                     ->relationship('category', titleAttribute: 'name')
                                     ->searchable()
                                     ->preload()
                                     ->required(),
                             ]),
-                        Tab::make('SEO')
+                        Tab::make(__('admin/blog-post-resource.tabs.seo'))
                             ->schema(
                                 [
                                     TitleSchema::slug()
-                                        ->label(__('Post Slug'))
+                                        ->label(__('admin/blog-post-resource.fields.slug'))
                                         ->required()
                                         ->maxLength(255)
                                         ->columnSpanFull(),
@@ -94,32 +113,32 @@ class BlogPostResource extends Resource
                                     MetaSchema::get(),
                                 ]
                             ),
-                        Tab::make('Tags')
+                        Tab::make(__('admin/blog-post-resource.tabs.tags'))
                             ->schema([
                                 SpatieTagsInput::make('tags')
-                                    ->label(__('Tags'))
-                                    ->placeholder('e.g: electronics, phone, laptop')
+                                    ->label(__('admin/blog-post-resource.fields.tags'))
+                                    ->placeholder(__('admin/blog-post-resource.placeholders.tags_placeholder'))
                             ]),
-                        Tab::make('Visibility')
+                        Tab::make(__('admin/blog-post-resource.tabs.visibility'))
                             ->schema([
                                 Select::make('is_status')
-                                    ->label(__('Post Status'))
-                                    ->helperText(__('Publish the post or save it as a draft.'))
+                                    ->label(__('admin/blog-post-resource.fields.status'))
+                                    ->helperText(__('admin/blog-post-resource.helpers.publish_draft'))
                                     ->options([
-                                        BlogPostStatus::DRAFT->value => 'Draft',
-                                        BlogPostStatus::PUBLISHED->value => 'Published',
+                                        BlogPostStatus::DRAFT->value => __('admin/blog-post-resource.status.draft'),
+                                        BlogPostStatus::PUBLISHED->value => __('admin/blog-post-resource.status.published'),
                                     ])
                                     ->default(BlogPostStatus::PUBLISHED->value)
                                     ->native(false)
                                     ->required(),
                                 DatePicker::make('published_at')
-                                    ->helperText(__('If published, the post will be visible on this date.'))
+                                    ->helperText(__('admin/blog-post-resource.helpers.published_date'))
                                     ->default(now())
                             ]),
-                        Tab::make('Image')
+                        Tab::make(__('admin/blog-post-resource.tabs.image'))
                             ->schema([
                                 FileUpload::make('image')
-                                    ->label('Featured Image')
+                                    ->label(__('admin/blog-post-resource.fields.featured_image'))
                                     ->image()
                                     ->imageEditor()
                                     ->directory(UploadPath::IMAGES_UPLOAD_PATH),
@@ -138,26 +157,26 @@ class BlogPostResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
-                    ->label(__('Post title'))
+                    ->label(__('admin/blog-post-resource.columns.title'))
                     ->searchable()
                     ->sortable()
                     ->words(5),
                 Tables\Columns\TextColumn::make('category.name')
-                    ->label(__('Category'))
+                    ->label(__('admin/blog-post-resource.columns.category'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('author.name')
-                    ->label(__('Author'))
+                    ->label(__('admin/blog-post-resource.columns.author'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('published_at')
                     ->date()
-                    ->label(__('Published')),
+                    ->label(__('admin/blog-post-resource.columns.published_at')),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->label(__('Last Updated'))
+                    ->label(__('admin/blog-post-resource.columns.updated_at'))
                     ->date(),
                 Tables\Columns\TextColumn::make('is_status')
-                    ->label(__('Status'))
+                    ->label(__('admin/blog-post-resource.columns.status'))
                     ->badge()
 
             ])

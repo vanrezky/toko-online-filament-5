@@ -39,7 +39,7 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Orange,
             ])
             ->font('Karla')
-            ->navigationGroups(['Product', 'Promo', 'Customer',  'Master', 'Transaction', 'Report', 'Blog', 'Setting', 'Logs'])
+            ->navigationGroups(['Master', 'Produk', 'Promo', 'Customer', 'Pelanggan', 'Report', 'Laporan', 'Transaction', 'Transaksi', 'Settings', 'Pengaturan', 'Blog', 'Logs', 'Wilayah'])
             ->favicon(settings('favicon'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -68,9 +68,7 @@ class AdminPanelProvider extends PanelProvider
             // ->sidebarWidth('18rem')
             ->plugin(FilamentProgressbarPlugin::make()->color('#29b'))
             ->spa(true)
-            ->resources([
-                config('filament-logger.activity_resource')
-            ])
+            ->resources([])
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
                     ->gridColumns([
@@ -91,6 +89,6 @@ class AdminPanelProvider extends PanelProvider
                 \BezhanSalleh\FilamentExceptions\FilamentExceptionsPlugin::make()
 
             ])
-            ->topNavigation();
+            ->sidebarCollapsibleOnDesktop();
     }
 }

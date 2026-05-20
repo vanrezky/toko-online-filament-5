@@ -10,4 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 class CreateCustomer extends CreateRecord
 {
     protected static string $resource = CustomerResource::class;
+
+    public function getTitle(): string
+    {
+        return __('admin/customer-resource.pages.create.title');
+    }
 }

@@ -22,6 +22,14 @@ class BalanceResource extends Resource
     protected static ?string $slug = 'balances';
     protected static ?int $navigationSort = 3;
 
+    // @feature-toggle: balance — set to true & remove canAccess() to re-enable
+    static bool $shouldRegisterNavigation = false;
+
+    public static function canAccess(): bool
+    {
+        return false; // @feature-toggle: balance — change to parent::canAccess() to re-enable
+    }
+
     protected static array $trxTypeOptions = [
         '+' => 'Deposit',
         '-' => 'Reduce',

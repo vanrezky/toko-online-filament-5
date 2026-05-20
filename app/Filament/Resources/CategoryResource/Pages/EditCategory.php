@@ -10,6 +10,11 @@ class EditCategory extends EditRecord
 {
     protected static string $resource = CategoryResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/category-resource.pages.edit.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [

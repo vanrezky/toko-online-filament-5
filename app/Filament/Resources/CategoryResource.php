@@ -22,10 +22,27 @@ class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
     protected static ?string $navigationIcon = 'heroicon-o-list-bullet';
-    protected static ?string $navigationLabel = 'Product Categories';
-    protected static ?string $navigationGroup = 'Product';
-    protected static ?string $slug = 'categories';
     protected static ?int $navigationSort = 2;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/category-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/category-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/category-resource.plural_model_label');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/category-resource.navigation_label');
+    }
 
     public static function form(Form $form): Form
     {
@@ -33,28 +50,31 @@ class CategoryResource extends Resource
             ->schema([
                 Tabs::make()
                     ->schema([
-                        Tabs\Tab::make('Main')
+                        Tabs\Tab::make(__('admin/category-resource.tabs.main'))
                             ->schema([
                                 Group::make([
                                     TitleSchema::title('name')
+                                        ->label(__('admin/category-resource.fields.name'))
                                         ->required()
                                         ->minLength(3),
-                                    Forms\Components\Toggle::make('is_active'),
+                                    Forms\Components\Toggle::make('is_active')
+                                        ->label(__('admin/category-resource.fields.is_active')),
                                     Forms\Components\Toggle::make('is_featured')
+                                        ->label(__('admin/category-resource.fields.is_featured'))
                                 ]),
 
                                 SpatieMediaLibraryFileUpload::make('image')
-                                    ->label(__('Image'))
+                                    ->label(__('admin/category-resource.fields.image'))
                                     ->maxSize(1024)
                                     ->rules(['required', 'mimes:png,jpg,jpeg,webp,gif', 'max:1024'])
                                     ->image()
                                     ->directory(UploadPath::CATEGORY_UPLOAD_PATH)
                                     ->imageCropAspectRatio('1:1')
                                     ->imagePreviewHeight(250)
-                                    ->helperText(__('Ratio Is 1:1. Maximum size is 1MB'))
+                                    ->helperText(__('admin/category-resource.fields.image_helper'))
                                     ->disk(getActiveDisk())
                             ])->columns(2),
-                        Tabs\Tab::make('SEO')
+                        Tabs\Tab::make(__('admin/category-resource.tabs.seo'))
                             ->schema([
                                 TitleSchema::slug(),
                                 TitleSchema::hidden(),
@@ -71,14 +91,14 @@ class CategoryResource extends Resource
                 SpatieMediaLibraryImageColumn::make('image')->conversion('thumb')
                     ->square(),
                 Tables\Columns\TextColumn::make('name')
-                    ->label(__('Category Name'))
+                    ->label(__('admin/category-resource.columns.name'))
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('products_count')->counts('products')
-                    ->prefix('Products: ')
+                    ->prefix(__('admin/category-resource.columns.products_prefix'))
                     ->badge()
                     ->icon('heroicon-o-squares-2x2')
-                    ->label(__('Total Product'))
+                    ->label(__('admin/category-resource.columns.products_count'))
                     ->color('danger')
                     ->sortable(),
                 self::getIsActiveColumn(),
@@ -92,7 +112,7 @@ class CategoryResource extends Resource
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make()->action(function ($record) {
                         if ($record->products()->count()) {
-                            return notification(__('Category cannot be deleted'), 'warning');
+                            return notification(__('admin/category-resource.notifications.cannot_delete'), 'warning');
                         }
 
                         return $record->delete();
@@ -110,7 +130,7 @@ class CategoryResource extends Resource
                     }
 
                     if (!$delete) {
-                        return notification(__('There are categories that cannot be deleted'), 'warning');
+                        return notification(__('admin/category-resource.notifications.cannot_delete_bulk'), 'warning');
                     }
                 }),
             ]);
@@ -127,8 +147,8 @@ class CategoryResource extends Resource
     {
         return [
             'index' => Pages\ListCategories::route('/'),
-            // 'create' => Pages\CreateCategory::route('/create'),
-            // 'edit' => Pages\EditCategory::route('/{record}/edit'),
+            'create' => Pages\CreateCategory::route('/create'),
+            'edit' => Pages\EditCategory::route('/{record}/edit'),
         ];
     }
 
@@ -136,18 +156,18 @@ class CategoryResource extends Resource
     {
         if (self::shouldCanUpdate()) {
             return Tables\Columns\ToggleColumn::make('is_active')
-                ->afterStateUpdated(fn() => notification(__('Activation status updated successfully')))->label(__('Active'));
+                ->afterStateUpdated(fn() => notification(__('admin/category-resource.notifications.activation_updated')))->label(__('admin/category-resource.columns.is_active'));
         }
-        return Tables\Columns\IconColumn::make('is_active')->boolean()->label(__('Active'));
+        return Tables\Columns\IconColumn::make('is_active')->boolean()->label(__('admin/category-resource.columns.is_active'));
     }
 
     public static function getIsFeaturedColumn()
     {
         if (self::shouldCanUpdate()) {
             return Tables\Columns\ToggleColumn::make('is_featured')
-                ->afterStateUpdated(fn() => notification(__('Featured status updated successfully')))->label(__('Featured'));
+                ->afterStateUpdated(fn() => notification(__('admin/category-resource.notifications.featured_updated')))->label(__('admin/category-resource.columns.is_featured'));
         }
-        return Tables\Columns\IconColumn::make('is_featured')->boolean()->label(__('Featured'));
+        return Tables\Columns\IconColumn::make('is_featured')->boolean()->label(__('admin/category-resource.columns.is_featured'));
     }
 
     public static function shouldCanUpdate(): bool

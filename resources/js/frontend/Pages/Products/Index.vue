@@ -1,13 +1,13 @@
 <script setup>
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import { router } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import ProductCard from "../../components/UI/ProductCard.vue";
 import { Search, X, Loader2, SlidersHorizontal } from "lucide-vue-next";
 import debounce from "lodash/debounce";
-import { useTranslations } from "../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const props = defineProps({
     products: Object,
@@ -24,6 +24,10 @@ const isFilterOpen = ref(false);
 const isLoadingMore = ref(false);
 const allProducts = ref([...props.products.data]);
 
+onMounted(() => {
+    applyFilters();
+});
+
 watch(
     () => props.products.data,
     (newData) => {
@@ -32,6 +36,14 @@ watch(
         }
     },
 );
+
+watch([search, selectedCategory, selectedSort, priceMin, priceMax], () => {
+    applyFilters();
+});
+
+const hasActiveFilters = computed(() => {
+    return search.value || selectedCategory.value || selectedSort.value !== "newest" || priceMin.value || priceMax.value;
+});
 
 const applyFilters = debounce(() => {
     if (priceMin.value && parseFloat(priceMin.value) < 0) {
@@ -60,10 +72,6 @@ const applyFilters = debounce(() => {
         },
     );
 }, 300);
-
-watch([search, selectedCategory, selectedSort, priceMin, priceMax], () => {
-    applyFilters();
-});
 
 const loadMore = () => {
     if (props.products.links.next && !isLoadingMore.value) {
@@ -99,12 +107,11 @@ const resetFilters = () => {
     selectedSort.value = "newest";
     priceMin.value = "";
     priceMax.value = "";
+
+    applyFilters();
 };
 
 const totalProducts = computed(() => props.products.total || allProducts.value.length);
-const hasActiveFilters = computed(() => {
-    return search.value || selectedCategory.value || priceMin.value || priceMax.value;
-});
 </script>
 
 <template>

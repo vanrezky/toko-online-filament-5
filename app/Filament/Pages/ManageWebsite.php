@@ -15,14 +15,13 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Pages\SettingsPage;
+use Override;
 
 class ManageWebsite extends SettingsPage
 {
     use HasPageShield;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
-
-    protected static ?string $navigationGroup = 'Setting';
 
     protected static ?int $navigationSort = 5;
 
@@ -35,55 +34,64 @@ class ManageWebsite extends SettingsPage
         return isSuperUser();
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/page-manage-website.navigation_group');
+    }
+
     public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Tabs::make()
                     ->schema([
-                        Tab::make('General')
+                        Tab::make(__('admin/page-manage-website.tabs.general'))
                             ->icon('heroicon-o-globe-alt')
                             ->schema([
                                 Group::make()
                                     ->schema([
-                                        TextInput::make('site_name')->required()->maxLength(255),
-                                        TextInput::make('site_tag_line')->maxLength(255),
-                                        TextInput::make('address')->maxLength(255),
+                                        TextInput::make('site_name')->label(__('admin/page-manage-website.fields.site_name'))->required()->maxLength(255),
+                                        TextInput::make('site_tag_line')->label(__('admin/page-manage-website.fields.site_tag_line'))->maxLength(255),
+                                        TextInput::make('address')->label(__('admin/page-manage-website.fields.address'))->maxLength(255),
                                         Group::make([
-                                            TextInput::make('currency_text')->required()->maxLength(5),
-                                            TextInput::make('currency_symbol')->required()->maxLength(5),
+                                            TextInput::make('currency_text')->label(__('admin/page-manage-website.fields.currency_text'))->required()->maxLength(5),
+                                            TextInput::make('currency_symbol')->label(__('admin/page-manage-website.fields.currency_symbol'))->required()->maxLength(5),
                                         ])->columns(2),
 
                                     ])->columnSpanFull(),
                             ])->columns(2),
-                        Tab::make('Logo')
+                        Tab::make(__('admin/page-manage-website.tabs.logo'))
                             ->icon('heroicon-o-photo')
                             ->schema([
                                 FileUpload::make('logo')
+                                    ->label(__('admin/page-manage-website.fields.logo'))
                                     ->image()
                                     ->maxSize(1024)
                                     ->rules(['nullable', 'mimes:png,jpg,jpeg', 'max:1024'])
                                     ->directory(UploadPath::CONFIG_UPLOAD_PATH)
-                                    ->helperText(__('Supported files: jpeg, jpg, png. Maximum file size 1MB'))
+                                    ->helperText(__('admin/page-manage-website.file_helpers.logo_supported'))
                                     ->imageEditor(),
                                 FileUpload::make('favicon')
+                                    ->label(__('admin/page-manage-website.fields.favicon'))
                                     ->image()
                                     ->maxSize(1024)
                                     ->rules(['nullable', 'mimes:png,jpg,jpeg,ico', 'max:1024'])
                                     ->directory(UploadPath::CONFIG_UPLOAD_PATH)
-                                    ->helperText(__('Supported files: jpeg, jpg, png. Maximum file size 1MB')),
+                                    ->helperText(__('admin/page-manage-website.file_helpers.favicon_supported')),
                                 FileUpload::make('login_logo')
+                                    ->label(__('admin/page-manage-website.fields.login_logo'))
                                     ->image()
                                     ->maxSize(1024)
                                     ->rules(['nullable', 'mimes:png,jpg,jpeg', 'max:1024'])
                                     ->directory(UploadPath::CONFIG_UPLOAD_PATH)
-                                    ->helperText(__('Supported files: jpeg, jpg, png. Maximum file size 1MB')),
+                                    ->helperText(__('admin/page-manage-website.file_helpers.logo_supported')),
                             ])->columns(2),
-                        Tab::make('SEO')
+                        Tab::make(__('admin/page-manage-website.tabs.seo'))
                             ->icon('heroicon-o-magnifying-glass')
                             ->schema([
                                 FileUpload::make('social_image')
-                                    ->helperText(__('Supported files: jpeg, jpg, png. Images will be resized to 1180x600pixel. maximum size 1MB.'))
+                                    ->label(__('admin/page-manage-website.fields.social_image'))
+                                    ->helperText(__('admin/page-manage-website.file_helpers.social_image'))
                                     ->rules(['nullable', 'mimes:png,jpg,jpeg', 'max:1024'])
                                     ->directory(UploadPath::IMAGES_UPLOAD_PATH)
                                     ->image()
@@ -91,69 +99,71 @@ class ManageWebsite extends SettingsPage
                                     ->imageResizeTargetWidth('1180')
                                     ->imageResizeTargetHeight('600'),
                                 Group::make([
-                                    Textarea::make('site_description')->maxLength(300),
-                                    TextInput::make('site_keywords')->helperText(__('Separated by comma')),
-                                    TextInput::make('social_title'),
-                                    TextInput::make('social_description'),
+                                    Textarea::make('site_description')->label(__('admin/page-manage-website.fields.site_description'))->maxLength(300),
+                                    TextInput::make('site_keywords')->label(__('admin/page-manage-website.fields.site_keywords'))->helperText(__('admin/page-manage-website.fields.site_keywords_helper')),
+                                    TextInput::make('social_title')->label(__('admin/page-manage-website.fields.social_title')),
+                                    TextInput::make('social_description')->label(__('admin/page-manage-website.fields.social_description')),
                                 ])->columnSpan(2),
                             ])->columns(3),
-                        Tab::make('Contact & Social Media')
+                        Tab::make(__('admin/page-manage-website.tabs.contact_social_media'))
                             ->icon('heroicon-o-rss')
                             ->schema([
-                                TextInput::make('phone')->label(__('Phone Number'))->tel(),
-                                TextInput::make('wa_phone')->label(__('Whatsapp Number'))->tel(),
-                                TextInput::make('instagram')->url()->maxLength(255),
-                                TextInput::make('facebook')->url()->maxLength(255),
-                                TextInput::make('twitter')->url()->maxLength(255),
+                                TextInput::make('phone')->label(__('admin/page-manage-website.fields.phone'))->tel(),
+                                TextInput::make('wa_phone')->label(__('admin/page-manage-website.fields.wa_phone'))->tel(),
+                                TextInput::make('instagram')->label(__('admin/page-manage-website.fields.instagram'))->url()->maxLength(255),
+                                TextInput::make('facebook')->label(__('admin/page-manage-website.fields.facebook'))->url()->maxLength(255),
+                                TextInput::make('twitter')->label(__('admin/page-manage-website.fields.twitter'))->url()->maxLength(255),
 
                             ]),
 
-                        Tab::make('Mail Config')
+                        Tab::make(__('admin/page-manage-website.tabs.mail_config'))
                             ->icon('heroicon-o-envelope')
                             ->schema([
-                                TextInput::make('mail_from'),
-                                TextInput::make('mail_host'),
-                                TextInput::make('mail_port')->numeric()->maxLength(5),
+                                TextInput::make('mail_from')->label(__('admin/page-manage-website.fields.mail_from')),
+                                TextInput::make('mail_host')->label(__('admin/page-manage-website.fields.mail_host')),
+                                TextInput::make('mail_port')->label(__('admin/page-manage-website.fields.mail_port'))->numeric()->maxLength(5),
                                 Select::make('mail_encryption')
+                                    ->label(__('admin/page-manage-website.fields.mail_encryption'))
                                     ->rules(['required', 'in:tls,ssl'])
                                     ->options([
                                         'ssl' => 'SSL',
                                         'tls' => 'TLS',
                                     ]),
-                                TextInput::make('mail_username')->email(),
-                                TextInput::make('mail_password'),
+                                TextInput::make('mail_username')->label(__('admin/page-manage-website.fields.mail_username'))->email(),
+                                TextInput::make('mail_password')->label(__('admin/page-manage-website.fields.mail_password')),
 
                             ])->columns(2),
-                        Tab::make('System')
+                        Tab::make(__('admin/page-manage-website.tabs.system'))
                             ->icon('heroicon-o-wrench')
                             ->schema([
                                 Toggle::make('registration')
-                                    ->label(__('Account Registration'))
-                                    ->helperText('Allow users to create an account on the website. When this option is enabled, visitors will be able to register and access member features such as placing orders, viewing their history, and managing their profile.'),
+                                    ->label(__('admin/page-manage-website.fields.registration'))
+                                    ->helperText(__('admin/page-manage-website.fields.registration_helper')),
                                 Toggle::make('force_ssl')
-                                    ->label(__('Force SSL'))
-                                    ->helperText('Automatically redirect all visitors to the secure HTTPS version of the website. This helps protect user data and ensures that all communication between the browser and server is encrypted.'),
+                                    ->label(__('admin/page-manage-website.fields.force_ssl'))
+                                    ->helperText(__('admin/page-manage-website.fields.force_ssl_helper')),
                                 Toggle::make('secure_password')
-                                    ->label(__('Secure Password'))
-                                    ->helperText('Require users to create stronger passwords for better account security. When enabled, passwords must follow certain rules such as minimum length and the use of letters or numbers.'),
+                                    ->label(__('admin/page-manage-website.fields.secure_password'))
+                                    ->helperText(__('admin/page-manage-website.fields.secure_password_helper')),
                                 Toggle::make('term_agreement')
-                                    ->label('Term & Agreement')
-                                    ->helperText('Require users to agree to your Terms and Conditions before they can register or use certain features. This helps ensure that users understand the rules and policies of your website.'),
+                                    ->label(__('admin/page-manage-website.fields.term_agreement'))
+                                    ->helperText(__('admin/page-manage-website.fields.term_agreement_helper')),
                                 Select::make('active_template')
+                                    ->label(__('admin/page-manage-website.fields.active_template'))
                                     ->options([
                                         'default' => 'Default',
                                     ])
-                                    ->helperText('Select the template that will be used for the website layout and appearance. You can switch templates to change the design without affecting the website content.'),
+                                    ->helperText(__('admin/page-manage-website.fields.active_template_helper')),
                                 Toggle::make('site_active')
-                                    ->label(__('Site Active'))
-                                    ->helperText('Turn the website on or off. When disabled, visitors will not be able to access the site and may see a maintenance or temporary unavailable page.'),
+                                    ->label(__('admin/page-manage-website.fields.site_active'))
+                                    ->helperText(__('admin/page-manage-website.fields.site_active_helper')),
                             ]),
-                        Tab::make('Notifications')
+                        Tab::make(__('admin/page-manage-website.tabs.notifications'))
                             ->icon('heroicon-o-bell')
                             ->schema([
                                 Textarea::make('admin_emails')
-                                    ->label(__('Admin Notification Emails'))
-                                    ->helperText('Enter email addresses separated by comma (,) to receive notifications for orders, payments, and other important events. Example: admin@example.com, support@example.com')
+                                    ->label(__('admin/page-manage-website.fields.admin_emails'))
+                                    ->helperText(__('admin/page-manage-website.fields.admin_emails_helper'))
                                     ->rows(3)
                                     ->columnSpanFull(),
                             ])->columns(1),

@@ -16,8 +16,9 @@ class CountryResource extends Resource
     protected static ?string $model = Country::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';
-    protected static ?string $navigationGroup = 'Master';
-    protected static ?int $navigationSort = 90;
+    protected static ?string $navigationLabel = 'Negara';
+    protected static ?string $navigationGroup = 'Wilayah';
+    protected static ?int $navigationSort = 1;
 
     public static function canCreate(): bool
     {

@@ -4,17 +4,17 @@
 
         <div class="flex justify-start">
             <x-filament::button type="submit">
-                {{ __('Save Settings') }}
+                {{ __('admin/page-manage-courier.view.save_settings') }}
             </x-filament::button>
         </div>
     </x-filament-panels::form>
 
     <x-filament::section>
         <x-slot name="heading">
-            {{ __('Available Couriers') }}
+            {{ __('admin/page-manage-courier.view.available_couriers') }}
         </x-slot>
         <x-slot name="description">
-            {{ __('Toggle status to activate or deactivate courier in checkout.') }}
+            {{ __('admin/page-manage-courier.view.toggle_status_description') }}
         </x-slot>
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

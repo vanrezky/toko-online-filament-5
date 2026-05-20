@@ -5,11 +5,9 @@ namespace App\Http\Middleware;
 use App\Enums\CartStatus;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\CustomerResource;
-use App\Http\Resources\PromotionResource;
 use App\Models\CartItem;
 use App\Models\Category;
 use App\Models\Page;
-use App\Models\Promotion;
 use App\Models\Wishlist;
 use App\Services\TemplateService;
 use App\Settings\GeneralSettings;
@@ -40,13 +38,6 @@ class HandleInertiaRequests extends Middleware
         $isFrontend = $this->isFrontendRequest($request);
 
         $shared = [
-            'translations' => function () {
-                return [
-                    'messages' => trans('messages'),
-                    'labels' => trans('labels'),
-                    'placeholders' => trans('placeholders'),
-                ];
-            },
             'settings' => function () {
                 $settings = app(GeneralSettings::class);
                 return [
@@ -115,13 +106,6 @@ class HandleInertiaRequests extends Middleware
                 return Cache::remember('frontend_categories', 3600, function () {
                     return CategoryResource::collection(
                         Category::homepage()->with('media')->get()
-                    );
-                });
-            },
-            'promotions' => function () {
-                return Cache::remember('frontend_promotions', 3600, function () {
-                    return PromotionResource::collection(
-                        Promotion::active()->with('media')->get()
                     );
                 });
             },

@@ -52,6 +52,7 @@ class RecentOrdersTable extends BaseWidget
                 ->badge()
                 ->color(fn (string $state): string => match ($state) {
                     'unpaid' => 'warning',
+                    'packed'  => 'info',
                     'shipped' => 'info',
                     'delivered' => 'primary',
                     'rejected' => 'danger',

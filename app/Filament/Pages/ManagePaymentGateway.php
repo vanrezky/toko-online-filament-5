@@ -22,7 +22,8 @@ class ManagePaymentGateway extends Page
     use HasPageShield;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
-    protected static ?string $navigationGroup = 'Setting';
+    protected static bool $shouldRegisterNavigation = false;
+    protected static ?string $navigationGroup = 'Pengaturan';
     protected static ?int $navigationSort = 5;
     protected static ?string $slug = 'setting/payment-gateway-settings';
     protected static ?string $navigationLabel = 'Payment Gateways';
@@ -282,6 +283,6 @@ class ManagePaymentGateway extends Page
 
     public static function canAccess(): bool
     {
-        return isSuperUser();
+        return false;
     }
 }

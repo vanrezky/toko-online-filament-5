@@ -1,18 +1,9 @@
 <script setup>
-import { ref } from "vue";
 import { useForm, Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
-import { useTranslations } from "../../composables/useTranslations";
-import { Mail, Lock, User, ArrowRight, Check, X, Eye, EyeOff } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 
-const { t } = useTranslations();
-
-const props = defineProps({
-    secure_password: {
-        type: Boolean,
-        default: false,
-    },
-});
+const { t } = useI18n();
 
 const form = useForm({
     first_name: "",
@@ -22,20 +13,7 @@ const form = useForm({
     password_confirmation: "",
 });
 
-const showPassword = ref(false);
-const showConfirmPassword = ref(false);
-
-const passwordRules = {
-    minLength: (p) => p.length >= 8,
-    uppercase: (p) => /[A-Z]/.test(p),
-    number: (p) => /\d/.test(p),
-    symbol: (p) => /[!@#$%^&*(),.?":{}|<>]/.test(p),
-};
-
-const isPasswordValid = (rule) => {
-    if (!props.secure_password) return null;
-    return rule(form.password);
-};
+const securePassword = settings('secure_password');
 
 const submit = () => {
     form.post(route("frontend.signup.post"), {
@@ -50,40 +28,45 @@ const submit = () => {
             <div class="w-full max-w-md space-y-8">
                 <div class="rounded-2xl bg-white p-8 shadow-sm">
                     <div class="mb-8 space-y-2 text-center">
-                        <h2 class="text-2xl font-bold text-foreground md:text-3xl">{{ t('labels.auth.create_account') }}</h2>
+                        <h2 class="text-2xl font-bold text-foreground md:text-3xl">{{ t('labels.auth.register_heading') }}</h2>
                         <p class="text-sm text-muted-foreground">{{ t('labels.auth.register_subtitle') }}</p>
                     </div>
 
                     <form class="space-y-5" @submit.prevent="submit">
-                        <div class="space-y-5">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <label for="first_name" class="text-sm font-semibold text-foreground">{{ t('labels.form.first_name') }}</label>
-                                    <div class="relative">
-                                        <input
-                                            id="first_name"
-                                            v-model="form.first_name"
-                                            type="text"
-                                            required
-                                            class="w-full rounded-xl border border-border bg-secondary px-4 py-3.5 pl-11 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                            :placeholder="t('placeholders.first_name')"
-                                        />
-                                        <User class="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
-                                    </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label for="first_name" class="text-sm font-semibold text-foreground">{{ t('labels.form.first_name') }}</label>
+                                <div class="relative">
+                                    <input
+                                        id="first_name"
+                                        v-model="form.first_name"
+                                        type="text"
+                                        required
+                                        class="w-full rounded-xl border border-border bg-secondary px-4 py-3.5 pl-11 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        :placeholder="t('placeholders.first_name')"
+                                    />
+                                    <User class="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                                 </div>
-                                <div class="space-y-2">
-                                    <label for="last_name" class="text-sm font-semibold text-foreground">{{ t('labels.form.last_name') }}</label>
+                                <p v-if="form.errors.first_name" class="text-xs text-red-500">{{ form.errors.first_name }}</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label for="last_name" class="text-sm font-semibold text-foreground">{{ t('labels.form.last_name') }}</label>
+                                <div class="relative">
                                     <input
                                         id="last_name"
                                         v-model="form.last_name"
                                         type="text"
                                         required
-                                        class="w-full rounded-xl border border-border bg-secondary px-4 py-3.5 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        class="w-full rounded-xl border border-border bg-secondary px-4 py-3.5 pl-11 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
                                         :placeholder="t('placeholders.last_name')"
                                     />
                                 </div>
+                                <p v-if="form.errors.last_name" class="text-xs text-red-500">{{ form.errors.last_name }}</p>
                             </div>
+                        </div>
 
+                        <div class="space-y-5">
                             <div class="space-y-2">
                                 <label for="email" class="text-sm font-semibold text-foreground">{{ t('labels.form.email') }}</label>
                                 <div class="relative">
@@ -106,75 +89,30 @@ const submit = () => {
                                     <input
                                         id="password"
                                         v-model="form.password"
-                                        :type="showPassword ? 'text' : 'password'"
+                                        type="password"
                                         required
-                                        class="w-full rounded-xl border border-border bg-secondary px-4 py-3.5 pl-11 pr-11 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                        :placeholder="t('placeholders.password_min')"
+                                        class="w-full rounded-xl border border-border bg-secondary px-4 py-3.5 pl-11 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        :placeholder="t('placeholders.password')"
                                     />
                                     <Lock class="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
-                                    <button
-                                        type="button"
-                                        @click="showPassword = !showPassword"
-                                        class="absolute right-4 top-3.5 text-muted-foreground transition-colors hover:text-foreground"
-                                    >
-                                        <component :is="showPassword ? EyeOff : Eye" class="h-5 w-5" />
-                                    </button>
                                 </div>
                                 <p v-if="form.errors.password" class="text-xs text-red-500">{{ form.errors.password }}</p>
-
-                                <div v-if="secure_password && form.password" class="mt-3 space-y-1.5 rounded-xl bg-secondary/50 p-3">
-                                    <p class="text-xs font-medium text-muted-foreground">{{ t('labels.auth.password_requirements_title') }}</p>
-                                    <div
-                                        class="flex items-center gap-2 text-xs"
-                                        :class="isPasswordValid(passwordRules.minLength) ? 'text-green-600' : 'text-red-500'"
-                                    >
-                                        <component :is="isPasswordValid(passwordRules.minLength) ? Check : X" class="h-3.5 w-3.5" />
-                                        {{ t('labels.auth.password_min_length') }}
-                                    </div>
-                                    <div
-                                        class="flex items-center gap-2 text-xs"
-                                        :class="isPasswordValid(passwordRules.uppercase) ? 'text-green-600' : 'text-red-500'"
-                                    >
-                                        <component :is="isPasswordValid(passwordRules.uppercase) ? Check : X" class="h-3.5 w-3.5" />
-                                        {{ t('labels.auth.password_uppercase') }}
-                                    </div>
-                                    <div
-                                        class="flex items-center gap-2 text-xs"
-                                        :class="isPasswordValid(passwordRules.number) ? 'text-green-600' : 'text-red-500'"
-                                    >
-                                        <component :is="isPasswordValid(passwordRules.number) ? Check : X" class="h-3.5 w-3.5" />
-                                        {{ t('labels.auth.password_number') }}
-                                    </div>
-                                    <div
-                                        class="flex items-center gap-2 text-xs"
-                                        :class="isPasswordValid(passwordRules.symbol) ? 'text-green-600' : 'text-red-500'"
-                                    >
-                                        <component :is="isPasswordValid(passwordRules.symbol) ? Check : X" class="h-3.5 w-3.5" />
-                                        {{ t('labels.auth.password_symbol') }}
-                                    </div>
-                                </div>
                             </div>
 
                             <div class="space-y-2">
-                                <label for="password_confirmation" class="text-sm font-semibold text-foreground">{{ t('labels.form.password_confirmation') }}</label>
+                                <label for="password_confirmation" class="text-sm font-semibold text-foreground">{{ t('labels.form.confirm_password') }}</label>
                                 <div class="relative">
                                     <input
                                         id="password_confirmation"
                                         v-model="form.password_confirmation"
-                                        :type="showConfirmPassword ? 'text' : 'password'"
+                                        type="password"
                                         required
-                                        class="w-full rounded-xl border border-border bg-secondary px-4 py-3.5 pl-11 pr-11 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                        :placeholder="t('placeholders.password_confirmation')"
+                                        class="w-full rounded-xl border border-border bg-secondary px-4 py-3.5 pl-11 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        :placeholder="t('placeholders.confirm_password')"
                                     />
                                     <Lock class="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
-                                    <button
-                                        type="button"
-                                        @click="showConfirmPassword = !showConfirmPassword"
-                                        class="absolute right-4 top-3.5 text-muted-foreground transition-colors hover:text-foreground"
-                                    >
-                                        <component :is="showConfirmPassword ? EyeOff : Eye" class="h-5 w-5" />
-                                    </button>
                                 </div>
+                                <p v-if="form.errors.password_confirmation" class="text-xs text-red-500">{{ form.errors.password_confirmation }}</p>
                             </div>
                         </div>
 
@@ -191,7 +129,7 @@ const submit = () => {
                     <div class="mt-8 border-t border-border pt-6 text-center">
                         <p class="text-sm text-muted-foreground">
                             {{ t('labels.auth.has_account') }}
-                            <Link :href="route('frontend.login')" class="font-bold text-primary hover:underline"> {{ t('labels.actions.login') }} </Link>
+                            <Link :href="route('frontend.login')" class="font-bold text-primary hover:underline"> {{ t('labels.actions.login_now') }} </Link>
                         </p>
                     </div>
                 </div>

@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Services\CodeGeneratorService;
 use App\Traits\HasUuidTrait;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Transaction extends Model
 {
@@ -18,21 +20,33 @@ class Transaction extends Model
         'customer_address_id',
         'weight',
         'shipping_cost',
-        'courier_id',
-        'from_district_id',
-        'to_district_id',
         'cod',
         'cod_fee',
         'payment_method',
+        'payment_type',
+        'billing_due_date',
+        'billing_status',
+        'installment_plan_id',
         'status',
         'notes',
         'uuid',
+        'code',
         'timelimit',
     ];
 
     protected $casts = [
         'timelimit' => 'datetime',
+        'billing_due_date' => 'date',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Transaction $transaction) {
+            if (empty($transaction->code)) {
+                $transaction->code = CodeGeneratorService::generateUnique($transaction, 'code', 'TRX');
+            }
+        });
+    }
 
     public function getRouteKeyName(): string
     {
@@ -62,6 +76,11 @@ class Transaction extends Model
     public function vouchers(): HasMany
     {
         return $this->hasMany(TransactionVoucher::class);
+    }
+
+    public function installment(): HasOne
+    {
+        return $this->hasOne(Installment::class);
     }
 
     public function getSubtotalAttribute(): float

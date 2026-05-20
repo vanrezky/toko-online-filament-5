@@ -15,11 +15,16 @@ class EditCustomer extends EditRecord
 {
     protected static string $resource = CustomerResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/customer-resource.pages.edit.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\ViewAction::make()->label('Profile'),
-            Actions\DeleteAction::make(),
+            Actions\ViewAction::make()->label(__('admin/customer-resource.actions.profile')),
+            Actions\DeleteAction::make()->label(__('admin/customer-resource.actions.delete')),
         ];
     }
 
@@ -34,72 +39,73 @@ class EditCustomer extends EditRecord
         return $record;
     }
 
-    public function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                FormsComponents\Section::make(__('Personal Information'))
-                    ->description(__('Manage Customer Information'))
-                    ->schema([
-                        FormsComponents\FileUpload::make('image')
-                            ->label(__('Profil Image'))
-                            ->avatar()
-                            ->image()
-                            ->directory(UploadPath::PROFILE_UPLOAD_PATH)
-                            ->imageCropAspectRatio('1:1')
-                            ->imageEditorAspectRatios([
-                                '1:1',
-                            ])
-                            ->alignCenter()
-                            ->columnSpan(1)
-                            ->helperText(__('Ratio Is 1:1. Maximum size is 1MB')),
-                        FormsComponents\Group::make([
-                            FormsComponents\TextInput::make('first_name')
-                                ->placeholder(__('e.g: ') . 'John')
-                                ->required()
-                                ->maxLength(100),
-                            FormsComponents\TextInput::make('last_name')
-                                ->placeholder(__('e.g: ') . 'Smith')
-                                ->maxLength(100),
-                            FormsComponents\TextInput::make('email')
-                                ->placeholder(__('e.g: ') . 'Johnsmith@example.com')
-                                ->email()
-                                ->required()
-                                ->maxLength(100)
-                                ->unique(ignoreRecord: true)
-                                ->disabled(),
-                            FormsComponents\TextInput::make('username')
-                                ->placeholder(__('e.g: ') . 'johnsmith')
-                                ->minLength(6)
-                                ->maxLength(15)
-                                ->unique(ignoreRecord: true),
-                            FormsComponents\TextInput::make('phone')
-                                ->placeholder(__('e.g: ') . '+6281234567890')
-                                ->tel()
-                                ->maxLength(20),
-                        ])->columnSpan(2)->columns(2)
-                    ])->columnSpanFull()->columns(3),
+    // public function form(Form $form): Form
+    // {
+    //     return $form
+    //         ->schema([
+    //             FormsComponents\Section::make(__('Personal Information'))
+    //                 ->description(__('Manage Customer Information'))
+    //                 ->schema([
+    //                     FormsComponents\FileUpload::make('image')
+    //                         ->label(__('Profil Image'))
+    //                         ->avatar()
+    //                         ->image()
+    //                         ->directory(UploadPath::PROFILE_UPLOAD_PATH)
+    //                         ->imageCropAspectRatio('1:1')
+    //                         ->imageEditorAspectRatios([
+    //                             '1:1',
+    //                         ])
+    //                         ->alignCenter()
+    //                         ->columnSpan(1)
+    //                         ->helperText(__('Ratio Is 1:1. Maximum size is 1MB')),
+    //                     FormsComponents\Group::make([
+    //                         FormsComponents\TextInput::make('first_name')
+    //                             ->placeholder(__('e.g: ') . 'John')
+    //                             ->required()
+    //                             ->maxLength(100),
+    //                         FormsComponents\TextInput::make('last_name')
+    //                             ->placeholder(__('e.g: ') . 'Smith')
+    //                             ->maxLength(100),
+    //                         FormsComponents\TextInput::make('email')
+    //                             ->placeholder(__('e.g: ') . 'Johnsmith@example.com')
+    //                             ->email()
+    //                             ->required()
+    //                             ->maxLength(100)
+    //                             ->unique(ignoreRecord: true)
+    //                             ->disabled(),
+    //                         FormsComponents\TextInput::make('username')
+    //                             ->placeholder(__('e.g: ') . 'johnsmith')
+    //                             ->minLength(6)
+    //                             ->maxLength(15)
+    //                             ->unique(ignoreRecord: true),
+    //                         FormsComponents\TextInput::make('phone')
+    //                             ->placeholder(__('e.g: ') . '+6281234567890')
+    //                             ->tel()
+    //                             ->maxLength(20),
+    //                     ])->columnSpan(2)->columns(2)
+    //                 ])->columnSpanFull()->columns(3),
 
-                FormsComponents\Section::make('Password')
-                    ->schema([
-                        FormsComponents\TextInput::make('password')
-                            ->password()
-                            ->rules([securePassword()])
-                            ->same('confirm_password')
-                            ->minLength(8)
-                            ->maxLength(20),
-                        FormsComponents\TextInput::make('confirm_password')
-                            ->password()
-                            ->maxLength(255),
-                    ])->columnSpan(2),
-                FormsComponents\Section::make('Reseller Level')
-                    ->schema([
-                        FormsComponents\Select::make('reseller_level')
-                            ->relationship('reseller', titleAttribute: 'name')
-                            ->searchable()
-                            ->preload()
-                    ])->columnSpan(1),
+    //             FormsComponents\Section::make('Password')
+    //                 ->schema([
+    //                     FormsComponents\TextInput::make('password')
+    //                         ->password()
+    //                         ->rules([securePassword()])
+    //                         ->same('confirm_password')
+    //                         ->minLength(8)
+    //                         ->maxLength(20),
+    //                     FormsComponents\TextInput::make('confirm_password')
+    //                         ->password()
+    //                         ->maxLength(255),
+    //                 ])->columnSpan(2),
+    //             //@toogle-feature: reseller level - uncomment to active feature
+    //             // FormsComponents\Section::make('Reseller Level')
+    //             //     ->schema([
+    //             //         FormsComponents\Select::make('reseller_level')
+    //             //             ->relationship('reseller', titleAttribute: 'name')
+    //             //             ->searchable()
+    //             //             ->preload()
+    //             //     ])->columnSpan(1),
 
-            ])->columns(3);
-    }
+    //         ])->columns(3);
+    // }
 }

@@ -1,10 +1,10 @@
 <script setup>
 import { useForm, Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
-import { useTranslations } from "../../composables/useTranslations";
-import { Mail, Lock, ArrowRight } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
+import { ArrowRight, Lock, Mail } from "lucide-vue-next";
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const form = useForm({
     email: "",
@@ -48,12 +48,7 @@ const submit = () => {
                             </div>
 
                             <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <label for="password" class="text-sm font-semibold text-foreground">{{ t('labels.form.password') }}</label>
-                                    <Link :href="route('frontend.forgot-password')" class="text-xs font-medium text-primary hover:underline">
-                                        {{ t('labels.auth.forgot_password') }}
-                                    </Link>
-                                </div>
+                                <label for="password" class="text-sm font-semibold text-foreground">{{ t('labels.form.password') }}</label>
                                 <div class="relative">
                                     <input
                                         id="password"
@@ -88,13 +83,6 @@ const submit = () => {
                             <ArrowRight class="h-4 w-4" />
                         </button>
                     </form>
-
-                    <div class="mt-8 border-t border-border pt-6 text-center">
-                        <p class="text-sm text-muted-foreground">
-                            {{ t('labels.auth.no_account') }}
-                            <Link :href="route('frontend.signup')" class="font-bold text-primary hover:underline"> {{ t('labels.actions.register_now') }} </Link>
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>

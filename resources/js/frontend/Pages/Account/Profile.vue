@@ -2,7 +2,6 @@
 import { ref, computed, watch, getCurrentInstance } from "vue";
 import { Link, useForm, router, usePage } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
-import { useTranslations } from "../../composables/useTranslations";
 import {
     User,
     Package,
@@ -21,8 +20,9 @@ import {
     Clock,
 } from "lucide-vue-next";
 import axios from "axios";
+import { useI18n } from "vue-i18n";
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const props = defineProps({
     user: Object,

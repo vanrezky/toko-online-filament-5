@@ -10,7 +10,6 @@ class UploadPath
     const VOUCHER_UPLOAD_PATH = 'uploads/vouchers';
     const PROFILE_UPLOAD_PATH = 'uploads/users';
     const CONFIG_UPLOAD_PATH = 'uploads/configs';
-    const PROMOTION_UPLOAD_PATH = 'uploads/promotions';
     const SLIDER_UPLOAD_PATH = 'uploads/sliders';
     const PRODUCT_UPLOAD_PATH = 'uploads/products';
 

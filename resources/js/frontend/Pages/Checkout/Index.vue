@@ -3,7 +3,8 @@ import { ref, computed, watch, onMounted } from "vue";
 import { useForm, Link, router } from "@inertiajs/vue3";
 import axios from "axios";
 import { Loader2, Ticket, X, Truck, Tag, AlertCircle } from "lucide-vue-next";
-import { useTranslations } from "../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
+import { installmentService } from "../../services/installmentService";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 
 const props = defineProps({
@@ -13,9 +14,11 @@ const props = defineProps({
     pendingVouchers: Object,
     validatedVouchers: Object,
     activeGateway: String,
+    installmentPlans: Array,
+    creditLimit: Object,
 });
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const form = useForm({
     address_id: props.addresses?.find((a) => a.is_featured)?.id || props.addresses?.[0]?.id || null,
@@ -32,6 +35,12 @@ const voucherCode = ref("");
 const isApplyingVoucher = ref(false);
 const voucherError = ref(null);
 const isProcessingOrder = ref(false);
+
+const selectedPaymentType = ref('full');
+const selectedInstallmentPlan = ref(null);
+const installmentCalculations = ref(null);
+const isLoadingInstallment = ref(false);
+const creditLimitRemaining = ref(props.creditLimit?.remaining || 0);
 
 watch(
     () => props.validatedVouchers,
@@ -127,6 +136,25 @@ const shippingFee = computed(() => {
     return Object.values(form.shipping_methods).reduce((sum, method) => sum + (method.price || 0), 0);
 });
 
+const hasShippingMethodsSelected = computed(() => {
+    return Object.keys(form.shipping_methods || {}).length > 0;
+});
+
+const isPickupOnlySelection = computed(() => {
+    const methods = Object.values(form.shipping_methods || {});
+    if (!methods.length) return false;
+
+    return methods.every((method) => String(method.courier_code || '').toUpperCase() === 'PICKUP');
+});
+
+const requiresAddressSelection = computed(() => {
+    if (!hasShippingMethodsSelected.value) {
+        return true;
+    }
+
+    return !isPickupOnlySelection.value;
+});
+
 const discountedShippingFee = computed(() => {
     return Math.max(0, shippingFee.value - shippingDiscount.value);
 });
@@ -140,22 +168,88 @@ const formatCurrency = (amount) => {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
 };
 
+const selectPaymentType = (type) => {
+    selectedPaymentType.value = type;
+    if (type === 'full') {
+        selectedInstallmentPlan.value = null;
+    }
+};
+
+const calculateInstallments = async () => {
+    isLoadingInstallment.value = true;
+    try {
+        const data = await installmentService.calculate(grandTotal.value);
+        installmentCalculations.value = data.data;
+    } catch (error) {
+        console.error('Failed to calculate installments', error);
+    } finally {
+        isLoadingInstallment.value = false;
+    }
+};
+
+watch(selectedPaymentType, (type) => {
+    if (type === 'installment') {
+        calculateInstallments();
+    } else {
+        installmentCalculations.value = null;
+        selectedInstallmentPlan.value = null;
+    }
+});
+
+const isOverLimit = computed(() => {
+    if (!creditLimitRemaining.value) return false;
+
+    // For installment, check if selected plan's total exceeds limit
+    if (selectedPaymentType.value === 'installment' && selectedInstallmentPlan.value && installmentCalculations.value) {
+        const plan = installmentCalculations.value.plans.find(
+            p => p.id === selectedInstallmentPlan.value.id
+        );
+        return plan ? plan.total_amount > creditLimitRemaining.value : false;
+    }
+
+    // For full payment, check if grandTotal exceeds limit
+    if (selectedPaymentType.value === 'full') {
+        return grandTotal.value > creditLimitRemaining.value;
+    }
+
+    return false;
+});
+
+const canSubmitOrder = computed(() => {
+    if (selectedPaymentType.value === 'installment' && !selectedInstallmentPlan.value) {
+        return false;
+    }
+    if (isOverLimit.value) {
+        return false;
+    }
+    return !isValidatingVouchers.value
+        && !hasInvalidVoucher.value
+        && hasShippingMethodsSelected.value
+        && (!requiresAddressSelection.value || !!form.address_id);
+});
+
 const submitOrder = async () => {
     if (isValidatingVouchers.value || isProcessingOrder.value) {
         return;
     }
-    
+
     isProcessingOrder.value = true;
 
     try {
-        const response = await axios.post(route("frontend.checkout.store"), form.data());
+        const submitData = {
+            ...form.data(),
+            payment_type: selectedPaymentType.value,
+            installment_plan_id: selectedInstallmentPlan.value?.id || null,
+        };
+
+        const response = await axios.post(route("frontend.checkout.store"), submitData);
 
         if (response.data.success) {
             const payment = response.data.payment;
 
             if (payment && payment.provider === 'midtrans' && payment.snap_token) {
                 const isProduction = payment.payment_url && payment.payment_url.includes('app.midtrans.com');
-                const scriptUrl = isProduction 
+                const scriptUrl = isProduction
                     ? 'https://app.midtrans.com/snap/snap.js'
                     : 'https://app.sandbox.midtrans.com/snap/snap.js';
 
@@ -214,10 +308,6 @@ const removeVoucher = async (type) => {
     }
 };
 
-const canSubmitOrder = computed(() => {
-    return !isValidatingVouchers.value && !hasInvalidVoucher.value && form.address_id && Object.keys(form.shipping_methods).length > 0;
-});
-
 const applyVoucher = async () => {
     if (!voucherCode.value.trim()) return;
 
@@ -254,13 +344,13 @@ const applyVoucher = async () => {
 
                     <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
                         <!-- Left Side: Forms -->
-                        <div class="space-y-6 lg:col-span-7">
+                        <div class="flex flex-col gap-6 lg:col-span-7">
                             <!-- Shipping Address Section -->
-                            <section class="rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
+                            <section class="order-2 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                                 <div class="mb-6 flex items-center justify-between">
                                     <div class="flex items-center gap-3">
                                         <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">
-                                            1
+                                            2
                                         </div>
                                         <h2 class="text-base font-bold text-[#2d1b0e]">{{ t('labels.checkout.shipping_address') }}</h2>
                                     </div>
@@ -271,7 +361,14 @@ const applyVoucher = async () => {
                                     >
                                 </div>
 
-                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div
+                                    v-if="isPickupOnlySelection"
+                                    class="rounded-xl border border-[#dbeafe] bg-[#eff6ff] p-5 text-sm leading-relaxed text-[#1e3a8a]"
+                                >
+                                    {{ t('labels.checkout.pickup_no_address_required') }}
+                                </div>
+
+                                <div v-else class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div
                                         v-for="address in addresses"
                                         :key="address.id"
@@ -332,15 +429,15 @@ const applyVoucher = async () => {
                                         <span class="text-xs font-semibold">{{ t('labels.checkout.new_address') }}</span>
                                     </Link>
                                 </div>
-                                <p v-if="form.errors.address_id" class="mt-3 text-xs text-red-500">{{ form.errors.address_id }}</p>
+                                <p v-if="form.errors.address_id && !isPickupOnlySelection" class="mt-3 text-xs text-red-500">{{ form.errors.address_id }}</p>
                             </section>
 
                             <!-- Shipping Method Section -->
-                            <section class="rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
+                            <section class="order-1 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                                 <div class="mb-6 flex items-center justify-between">
                                     <div class="flex items-center gap-3">
                                         <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">
-                                            2
+                                            1
                                         </div>
                                         <h2 class="text-base font-bold text-[#2d1b0e]">{{ t('labels.checkout.shipping_method') }}</h2>
                                     </div>
@@ -423,7 +520,7 @@ const applyVoucher = async () => {
                             </section>
 
                             <!-- Payment Method Section -->
-                            <section v-if="activeGateway !== 'midtrans'" class="rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
+                            <section v-if="activeGateway !== 'midtrans'" class="order-3 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                                 <div class="mb-6 flex items-center gap-3">
                                     <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">3</div>
                                     <h2 class="text-base font-bold text-[#2d1b0e]">{{ t('labels.checkout.payment_method') }}</h2>
@@ -431,28 +528,104 @@ const applyVoucher = async () => {
 
                                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                                     <label
-                                        v-for="method in [
-                                            { id: 'bank_transfer', name: t('labels.payment.bank_transfer') },
-                                            { id: 'qris', name: t('labels.payment.qris') },
-                                        ]"
-                                        :key="method.id"
                                         class="flex cursor-pointer items-center rounded-xl border p-4 transition-all hover:bg-[#fafafa]"
-                                        :class="form.payment_method === method.id ? 'border-[#fa8456] bg-[#fff5f0]' : 'border-[#e8e6ef]'"
+                                        :class="selectedPaymentType === 'full' ? 'border-[#fa8456] bg-[#fff5f0]' : 'border-[#e8e6ef]'"
                                     >
                                         <input
                                             type="radio"
-                                            :value="method.id"
-                                            v-model="form.payment_method"
+                                            value="full"
+                                            v-model="selectedPaymentType"
+                                            @change="selectPaymentType('full')"
                                             class="h-5 w-5 border-[#e8e6ef] text-[#fa8456] accent-[#fa8456] focus:ring-[#fa8456]"
                                         />
-                                        <span class="ml-3 text-sm font-semibold text-[#2d1b0e]">{{ method.name }}</span>
+                                        <span class="ml-3 text-sm font-semibold text-[#2d1b0e]">{{ t('labels.payment.full') }}</span>
+                                    </label>
+
+                                    <label
+                                        class="flex cursor-pointer items-center rounded-xl border p-4 transition-all hover:bg-[#fafafa]"
+                                        :class="selectedPaymentType === 'installment' ? 'border-[#fa8456] bg-[#fff5f0]' : 'border-[#e8e6ef]'"
+                                    >
+                                        <input
+                                            type="radio"
+                                            value="installment"
+                                            v-model="selectedPaymentType"
+                                            @change="selectPaymentType('installment')"
+                                            class="h-5 w-5 border-[#e8e6ef] text-[#fa8456] accent-[#fa8456] focus:ring-[#fa8456]"
+                                        />
+                                        <span class="ml-3 text-sm font-semibold text-[#2d1b0e]">{{ t('labels.payment.installment') }}</span>
                                     </label>
                                 </div>
+
+                                <!-- Installment Calculator -->
+                                <div v-if="selectedPaymentType === 'installment'" class="mt-4 space-y-4">
+                                    <!-- Loading State -->
+                                    <div v-if="isLoadingInstallment" class="flex items-center justify-center py-4">
+                                        <Loader2 class="h-5 w-5 animate-spin text-[#fa8456]" />
+                                        <span class="ml-2 text-sm text-[#6b5a4d]">Memuat tenor cicilan...</span>
+                                    </div>
+
+                                    <!-- Tenor Selection -->
+                                    <div v-else-if="installmentCalculations" class="space-y-2">
+                                        <label class="text-sm font-semibold">{{ t('labels.checkout.select_tenor') }}</label>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <button
+                                                v-for="plan in installmentCalculations.plans"
+                                                :key="plan.id"
+                                                @click="selectedInstallmentPlan = plan"
+                                                class="rounded-lg border p-3 text-center transition-all"
+                                                :class="selectedInstallmentPlan?.id === plan.id ? 'border-[#fa8456] bg-[#fff5f0]' : 'border-[#e8e6ef] hover:border-[#fa8456]/50'"
+                                            >
+                                                <span class="block text-lg font-bold">{{ plan.tenor }}x</span>
+                                                <span class="text-xs text-[#6b5a4d]">{{ plan.fee_percentage }}% fee</span>
+                                                <span class="block mt-1 text-sm font-semibold text-[#fa8456]">
+                                                    {{ formatCurrency(plan.monthly_amount) }}/bulan
+                                                </span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Selected Plan Summary -->
+                                    <div v-if="selectedInstallmentPlan" class="rounded-xl bg-[#f8f7fc] p-4">
+                                        <h4 class="text-sm font-semibold mb-3">{{ t('labels.checkout.installment_summary') }}</h4>
+                                        <div class="space-y-2 text-sm">
+                                            <div class="flex justify-between">
+                                                <span>Harga Produk</span>
+                                                <span class="font-semibold">{{ formatCurrency(installmentCalculations.principal_amount) }}</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span>Fee ({{ selectedInstallmentPlan.fee_percentage }}%)</span>
+                                                <span class="font-semibold text-[#fa8456]">{{ formatCurrency(selectedInstallmentPlan.fee_amount) }}</span>
+                                            </div>
+                                            <div class="flex justify-between border-t border-[#e8e6ef] pt-2">
+                                                <span>Total Cicilan</span>
+                                                <span class="font-bold">{{ formatCurrency(selectedInstallmentPlan.total_amount) }}</span>
+                                            </div>
+                                            <div class="flex justify-between text-lg">
+                                                <span>Angsuran/bulan</span>
+                                                <span class="font-bold text-[#fa8456]">{{ selectedInstallmentPlan.tenor }}x {{ formatCurrency(selectedInstallmentPlan.monthly_amount) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Credit Limit Info - Show for both payment types -->
+                                <div class="mt-4 rounded-lg border border-[#e8e6ef] p-4">
+                                    <div class="flex justify-between text-sm">
+                                        <span>Sisa Limit Kredit</span>
+                                        <span class="font-semibold" :class="isOverLimit ? 'text-red-500' : 'text-green-600'">
+                                            {{ formatCurrency(creditLimitRemaining) }}
+                                        </span>
+                                    </div>
+                                    <p v-if="isOverLimit" class="mt-2 text-xs text-red-500">
+                                        ⚠️ Total {{ selectedPaymentType === 'installment' ? 'cicilan' : 'pembelian' }} ({{ formatCurrency(selectedPaymentType === 'installment' ? selectedInstallmentPlan?.total_amount : grandTotal) }}) melebihi sisa limit kredit
+                                    </p>
+                                </div>
+
                                 <p v-if="form.errors.payment_method" class="mt-3 text-xs text-red-500">{{ form.errors.payment_method }}</p>
                             </section>
 
                             <!-- Notes Section -->
-                            <section class="rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
+                            <section class="order-4 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                                 <h2 class="mb-4 text-sm font-bold text-[#2d1b0e]">{{ t('labels.checkout.order_notes') }}</h2>
                                 <textarea
                                     v-model="form.notes"

@@ -1,0 +1,65 @@
+<?php
+
+return [
+
+    'navigation_group' => 'Pengaturan',
+
+    'tabs' => [
+        'general' => 'Umum',
+        'logo' => 'Logo',
+        'seo' => 'SEO',
+        'contact_social_media' => 'Kontak & Media Sosial',
+        'mail_config' => 'Konfigurasi Email',
+        'system' => 'Sistem',
+        'notifications' => 'Notifikasi',
+    ],
+
+    'fields' => [
+        'site_name' => 'Nama Situs',
+        'site_tag_line' => 'Tagline Situs',
+        'address' => 'Alamat',
+        'currency_text' => 'Teks Mata Uang',
+        'currency_symbol' => 'Simbol Mata Uang',
+        'logo' => 'Logo',
+        'favicon' => 'Favicon',
+        'login_logo' => 'Logo Login',
+        'social_image' => 'Gambar Sosial',
+        'site_description' => 'Deskripsi Situs',
+        'site_keywords' => 'Kata Kunci Situs',
+        'site_keywords_helper' => 'Dipisahkan dengan koma',
+        'social_title' => 'Judul Sosial',
+        'social_description' => 'Deskripsi Sosial',
+        'phone' => 'Nomor Telepon',
+        'wa_phone' => 'Nomor WhatsApp',
+        'instagram' => 'Instagram',
+        'facebook' => 'Facebook',
+        'twitter' => 'Twitter',
+        'mail_from' => 'Email Pengirim',
+        'mail_host' => 'Host Email',
+        'mail_port' => 'Port Email',
+        'mail_encryption' => 'Enkripsi Email',
+        'mail_username' => 'Username Email',
+        'mail_password' => 'Password Email',
+        'registration' => 'Pendaftaran Akun',
+        'registration_helper' => 'Izinkan pengunjung membuat akun di website. Jika diaktifkan, pengunjung dapat mendaftar dan mengakses fitur member seperti membuat pesanan, melihat riwayat, dan mengelola profil.',
+        'force_ssl' => 'Paksa SSL',
+        'force_ssl_helper' => 'Otomatis alihkan semua pengunjung ke versi HTTPS. Ini membantu melindungi data pengguna dan memastikan semua komunikasi terenkripsi.',
+        'secure_password' => 'Kata Sandi Aman',
+        'secure_password_helper' => 'Wajibkan pengguna membuat kata sandi yang lebih kuat. Jika diaktifkan, kata sandi harus mengikuti aturan tertentu seperti panjang minimal dan penggunaan huruf atau angka.',
+        'term_agreement' => 'Syarat & Perjanjian',
+        'term_agreement_helper' => 'Wajibkan pengguna menyetujui Syarat dan Ketentuan sebelum mendaftar atau menggunakan fitur tertentu.',
+        'active_template' => 'Template Aktif',
+        'active_template_helper' => 'Pilih template yang akan digunakan untuk tampilan dan layout website.',
+        'site_active' => 'Situs Aktif',
+        'site_active_helper' => 'Aktifkan atau nonaktifkan website. Jika dinonaktifkan, pengunjung tidak dapat mengakses situs.',
+        'admin_emails' => 'Email Notifikasi Admin',
+        'admin_emails_helper' => 'Masukkan alamat email yang dipisahkan dengan koma (,) untuk menerima notifikasi pesanan, pembayaran, dan event penting. Contoh: admin@example.com, support@example.com',
+    ],
+
+    'file_helpers' => [
+        'logo_supported' => 'File didukung: jpeg, jpg, png. Ukuran maksimal 1MB',
+        'favicon_supported' => 'File didukung: jpeg, jpg, png, ico. Ukuran maksimal 1MB',
+        'social_image' => 'File didukung: jpeg, jpg, png. Gambar akan diresize menjadi 1180x600 pixel. Ukuran maksimal 1MB.',
+    ],
+
+];

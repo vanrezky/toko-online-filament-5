@@ -3,9 +3,9 @@ import { computed, ref } from "vue";
 import { Link, router, usePage } from "@inertiajs/vue3";
 import { X, Minus, Plus, ShoppingBag, Trash2 } from "lucide-vue-next";
 import { formatCurrency } from "../../lib/utils";
-import { useTranslations } from "../../composables/useTranslations";
+import { useI18n } from "vue-i18n";
 
-const { t } = useTranslations();
+const { t } = useI18n();
 
 const props = defineProps({
     isOpen: {

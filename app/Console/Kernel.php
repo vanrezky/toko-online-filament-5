@@ -13,6 +13,11 @@ class Kernel extends ConsoleKernel
         $schedule->command('orders:check-expiry')
             ->everyFifteenMinutes()
             ->onOneServer();
+
+        // Mark overdue installment payments daily at 00:01
+        $schedule->command('installments:mark-overdue')
+            ->dailyAt('00:01')
+            ->onOneServer();
     }
 
     protected function commands(): void

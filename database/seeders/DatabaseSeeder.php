@@ -23,9 +23,7 @@ class DatabaseSeeder extends Seeder
             WarehouseSeeder::class,
             CategorySeeder::class,
             SliderSeeder::class,
-            PromotionSeeder::class,
             ProductSeeder::class,
-            FlashsaleSeeder::class,
             VoucherSeeder::class,
             CustomerSeeder::class,
             ResellerSeeder::class,
@@ -39,6 +37,8 @@ class DatabaseSeeder extends Seeder
             CurrencySeeder::class,
             EmailTemplateSeeder::class,
             ContactMessageSeeder::class,
+            CustomerLevelSeeder::class,
+            InstallmentPlanSeeder::class,
         ]);
     }
 }

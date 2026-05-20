@@ -6,6 +6,7 @@ use App\Traits\HasProfilePictureTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
@@ -16,9 +17,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Customer extends Authenticatable implements HasMedia
 {
-    use HasApiTokens, HasFactory, HasProfilePictureTrait, Notifiable, InteractsWithMedia;
+    use HasApiTokens, HasFactory, HasProfilePictureTrait, Notifiable, InteractsWithMedia, SoftDeletes;
 
-    protected $fillable = ['first_name', 'last_name', 'email', 'email_verified_at', 'username', 'password', 'phone', 'balance', 'image', 'is_active', 'is_guest'];
+    protected $fillable = ['first_name', 'last_name', 'email', 'email_verified_at', 'username', 'password', 'phone', 'balance', 'image', 'is_active', 'is_guest', 'customer_level_id', 'credit_limit'];
 
     protected $hidden = [
         'username',
@@ -76,6 +77,55 @@ class Customer extends Authenticatable implements HasMedia
         return $this->hasMany(Balance::class);
     }
 
+    public function customerLevel(): BelongsTo
+    {
+        return $this->belongsTo(CustomerLevel::class);
+    }
+
+    public function installments(): HasMany
+    {
+        return $this->hasMany(Installment::class);
+    }
+
+    public function getEffectiveCreditLimitAttribute(): float
+    {
+        return (float) ($this->credit_limit ?? $this->customerLevel?->default_credit_limit ?? 0);
+    }
+
+    public function getOutstandingBalanceAttribute(): float
+    {
+        $installmentOutstanding = (float) $this->installments()
+            ->where('status', 'active')
+            ->sum('total_amount') -
+            $this->installments()
+            ->where('status', 'active')
+            ->sum('paid_amount');
+
+        $fullBillingOutstanding = (float) Transaction::query()
+            ->where('customer_id', $this->id)
+            ->where('payment_type', 'full')
+            ->whereIn('billing_status', ['pending', 'submitted', 'failed'])
+            ->get()
+            ->sum(fn (Transaction $transaction): float => (float) $transaction->total_amount);
+
+        return max(0, $installmentOutstanding) + $fullBillingOutstanding;
+    }
+
+    public function getRemainingCreditLimitAttribute(): float
+    {
+        return $this->effective_credit_limit - $this->outstanding_balance;
+    }
+
+    public function canCreateInstallment(float $amount): bool
+    {
+        return $this->remaining_credit_limit >= $amount;
+    }
+
+    public function scopeWithLevel($query, $levelId)
+    {
+        return $query->where('customer_level_id', $levelId);
+    }
+
     public function scopeUnbanned($query)
     {
         return $query->where('is_banned', false);
@@ -99,4 +149,12 @@ class Customer extends Authenticatable implements HasMedia
     {
         return $query->whereNull('reseller_id');
     }
+
+     // user yang memiliki level user e.g: reseller, agent, distributor
+     public function scopeCustomerLevel($query, $levelId = null)
+     {
+         if ($levelId) {
+             return $query->where('customer_level_id', $levelId);
+         }
+     }
 }

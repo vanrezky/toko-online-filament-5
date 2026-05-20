@@ -18,8 +18,8 @@ class VillageResource extends Resource
     protected static ?string $model = Village::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'Master';
-    protected static ?int $navigationSort = 94;
+    protected static ?string $navigationGroup = 'Wilayah';
+    protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
     {
@@ -31,12 +31,12 @@ class VillageResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(100),
-                Forms\Components\TextInput::make('postal_code')
-                    ->maxLength(10),
-                Forms\Components\TextInput::make('rajaongkir')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('apicoid_code')
-                    ->maxLength(20),
+                // Forms\Components\TextInput::make('postal_code')
+                //     ->maxLength(10),
+                // Forms\Components\TextInput::make('rajaongkir')
+                //     ->maxLength(255),
+                // Forms\Components\TextInput::make('apicoid_code')
+                //     ->maxLength(20),
             ]);
     }
 
@@ -47,14 +47,14 @@ class VillageResource extends Resource
                 Tables\Columns\TextColumn::make('subDistrict.name'),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('postal_code')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('rajaongkir')
-                    ->label('Rajaongkir Code')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('apicoid_code')
-                    ->label('Apicoid Code')
-                    ->searchable(),
+                // Tables\Columns\TextColumn::make('postal_code')
+                //     ->searchable(),
+                // Tables\Columns\TextColumn::make('rajaongkir')
+                //     ->label('Rajaongkir Code')
+                //     ->searchable(),
+                // Tables\Columns\TextColumn::make('apicoid_code')
+                //     ->label('Apicoid Code')
+                //     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

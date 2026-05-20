@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\InstallmentController;
 use App\Http\Controllers\Api\VoucherController;
 use App\Http\Controllers\Frontend\ContactController;
 use Illuminate\Http\Request;
@@ -38,6 +39,12 @@ Route::middleware([
     Route::post('/vouchers/apply', [VoucherController::class, 'apply']);
     Route::post('/vouchers/remove', [VoucherController::class, 'remove']);
     Route::get('/vouchers/validate-cookie', [VoucherController::class, 'validateCookie']);
+
+    // Installment routes
+    Route::get('/installment/plans', [InstallmentController::class, 'plans']);
+    Route::post('/installment/simulate', [InstallmentController::class, 'simulate']);
+    Route::post('/installment/calculate', [InstallmentController::class, 'calculate']);
+    Route::get('/customer/credit-limit', [InstallmentController::class, 'creditLimit']);
 });
 
 // Contact message API routes

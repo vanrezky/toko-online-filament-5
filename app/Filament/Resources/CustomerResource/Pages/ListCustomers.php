@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CustomerResource\Pages;
 
 use App\Filament\Resources\CustomerResource;
 use App\Models\Customer;
+use App\Models\CustomerLevel;
 use App\Models\Reseller;
 use Filament\Actions;
 use Filament\Resources\Components\Tab;
@@ -14,6 +15,11 @@ use Illuminate\Database\Eloquent\Builder;
 class ListCustomers extends ListRecords
 {
     protected static string $resource = CustomerResource::class;
+
+    public function getTitle(): string
+    {
+        return __('admin/customer-resource.pages.list.title');
+    }
 
     protected function getHeaderActions(): array
     {
@@ -27,18 +33,27 @@ class ListCustomers extends ListRecords
     {
 
         $tabs = [
-            'Normal' => Tab::make()->label(__('Normal'))
-                ->modifyQueryUsing(fn (Builder $query): Builder => $query->normalUser())
-                ->badge(Customer::normalUser()->count()),
+            'Semua' => Tab::make()->label(__('admin/customer-resource.tabs.all'))
+                ->modifyQueryUsing(fn(Builder $query): Builder => $query->normalUser())
+            // ->badge(Customer::normalUser()->count()),
         ];
 
-        $resellers = Reseller::active()->orderBy('level', 'ASC')->get();
+        //  @feature-toggle: reseller - uncomment to ativate the reselller level tab
+        // $resellers = Reseller::active()->orderBy('level', 'ASC')->get();
 
-        foreach ($resellers as $resel) {
-            $tabs[$resel->name] = Tab::make()
-                ->label($resel->name)
-                ->modifyQueryUsing(fn (Builder $query): Builder => $query->resellerUser($resel->id))
-                ->badge(Customer::resellerUser($resel->id)->count());
+        // foreach ($resellers as $resel) {
+        //     $tabs[$resel->name] = Tab::make()
+        //         ->label($resel->name)
+        //         ->modifyQueryUsing(fn (Builder $query): Builder => $query->resellerUser($resel->id))
+        //         ->badge(Customer::resellerUser($resel->id)->count());
+        // }
+
+        $levels = CustomerLevel::active()->orderBy('id', 'ASC')->get();
+
+        foreach ($levels as $key => $level) {
+            $tabs[$level->slug] = Tab::make()
+                ->label($level->name)
+                ->modifyQueryUsing(fn(Builder $query): Builder => $query->customerLevel($level->id));
         }
 
         return $tabs;

@@ -19,11 +19,30 @@ class CustomerResource extends Resource
 {
     protected static ?string $model = Customer::class;
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
-    protected static ?string $navigationGroup = 'Customer';
     protected static ?string $slug = 'customers';
     protected static ?int $navigationSort = 1;
 
     public Customer $record;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/customer-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/customer-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/customer-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/customer-resource.plural_model_label');
+    }
 
     // protected static ?string $navigationLabel = 'Customer';
     // protected static ?string $recordTitleAttribute = 'first_name';
@@ -72,73 +91,106 @@ class CustomerResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\FileUpload::make('image')
-                    ->label('Profile Image')
-                    ->image()
-                    ->avatar()
-                    ->directory(UploadPath::PROFILE_UPLOAD_PATH)
-                    ->imageCropAspectRatio('1:1')
-                    ->imageEditorAspectRatios([
-                        '1:1',
+                Forms\Components\Section::make(__('admin/customer-resource.sections.general_information'))
+                    ->schema([
+                        Forms\Components\FileUpload::make('image')
+                            ->label(__('admin/customer-resource.fields.profile_image'))
+                            ->image()
+                            ->avatar()
+                            ->directory(UploadPath::PROFILE_UPLOAD_PATH)
+                            ->imageCropAspectRatio('1:1')
+                            ->imageEditorAspectRatios([
+                                '1:1',
+                            ])
+                            ->rules(['nullable', 'mimes:png,jpg,jpeg', 'max:1024'])
+                            ->columnSpanFull()
+                            ->alignCenter()
+                            ->helperText(__('admin/customer-resource.fields.profile_image_helper')),
+                        Forms\Components\TextInput::make('first_name')
+                            ->label(__('admin/customer-resource.fields.first_name'))
+                            ->placeholder(__('e.g: ') . 'John')
+                            ->required()
+                            ->maxLength(100),
+                        Forms\Components\TextInput::make('last_name')
+                            ->label(__('admin/customer-resource.fields.last_name'))
+                            ->placeholder(__('e.g: ') . 'Smith')
+                            ->maxLength(100),
+                        Forms\Components\TextInput::make('email')
+                            ->label(__('admin/customer-resource.fields.email'))
+                            ->placeholder(__('e.g: ') . 'Johnsmith@example.com')
+                            ->email()
+                            ->required()
+                            ->maxLength(100)
+                            ->unique(ignoreRecord: true),
+                        Forms\Components\TextInput::make('phone')
+                            ->label(__('admin/customer-resource.fields.phone'))
+                            ->placeholder(__('e.g: ') . '+6281234567890')
+                            ->tel()
+                            ->maxLength(20),
+                        Forms\Components\Select::make('customer_level_id')
+                            ->label(__('admin/customer-resource.fields.customer_level_id'))
+                            ->relationship('customerLevel', 'name')
+                            ->required()
+                            ->searchable()
+                            ->preload(),
                     ])
-                    ->rules(['nullable', 'mimes:png,jpg,jpeg', 'max:1024'])
-                    ->columnSpanFull()
-                    ->alignCenter()
-                    ->helperText(__('Ratio Is 1:1. Maximum size is 1MB')),
+                    ->columns(3),
 
-                Forms\Components\Group::make([
-                    Forms\Components\TextInput::make('first_name')
-                        ->placeholder(__('e.g: ') . 'John')
-                        ->required()
-                        ->maxLength(100),
-                    Forms\Components\TextInput::make('last_name')
-                        ->placeholder(__('e.g: ') . 'Smith')
-                        ->maxLength(100),
-                    Forms\Components\TextInput::make('email')
-                        ->placeholder(__('e.g: ') . 'Johnsmith@example.com')
-                        ->email()
-                        ->required()
-                        ->maxLength(100)
-                        ->unique(ignoreRecord: true),
-                    Forms\Components\TextInput::make('username')
-                        ->placeholder(__('e.g: ') . 'johnsmith')
-                        ->minLength(6)
-                        ->maxLength(15)
-                        ->unique(ignoreRecord: true),
-                    Forms\Components\TextInput::make('phone')
-                        ->placeholder(__('e.g: ') . '+6281234567890')
-                        ->tel()
-                        ->maxLength(20),
-                    Forms\Components\TextInput::make('balance')
-                        ->required()
-                        ->default(0.00)
-                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
-                    Forms\Components\TextInput::make('password')
-                        ->password()
-                        ->rules([securePassword()])
-                        ->required()
-                        ->same('confirm_password')
-                        ->minLength(8)
-                        ->maxLength(20)
-                        ->visible(fn(string $operation): bool  => $operation === 'create'),
-                    Forms\Components\TextInput::make('confirm_password')
-                        ->password()
-                        ->required()
-                        ->maxLength(255)
-                        ->visible(fn(string $operation): bool  => $operation === 'create'),
-                ])->columnSpanFull(),
+                Forms\Components\Section::make(__('admin/customer-resource.sections.password'))
+                    ->schema([
+                        Forms\Components\TextInput::make('password')
+                            ->label(__('admin/customer-resource.fields.password'))
+                            ->password()
+                            ->rules([securePassword()])
+                            ->required()
+                            ->same('confirm_password')
+                            ->minLength(8)
+                            ->maxLength(20)
+                            ->visible(fn(string $operation): bool  => $operation === 'create'),
+                        Forms\Components\TextInput::make('confirm_password')
+                            ->label(__('admin/customer-resource.fields.confirm_password'))
+                            ->password()
+                            ->required()
+                            ->maxLength(255)
+                            ->visible(fn(string $operation): bool  => $operation === 'create'),
+                    ])
+                    ->columns(2)
+                    ->visible(fn(string $operation): bool  => $operation === 'create'),
+
+                Forms\Components\Section::make(__('admin/customer-resource.sections.credit_settings'))
+                    ->schema([
+                        Forms\Components\TextInput::make('credit_limit')
+                            ->label(__('admin/customer-resource.fields.credit_limit'))
+                            ->placeholder('Kosongkan untuk gunakan default dari level')
+                            ->numeric()
+                            ->nullable()
+                            ->prefix('Rp')
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                        Forms\Components\Placeholder::make('effective_credit_limit')
+                            ->label(__('admin/customer-resource.fields.effective_credit_limit'))
+                            ->content(fn($record): string => 'Rp ' . number_format($record?->effective_credit_limit ?? 0, 0, ',', '.')),
+                        Forms\Components\Placeholder::make('outstanding_balance')
+                            ->label(__('admin/customer-resource.fields.outstanding_balance'))
+                            ->content(fn($record): string => 'Rp ' . number_format($record?->outstanding_balance ?? 0, 0, ',', '.')),
+                        Forms\Components\Placeholder::make('remaining_credit_limit')
+                            ->label(__('admin/customer-resource.fields.remaining_credit_limit'))
+                            ->content(fn($record): string => 'Rp ' . number_format($record?->remaining_credit_limit ?? 0, 0, ',', '.')),
+                    ])
+                    ->collapsible()
+                    ->collapsed(false),
 
                 Forms\Components\Hidden::make('email_verified_at')
                     ->default(now())->dehydrated(),
-            ])->columns(2);
+            ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn($query) => $query->withTrashed())
             ->columns([
                 Tables\Columns\ImageColumn::make('profile_photo_url')
-                    ->label('Photo')
+                    ->label(__('admin/customer-resource.columns.photo'))
                     ->circular()
                     ->extraImgAttributes([
                         'class' => 'border border-gray-200',
@@ -149,23 +201,23 @@ class CustomerResource extends Resource
                 Tables\Columns\TextColumn::make('last_name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
-                    ->icon(fn(Customer $record): string => $record->email_verified_at ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
-                    ->iconColor(fn(Customer $record): string => $record->email_verified_at ? 'success' : 'warning')
+                    ->icon(fn($record): string => $record?->email_verified_at ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                    ->iconColor(fn($record): string => $record?->email_verified_at ? 'success' : 'warning')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('phone')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('balance')
-                    ->money('IDR')
-                    ->sortable(),
-
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('reseller.name')
-                    ->label(__('Level'))
+                Tables\Columns\TextColumn::make('customerLevel.name')
+                    ->label(__('admin/customer-resource.columns.level'))
                     ->default('None')
                     ->badge()
                     ->color('info'),
+                Tables\Columns\TextColumn::make('effective_credit_limit')
+                    ->label(__('admin/customer-resource.columns.credit_limit'))
+                    ->money('IDR')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -177,33 +229,36 @@ class CustomerResource extends Resource
             ])
             ->filters([
                 TernaryFilter::make('email_verified_at')
-                    ->label('Email verification')
+                    ->label(__('admin/customer-resource.filters.email_verification'))
                     ->nullable()
-                    ->placeholder(__('All'))
-                    ->trueLabel(__('Verified'))
-                    ->falseLabel(__('Not verified'))
+                    ->placeholder(__('admin/customer-resource.filters.all'))
+                    ->trueLabel(__('admin/customer-resource.filters.verified'))
+                    ->falseLabel(__('admin/customer-resource.filters.not_verified')),
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Action::make('verifed_email')
-                        ->label(__('Verification Email'))
+                        ->label(__('admin/customer-resource.actions.verification_email'))
                         ->icon('heroicon-o-at-symbol')
                         ->requiresConfirmation()
                         ->action(function (Customer $record) {
                             $record->update(['email_verified_at' => now()]);
-                            return notification(__('Email has been verified  successfully'));
+                            return notification(__('admin/customer-resource.notifications.verification_email_sent'));
                         })
                         ->color('danger')
                         ->visible(fn(Customer $record): bool => $record->email_verified_at === null),
-                    Tables\Actions\ViewAction::make()->label('Profile')
+                    Tables\Actions\ViewAction::make()->label(__('admin/customer-resource.actions.profile'))
                         ->color('info'),
-                    Tables\Actions\EditAction::make(),
-                ])->tooltip(__('Actions'))
+                    Tables\Actions\EditAction::make()->label(__('admin/customer-resource.actions.edit')),
+                    Tables\Actions\RestoreAction::make(),
+                ])->tooltip(__('admin/customer-resource.actions.edit'))
 
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()->label(__('admin/customer-resource.actions.delete')),
+                    Tables\Actions\RestoreBulkAction::make(),
                 ]),
             ]);
     }
@@ -212,7 +267,7 @@ class CustomerResource extends Resource
     {
         return [
             CustomerAddressRelationManager::class,
-            BalancesRelationManager::class
+            // BalancesRelationManager::class
         ];
     }
 
@@ -220,7 +275,7 @@ class CustomerResource extends Resource
     {
         return [
             'index' => Pages\ListCustomers::route('/'),
-            // 'create' => Pages\CreateCustomer::route('/create'),
+            'create' => Pages\CreateCustomer::route('/create'),
             'view' => Pages\Profile::route('/{record}/profile'),
             'edit' => Pages\EditCustomer::route('/{record}/edit'),
         ];
