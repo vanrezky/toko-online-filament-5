@@ -167,6 +167,9 @@ jobs:
             mkdir -p storage/framework/testing
             mkdir -p bootstrap/cache
 
+            echo "=== Removing stale Laravel cache files ==="
+            rm -f bootstrap/cache/*.php
+
             echo "=== Creating storage link ==="
             php artisan storage:link 2>/dev/null || true
 
