@@ -22,6 +22,7 @@ use App\Services\VoucherCookieService;
 use App\Services\VoucherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -104,7 +105,8 @@ class CheckoutController extends Controller
             return $item->product_id . '-' . ($item->product_variant_id ?? '0') . '-' . $item->quantity . '-' . $item->price;
         })->implode('|'));
 
-        $cacheKey = "shipping_costs_{$customer->id}_{$address->id}_{$cartHash}_";
+        $shippingCostsVersion = (int) Cache::get('shipping_costs_version', 1);
+        $cacheKey = "shipping_costs_v{$shippingCostsVersion}_{$customer->id}_{$address->id}_{$cartHash}";
         $shippingResults = CacheService::remember($cacheKey, 1800, function () use ($cart, $address, $ongkirService, $courierSettings) {
             $warehouseGroups = $cart->items->groupBy(function ($item) {
                 return $item->product->warehouse_id ?: 0;

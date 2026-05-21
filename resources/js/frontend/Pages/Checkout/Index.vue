@@ -416,18 +416,6 @@ const applyVoucher = async () => {
                                         </div>
                                     </div>
 
-                                    <!-- Add New Placeholder -->
-                                    <Link
-                                        :href="route('frontend.account', { section: 'addresses' })"
-                                        class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#e8e6ef] p-6 text-[#6b5a4d] transition-all hover:border-[#fa8456] hover:text-[#fa8456]"
-                                    >
-                                        <div
-                                            class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-current text-xl font-light leading-none"
-                                        >
-                                            +
-                                        </div>
-                                        <span class="text-xs font-semibold">{{ t('labels.checkout.new_address') }}</span>
-                                    </Link>
                                 </div>
                                 <p v-if="form.errors.address_id && !isPickupOnlySelection" class="mt-3 text-xs text-red-500">{{ form.errors.address_id }}</p>
                             </section>

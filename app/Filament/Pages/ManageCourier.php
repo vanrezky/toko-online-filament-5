@@ -15,6 +15,7 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\HtmlString;
 
 class ManageCourier extends Page
@@ -139,6 +140,7 @@ class ManageCourier extends Page
     {
         $settings->fill($this->form->getState());
         $settings->save();
+        $this->bumpShippingCostsCacheVersion();
 
         Notification::make()
             ->title(__('admin/page-manage-courier.notifications.settings_saved'))
@@ -156,10 +158,20 @@ class ManageCourier extends Page
         $courier = Courier::find($id);
         $courier->is_active = !$courier->is_active;
         $courier->save();
+        $this->bumpShippingCostsCacheVersion();
 
         Notification::make()
             ->title(__('admin/page-manage-courier.notifications.status_updated'))
             ->success()
             ->send();
+    }
+
+    protected function bumpShippingCostsCacheVersion(): void
+    {
+        if (! Cache::has('shipping_costs_version')) {
+            Cache::forever('shipping_costs_version', 1);
+        }
+
+        Cache::increment('shipping_costs_version');
     }
 }
