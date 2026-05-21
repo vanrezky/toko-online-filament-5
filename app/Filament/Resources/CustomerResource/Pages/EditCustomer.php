@@ -16,6 +16,8 @@ class EditCustomer extends EditRecord
 {
     protected static string $resource = CustomerResource::class;
 
+    protected bool $schoolUnitChanged = false;
+
     public function getTitle(): string
     {
         return __('admin/customer-resource.pages.edit.title');
@@ -31,6 +33,9 @@ class EditCustomer extends EditRecord
 
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
+        $this->schoolUnitChanged = isset($data['school_unit_id'])
+            && (int) $record->school_unit_id !== (int) $data['school_unit_id'];
+
         if (empty($data['password'])) {
             unset($data['password']);
         }
@@ -42,6 +47,10 @@ class EditCustomer extends EditRecord
 
     protected function afterSave(): void
     {
+        if ($this->schoolUnitChanged) {
+            $this->record->address()->delete();
+        }
+
         app(SchoolUnitAddressSyncService::class)->syncCustomer($this->record);
     }
 
