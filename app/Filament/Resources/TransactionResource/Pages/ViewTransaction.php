@@ -104,6 +104,8 @@ class ViewTransaction extends ViewRecord
                 ->body(__('admin/transaction-resource.notifications.status_changed_to') . " " . __("admin/transaction-resource.status.{$status}"))
                 ->success()
                 ->send();
+
+            $this->refreshCurrentRecordView();
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -170,6 +172,8 @@ class ViewTransaction extends ViewRecord
                 ->body('Status tagihan sekarang: ' . $status)
                 ->success()
                 ->send();
+
+            $this->refreshCurrentRecordView();
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -179,6 +183,14 @@ class ViewTransaction extends ViewRecord
                 ->danger()
                 ->send();
         }
+    }
+
+    protected function refreshCurrentRecordView(): void
+    {
+        $this->redirect(
+            static::getResource()::getUrl('view', ['record' => $this->getRecord()]),
+            navigate: true,
+        );
     }
 
     public function infolist(Infolist $infolist): Infolist
