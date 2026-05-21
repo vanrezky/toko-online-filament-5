@@ -133,6 +133,12 @@ class CustomerResource extends Resource
                             ->required()
                             ->searchable()
                             ->preload(),
+                        Forms\Components\Select::make('school_unit_id')
+                            ->label(__('admin/customer-resource.fields.school_unit_id'))
+                            ->relationship('schoolUnit', 'name')
+                            ->required()
+                            ->searchable()
+                            ->preload(),
                     ])
                     ->columns(3),
 
@@ -195,33 +201,59 @@ class CustomerResource extends Resource
                     ->extraImgAttributes([
                         'class' => 'border border-gray-200',
                         'lazy' => 'loading'
-                    ]),
-                Tables\Columns\TextColumn::make('first_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('last_name')
-                    ->searchable(),
+                    ])
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('full_name')
+                    ->label(__('admin/customer-resource.columns.name'))
+                    ->description(fn (Customer $record): string => $record->email)
+                    ->searchable(['first_name', 'last_name', 'email'])
+                    ->sortable(['first_name', 'last_name'])
+                    ->weight('bold')
+                    ->icon('heroicon-o-user-circle')
+                    ->iconColor('primary'),
                 Tables\Columns\TextColumn::make('email')
+                    ->label(__('admin/customer-resource.columns.email'))
                     ->icon(fn($record): string => $record?->email_verified_at ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
                     ->iconColor(fn($record): string => $record?->email_verified_at ? 'success' : 'warning')
-                    ->searchable(),
+                    ->searchable()
+                    ->copyable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('phone')
-                    ->searchable(),
+                    ->label(__('admin/customer-resource.columns.phone'))
+                    ->searchable()
+                    ->copyable()
+                    ->placeholder('-')
+                    ->icon('heroicon-o-device-phone-mobile')
+                    ->toggleable(),
                 Tables\Columns\IconColumn::make('is_active')
+                    ->label(__('admin/customer-resource.columns.active'))
                     ->boolean()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('customerLevel.name')
                     ->label(__('admin/customer-resource.columns.level'))
-                    ->default('None')
+                    ->default('-')
                     ->badge()
                     ->color('info'),
+                Tables\Columns\TextColumn::make('schoolUnit.name')
+                    ->label(__('admin/customer-resource.columns.school_unit'))
+                    ->searchable()
+                    ->badge()
+                    ->color('primary')
+                    ->placeholder('-'),
+                Tables\Columns\TextColumn::make('remaining_credit_limit')
+                    ->label(__('admin/customer-resource.columns.remaining_credit_limit'))
+                    ->money('IDR')
+                    ->sortable()
+                    ->color(fn (Customer $record): string => $record->remaining_credit_limit > 0 ? 'success' : 'danger'),
                 Tables\Columns\TextColumn::make('effective_credit_limit')
                     ->label(__('admin/customer-resource.columns.credit_limit'))
                     ->money('IDR')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('admin/customer-resource.columns.created_at'))
+                    ->since()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()

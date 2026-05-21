@@ -30,6 +30,7 @@ return [
         'email' => 'Email',
         'phone' => 'Telepon',
         'customer_level_id' => 'Level Anggota',
+        'school_unit_id' => 'Unit Sekolah',
         'password' => 'Kata Sandi',
         'confirm_password' => 'Konfirmasi Kata Sandi',
         'credit_limit' => 'Custom Credit Limit',
@@ -51,7 +52,9 @@ return [
         'phone' => 'Telepon',
         'balance' => 'Saldo',
         'level' => 'Level',
+        'school_unit' => 'Unit Sekolah',
         'credit_limit' => 'Credit Limit',
+        'remaining_credit_limit' => 'Sisa Kredit',
         'email_verification' => 'Verifikasi Email',
         'active' => 'Aktif',
         'created_at' => 'Dibuat',
@@ -101,5 +104,29 @@ return [
 
     'tabs' => [
         'all' => 'Semua',
+    ],
+
+    'address' => [
+        'title' => 'Alamat',
+        'fields' => [
+            'name' => 'Nama Alamat',
+            'phone' => 'Telepon',
+            'province_id' => 'Provinsi',
+            'district_id' => 'Kabupaten/Kota',
+            'sub_district_id' => 'Kecamatan',
+            'address' => 'Alamat',
+            'postal_code' => 'Kode Pos',
+        ],
+        'columns' => [
+            'name' => 'Nama Alamat',
+            'phone' => 'Telepon',
+            'province' => 'Provinsi',
+            'district' => 'Kabupaten/Kota',
+            'sub_district' => 'Kecamatan',
+            'postal_code' => 'Kode Pos',
+        ],
+        'placeholders' => [
+            'name' => 'Alamat Unit Sekolah',
+        ],
     ],
 ];

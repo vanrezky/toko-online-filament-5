@@ -501,13 +501,9 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                     <h2 class="text-xl font-bold text-foreground">{{ t("labels.address.heading") }}</h2>
                                     <p class="mt-1 text-sm text-muted-foreground">{{ t("labels.address.description") }}</p>
                                 </div>
-                                <button
-                                    @click="openAddressForm()"
-                                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/90 px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
-                                >
-                                    <Plus class="h-4 w-4" />
-                                    <span>{{ t("labels.actions.add_new") }}</span>
-                                </button>
+                                <p class="rounded-xl bg-secondary/60 px-4 py-2 text-xs font-semibold text-muted-foreground">
+                                    Alamat dikelola admin berdasarkan unit sekolah.
+                                </p>
                             </div>
 
                             <div class="grid gap-4">
@@ -535,31 +531,8 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                             </p>
                                         </div>
 
-                                        <div class="flex flex-row items-center gap-4 md:flex-col md:items-end">
-                                            <button
-                                                v-if="!address.is_featured"
-                                                @click="setFeaturedAddress(address)"
-                                                class="inline-flex items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-primary/80"
-                                            >
-                                                <CheckCircle2 class="h-3 w-3" />
-                                                {{ t("labels.actions.set_default") }}
-                                            </button>
-                                            <div class="flex items-center gap-3">
-                                                <button
-                                                    @click="openAddressForm(address)"
-                                                    class="inline-flex items-center gap-1 text-sm font-medium text-foreground underline transition-colors hover:text-primary"
-                                                >
-                                                    <Edit3 class="h-3 w-3" />
-                                                    {{ t("labels.actions.edit") }}
-                                                </button>
-                                                <button
-                                                    @click="deleteAddress(address.id, address.name)"
-                                                    class="inline-flex items-center gap-1 text-sm font-medium text-red-500 transition-colors hover:text-red-700"
-                                                >
-                                                    <Trash2 class="h-3 w-3" />
-                                                    {{ t("labels.actions.delete") }}
-                                                </button>
-                                            </div>
+                                        <div class="rounded-xl bg-secondary/40 px-3 py-2 text-xs font-semibold text-muted-foreground">
+                                            Sinkron otomatis dari unit sekolah
                                         </div>
                                     </div>
                                 </div>
@@ -576,158 +549,10 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                             <MapPin class="h-10 w-10 text-muted-foreground" />
                                         </div>
                                         <p class="mb-6 text-sm font-medium text-muted-foreground">{{ t("labels.address.empty") }}</p>
-                                        <button
-                                            @click="openAddressForm()"
-                                            class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/90 px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
-                                        >
-                                            <Plus class="h-4 w-4" />
-                                            {{ t("labels.actions.add_first_address") }}
-                                        </button>
+                                        <p class="text-sm font-medium text-muted-foreground">Alamat akan muncul otomatis setelah admin menetapkan unit sekolah.</p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- ADDRESS FORM SECTION -->
-                        <div v-if="activeSection === 'address_form'" class="overflow-hidden rounded-2xl bg-white p-6 shadow-xl md:p-8">
-                            <div class="mb-8 flex items-center justify-between">
-                                <div>
-                                    <h2 class="text-xl font-bold text-foreground">{{ editingAddress ? t("labels.address.edit_heading") : t("labels.address.new_heading") }}</h2>
-                                    <p class="mt-1 text-sm text-muted-foreground">
-                                        {{ editingAddress ? t("labels.address.edit_description") : t("labels.address.new_description") }}
-                                    </p>
-                                </div>
-                                <button
-                                    @click="activeSection = 'addresses'"
-                                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-foreground shadow-sm transition-all hover:bg-primary hover:text-primary-foreground"
-                                >
-                                    <X class="h-5 w-5" />
-                                </button>
-                            </div>
-
-                            <form @submit.prevent="submitAddress" class="space-y-6">
-                                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                    <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.recipient_name") }}</label>
-                                        <input v-model="addressForm.name" type="text" class="input-field" :placeholder="t('placeholders.full_name')" />
-                                        <p v-if="addressForm.errors.name" class="text-xs text-red-500">{{ addressForm.errors.name }}</p>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.phone") }}</label>
-                                        <input v-model="addressForm.phone" type="text" class="input-field" :placeholder="t('placeholders.phone')" />
-                                        <p v-if="addressForm.errors.phone" class="text-xs text-red-500">{{ addressForm.errors.phone }}</p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.province") }}</label>
-                                        <select
-                                            v-model="addressForm.province_id"
-                                            @change="fetchDistricts(addressForm.province_id)"
-                                            class="select-field"
-                                        >
-                                            <option value="" disabled>{{ t("placeholders.select_province") }}</option>
-                                            <option v-for="p in provinces" :key="p.id" :value="p.id">{{ p.name }}</option>
-                                        </select>
-                                        <p v-if="addressForm.errors.province_id" class="text-xs text-red-500">{{ addressForm.errors.province_id }}</p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.district") }}</label>
-                                        <select
-                                            v-model="addressForm.district_id"
-                                            @change="fetchSubDistricts(addressForm.district_id)"
-                                            :disabled="!addressForm.province_id"
-                                            class="select-field"
-                                        >
-                                            <option value="" disabled>{{ t("placeholders.select_district") }}</option>
-                                            <option v-for="d in districts" :key="d.id" :value="d.id">{{ d.name }}</option>
-                                        </select>
-                                        <p v-if="addressForm.errors.district_id" class="text-xs text-red-500">{{ addressForm.errors.district_id }}</p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.sub_district") }}</label>
-                                        <select
-                                            v-model="addressForm.sub_district_id"
-                                            @change="fetchVillages(addressForm.sub_district_id)"
-                                            :disabled="!addressForm.district_id"
-                                            class="select-field"
-                                        >
-                                            <option value="" disabled>{{ t("placeholders.select_sub_district") }}</option>
-                                            <option v-for="sd in subDistricts" :key="sd.id" :value="sd.id">{{ sd.name }}</option>
-                                        </select>
-                                        <p v-if="addressForm.errors.sub_district_id" class="text-xs text-red-500">
-                                            {{ addressForm.errors.sub_district_id }}
-                                        </p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.village") }}</label>
-                                        <select
-                                            v-model="addressForm.village_id"
-                                            @change="onVillageChange"
-                                            :disabled="!addressForm.sub_district_id"
-                                            class="select-field"
-                                        >
-                                            <option value="" disabled>{{ t("placeholders.select_village") }}</option>
-                                            <option v-for="v in villages" :key="v.id" :value="v.id">{{ v.name }}</option>
-                                        </select>
-                                        <p v-if="addressForm.errors.village_id" class="text-xs text-red-500">{{ addressForm.errors.village_id }}</p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.postal_code") }}</label>
-                                        <input
-                                            v-model="addressForm.postal_code"
-                                            type="text"
-                                            inputmode="numeric"
-                                            @input="addressForm.postal_code = addressForm.postal_code.replace(/\D/g, '')"
-                                            class="input-field"
-                                            :placeholder="t('placeholders.postal_code')"
-                                        />
-                                        <p v-if="addressForm.errors.postal_code" class="text-xs text-red-500">{{ addressForm.errors.postal_code }}</p>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label class="text-sm font-semibold text-foreground">{{ t("labels.form.full_address") }}</label>
-                                    <textarea
-                                        v-model="addressForm.address"
-                                        rows="3"
-                                        class="input-field"
-                                        :placeholder="t('placeholders.street_address')"
-                                    ></textarea>
-                                    <p v-if="addressForm.errors.address" class="text-xs text-red-500">{{ addressForm.errors.address }}</p>
-                                </div>
-
-                                <div class="flex items-center gap-3 rounded-xl bg-secondary/50 p-4">
-                                    <input
-                                        id="is_featured"
-                                        type="checkbox"
-                                        v-model="addressForm.is_featured"
-                                        class="h-5 w-5 rounded border-border bg-white text-primary focus:ring-primary"
-                                    />
-                                    <label for="is_featured" class="cursor-pointer text-sm font-medium">{{ t("labels.form.set_as_default") }}</label>
-                                </div>
-
-                                <div class="flex flex-col gap-3 border-t border-border pt-6 sm:flex-row">
-                                    <button
-                                        type="submit"
-                                        :disabled="addressForm.processing"
-                                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/90 px-8 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-lg"
-                                    >
-                                        <Save class="h-4 w-4" />
-                                        <span>{{ addressForm.processing ? t("labels.actions.saving") : t("labels.actions.save_address") }}</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        @click="activeSection = 'addresses'"
-                                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-white px-8 py-3 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-secondary"
-                                    >
-                                        {{ t("labels.actions.cancel") }}
-                                    </button>
-                                </div>
-                            </form>
                         </div>
                     </div>
                 </div>

@@ -19,7 +19,7 @@ class Customer extends Authenticatable implements HasMedia
 {
     use HasApiTokens, HasFactory, HasProfilePictureTrait, Notifiable, InteractsWithMedia, SoftDeletes;
 
-    protected $fillable = ['first_name', 'last_name', 'email', 'email_verified_at', 'username', 'password', 'phone', 'balance', 'image', 'is_active', 'is_guest', 'customer_level_id', 'credit_limit'];
+    protected $fillable = ['first_name', 'last_name', 'email', 'email_verified_at', 'username', 'password', 'phone', 'balance', 'image', 'is_active', 'is_guest', 'customer_level_id', 'school_unit_id', 'credit_limit'];
 
     protected $hidden = [
         'username',
@@ -80,6 +80,11 @@ class Customer extends Authenticatable implements HasMedia
     public function customerLevel(): BelongsTo
     {
         return $this->belongsTo(CustomerLevel::class);
+    }
+
+    public function schoolUnit(): BelongsTo
+    {
+        return $this->belongsTo(SchoolUnit::class);
     }
 
     public function installments(): HasMany

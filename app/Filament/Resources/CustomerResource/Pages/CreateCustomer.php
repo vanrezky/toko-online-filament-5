@@ -3,13 +3,17 @@
 namespace App\Filament\Resources\CustomerResource\Pages;
 
 use App\Filament\Resources\CustomerResource;
-use Filament\Actions;
+use App\Services\SchoolUnitAddressSyncService;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Database\Eloquent\Model;
 
 class CreateCustomer extends CreateRecord
 {
     protected static string $resource = CustomerResource::class;
+
+    protected function afterCreate(): void
+    {
+        app(SchoolUnitAddressSyncService::class)->syncCustomer($this->record);
+    }
 
     public function getTitle(): string
     {

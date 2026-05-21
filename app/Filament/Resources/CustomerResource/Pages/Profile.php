@@ -141,6 +141,9 @@ class Profile extends ViewRecord
                             ->tooltip(fn(Customer $record): string => $record->has_verified_email ? __('admin/customer-resource.profile.email_verified') : __('admin/customer-resource.profile.email_unverified')),
                         TextEntry::make('phone')
                             ->label(__('admin/customer-resource.fields.phone')),
+                        TextEntry::make('schoolUnit.name')
+                            ->label(__('admin/customer-resource.fields.school_unit_id'))
+                            ->default('-'),
                         TextEntry::make('is_active')
                             ->label(__('admin/customer-resource.profile.status'))
                             ->badge()

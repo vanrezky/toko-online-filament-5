@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CustomerResource\Pages;
 
 use App\Constants\UploadPath;
 use App\Filament\Resources\CustomerResource;
+use App\Services\SchoolUnitAddressSyncService;
 use Filament\Actions;
 use Filament\Forms\Components as FormsComponents;
 use Filament\Resources\Pages\EditRecord;
@@ -37,6 +38,11 @@ class EditCustomer extends EditRecord
         $record->update($data);
 
         return $record;
+    }
+
+    protected function afterSave(): void
+    {
+        app(SchoolUnitAddressSyncService::class)->syncCustomer($this->record);
     }
 
     // public function form(Form $form): Form

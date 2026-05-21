@@ -37,6 +37,12 @@ class ProductVariantsRelationManager extends RelationManager
         return __('admin/product-resource.product-variant.label');
     }
 
+    #[Override]
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
+    {
+        return __('admin/product-resource.product-variant.title');
+    }
+
     public function form(Form $form): Form
     {
         return $form

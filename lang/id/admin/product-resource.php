@@ -124,6 +124,7 @@ return [
     ],
     'product-variant' => [
         'label' => 'Varian Produk',
+        'title' => 'Varian Produk',
         'navigation_label' => 'Varian Produk',
         'fields' => [
             'variant' => 'Varian',
