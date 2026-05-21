@@ -16,6 +16,7 @@ const props = defineProps({
     activeGateway: String,
     installmentPlans: Array,
     creditLimit: Object,
+    installmentMinOrderAmount: Number,
 });
 
 const { t } = useI18n();
@@ -41,6 +42,7 @@ const selectedInstallmentPlan = ref(null);
 const installmentCalculations = ref(null);
 const isLoadingInstallment = ref(false);
 const creditLimitRemaining = ref(props.creditLimit?.remaining || 0);
+const installmentMinOrderAmount = computed(() => Number(props.installmentMinOrderAmount || 1000000));
 
 watch(
     () => props.validatedVouchers,
@@ -164,6 +166,10 @@ const grandTotal = computed(() => {
     return subtotal.value + discountedShippingFee.value - productDiscount.value;
 });
 
+const isInstallmentEligible = computed(() => {
+    return grandTotal.value >= installmentMinOrderAmount.value;
+});
+
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
 };
@@ -189,10 +195,23 @@ const calculateInstallments = async () => {
 
 watch(selectedPaymentType, (type) => {
     if (type === 'installment') {
+        if (!isInstallmentEligible.value) {
+            selectedPaymentType.value = 'full';
+            return;
+        }
+
         calculateInstallments();
     } else {
         installmentCalculations.value = null;
         selectedInstallmentPlan.value = null;
+    }
+});
+
+watch(isInstallmentEligible, (eligible) => {
+    if (!eligible && selectedPaymentType.value === 'installment') {
+        selectedPaymentType.value = 'full';
+        selectedInstallmentPlan.value = null;
+        installmentCalculations.value = null;
     }
 });
 
@@ -219,6 +238,9 @@ const canSubmitOrder = computed(() => {
     if (selectedPaymentType.value === 'installment' && !selectedInstallmentPlan.value) {
         return false;
     }
+    if (selectedPaymentType.value === 'installment' && !isInstallmentEligible.value) {
+        return false;
+    }
     if (isOverLimit.value) {
         return false;
     }
@@ -226,6 +248,25 @@ const canSubmitOrder = computed(() => {
         && !hasInvalidVoucher.value
         && hasShippingMethodsSelected.value
         && (!requiresAddressSelection.value || !!form.address_id);
+});
+
+const paymentError = computed(() => {
+    const paymentTypeError = form.errors.payment_type;
+    const paymentMethodError = form.errors.payment_method;
+
+    if (Array.isArray(paymentTypeError)) {
+        return paymentTypeError[0] || null;
+    }
+
+    if (paymentTypeError) {
+        return paymentTypeError;
+    }
+
+    if (Array.isArray(paymentMethodError)) {
+        return paymentMethodError[0] || null;
+    }
+
+    return paymentMethodError || null;
 });
 
 const submitOrder = async () => {
@@ -290,7 +331,25 @@ const submitOrder = async () => {
     } catch (error) {
         console.error("Checkout failed", error);
         if (error.response && error.response.status === 422) {
-            form.errors = error.response.data.errors || {};
+            const errors = error.response.data.errors || {};
+
+            form.clearErrors();
+            Object.entries(errors).forEach(([field, messages]) => {
+                if (Array.isArray(messages)) {
+                    form.setError(field, messages[0] || '');
+                    return;
+                }
+
+                form.setError(field, messages || '');
+            });
+
+            if (errors.payment_type && !errors.payment_method) {
+                const paymentTypeMessage = Array.isArray(errors.payment_type)
+                    ? (errors.payment_type[0] || '')
+                    : errors.payment_type;
+
+                form.setError('payment_method', paymentTypeMessage);
+            }
         } else {
             alert(error.response?.data?.error || t('messages.error.checkout_failed'));
         }
@@ -531,18 +590,26 @@ const applyVoucher = async () => {
 
                                     <label
                                         class="flex cursor-pointer items-center rounded-xl border p-4 transition-all hover:bg-[#fafafa]"
-                                        :class="selectedPaymentType === 'installment' ? 'border-[#fa8456] bg-[#fff5f0]' : 'border-[#e8e6ef]'"
+                                        :class="[
+                                            selectedPaymentType === 'installment' ? 'border-[#fa8456] bg-[#fff5f0]' : 'border-[#e8e6ef]',
+                                            !isInstallmentEligible ? 'cursor-not-allowed opacity-60 hover:bg-white' : ''
+                                        ]"
                                     >
                                         <input
                                             type="radio"
                                             value="installment"
                                             v-model="selectedPaymentType"
                                             @change="selectPaymentType('installment')"
+                                            :disabled="!isInstallmentEligible"
                                             class="h-5 w-5 border-[#e8e6ef] text-[#fa8456] accent-[#fa8456] focus:ring-[#fa8456]"
                                         />
                                         <span class="ml-3 text-sm font-semibold text-[#2d1b0e]">{{ t('labels.payment.installment') }}</span>
                                     </label>
                                 </div>
+
+                                <p v-if="!isInstallmentEligible" class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
+                                    Cicilan tersedia untuk total belanja minimal {{ formatCurrency(installmentMinOrderAmount) }}. Pesanan di bawah nominal tersebut wajib bayar penuh melalui potongan payroll.
+                                </p>
 
                                 <!-- Installment Calculator -->
                                 <div v-if="selectedPaymentType === 'installment'" class="mt-4 space-y-4">
@@ -609,7 +676,7 @@ const applyVoucher = async () => {
                                     </p>
                                 </div>
 
-                                <p v-if="form.errors.payment_method" class="mt-3 text-xs text-red-500">{{ form.errors.payment_method }}</p>
+                                <p v-if="paymentError" class="mt-3 text-xs text-red-500">{{ paymentError }}</p>
                             </section>
 
                             <!-- Notes Section -->
@@ -784,6 +851,10 @@ const applyVoucher = async () => {
                                         <p class="text-sm font-semibold text-green-700">💰 {{ t('labels.checkout.total_savings', { amount: formatCurrency(totalVoucherDiscount) }) }}</p>
                                     </div>
                                 </div>
+
+                                <p v-if="paymentError" class="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-600">
+                                    {{ paymentError }}
+                                </p>
 
                                 <button
                                     @click="submitOrder"

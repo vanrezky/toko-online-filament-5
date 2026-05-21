@@ -20,6 +20,7 @@ use App\Services\InstallmentService;
 use App\Services\PaymentGatewayService;
 use App\Services\VoucherCookieService;
 use App\Services\VoucherService;
+use App\Settings\GeneralSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -48,7 +49,7 @@ class CheckoutController extends Controller
         $this->creditLimitService = $creditLimitService;
     }
 
-    public function __invoke(Request $request, PaymentGatewayService $paymentGatewayService)
+    public function __invoke(Request $request, PaymentGatewayService $paymentGatewayService, GeneralSettings $generalSettings)
     {
         $customer = Auth::guard('customer')->user();
 
@@ -80,6 +81,7 @@ class CheckoutController extends Controller
                 'remaining' => $customer->remaining_credit_limit,
                 'effective' => $customer->effective_credit_limit,
             ],
+            'installmentMinOrderAmount' => (int) ($generalSettings->installment_min_order_amount ?? 1000000),
         ]);
     }
 
@@ -176,7 +178,7 @@ class CheckoutController extends Controller
         return response()->json($shippingResults);
     }
 
-    public function store(Request $request, PaymentGatewayService $paymentGatewayService)
+    public function store(Request $request, PaymentGatewayService $paymentGatewayService, GeneralSettings $generalSettings)
     {
         $request->validate([
             'address_id' => 'nullable|exists:customer_addresses,id',
@@ -263,6 +265,16 @@ class CheckoutController extends Controller
         $shippingDiscount = $validatedVouchers['shipping']['discount_amount'] ?? 0;
         $discountedShippingFee = max(0, $totalShippingCost - $shippingDiscount);
         $grandTotal = $subtotal + $discountedShippingFee - $productDiscount;
+        $installmentMinOrderAmount = (int) ($generalSettings->installment_min_order_amount ?? 1000000);
+
+        if ($request->payment_type === 'installment' && $grandTotal < $installmentMinOrderAmount) {
+            return response()->json([
+                'success' => false,
+                'errors' => [
+                    'payment_type' => ["Minimal belanja untuk cicilan adalah " . number_format($installmentMinOrderAmount, 0, ',', '.')],
+                ],
+            ], 422);
+        }
 
         if ($request->payment_type === 'full' && ! $this->creditLimitService->canCreateFullBilling($customer, $grandTotal)) {
             return response()->json([

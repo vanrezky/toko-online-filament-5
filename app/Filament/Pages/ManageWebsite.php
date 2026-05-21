@@ -158,6 +158,17 @@ class ManageWebsite extends SettingsPage
                                     ->label(__('admin/page-manage-website.fields.site_active'))
                                     ->helperText(__('admin/page-manage-website.fields.site_active_helper')),
                             ]),
+                        Tab::make('Pembayaran')
+                            ->icon('heroicon-o-banknotes')
+                            ->schema([
+                                TextInput::make('installment_min_order_amount')
+                                    ->label('Minimum Belanja untuk Cicilan')
+                                    ->helperText('Jika total belanja di bawah nilai ini, opsi cicilan akan dinonaktifkan.')
+                                    ->rules('nullable|numeric')
+                                    ->default(1000000)
+                                    ->required()
+                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                            ]),
                         Tab::make(__('admin/page-manage-website.tabs.notifications'))
                             ->icon('heroicon-o-bell')
                             ->schema([

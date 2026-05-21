@@ -72,6 +72,8 @@ class GeneralSettings extends Settings
 
     public ?float $payment_percent_charge;
 
+    public ?int $installment_min_order_amount;
+
     public bool $site_active;
 
     public ?string $admin_emails;
