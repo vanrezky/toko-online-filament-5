@@ -7,6 +7,7 @@ use App\Services\PayrollExportService;
 use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 
 class PayrollExportPage extends Page
@@ -44,10 +45,33 @@ class PayrollExportPage extends Page
             Action::make('preview')
                 ->label(__('admin/payroll-export-page.actions.preview'))
                 ->action('generatePreview'),
-            Action::make('exportExcel')
-                ->label(__('admin/payroll-export-page.actions.export_excel'))
-                ->action('exportExcel')
+            Action::make('exportDraft')
+                ->label(__('admin/payroll-export-page.actions.export_draft_excel'))
+                ->action('exportDraft')
                 ->color('success'),
+            Action::make('exportFinal')
+                ->label(__('admin/payroll-export-page.actions.export_final_submit'))
+                ->color('danger')
+                ->requiresConfirmation()
+                ->modalSubmitActionLabel(__('admin/payroll-export-page.actions.export_final_submit'))
+                ->modalHeading(__('admin/payroll-export-page.confirmations.final_heading'))
+                ->modalDescription(function (): string {
+                    $summary = app(PayrollExportService::class)->getPayrollSummary(
+                        $this->selectedMonth,
+                        $this->selectedYear,
+                        $this->selectedLevelId
+                    );
+
+                    return __('admin/payroll-export-page.confirmations.final_description', [
+                        'month' => $summary['month_name'] ?? '-',
+                        'year' => $summary['year'] ?? '-',
+                        'customers' => $summary['total_customers'] ?? 0,
+                        'full_bills' => $summary['total_full_bills'] ?? 0,
+                        'installments' => $summary['total_installments'] ?? 0,
+                        'total' => number_format((float) ($summary['total_deduction'] ?? 0), 0, ',', '.'),
+                    ]);
+                })
+                ->action(fn () => $this->exportFinalAndSubmit()),
         ];
     }
 
@@ -129,7 +153,7 @@ class PayrollExportPage extends Page
         $this->previewData = $summary;
     }
 
-    public function exportExcel()
+    public function exportDraft()
     {
         $service = app(PayrollExportService::class);
         return $service->exportToExcel(
@@ -137,5 +161,36 @@ class PayrollExportPage extends Page
             $this->selectedYear,
             $this->selectedLevelId
         );
+    }
+
+    public function exportFinalAndSubmit()
+    {
+        $service = app(PayrollExportService::class);
+        $result = $service->submitAndExportFinal(
+            $this->selectedMonth,
+            $this->selectedYear,
+            $this->selectedLevelId
+        );
+
+        if (($result['total_updated'] ?? 0) === 0) {
+            Notification::make()
+                ->title(__('admin/payroll-export-page.notifications.no_eligible_items_title'))
+                ->body(__('admin/payroll-export-page.notifications.no_eligible_items_body'))
+                ->warning()
+                ->send();
+
+            return null;
+        }
+
+        Notification::make()
+            ->title(__('admin/payroll-export-page.notifications.final_export_success_title'))
+            ->body(__('admin/payroll-export-page.notifications.final_export_success_body', [
+                'batch' => $result['batch_reference'],
+                'total' => $result['total_updated'],
+            ]))
+            ->success()
+            ->send();
+
+        return $result['response'];
     }
 }
