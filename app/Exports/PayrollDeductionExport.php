@@ -32,6 +32,7 @@ class PayrollDeductionExport implements FromCollection, WithHeadings, WithMappin
                 $detail['level'],
                 $detail['total_deduction'],
                 $detail['active_installments'],
+                count($detail['payments'] ?? []),
                 $detail['references'] ?? '-',
             ]);
         });
@@ -45,7 +46,8 @@ class PayrollDeductionExport implements FromCollection, WithHeadings, WithMappin
             'Level',
             'Total Potongan',
             'Cicilan Aktif',
-            'Referensi Cicilan',
+            'Jumlah Item Tagihan',
+            'Referensi Tagihan',
         ];
     }
 
@@ -58,6 +60,7 @@ class PayrollDeductionExport implements FromCollection, WithHeadings, WithMappin
             'Rp ' . number_format($row[3], 0, ',', '.'),
             $row[4],
             $row[5],
+            $row[6],
         ];
     }
 }

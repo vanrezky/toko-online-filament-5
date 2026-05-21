@@ -37,6 +37,7 @@ return [
         'total_customers' => 'Total Anggota',
         'total_deduction' => 'Total Potongan',
         'total_installments' => 'Total Cicilan Aktif',
+        'total_full_bills' => 'Total Tagihan Full',
     ],
 
     'table_headers' => [
@@ -45,6 +46,8 @@ return [
         'level' => 'Level',
         'total_deduction' => 'Total Potongan',
         'active_installments' => 'Cicilan Aktif',
+        'references' => 'Referensi',
+        'bill_items' => 'Rincian Tagihan',
     ],
 
     'actions' => [

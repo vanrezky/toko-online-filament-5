@@ -168,6 +168,30 @@ class ManageWebsite extends SettingsPage
                                     ->default(1000000)
                                     ->required()
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                                TextInput::make('billing_cutoff_day')
+                                    ->label('Tanggal Cutoff Tagihan')
+                                    ->helperText('Transaksi pada tanggal ini atau sebelumnya masuk siklus bulan berjalan.')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(31)
+                                    ->default(25)
+                                    ->required(),
+                                TextInput::make('billing_due_day')
+                                    ->label('Tanggal Jatuh Tempo')
+                                    ->helperText('Tanggal jatuh tempo payroll pada bulan penagihan.')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(31)
+                                    ->default(5)
+                                    ->required(),
+                                TextInput::make('billing_due_month_offset')
+                                    ->label('Offset Bulan Jatuh Tempo')
+                                    ->helperText('0 = bulan yang sama, 1 = bulan berikutnya, dst.')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->maxValue(12)
+                                    ->default(1)
+                                    ->required(),
                             ]),
                         Tab::make(__('admin/page-manage-website.tabs.notifications'))
                             ->icon('heroicon-o-bell')

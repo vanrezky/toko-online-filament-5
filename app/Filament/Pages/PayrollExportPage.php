@@ -43,7 +43,7 @@ class PayrollExportPage extends Page
         return [
             Action::make('preview')
                 ->label(__('admin/payroll-export-page.actions.preview'))
-                ->action('previewData'),
+                ->action('generatePreview'),
             Action::make('exportExcel')
                 ->label(__('admin/payroll-export-page.actions.export_excel'))
                 ->action('exportExcel')
@@ -89,23 +89,53 @@ class PayrollExportPage extends Page
         ]);
     }
 
-    public function previewData(): void
+    public function generatePreview(): void
     {
         $service = app(PayrollExportService::class);
-        $this->previewData = $service->getPayrollSummary(
+        $summary = $service->getPayrollSummary(
             $this->selectedMonth,
             $this->selectedYear,
             $this->selectedLevelId
         );
+
+        $summary['details'] = collect($summary['details'] ?? [])->map(function (array $detail) {
+            $payments = collect($detail['payments'] ?? [])->map(function ($item) {
+                return [
+                    'type' => (string) ($item['type'] ?? '-'),
+                    'reference' => (string) ($item['reference'] ?? '-'),
+                    'amount' => (float) ($item['amount'] ?? 0),
+                    'transaction_uuid' => $item['transaction_uuid'] ?? null,
+                ];
+            })->values();
+
+            $fullPayments = $payments->where('type', 'full');
+            $installmentPayments = $payments->where('type', 'installment');
+
+            return [
+                'customer_id' => $detail['customer']->id,
+                'customer_name' => $detail['customer']->full_name,
+                'level' => $detail['level'] ?? 'N/A',
+                'total_deduction' => (float) ($detail['total_deduction'] ?? 0),
+                'active_installments' => (int) ($detail['active_installments'] ?? 0),
+                'references' => $detail['references'] ?? '-',
+                'full_bill_count' => $fullPayments->count(),
+                'full_bill_total' => (float) $fullPayments->sum('amount'),
+                'installment_bill_count' => $installmentPayments->count(),
+                'installment_bill_total' => (float) $installmentPayments->sum('amount'),
+                'payments' => $payments->all(),
+            ];
+        })->values()->all();
+
+        $this->previewData = $summary;
     }
 
-    public function exportExcel(): void
+    public function exportExcel()
     {
         $service = app(PayrollExportService::class);
-        $this->redirect($service->exportToExcel(
+        return $service->exportToExcel(
             $this->selectedMonth,
             $this->selectedYear,
             $this->selectedLevelId
-        )->getTargetUrl(), navigate: true);
+        );
     }
 }

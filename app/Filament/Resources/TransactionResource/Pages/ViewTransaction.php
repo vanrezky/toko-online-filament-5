@@ -25,7 +25,10 @@ class ViewTransaction extends ViewRecord
 
     protected function getHeaderActions(): array
     {
-        return $this->getStatusActions();
+        return [
+            ...$this->getStatusActions(),
+            ...$this->getBillingActions(),
+        ];
     }
 
     protected function getStatusActions(): array
@@ -99,6 +102,72 @@ class ViewTransaction extends ViewRecord
             Notification::make()
                 ->title(__('admin/transaction-resource.notifications.status_updated'))
                 ->body(__('admin/transaction-resource.notifications.status_changed_to') . " " . __("admin/transaction-resource.status.{$status}"))
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Notification::make()
+                ->title(__('admin/transaction-resource.notifications.update_failed'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    protected function getBillingActions(): array
+    {
+        $record = $this->getRecord();
+
+        if ($record->payment_type !== 'full') {
+            return [];
+        }
+
+        $actions = [];
+
+        if ($record->billing_status === 'pending' || $record->billing_status === 'failed') {
+            $actions[] = Actions\Action::make('markBillingSubmitted')
+                ->label('Tandai Tagihan Diajukan')
+                ->icon('heroicon-o-paper-airplane')
+                ->color('info')
+                ->requiresConfirmation()
+                ->action(fn () => $this->updateBillingStatus('submitted'));
+        }
+
+        if ($record->billing_status === 'submitted') {
+            $actions[] = Actions\Action::make('markBillingPaid')
+                ->label('Tandai Tagihan Lunas')
+                ->icon('heroicon-o-check-badge')
+                ->color('success')
+                ->requiresConfirmation()
+                ->action(fn () => $this->updateBillingStatus('paid'));
+
+            $actions[] = Actions\Action::make('markBillingFailed')
+                ->label('Tandai Tagihan Gagal')
+                ->icon('heroicon-o-exclamation-triangle')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->action(fn () => $this->updateBillingStatus('failed'));
+        }
+
+        return $actions;
+    }
+
+    protected function updateBillingStatus(string $status): void
+    {
+        $record = $this->getRecord();
+
+        DB::beginTransaction();
+        try {
+            $record->update([
+                'billing_status' => $status,
+            ]);
+
+            DB::commit();
+
+            Notification::make()
+                ->title('Status tagihan berhasil diperbarui')
+                ->body('Status tagihan sekarang: ' . $status)
                 ->success()
                 ->send();
         } catch (\Exception $e) {
@@ -349,6 +418,27 @@ class ViewTransaction extends ViewRecord
                             ->color(fn (bool $state) => $state ? 'warning' : 'info'),
                         TextEntry::make('payment_method')
                             ->label(__('admin/transaction-resource.entries.payment_gateway'))
+                            ->placeholder(__('admin/transaction-resource.entries.not_set')),
+                        TextEntry::make('payment_type')
+                            ->label('Jenis Pembayaran')
+                            ->badge()
+                            ->formatStateUsing(fn (?string $state): string => $state === 'installment' ? 'Cicilan' : 'Penuh'),
+                        TextEntry::make('billing_status')
+                            ->label('Status Tagihan')
+                            ->badge()
+                            ->visible(fn (Transaction $record): bool => $record->payment_type === 'full')
+                            ->color(fn (?string $state): string => match ($state) {
+                                'pending' => 'warning',
+                                'submitted' => 'info',
+                                'paid' => 'success',
+                                'failed' => 'danger',
+                                default => 'gray',
+                            })
+                            ->formatStateUsing(fn (?string $state): string => $state ? ucfirst($state) : '-'),
+                        TextEntry::make('billing_due_date')
+                            ->label('Jatuh Tempo Tagihan')
+                            ->date('d M Y')
+                            ->visible(fn (Transaction $record): bool => $record->payment_type === 'full')
                             ->placeholder(__('admin/transaction-resource.entries.not_set')),
                         TextEntry::make('request_cancellation')
                             ->label(__('admin/transaction-resource.entries.cancellation_request'))

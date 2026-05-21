@@ -72,7 +72,13 @@ class GeneralSettings extends Settings
 
     public ?float $payment_percent_charge;
 
-    public ?int $installment_min_order_amount;
+    public ?int $installment_min_order_amount = 1000000;
+
+    public ?int $billing_cutoff_day = 25;
+
+    public ?int $billing_due_day = 5;
+
+    public ?int $billing_due_month_offset = 1;
 
     public bool $site_active;
 

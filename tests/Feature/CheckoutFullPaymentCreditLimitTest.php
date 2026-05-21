@@ -12,6 +12,7 @@ use App\Models\Transaction;
 use App\Models\Warehouse;
 use App\Services\Gateways\DTOs\PaymentResponse;
 use App\Services\PaymentGatewayService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
@@ -22,6 +23,13 @@ use Tests\TestCase;
 class CheckoutFullPaymentCreditLimitTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
+    }
 
     public function test_full_checkout_reduces_remaining_credit_limit(): void
     {
@@ -211,6 +219,106 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
         $this->assertSame(1, Transaction::query()->count());
     }
 
+    public function test_full_checkout_before_or_on_cutoff_sets_due_date_from_current_cycle(): void
+    {
+        Queue::fake();
+
+        $this->mockPaymentGateway();
+        $this->setBillingSettings(25, 5, 1);
+        Carbon::setTestNow('2026-05-25 10:00:00');
+
+        $customer = $this->createCustomer(500_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 150_000);
+
+        $cart = Cart::create([
+            'customer_id' => $customer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 150_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')
+            ->postJson(route('frontend.checkout.store'), [
+                'address_id' => $address->id,
+                'shipping_methods' => [
+                    (string) $warehouse->id => [
+                        'courier_code' => 'KURIR_TOKO',
+                        'courier_name' => 'Kurir Toko',
+                        'price' => 20_000,
+                        'weight' => 500,
+                        'estimation' => '1-2 hari',
+                    ],
+                ],
+                'payment_type' => 'full',
+                'notes' => 'cycle current month test',
+            ]);
+
+        $response->assertOk()->assertJson(['success' => true]);
+
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->first();
+        $this->assertNotNull($transaction);
+        $this->assertSame('2026-06-05', optional($transaction->billing_due_date)->toDateString());
+    }
+
+    public function test_full_checkout_after_cutoff_sets_due_date_from_next_cycle(): void
+    {
+        Queue::fake();
+
+        $this->mockPaymentGateway();
+        $this->setBillingSettings(25, 5, 1);
+        Carbon::setTestNow('2026-05-26 10:00:00');
+
+        $customer = $this->createCustomer(500_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 150_000);
+
+        $cart = Cart::create([
+            'customer_id' => $customer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 150_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')
+            ->postJson(route('frontend.checkout.store'), [
+                'address_id' => $address->id,
+                'shipping_methods' => [
+                    (string) $warehouse->id => [
+                        'courier_code' => 'KURIR_TOKO',
+                        'courier_name' => 'Kurir Toko',
+                        'price' => 20_000,
+                        'weight' => 500,
+                        'estimation' => '1-2 hari',
+                    ],
+                ],
+                'payment_type' => 'full',
+                'notes' => 'cycle next month test',
+            ]);
+
+        $response->assertOk()->assertJson(['success' => true]);
+
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->first();
+        $this->assertNotNull($transaction);
+        $this->assertSame('2026-07-05', optional($transaction->billing_due_date)->toDateString());
+    }
+
     private function mockPaymentGateway(): void
     {
         $mock = Mockery::mock(PaymentGatewayService::class);
@@ -229,6 +337,21 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
             'password' => bcrypt('password'),
             'credit_limit' => $creditLimit,
             'is_active' => 'active',
+        ]);
+    }
+
+    private function setBillingSettings(int $cutoffDay, int $dueDay, int $monthOffset): void
+    {
+        DB::table('settings')->where('group', 'general')->where('name', 'billing_cutoff_day')->update([
+            'payload' => json_encode($cutoffDay),
+        ]);
+
+        DB::table('settings')->where('group', 'general')->where('name', 'billing_due_day')->update([
+            'payload' => json_encode($dueDay),
+        ]);
+
+        DB::table('settings')->where('group', 'general')->where('name', 'billing_due_month_offset')->update([
+            'payload' => json_encode($monthOffset),
         ]);
     }
 

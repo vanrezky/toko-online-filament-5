@@ -14,6 +14,7 @@ use App\Models\InstallmentPlan;
 use App\Models\Transaction;
 use App\Models\Warehouse;
 use App\Services\ApicoidOngkirService;
+use App\Services\BillingCycleService;
 use App\Services\CacheService;
 use App\Services\CreditLimitService;
 use App\Services\InstallmentService;
@@ -178,7 +179,7 @@ class CheckoutController extends Controller
         return response()->json($shippingResults);
     }
 
-    public function store(Request $request, PaymentGatewayService $paymentGatewayService, GeneralSettings $generalSettings)
+    public function store(Request $request, PaymentGatewayService $paymentGatewayService, GeneralSettings $generalSettings, BillingCycleService $billingCycleService)
     {
         $request->validate([
             'address_id' => 'nullable|exists:customer_addresses,id',
@@ -299,7 +300,18 @@ class CheckoutController extends Controller
             }
         }
 
-        return DB::transaction(function () use ($request, $customer, $cart, $totalShippingCost, $totalWeight, $address, $shippingDetails, $validatedVouchers, $paymentGatewayService, $grandTotal) {
+        $billingCutoffDay = (int) ($generalSettings->billing_cutoff_day ?? 25);
+        $billingDueDay = (int) ($generalSettings->billing_due_day ?? 5);
+        $billingDueMonthOffset = (int) ($generalSettings->billing_due_month_offset ?? 1);
+
+        return DB::transaction(function () use ($request, $customer, $cart, $totalShippingCost, $totalWeight, $address, $shippingDetails, $validatedVouchers, $paymentGatewayService, $grandTotal, $billingCycleService, $billingCutoffDay, $billingDueDay, $billingDueMonthOffset) {
+            $billingDueDate = null;
+
+            if ($request->payment_type === 'full') {
+                $cycleMonthKey = $billingCycleService->resolveCycleMonthKey(now(), $billingCutoffDay);
+                $billingDueDate = $billingCycleService->resolveDueDate($cycleMonthKey, $billingDueDay, $billingDueMonthOffset);
+            }
+
             $transaction = Transaction::create([
                 'customer_id' => $customer->id,
                 'customer_address_id' => $address?->id,
@@ -307,7 +319,7 @@ class CheckoutController extends Controller
                 'shipping_cost' => $totalShippingCost,
                 'payment_method' => $request->payment_type === 'installment' ? 'cicilan' : 'bayar_penuh',
                 'payment_type' => $request->payment_type,
-                'billing_due_date' => $request->payment_type === 'full' ? now()->addMonthNoOverflow()->startOfMonth() : null,
+                'billing_due_date' => $billingDueDate,
                 'billing_status' => $request->payment_type === 'full' ? 'pending' : 'not_applicable',
                 'installment_plan_id' => $request->payment_type === 'installment' ? $request->installment_plan_id : null,
                 'status' => TransactionStatus::packed,

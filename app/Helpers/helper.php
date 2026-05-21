@@ -21,7 +21,7 @@ function settings(string $key, $default = null)
         }
 
         return app(App\Settings\GeneralSettings::class)->$key ?? $default;
-    } catch (\Illuminate\Database\QueryException $e) {
+    } catch (\Throwable $e) {
         Log::error($e);
         return $default;
     }
