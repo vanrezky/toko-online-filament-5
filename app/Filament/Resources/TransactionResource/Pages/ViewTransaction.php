@@ -35,15 +35,26 @@ class ViewTransaction extends ViewRecord
     {
         $record = $this->getRecord();
         $actions = [];
+        $isPickupOrder = $this->isPickupOrder($record);
 
         switch ($record->status) {
             case 'unpaid':
-                $actions[] = Actions\Action::make('markShipped')
-                    ->label(__('admin/transaction-resource.actions.mark_as_shipped'))
-                    ->icon('heroicon-o-truck')
-                    ->color('info')
-                    ->requiresConfirmation()
-                    ->action(fn () => $this->updateStatus('shipped'));
+            case 'packed':
+                if ($isPickupOrder) {
+                    $actions[] = Actions\Action::make('markPickedUp')
+                        ->label(__('admin/transaction-resource.actions.mark_as_picked_up'))
+                        ->icon('heroicon-o-hand-raised')
+                        ->color('info')
+                        ->requiresConfirmation()
+                        ->action(fn () => $this->updateStatus('picked_up'));
+                } else {
+                    $actions[] = Actions\Action::make('markInTransit')
+                        ->label(__('admin/transaction-resource.actions.mark_as_shipped'))
+                        ->icon('heroicon-o-truck')
+                        ->color('info')
+                        ->requiresConfirmation()
+                        ->action(fn () => $this->updateStatus('in_transit'));
+                }
 
                 $actions[] = Actions\Action::make('markRejected')
                     ->label(__('admin/transaction-resource.actions.mark_as_rejected'))
@@ -53,6 +64,7 @@ class ViewTransaction extends ViewRecord
                     ->action(fn () => $this->updateStatus('rejected'));
                 break;
 
+            case 'in_transit':
             case 'shipped':
                 $actions[] = Actions\Action::make('markDelivered')
                     ->label(__('admin/transaction-resource.actions.mark_as_delivered'))
@@ -67,6 +79,15 @@ class ViewTransaction extends ViewRecord
                     ->color('danger')
                     ->requiresConfirmation()
                     ->action(fn () => $this->updateStatus('rejected'));
+                break;
+
+            case 'picked_up':
+                $actions[] = Actions\Action::make('markCompletedFromPickup')
+                    ->label(__('admin/transaction-resource.actions.mark_as_completed'))
+                    ->icon('heroicon-o-check-badge')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->action(fn () => $this->updateStatus('completed'));
                 break;
 
             case 'delivered':
@@ -88,7 +109,7 @@ class ViewTransaction extends ViewRecord
 
         $updateData = ['status' => $status];
 
-        if ($status === 'shipped') {
+        if (in_array($status, ['in_transit', 'picked_up'], true)) {
             $updateData['delivery_date'] = now();
         } elseif ($status === 'completed') {
             $updateData['complete_date'] = now();
@@ -193,6 +214,19 @@ class ViewTransaction extends ViewRecord
         );
     }
 
+    protected function isPickupOrder(Transaction $record): bool
+    {
+        $record->loadMissing('shippingDetails');
+
+        if ($record->shippingDetails->isEmpty()) {
+            return false;
+        }
+
+        return $record->shippingDetails->every(
+            fn ($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value
+        );
+    }
+
     public function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -214,9 +248,12 @@ class ViewTransaction extends ViewRecord
                             ->color(fn (string $state): string => match ($state) {
                                 'unpaid' => 'warning',
                                 'packed' => 'info',
+                                'in_transit' => 'info',
                                 'shipped' => 'info',
                                 'delivered' => 'success',
+                                'picked_up' => 'success',
                                 'rejected' => 'danger',
+                                'cancelled' => 'danger',
                                 'completed' => 'success',
                                 default => 'gray',
                             })

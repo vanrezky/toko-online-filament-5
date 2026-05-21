@@ -47,9 +47,12 @@ return [
     'status' => [
         'unpaid' => 'Belum Bayar',
         'packed' => 'Dikemas',
+        'in_transit' => 'Dalam Pengiriman',
         'shipped' => 'Dikirim',
         'delivered' => 'Diterima',
+        'picked_up' => 'Sudah Diambil',
         'rejected' => 'Ditolak',
+        'cancelled' => 'Dibatalkan',
         'completed' => 'Selesai',
     ],
 
@@ -110,6 +113,7 @@ return [
 
     'actions' => [
         'mark_as_shipped' => 'Tandai Dikirim',
+        'mark_as_picked_up' => 'Tandai Sudah Diambil',
         'mark_as_rejected' => 'Tandai Ditolak',
         'mark_as_delivered' => 'Tandai Diterima',
         'mark_as_completed' => 'Tandai Selesai',

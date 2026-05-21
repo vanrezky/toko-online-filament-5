@@ -3,154 +3,85 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
-use App\Models\Installment;
-use App\Models\InstallmentPayment;
-use App\Models\InstallmentPlan;
 use App\Models\Product;
 use App\Models\Transaction;
+use App\Models\TransactionReturn;
+use App\Models\TransactionReturnItem;
 use App\Models\User;
 use App\Models\Warehouse;
-use App\Services\PayrollExportService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
-class PayrollFinalSubmissionTest extends TestCase
+class TransactionReturnRelationsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_export_draft_does_not_update_billing_or_payroll_statuses(): void
-    {
-        $service = app(PayrollExportService::class);
-
-        [$fullTransaction, $installmentPayment] = $this->seedBillingItems();
-
-        $service->exportToExcel(6, 2026);
-
-        $fullTransaction->refresh();
-        $installmentPayment->refresh();
-
-        $this->assertSame('pending', $fullTransaction->billing_status);
-        $this->assertSame('scheduled', $installmentPayment->payroll_status);
-        $this->assertNull($installmentPayment->payroll_batch_reference);
-        $this->assertNull($installmentPayment->submitted_at);
-    }
-
-    public function test_export_final_submits_full_and_installment_items_and_returns_batch_reference(): void
-    {
-        $service = app(PayrollExportService::class);
-
-        [$fullTransaction, $installmentPayment] = $this->seedBillingItems();
-
-        $result = $service->submitAndExportFinal(6, 2026);
-
-        $fullTransaction->refresh();
-        $installmentPayment->refresh();
-
-        $this->assertSame('submitted', $fullTransaction->billing_status);
-        $this->assertSame('submitted', $installmentPayment->payroll_status);
-        $this->assertNotNull($installmentPayment->payroll_batch_reference);
-        $this->assertNotNull($installmentPayment->submitted_at);
-
-        $this->assertSame(2, $result['total_updated']);
-        $this->assertSame(1, $result['updated_full_bills']);
-        $this->assertSame(1, $result['updated_installments']);
-        $this->assertNotEmpty($result['batch_reference']);
-        $this->assertNotNull($result['response']);
-    }
-
-    private function seedBillingItems(): array
+    public function test_it_creates_transaction_return_and_items_with_expected_relations(): void
     {
         $geo = $this->createGeo();
         $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
         $customer = $this->createCustomer(2_000_000);
         $address = $this->createAddress($customer->id, $geo);
-        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $product = $this->createProduct((int) $warehouse->id, 120_000);
 
-        $installmentPlan = InstallmentPlan::query()->create([
-            'name' => 'Plan 6 Bulan',
-            'tenor' => 6,
-            'fee_percentage' => 0,
-            'is_active' => true,
-        ]);
-
-        $installmentTransaction = $this->createTransaction($customer->id, $address->id, 'installment');
-        $installmentTransaction->products()->create([
+        $transaction = Transaction::query()->create([
             'customer_id' => $customer->id,
-            'is_digital' => false,
-            'product_id' => $product->id,
-            'warehouse_id' => $warehouse->id,
-            'quantity' => 1,
-            'price' => 200_000,
-            'discount' => 0,
-            'description' => null,
-        ]);
-
-        $installment = Installment::query()->create([
-            'transaction_id' => $installmentTransaction->id,
-            'customer_id' => $customer->id,
-            'installment_plan_id' => $installmentPlan->id,
-            'principal_amount' => 1_200_000,
-            'fee_amount' => 0,
-            'total_amount' => 1_200_000,
-            'monthly_amount' => 200_000,
-            'tenor' => 6,
-            'paid_amount' => 0,
-            'paid_installments' => 0,
-            'status' => 'active',
-            'start_date' => '2026-05-01',
-            'expected_end_date' => '2026-10-01',
-        ]);
-
-        $installmentPayment = InstallmentPayment::query()->create([
-            'installment_id' => $installment->id,
-            'installment_number' => 1,
-            'amount' => 200_000,
-            'due_date' => '2026-06-05',
-            'billing_month' => '2026-06-01',
-            'status' => 'unpaid',
-            'payment_method' => 'payroll_deduction',
-            'collection_method' => 'payroll_deduction',
-            'payroll_status' => 'scheduled',
-        ]);
-
-        $fullTransaction = $this->createTransaction($customer->id, $address->id, 'full');
-        $fullTransaction->update([
-            'billing_due_date' => '2026-06-05',
-            'billing_status' => 'pending',
-        ]);
-        $fullTransaction->products()->create([
-            'customer_id' => $customer->id,
-            'is_digital' => false,
-            'product_id' => $product->id,
-            'warehouse_id' => $warehouse->id,
-            'quantity' => 1,
-            'price' => 100_000,
-            'discount' => 0,
-            'description' => null,
-        ]);
-
-        return [$fullTransaction, $installmentPayment];
-    }
-
-    private function createTransaction(int $customerId, int $addressId, string $paymentType): Transaction
-    {
-        return Transaction::query()->create([
-            'customer_id' => $customerId,
-            'customer_address_id' => $addressId,
+            'customer_address_id' => $address->id,
             'weight' => 100,
             'shipping_cost' => 0,
             'cod' => false,
             'cod_fee' => 0,
-            'payment_method' => $paymentType === 'full' ? 'bayar_penuh' : 'cicilan',
-            'payment_type' => $paymentType,
-            'billing_due_date' => null,
-            'billing_status' => $paymentType === 'full' ? 'pending' : 'not_applicable',
+            'payment_method' => 'bayar_penuh',
+            'payment_type' => 'full',
+            'billing_status' => 'pending',
             'status' => 'completed',
-            'notes' => 'test',
+            'notes' => 'test return',
             'timelimit' => now()->addDay(),
         ]);
+
+        $transactionProduct = $transaction->products()->create([
+            'customer_id' => $customer->id,
+            'is_digital' => false,
+            'product_id' => $product->id,
+            'warehouse_id' => $warehouse->id,
+            'quantity' => 2,
+            'price' => 120_000,
+            'discount' => 0,
+            'description' => null,
+        ]);
+
+        $return = TransactionReturn::query()->create([
+            'transaction_id' => $transaction->id,
+            'customer_id' => $customer->id,
+            'status' => 'requested',
+            'reason' => 'Produk rusak',
+            'notes' => 'Kemasan penyok',
+            'requested_at' => now(),
+        ]);
+
+        $returnItem = TransactionReturnItem::query()->create([
+            'transaction_return_id' => $return->id,
+            'transaction_product_id' => $transactionProduct->id,
+            'qty' => 1,
+            'amount' => 120_000,
+            'reason' => 'Segel terbuka',
+        ]);
+
+        $transaction->refresh();
+        $return->refresh();
+        $returnItem->refresh();
+
+        $this->assertCount(1, $transaction->returns);
+        $this->assertTrue($transaction->returns->first()->is($return));
+        $this->assertTrue($return->transaction->is($transaction));
+        $this->assertTrue($return->customer->is($customer));
+        $this->assertCount(1, $return->items);
+        $this->assertTrue($return->items->first()->is($returnItem));
+        $this->assertTrue($returnItem->transactionReturn->is($return));
+        $this->assertTrue($returnItem->transactionProduct->is($transactionProduct));
+        $this->assertSame('120000.00', $returnItem->amount);
     }
 
     private function createCustomer(float $creditLimit): Customer

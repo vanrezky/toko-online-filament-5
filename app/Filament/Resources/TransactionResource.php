@@ -57,9 +57,12 @@ class TransactionResource extends Resource
                             ->options([
                                 'unpaid' => __('admin/transaction-resource.status.unpaid'),
                                 'packed' => __('admin/transaction-resource.status.packed'),
+                                'in_transit' => __('admin/transaction-resource.status.in_transit'),
                                 'shipped' => __('admin/transaction-resource.status.shipped'),
                                 'delivered' => __('admin/transaction-resource.status.delivered'),
+                                'picked_up' => __('admin/transaction-resource.status.picked_up'),
                                 'rejected' => __('admin/transaction-resource.status.rejected'),
+                                'cancelled' => __('admin/transaction-resource.status.cancelled'),
                                 'completed' => __('admin/transaction-resource.status.completed'),
                             ])
                             ->required(),
@@ -159,9 +162,9 @@ class TransactionResource extends Resource
                 Tables\Columns\BadgeColumn::make('status')
                     ->colors([
                         'warning' => 'unpaid',
-                        'info' => ['packed', 'shipped'],
-                        'success' => ['delivered', 'completed'],
-                        'danger' => 'rejected',
+                        'info' => ['packed', 'in_transit', 'shipped'],
+                        'success' => ['delivered', 'picked_up', 'completed'],
+                        'danger' => ['rejected', 'cancelled'],
                     ])
                     ->formatStateUsing(fn (string $state): string => ucfirst(__("admin/transaction-resource.status.{$state}")))
                     ->sortable(),
@@ -197,9 +200,12 @@ class TransactionResource extends Resource
                     ->options([
                         'unpaid' => __('admin/transaction-resource.status.unpaid'),
                         'packed' => __('admin/transaction-resource.status.packed'),
+                        'in_transit' => __('admin/transaction-resource.status.in_transit'),
                         'shipped' => __('admin/transaction-resource.status.shipped'),
                         'delivered' => __('admin/transaction-resource.status.delivered'),
+                        'picked_up' => __('admin/transaction-resource.status.picked_up'),
                         'rejected' => __('admin/transaction-resource.status.rejected'),
+                        'cancelled' => __('admin/transaction-resource.status.cancelled'),
                         'completed' => __('admin/transaction-resource.status.completed'),
                     ])
                     ->multiple()

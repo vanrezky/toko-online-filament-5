@@ -172,7 +172,10 @@ class PayrollExportService
         $query = InstallmentPayment::with(['installment.customer.customerLevel', 'installment.transaction'])
             ->whereYear('due_date', $year)
             ->whereMonth('due_date', $month)
-            ->whereIn('status', ['unpaid', 'partial', 'overdue']);
+            ->whereIn('status', ['unpaid', 'partial', 'overdue'])
+            ->whereHas('installment.transaction', function ($q) {
+                $q->where('status', 'completed');
+            });
 
         if ($customerLevelId) {
             $query->whereHas('installment.customer', function ($q) use ($customerLevelId) {
@@ -187,6 +190,7 @@ class PayrollExportService
     {
         $query = Transaction::with(['customer.customerLevel'])
             ->where('payment_type', 'full')
+            ->where('status', 'completed')
             ->whereIn('billing_status', ['pending', 'submitted', 'failed'])
             ->whereNotNull('billing_due_date')
             ->whereYear('billing_due_date', $year)

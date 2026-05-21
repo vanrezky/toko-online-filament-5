@@ -141,6 +141,80 @@ class PayrollMonthlyBillingAggregationTest extends TestCase
         $this->assertSame(0, $summary['total_full_bills']);
     }
 
+    public function test_it_excludes_non_completed_transactions_from_payroll_summary(): void
+    {
+        $service = app(PayrollExportService::class);
+
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $customer = $this->createCustomer(2_000_000);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+
+        $installmentPlan = InstallmentPlan::query()->create([
+            'name' => 'Plan 6 Bulan',
+            'tenor' => 6,
+            'fee_percentage' => 0,
+            'is_active' => true,
+        ]);
+
+        $installmentTransaction = $this->createTransaction($customer->id, $address->id, 'installment')
+            ->forceFill(['status' => 'packed']);
+        $installmentTransaction->save();
+
+        $installment = Installment::query()->create([
+            'transaction_id' => $installmentTransaction->id,
+            'customer_id' => $customer->id,
+            'installment_plan_id' => $installmentPlan->id,
+            'principal_amount' => 1_200_000,
+            'fee_amount' => 0,
+            'total_amount' => 1_200_000,
+            'monthly_amount' => 200_000,
+            'tenor' => 6,
+            'paid_amount' => 0,
+            'paid_installments' => 0,
+            'status' => 'active',
+            'start_date' => '2026-05-01',
+            'expected_end_date' => '2026-10-01',
+        ]);
+
+        InstallmentPayment::query()->create([
+            'installment_id' => $installment->id,
+            'installment_number' => 1,
+            'amount' => 200_000,
+            'due_date' => '2026-06-05',
+            'billing_month' => '2026-06-01',
+            'status' => 'unpaid',
+            'payment_method' => 'payroll_deduction',
+            'collection_method' => 'payroll_deduction',
+            'payroll_status' => 'scheduled',
+        ]);
+
+        $fullTransaction = $this->createTransaction($customer->id, $address->id, 'full');
+        $fullTransaction->update([
+            'status' => 'packed',
+            'billing_due_date' => '2026-06-05',
+            'billing_status' => 'pending',
+        ]);
+        $fullTransaction->products()->create([
+            'customer_id' => $customer->id,
+            'is_digital' => false,
+            'product_id' => $product->id,
+            'warehouse_id' => $warehouse->id,
+            'quantity' => 1,
+            'price' => 100_000,
+            'discount' => 0,
+            'description' => null,
+        ]);
+
+        $summary = $service->getPayrollSummary(6, 2026);
+
+        $this->assertSame(0, $summary['total_customers']);
+        $this->assertEquals(0.0, $summary['total_deduction']);
+        $this->assertSame(0, $summary['total_installments']);
+        $this->assertSame(0, $summary['total_full_bills']);
+    }
+
     private function createTransaction(int $customerId, int $addressId, string $paymentType): Transaction
     {
         return Transaction::query()->create([
@@ -154,7 +228,7 @@ class PayrollMonthlyBillingAggregationTest extends TestCase
             'payment_type' => $paymentType,
             'billing_due_date' => null,
             'billing_status' => $paymentType === 'full' ? 'pending' : 'not_applicable',
-            'status' => 'packed',
+            'status' => 'completed',
             'notes' => 'test',
             'timelimit' => now()->addDay(),
         ]);

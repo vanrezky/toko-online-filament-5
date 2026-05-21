@@ -78,6 +78,11 @@ class Transaction extends Model
         return $this->hasMany(TransactionVoucher::class);
     }
 
+    public function returns(): HasMany
+    {
+        return $this->hasMany(TransactionReturn::class);
+    }
+
     public function installment(): HasOne
     {
         return $this->hasOne(Installment::class);
