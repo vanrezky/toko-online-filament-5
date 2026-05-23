@@ -2,18 +2,18 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Group;
 use App\Constants\UploadPath;
 use App\Settings\GeneralSettings;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Tabs;
-use Filament\Forms\Components\Tabs\Tab;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Form;
 use Filament\Pages\SettingsPage;
 use Override;
 
@@ -21,7 +21,7 @@ class ManageWebsite extends SettingsPage
 {
     use HasPageShield;
 
-    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     protected static ?int $navigationSort = 5;
 
@@ -39,10 +39,10 @@ class ManageWebsite extends SettingsPage
         return __('admin/page-manage-website.navigation_group');
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Tabs::make()
                     ->schema([
                         Tab::make(__('admin/page-manage-website.tabs.general'))

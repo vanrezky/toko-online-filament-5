@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Frontend\Auth;
 
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\User;
@@ -45,9 +46,9 @@ class ResetPasswordController extends Controller
                 $user->save();
 
                 if ($guard === 'customer') {
-                    \Illuminate\Support\Facades\Auth::guard('customer')->login($user);
+                    Auth::guard('customer')->login($user);
                 } else {
-                    \Illuminate\Support\Facades\Auth::guard('web')->login($user);
+                    Auth::guard('web')->login($user);
                 }
             }
         );

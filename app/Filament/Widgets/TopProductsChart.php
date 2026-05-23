@@ -12,13 +12,13 @@ class TopProductsChart extends ChartWidget
 
     protected int $cacheSeconds = 300;
 
-    protected static ?string $heading = 'Top Products';
+    protected ?string $heading = 'Top Products';
 
     public ?string $filter = 'quantity';
 
     protected function getData(): array
     {
-        $stats = new DashboardStats($this->filters ?? []);
+        $stats = new DashboardStats($this->pageFilters ?? []);
         $products = $stats->getTopProducts(5);
 
         $isQuantity = ($this->filter ?? 'quantity') === 'quantity';

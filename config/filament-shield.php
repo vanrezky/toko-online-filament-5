@@ -1,9 +1,9 @@
 <?php
 
-use App\Filament\Resources\BalanceResource;
-use App\Filament\Resources\NewsletterSubscriberResource;
-use App\Filament\Resources\ResellerResource;
-use App\Filament\Resources\SliderResource;
+use App\Filament\Resources\Balances\BalanceResource;
+use App\Filament\Resources\NewsletterSubscribers\NewsletterSubscriberResource;
+use App\Filament\Resources\Resellers\ResellerResource;
+use App\Filament\Resources\Sliders\SliderResource;
 
 return [
     'shield_resource' => [
@@ -20,9 +20,7 @@ return [
 
     'tenant_model' => null,
 
-    'auth_provider_model' => [
-        'fqcn' => 'App\\Models\\User',
-    ],
+    'auth_provider_model' => 'App\\Models\\User',
 
     'super_admin' => [
         'enabled' => true,

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Gateways\DTOs\WebhookResult;
+use Exception;
 use App\Jobs\SendOrderStatusChangedNotification;
 use App\Jobs\SendPaymentSuccessNotification;
 use App\Models\Transaction;
@@ -27,7 +29,7 @@ class PaymentWebhookController extends Controller
                 return response()->json(['status' => 'error', 'message' => $result->message], 400);
             }
 
-            if ($result->action === \App\Services\Gateways\DTOs\WebhookResult::ACTION_PROCESS && $result->transactionId) {
+            if ($result->action === WebhookResult::ACTION_PROCESS && $result->transactionId) {
                 $transaction = Transaction::where('uuid', $result->transactionId)->first();
 
                 if ($transaction) {
@@ -56,7 +58,7 @@ class PaymentWebhookController extends Controller
             }
 
             return response()->json(['status' => 'success']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error handling {$gateway} webhook: ".$e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);

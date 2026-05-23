@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use Throwable;
 use App\Models\EmailLog;
 use App\Services\EmailTemplateService;
 use Illuminate\Bus\Queueable;
@@ -27,7 +28,7 @@ class SendEmailJob implements ShouldQueue
         $emailTemplateService->sendNow($this->emailLog);
     }
 
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         $this->emailLog->markAsFailed($exception->getMessage());
     }

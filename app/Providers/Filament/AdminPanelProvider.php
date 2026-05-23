@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Dashboard;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -15,7 +17,6 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Njxqlus\FilamentProgressbar\FilamentProgressbarPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -29,7 +30,6 @@ class AdminPanelProvider extends PanelProvider
             ->profile()
             ->brandName(settings('site_name'))
             ->brandLogo(settings('logo'))
-            ->viteTheme('resources/css/filament/admin/theme.css')
             ->colors([
                 'danger' => '#F3797E',
                 'gray' => Color::Gray,
@@ -44,7 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                \App\Filament\Pages\Dashboard::class,
+                Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -66,11 +66,10 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             // ->sidebarWidth('18rem')
-            ->plugin(FilamentProgressbarPlugin::make()->color('#29b'))
             ->spa(true)
             ->resources([])
             ->plugins([
-                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
+                FilamentShieldPlugin::make()
                     ->gridColumns([
                         'default' => 1,
                         'sm' => 2,
@@ -86,7 +85,6 @@ class AdminPanelProvider extends PanelProvider
                         'default' => 1,
                         'sm' => 2,
                     ]),
-                \BezhanSalleh\FilamentExceptions\FilamentExceptionsPlugin::make()
 
             ])
             ->sidebarCollapsibleOnDesktop();

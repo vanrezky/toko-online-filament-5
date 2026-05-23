@@ -2,6 +2,7 @@
 
 namespace App\Services\Gateways;
 
+use Exception;
 use App\Models\Transaction;
 use App\Services\Gateways\Contracts\PaymentGatewayInterface;
 use App\Services\Gateways\DTOs\PaymentResponse;
@@ -83,7 +84,7 @@ class XenditGateway implements PaymentGatewayInterface
                     'external_id' => $result['external_id'],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Xendit payment creation failed', [
                 'transaction_id' => $transaction->uuid,
                 'error' => $e->getMessage(),
@@ -113,7 +114,7 @@ class XenditGateway implements PaymentGatewayInterface
                 currency: $result['currency'] ?? 'IDR',
                 errorMessage: null
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Xendit status check failed', [
                 'transaction_id' => $transactionId,
                 'error' => $e->getMessage(),
@@ -150,7 +151,7 @@ class XenditGateway implements PaymentGatewayInterface
                 action: WebhookResult::ACTION_IGNORE,
                 message: 'Status ignored: ' . $status
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new WebhookResult(
                 success: false,
                 action: WebhookResult::ACTION_IGNORE,

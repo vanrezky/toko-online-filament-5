@@ -1,5 +1,7 @@
 <?php
 
+use Filament\Support\Commands\FileGenerators\FileGenerationFlag;
+
 return [
 
     /*
@@ -84,5 +86,15 @@ return [
     */
 
     'livewire_loading_delay' => 'default',
+
+    'file_generation' => [
+        'flags' => [
+            FileGenerationFlag::EMBEDDED_PANEL_RESOURCE_SCHEMAS,
+            FileGenerationFlag::EMBEDDED_PANEL_RESOURCE_TABLES,
+            FileGenerationFlag::PANEL_CLUSTER_CLASSES_OUTSIDE_DIRECTORIES,
+            FileGenerationFlag::PANEL_RESOURCE_CLASSES_OUTSIDE_DIRECTORIES,
+            FileGenerationFlag::PARTIAL_IMPORTS,
+        ],
+    ],
 
 ];

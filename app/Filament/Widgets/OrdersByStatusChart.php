@@ -12,11 +12,11 @@ class OrdersByStatusChart extends ChartWidget
 
     protected int $cacheSeconds = 300;
 
-    protected static ?string $heading = 'Orders by Status';
+    protected ?string $heading = 'Orders by Status';
 
     protected function getData(): array
     {
-        $filters = $this->filters ?? [];
+        $filters = $this->pageFilters ?? [];
         $stats = new DashboardStats($filters);
         $data = $stats->getOrdersByStatus();
 

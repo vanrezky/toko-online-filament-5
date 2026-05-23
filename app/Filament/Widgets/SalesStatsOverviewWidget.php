@@ -17,7 +17,7 @@ class SalesStatsOverviewWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $filters = $this->filters ?? [];
+        $filters = $this->pageFilters ?? [];
         $stats = new DashboardStats($filters);
 
         $revenueStats = $stats->getRevenueStats();
@@ -51,7 +51,7 @@ class SalesStatsOverviewWidget extends BaseWidget
 
     protected function getMiniChart(): array
     {
-        $filters = $this->filters ?? [];
+        $filters = $this->pageFilters ?? [];
         $stats = new DashboardStats($filters);
         $trend = $stats->getSalesTrend();
         

@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Http\Resources\AddressResource;
+use App\Settings\CourierSettings;
+use App\Models\Courier;
+use Illuminate\Support\Carbon;
 use App\Enums\CartStatus;
 use App\Enums\CourierCode;
 use App\Enums\TransactionStatus;
@@ -73,11 +77,11 @@ class CheckoutController extends Controller
 
         return Inertia::render('Checkout/Index', [
             'cart' => CartResource::make($cart),
-            'addresses' => \App\Http\Resources\AddressResource::collection($addresses),
+            'addresses' => AddressResource::collection($addresses),
             'pendingVouchers' => $pendingVouchers,
             'validatedVouchers' => $validatedVouchers,
             'activeGateway' => $paymentGatewayService->getActiveGatewayAlias(),
-            'installmentPlans' => \App\Models\InstallmentPlan::active()->get(),
+            'installmentPlans' => InstallmentPlan::active()->get(),
             'creditLimit' => [
                 'remaining' => $customer->remaining_credit_limit,
                 'effective' => $customer->effective_credit_limit,
@@ -86,7 +90,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function getShippingCosts(Request $request, ApicoidOngkirService $ongkirService, \App\Settings\CourierSettings $courierSettings)
+    public function getShippingCosts(Request $request, ApicoidOngkirService $ongkirService, CourierSettings $courierSettings)
     {
         $request->validate([
             'address_id' => 'required|exists:customer_addresses,id',
@@ -115,7 +119,7 @@ class CheckoutController extends Controller
                 return $item->product->warehouse_id ?: 0;
             });
 
-            $activeCouriers = \App\Models\Courier::active()->get();
+            $activeCouriers = Courier::active()->get();
             $isPickupActive = $activeCouriers->contains('code', CourierCode::PICKUP->value);
             $isKurirTokoActive = $activeCouriers->contains('code', CourierCode::KURIR_TOKO->value);
 
@@ -324,7 +328,7 @@ class CheckoutController extends Controller
                 'installment_plan_id' => $request->payment_type === 'installment' ? $request->installment_plan_id : null,
                 'status' => TransactionStatus::packed,
                 'notes' => $request->notes,
-                'timelimit' => \Illuminate\Support\Carbon::now()->addDay(),
+                'timelimit' => Carbon::now()->addDay(),
             ]);
 
             foreach ($shippingDetails as $detail) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -31,7 +32,7 @@ class OpenAiController extends Controller
             ]);
 
             return $result->choices[0]->message->content;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error($e);
             return $e->getMessage();
         }

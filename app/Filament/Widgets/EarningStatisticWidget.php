@@ -7,7 +7,7 @@ use Filament\Widgets\ChartWidget;
 
 class EarningStatisticWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Earning';
+    protected ?string $heading = 'Earning';
 
     protected function getData(): array
     {

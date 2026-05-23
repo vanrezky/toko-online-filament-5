@@ -2,6 +2,7 @@
 
 namespace App\Services\Gateways;
 
+use Exception;
 use App\Models\Transaction;
 use App\Services\Gateways\Contracts\PaymentGatewayInterface;
 use App\Services\Gateways\DTOs\PaymentResponse;
@@ -94,7 +95,7 @@ class StripeGateway implements PaymentGatewayInterface
                     'session_id' => $result['id'],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Stripe payment creation failed', [
                 'transaction_id' => $transaction->uuid,
                 'error' => $e->getMessage(),
@@ -129,7 +130,7 @@ class StripeGateway implements PaymentGatewayInterface
                 currency: strtoupper($result['currency']),
                 errorMessage: null
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Stripe status check failed', [
                 'transaction_id' => $transactionId,
                 'error' => $e->getMessage(),
@@ -168,7 +169,7 @@ class StripeGateway implements PaymentGatewayInterface
                 action: WebhookResult::ACTION_IGNORE,
                 message: 'Event ignored: ' . $type
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new WebhookResult(
                 success: false,
                 action: WebhookResult::ACTION_IGNORE,

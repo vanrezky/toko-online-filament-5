@@ -2,17 +2,17 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
 use App\Models\Currency;
 use App\Settings\PaymentGatewaySettings;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Tabs;
-use Filament\Forms\Components\Tabs\Tab;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\HtmlString;
@@ -21,14 +21,14 @@ class ManagePaymentGateway extends Page
 {
     use HasPageShield;
 
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-banknotes';
     protected static bool $shouldRegisterNavigation = false;
-    protected static ?string $navigationGroup = 'Pengaturan';
+    protected static string | \UnitEnum | null $navigationGroup = 'Pengaturan';
     protected static ?int $navigationSort = 5;
     protected static ?string $slug = 'setting/payment-gateway-settings';
     protected static ?string $navigationLabel = 'Payment Gateways';
 
-    protected static string $view = 'filament.pages.manage-payment-gateway';
+    protected string $view = 'filament.pages.manage-payment-gateway';
 
 
     public ?array $data = [];
@@ -45,13 +45,13 @@ class ManagePaymentGateway extends Page
         $this->form->fill($data);
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
         $currencies = Currency::active()->pluck('name', 'code')->toArray();
         $gatewayAliases = ['midtrans', 'stripe', 'xendit'];
 
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Tabs::make('Payment Gateways')
                     ->tabs([
                         Tab::make('midtrans')

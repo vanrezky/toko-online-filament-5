@@ -9,13 +9,13 @@ class RevenueWidget extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected static ?string $heading = 'Revenue';
-    protected static ?string $maxHeight = '300px';
+    protected ?string $heading = 'Revenue';
+    protected ?string $maxHeight = '300px';
 
     protected function getData(): array
     {
-        $startDate = $this->filters['startDate'] ?? null;
-        $endDate = $this->filters['endDate'] ?? null;
+        $startDate = $this->pageFilters['startDate'] ?? null;
+        $endDate = $this->pageFilters['endDate'] ?? null;
 
 
 

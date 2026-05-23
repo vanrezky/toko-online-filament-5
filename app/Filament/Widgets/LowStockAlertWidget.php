@@ -15,7 +15,7 @@ class LowStockAlertWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $filters = $this->filters ?? [];
+        $filters = $this->pageFilters ?? [];
         $stats = new DashboardStats($filters);
         
         $lowStockCount = $stats->getLowStockCount();

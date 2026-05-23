@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use Filament\Tables\Columns\TextColumn;
 use App\Models\Transaction;
 use Filament\Tables;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -32,22 +33,22 @@ class RecentOrdersTable extends BaseWidget
     protected function getTableColumns(): array
     {
         return [
-            Tables\Columns\TextColumn::make('uuid')
+            TextColumn::make('uuid')
                 ->label('Order ID')
                 ->formatStateUsing(fn (string $state): string => strtoupper(substr($state, 0, 8)))
                 ->url(fn (Transaction $record): string => route('filament.admin.resources.transactions.view', $record->uuid))
                 ->searchable(),
 
-            Tables\Columns\TextColumn::make('customer.full_name')
+            TextColumn::make('customer.full_name')
                 ->label('Customer')
                 ->searchable(),
 
-            Tables\Columns\TextColumn::make('total_amount')
+            TextColumn::make('total_amount')
                 ->label('Amount')
                 ->money('IDR')
                 ->sortable(),
 
-            Tables\Columns\TextColumn::make('status')
+            TextColumn::make('status')
                 ->label('Status')
                 ->badge()
                 ->color(fn (?string $state): string => match ($state) {
@@ -58,7 +59,7 @@ class RecentOrdersTable extends BaseWidget
                     default => 'gray',
                 }),
 
-            Tables\Columns\TextColumn::make('created_at')
+            TextColumn::make('created_at')
                 ->label('Date')
                 ->dateTime('d M Y, H:i')
                 ->sortable(),

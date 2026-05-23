@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Services\PaymentGatewayService;
+use Exception;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\PaymentGateway;
@@ -74,7 +76,7 @@ class OrderController extends Controller
         ]);
     }
 
-    public function pay(Transaction $transaction, \App\Services\PaymentGatewayService $paymentGatewayService)
+    public function pay(Transaction $transaction, PaymentGatewayService $paymentGatewayService)
     {
         if ($transaction->customer_id !== Auth::guard('customer')->id()) {
             abort(403);
@@ -100,7 +102,7 @@ class OrderController extends Controller
                     'client_key' => $paymentResponse->metadata['client_key'] ?? null,
                 ]
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => __('messages.error.payment_initiation_failed', ['message' => $e->getMessage()])], 500);
         }
     }

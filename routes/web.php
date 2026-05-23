@@ -92,6 +92,8 @@ Route::name('frontend.')->group(function () {
         Route::get('/faq', FaqController::class)->name('faq');
         Route::get('/contact', [ContactController::class, 'index'])->name('contact');
         Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+        Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
+        Route::post('/newsletter/send-test', [NewsletterController::class, 'sendTest'])->name('newsletter.send-test');
         Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
         Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers');
@@ -100,6 +102,8 @@ Route::name('frontend.')->group(function () {
 
 
     });
+
+    Route::get('/newsletter/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
 
     // Webhook routes (no auth - webhook handles its own auth)
     Route::post('/webhooks/payment/{gateway}', PaymentWebhookController::class)->name('webhooks.payment');

@@ -1,9 +1,11 @@
 <?php
 
+use Filament\Notifications\Notification;
+
 if (!function_exists('notification')) {
-    function notification(string $message, $type = 'success'): \Filament\Notifications\Notification
+    function notification(string $message, $type = 'success'): Notification
     {
-        return \Filament\Notifications\Notification::make()
+        return Notification::make()
             ->title($message)
             ->{$type}()
             ->send();

@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\Schema;
 
-use Filament\Forms\Components\Component;
-use Filament\Forms\Components\Group;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Illuminate\Support\Str;
 
 class MetaSchema

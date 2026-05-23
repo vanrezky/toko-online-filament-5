@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\ContactMessage;
+use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class ContactMessageTest extends TestCase
@@ -16,7 +18,9 @@ class ContactMessageTest extends TestCase
      */
     public function test_contact_page_can_be_accessed(): void
     {
-        $response = $this->get(route('frontend.contact'));
+        $customer = $this->createCustomer();
+
+        $response = $this->actingAs($customer, 'customer')->get(route('frontend.contact'));
 
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page
@@ -29,6 +33,8 @@ class ContactMessageTest extends TestCase
      */
     public function test_contact_form_can_be_submitted_with_valid_data(): void
     {
+        $customer = $this->createCustomer();
+
         $data = [
             'name' => 'John Doe',
             'email' => 'john@example.com',
@@ -36,7 +42,7 @@ class ContactMessageTest extends TestCase
             'message' => 'Saya ingin menanyakan tentang ketersediaan produk ini.',
         ];
 
-        $response = $this->post(route('frontend.contact.store'), $data);
+        $response = $this->actingAs($customer, 'customer')->post(route('frontend.contact.store'), $data);
 
         $response->assertRedirect();
         $response->assertSessionHas('success', 'Pesan berhasil dikirim! Kami akan menghubungi Anda segera.');
@@ -55,7 +61,9 @@ class ContactMessageTest extends TestCase
      */
     public function test_contact_form_validates_required_fields(): void
     {
-        $response = $this->post(route('frontend.contact.store'), []);
+        $customer = $this->createCustomer();
+
+        $response = $this->actingAs($customer, 'customer')->post(route('frontend.contact.store'), []);
 
         $response->assertSessionHasErrors([
             'name',
@@ -72,6 +80,8 @@ class ContactMessageTest extends TestCase
      */
     public function test_contact_form_validates_email_format(): void
     {
+        $customer = $this->createCustomer();
+
         $data = [
             'name' => 'John Doe',
             'email' => 'invalid-email',
@@ -79,7 +89,7 @@ class ContactMessageTest extends TestCase
             'message' => 'Saya ingin menanyakan tentang ketersediaan produk ini.',
         ];
 
-        $response = $this->post(route('frontend.contact.store'), $data);
+        $response = $this->actingAs($customer, 'customer')->post(route('frontend.contact.store'), $data);
 
         $response->assertSessionHasErrors(['email']);
         $this->assertDatabaseCount('contact_messages', 0);
@@ -90,6 +100,8 @@ class ContactMessageTest extends TestCase
      */
     public function test_contact_form_validates_message_min_length(): void
     {
+        $customer = $this->createCustomer();
+
         $data = [
             'name' => 'John Doe',
             'email' => 'john@example.com',
@@ -97,7 +109,7 @@ class ContactMessageTest extends TestCase
             'message' => 'Short',
         ];
 
-        $response = $this->post(route('frontend.contact.store'), $data);
+        $response = $this->actingAs($customer, 'customer')->post(route('frontend.contact.store'), $data);
 
         $response->assertSessionHasErrors(['message']);
         $this->assertDatabaseCount('contact_messages', 0);
@@ -108,6 +120,8 @@ class ContactMessageTest extends TestCase
      */
     public function test_contact_form_validates_max_length(): void
     {
+        $customer = $this->createCustomer();
+
         $data = [
             'name' => str_repeat('a', 256),
             'email' => 'john@example.com',
@@ -115,7 +129,7 @@ class ContactMessageTest extends TestCase
             'message' => str_repeat('c', 5001),
         ];
 
-        $response = $this->post(route('frontend.contact.store'), $data);
+        $response = $this->actingAs($customer, 'customer')->post(route('frontend.contact.store'), $data);
 
         $response->assertSessionHasErrors(['name', 'subject', 'message']);
         $this->assertDatabaseCount('contact_messages', 0);
@@ -181,5 +195,17 @@ class ContactMessageTest extends TestCase
 
         $this->assertTrue($message->fresh()->is_read);
         $this->assertNotNull($message->fresh()->read_at);
+    }
+
+    private function createCustomer(): Customer
+    {
+        return Customer::query()->create([
+            'first_name' => 'Test',
+            'last_name' => 'Customer',
+            'email' => 'customer-'.Str::uuid().'@example.test',
+            'password' => bcrypt('password'),
+            'credit_limit' => 0,
+            'is_active' => 'active',
+        ]);
     }
 }

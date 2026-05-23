@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use Throwable;
 use App\Models\EmailLog;
 use App\Models\EmailTemplate;
 use App\Services\EmailTemplateService;
@@ -111,7 +112,7 @@ class CustomerResetPasswordNotification extends Notification implements ShouldQu
         ]);
     }
 
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         if ($this->emailLogId) {
             EmailLog::where('id', $this->emailLogId)->update([

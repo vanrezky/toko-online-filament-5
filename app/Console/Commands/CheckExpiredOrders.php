@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Exception;
 use App\Enums\OrderStatus;
 use App\Jobs\SendOrderExpiryNotification;
 use App\Jobs\SendOrderExpiryReminder;
@@ -57,7 +58,7 @@ class CheckExpiredOrders extends Command
             try {
                 SendOrderExpiryReminder::dispatch($transaction);
                 $this->info("Sent expiry reminder for order: {$transaction->uuid}");
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error("Failed to send expiry reminder for order {$transaction->uuid}: ".$e->getMessage());
                 $this->error("Failed to send expiry reminder for order: {$transaction->uuid}");
             }
@@ -88,7 +89,7 @@ class CheckExpiredOrders extends Command
                 SendOrderExpiryNotification::dispatch($transaction);
 
                 $this->info("Marked order as expired: {$transaction->uuid}");
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error("Failed to process expired order {$transaction->uuid}: ".$e->getMessage());
                 $this->error("Failed to process expired order: {$transaction->uuid}");
             }

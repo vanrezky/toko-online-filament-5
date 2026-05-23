@@ -2,21 +2,23 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\Select;
 use App\Models\CustomerLevel;
 use App\Services\PayrollExportService;
 use Filament\Actions\Action;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 
 class PayrollExportPage extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-arrow-down';
-    protected static ?string $navigationGroup = 'Transaksi';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-arrow-down';
+    protected static string | \UnitEnum | null $navigationGroup = 'Transaksi';
     protected static ?int $navigationSort = 5;
 
-    protected static string $view = 'filament.pages.payroll-export';
+    protected string $view = 'filament.pages.payroll-export';
 
     public ?int $selectedMonth = null;
     public ?int $selectedYear = null;
@@ -75,12 +77,12 @@ class PayrollExportPage extends Page
         ];
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form->schema([
-            Forms\Components\Grid::make(3)
+        return $schema->components([
+            Grid::make(3)
                 ->schema([
-                    Forms\Components\Select::make('selectedMonth')
+                    Select::make('selectedMonth')
                         ->label(__('admin/payroll-export-page.fields.month'))
                         ->options([
                             1 => __('admin/payroll-export-page.months.january'),
@@ -98,12 +100,12 @@ class PayrollExportPage extends Page
                         ])
                         ->columnSpan(1)
                         ->required(),
-                    Forms\Components\Select::make('selectedYear')
+                    Select::make('selectedYear')
                         ->label(__('admin/payroll-export-page.fields.year'))
                         ->options(array_combine(range(now()->year - 5, now()->year + 1), range(now()->year - 5, now()->year + 1)))
                         ->columnSpan(1)
                         ->required(),
-                    Forms\Components\Select::make('selectedLevelId')
+                    Select::make('selectedLevelId')
                         ->label(__('admin/payroll-export-page.fields.customer_level'))
                         ->options(CustomerLevel::query()->pluck('name', 'id'))
                         ->columnSpan(1)

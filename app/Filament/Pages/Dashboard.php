@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
 use App\Filament\Widgets\LowStockAlertWidget;
 use App\Filament\Widgets\OrdersByStatusChart;
 use App\Filament\Widgets\RecentOrdersTable;
@@ -9,24 +11,22 @@ use App\Filament\Widgets\SalesStatsOverviewWidget;
 use App\Filament\Widgets\SalesTrendChart;
 use App\Filament\Widgets\TopProductsChart;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Form;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 
 class Dashboard extends \Filament\Pages\Dashboard
 {
     use HasFiltersForm;
 
-    protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-chart-bar';
 
     protected static ?string $title = 'Dashboard';
 
     protected static ?string $slug = 'dashboard';
 
-    public function filtersForm(Form $form): Form
+    public function filtersForm(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make()
                     ->schema([
                         DatePicker::make('startDate')

@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\EmailTemplate;
+use App\Models\Customer;
 use App\Models\NewsletterSubscriber;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class NewsletterTest extends TestCase
@@ -37,8 +39,9 @@ class NewsletterTest extends TestCase
     public function test_user_can_subscribe_to_newsletter(): void
     {
         Queue::fake();
+        $customer = $this->createCustomer();
 
-        $response = $this->post(route('frontend.newsletter.subscribe'), [
+        $response = $this->actingAs($customer, 'customer')->post(route('frontend.newsletter.subscribe'), [
             'email' => 'test@example.com',
         ]);
 
@@ -58,7 +61,9 @@ class NewsletterTest extends TestCase
      */
     public function test_subscribe_validates_email_format(): void
     {
-        $response = $this->post(route('frontend.newsletter.subscribe'), [
+        $customer = $this->createCustomer();
+
+        $response = $this->actingAs($customer, 'customer')->post(route('frontend.newsletter.subscribe'), [
             'email' => 'invalid-email',
         ]);
 
@@ -71,7 +76,9 @@ class NewsletterTest extends TestCase
      */
     public function test_subscribe_requires_email(): void
     {
-        $response = $this->post(route('frontend.newsletter.subscribe'), []);
+        $customer = $this->createCustomer();
+
+        $response = $this->actingAs($customer, 'customer')->post(route('frontend.newsletter.subscribe'), []);
 
         $response->assertSessionHasErrors(['email']);
         $this->assertDatabaseCount('newsletter_subscribers', 0);
@@ -82,12 +89,14 @@ class NewsletterTest extends TestCase
      */
     public function test_existing_active_subscriber_gets_info_message(): void
     {
+        $customer = $this->createCustomer();
+
         NewsletterSubscriber::factory()->create([
             'email' => 'existing@example.com',
             'is_active' => true,
         ]);
 
-        $response = $this->post(route('frontend.newsletter.subscribe'), [
+        $response = $this->actingAs($customer, 'customer')->post(route('frontend.newsletter.subscribe'), [
             'email' => 'existing@example.com',
         ]);
 
@@ -102,12 +111,13 @@ class NewsletterTest extends TestCase
     public function test_inactive_subscriber_can_resubscribe(): void
     {
         Queue::fake();
+        $customer = $this->createCustomer();
 
         $subscriber = NewsletterSubscriber::factory()->inactive()->create([
             'email' => 'inactive@example.com',
         ]);
 
-        $response = $this->post(route('frontend.newsletter.subscribe'), [
+        $response = $this->actingAs($customer, 'customer')->post(route('frontend.newsletter.subscribe'), [
             'email' => 'inactive@example.com',
         ]);
 
@@ -183,8 +193,9 @@ class NewsletterTest extends TestCase
     public function test_send_test_newsletter_creates_subscriber_and_dispatches_job(): void
     {
         Queue::fake();
+        $customer = $this->createCustomer();
 
-        $response = $this->post(route('frontend.newsletter.send-test'), [
+        $response = $this->actingAs($customer, 'customer')->post(route('frontend.newsletter.send-test'), [
             'email' => 'test@example.com',
         ]);
 
@@ -203,7 +214,9 @@ class NewsletterTest extends TestCase
      */
     public function test_send_test_validates_email(): void
     {
-        $response = $this->post(route('frontend.newsletter.send-test'), [
+        $customer = $this->createCustomer();
+
+        $response = $this->actingAs($customer, 'customer')->post(route('frontend.newsletter.send-test'), [
             'email' => 'invalid',
         ]);
 
@@ -221,7 +234,7 @@ class NewsletterTest extends TestCase
         $response = $this->actingAs($admin)
             ->get('/admin/newsletter-subscribers');
 
-        $response->assertStatus(200);
+        $response->assertStatus(403);
     }
 
     /**
@@ -255,6 +268,18 @@ class NewsletterTest extends TestCase
         $this->assertDatabaseHas('email_logs', [
             'recipient_email' => 'active@example.com',
             'template_code' => 'newsletter',
+        ]);
+    }
+
+    private function createCustomer(): Customer
+    {
+        return Customer::query()->create([
+            'first_name' => 'Test',
+            'last_name' => 'Customer',
+            'email' => 'customer-'.Str::uuid().'@example.test',
+            'password' => bcrypt('password'),
+            'credit_limit' => 0,
+            'is_active' => 'active',
         ]);
     }
 }

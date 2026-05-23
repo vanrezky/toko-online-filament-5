@@ -1,5 +1,8 @@
 <?php
 
+use App\Settings\GeneralSettings;
+use Illuminate\Validation\Rules\Password;
+use Akaunting\Money\Money;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -14,14 +17,14 @@ function settings(string $key, $default = null)
     try {
 
         if ($key === 'favicon') {
-            return app(App\Settings\GeneralSettings::class)->getFavicon();
+            return app(GeneralSettings::class)->getFavicon();
         }
         if ($key === 'logo') {
-            return app(App\Settings\GeneralSettings::class)->getLogo();
+            return app(GeneralSettings::class)->getLogo();
         }
 
-        return app(App\Settings\GeneralSettings::class)->$key ?? $default;
-    } catch (\Throwable $e) {
+        return app(GeneralSettings::class)->$key ?? $default;
+    } catch (Throwable $e) {
         Log::error($e);
         return $default;
     }
@@ -31,15 +34,15 @@ function settings(string $key, $default = null)
  * Generates a secure password based on settings.
  *
  * @param int $minLength the minimum length of the password (default is 8)
- * @return Illuminate\Validation\Rules\Password the generated secure password
+ * @return Password the generated secure password
  */
 if (!function_exists('securePassword')) {
 
     function securePassword(int $minLength = 8)
     {
         return settings('secure_password') ?
-            Illuminate\Validation\Rules\Password::min($minLength)->symbols()->numbers()->letters() :
-            Illuminate\Validation\Rules\Password::min($minLength);
+            Password::min($minLength)->symbols()->numbers()->letters() :
+            Password::min($minLength);
     }
 }
 
@@ -69,7 +72,7 @@ if (!function_exists('getUrlImage')) {
 if (!function_exists('toMoney')) {
     function toMoney($price): string
     {
-        return \Akaunting\Money\Money::IDR($price);
+        return Money::IDR($price);
     }
 }
 

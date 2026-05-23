@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Exception;
 use App\Jobs\SendEmailJob;
 use App\Models\Customer;
 use App\Models\EmailLog;
@@ -118,7 +119,7 @@ class EmailTemplateService
             $emailLog->markAsSent();
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $emailLog->markAsFailed($e->getMessage());
 
             return false;

@@ -14,8 +14,8 @@ class CustomerOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        $startDate = $this->filters['startDate'] ?? null;
-        $endDate = $this->filters['endDate'] ?? null;
+        $startDate = $this->pageFilters['startDate'] ?? null;
+        $endDate = $this->pageFilters['endDate'] ?? null;
 
         return [
             Stat::make('New Customers', Customer::query()

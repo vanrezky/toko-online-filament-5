@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use RuntimeException;
 use Illuminate\Database\Eloquent\Model;
 
 class CodeGeneratorService
@@ -21,7 +22,7 @@ class CodeGeneratorService
             }
         }
 
-        throw new \RuntimeException('Unable to generate unique code.');
+        throw new RuntimeException('Unable to generate unique code.');
     }
 
     private static function randomSegment(int $length): string

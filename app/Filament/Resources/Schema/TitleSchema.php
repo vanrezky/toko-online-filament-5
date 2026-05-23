@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\Schema;
 
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Illuminate\Support\Str;
 
 class TitleSchema

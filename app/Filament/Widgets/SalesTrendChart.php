@@ -12,11 +12,11 @@ class SalesTrendChart extends ChartWidget
 
     protected int $cacheSeconds = 300;
 
-    protected static ?string $heading = 'Sales Trend (7 Hari)';
+    protected ?string $heading = 'Sales Trend (7 Hari)';
 
     protected function getData(): array
     {
-        $filters = $this->filters ?? [];
+        $filters = $this->pageFilters ?? [];
         $stats = new DashboardStats($filters);
         $trend = $stats->getSalesTrend();
 

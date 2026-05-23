@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\Gateways\MidtransGateway;
+use App\Services\Gateways\StripeGateway;
+use App\Services\Gateways\XenditGateway;
 use App\Models\Transaction;
 use App\Services\Gateways\Contracts\PaymentGatewayInterface;
 use App\Services\Gateways\DTOs\PaymentResponse;
@@ -25,9 +28,9 @@ class PaymentGatewayService
         }
 
         return match ($this->settings->active_gateway) {
-            'midtrans' => new \App\Services\Gateways\MidtransGateway($this->settings),
-            'stripe' => new \App\Services\Gateways\StripeGateway($this->settings),
-            'xendit' => new \App\Services\Gateways\XenditGateway($this->settings),
+            'midtrans' => new MidtransGateway($this->settings),
+            'stripe' => new StripeGateway($this->settings),
+            'xendit' => new XenditGateway($this->settings),
             default => null,
         };
     }

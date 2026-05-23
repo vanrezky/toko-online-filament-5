@@ -2,16 +2,16 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use App\Models\Courier;
 use App\Settings\CourierSettings;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Tabs;
-use Filament\Forms\Components\Tabs\Tab;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Collection;
@@ -22,11 +22,11 @@ class ManageCourier extends Page
 {
     use HasPageShield;
 
-    protected static ?string $navigationIcon = 'heroicon-o-truck';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-truck';
     protected static ?int $navigationSort = 6;
     protected static ?string $slug = 'setting/courier';
 
-    protected static string $view = 'filament.pages.manage-courier';
+    protected string $view = 'filament.pages.manage-courier';
 
     public ?array $data = [];
 
@@ -50,10 +50,10 @@ class ManageCourier extends Page
         return __('admin/page-manage-courier.navigation_group');
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Tabs::make('')
                     ->tabs([
                         //@feature-toogle: rajaongkir & apicoid - uncomment to activate feature
