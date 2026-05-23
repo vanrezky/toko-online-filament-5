@@ -19,7 +19,7 @@ class TransactionResource extends Resource
 {
     protected static ?string $model = Transaction::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
 
     protected static ?int $navigationSort = 1;
 
@@ -283,7 +283,7 @@ class TransactionResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return (string) \App\Services\NavigationBadgeCache::getTransactionUnpaidCount();
+        return (string) \App\Services\NavigationBadgeCache::getTransactionNotShippedCount();
     }
 
     public static function getNavigationBadgeColor(): ?string

@@ -8,10 +8,10 @@ class NavigationBadgeCache
 {
     protected static int $cacheSeconds = 60;
 
-    public static function getTransactionUnpaidCount(): int
+    public static function getTransactionNotShippedCount(): int
     {
-        return Cache::remember('nav_transaction_unpaid', self::$cacheSeconds, function () {
-            return \App\Models\Transaction::where('status', 'unpaid')->count();
+        return Cache::remember('nav_transaction_not_shipped', self::$cacheSeconds, function () {
+            return \App\Models\Transaction::whereIn('status', ['unpaid', 'packed'])->count();
         });
     }
 
@@ -73,7 +73,7 @@ class NavigationBadgeCache
 
     public static function forgetAll(): void
     {
-        Cache::forget('nav_transaction_unpaid');
+        Cache::forget('nav_transaction_not_shipped');
         Cache::forget('nav_customer_count');
         Cache::forget('nav_user_count');
         Cache::forget('nav_warehouse_count');
