@@ -3,18 +3,21 @@
 namespace App\Filament\Widgets;
 
 use App\Services\DashboardStats;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 
 class SalesStatsOverviewWidget extends BaseWidget
 {
+    use InteractsWithPageFilters;
+
     protected int $cacheSeconds = 300;
     
     protected static bool $isDiscovered = true;
 
     protected function getStats(): array
     {
-        $filters = $this->filter ?? [];
+        $filters = $this->filters ?? [];
         $stats = new DashboardStats($filters);
 
         $revenueStats = $stats->getRevenueStats();
@@ -48,7 +51,7 @@ class SalesStatsOverviewWidget extends BaseWidget
 
     protected function getMiniChart(): array
     {
-        $filters = $this->filter ?? [];
+        $filters = $this->filters ?? [];
         $stats = new DashboardStats($filters);
         $trend = $stats->getSalesTrend();
         

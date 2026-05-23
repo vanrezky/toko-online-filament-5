@@ -3,17 +3,20 @@
 namespace App\Filament\Widgets;
 
 use App\Services\DashboardStats;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\ChartWidget;
 
 class OrdersByStatusChart extends ChartWidget
 {
+    use InteractsWithPageFilters;
+
     protected int $cacheSeconds = 300;
 
     protected static ?string $heading = 'Orders by Status';
 
     protected function getData(): array
     {
-        $filters = $this->filter ?? [];
+        $filters = $this->filters ?? [];
         $stats = new DashboardStats($filters);
         $data = $stats->getOrdersByStatus();
 

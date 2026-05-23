@@ -50,13 +50,12 @@ class RecentOrdersTable extends BaseWidget
             Tables\Columns\TextColumn::make('status')
                 ->label('Status')
                 ->badge()
-                ->color(fn (string $state): string => match ($state) {
+                ->color(fn (?string $state): string => match ($state) {
                     'unpaid' => 'warning',
-                    'packed'  => 'info',
-                    'shipped' => 'info',
-                    'delivered' => 'primary',
-                    'rejected' => 'danger',
-                    'completed' => 'success',
+                    'packed', 'in_transit', 'shipped' => 'info',
+                    'delivered', 'picked_up', 'completed' => 'success',
+                    'rejected', 'cancelled' => 'danger',
+                    default => 'gray',
                 }),
 
             Tables\Columns\TextColumn::make('created_at')

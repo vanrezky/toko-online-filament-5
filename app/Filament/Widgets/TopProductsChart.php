@@ -3,10 +3,13 @@
 namespace App\Filament\Widgets;
 
 use App\Services\DashboardStats;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\ChartWidget;
 
 class TopProductsChart extends ChartWidget
 {
+    use InteractsWithPageFilters;
+
     protected int $cacheSeconds = 300;
 
     protected static ?string $heading = 'Top Products';
@@ -15,7 +18,7 @@ class TopProductsChart extends ChartWidget
 
     protected function getData(): array
     {
-        $stats = new DashboardStats([]);
+        $stats = new DashboardStats($this->filters ?? []);
         $products = $stats->getTopProducts(5);
 
         $isQuantity = ($this->filter ?? 'quantity') === 'quantity';

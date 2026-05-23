@@ -3,16 +3,19 @@
 namespace App\Filament\Widgets;
 
 use App\Services\DashboardStats;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 
 class LowStockAlertWidget extends BaseWidget
 {
+    use InteractsWithPageFilters;
+
     protected int $cacheSeconds = 300;
 
     protected function getStats(): array
     {
-        $filters = $this->filter ?? [];
+        $filters = $this->filters ?? [];
         $stats = new DashboardStats($filters);
         
         $lowStockCount = $stats->getLowStockCount();
