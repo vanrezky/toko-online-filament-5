@@ -31,9 +31,11 @@ class Dashboard extends \Filament\Pages\Dashboard
                     ->schema([
                         DatePicker::make('startDate')
                             ->placeholder('Start Date')
+                            ->default(now()->subDays(6)->toDateString())
                             ->displayFormat('d M Y'),
                         DatePicker::make('endDate')
                             ->placeholder('End Date')
+                            ->default(now()->toDateString())
                             ->displayFormat('d M Y'),
                     ])
                     ->columns(2),

@@ -3,17 +3,20 @@
 namespace App\Filament\Widgets;
 
 use App\Services\DashboardStats;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\ChartWidget;
 
 class SalesTrendChart extends ChartWidget
 {
+    use InteractsWithPageFilters;
+
     protected int $cacheSeconds = 300;
 
     protected static ?string $heading = 'Sales Trend (7 Hari)';
 
     protected function getData(): array
     {
-        $filters = $this->filter ?? [];
+        $filters = $this->filters ?? [];
         $stats = new DashboardStats($filters);
         $trend = $stats->getSalesTrend();
 
@@ -26,6 +29,9 @@ class SalesTrendChart extends ChartWidget
                     'backgroundColor' => 'rgba(37, 99, 235, 0.1)',
                     'fill' => true,
                     'tension' => 0.4,
+                    'pointRadius' => 3,
+                    'pointHoverRadius' => 5,
+                    'pointHitRadius' => 8,
                 ],
                 [
                     'label' => 'Periode Sebelumnya',
@@ -35,6 +41,9 @@ class SalesTrendChart extends ChartWidget
                     'fill' => true,
                     'tension' => 0.4,
                     'borderDash' => [5, 5],
+                    'pointRadius' => 3,
+                    'pointHoverRadius' => 5,
+                    'pointHitRadius' => 8,
                 ],
             ],
             'labels' => $trend['labels'],
@@ -55,7 +64,7 @@ class SalesTrendChart extends ChartWidget
                 'legend' => [
                     'position' => 'top',
                     'labels' => [
-                        'usePointStyle' => true,
+                        'usePointStyle' => false,
                         'padding' => 20,
                     ],
                 ],

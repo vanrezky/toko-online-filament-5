@@ -7,7 +7,6 @@ use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionProduct;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +14,10 @@ class DashboardStats
 {
     protected array $filters;
     protected int $cacheSeconds = 300;
+    protected ?Carbon $startDate = null;
+    protected ?Carbon $endDate = null;
+    protected ?array $previousPeriod = null;
+    protected ?array $combinedStats = null;
 
     public function __construct(array $filters = [])
     {
@@ -23,16 +26,28 @@ class DashboardStats
 
     public function getStartDate(): ?Carbon
     {
-        return isset($this->filters['startDate']) 
-            ? Carbon::parse($this->filters['startDate']) 
-            : now()->startOfDay();
+        if ($this->startDate) {
+            return $this->startDate;
+        }
+
+        $this->startDate = isset($this->filters['startDate'])
+            ? Carbon::parse($this->filters['startDate'])->startOfDay()
+            : now()->subDays(6)->startOfDay();
+
+        return $this->startDate;
     }
 
     public function getEndDate(): ?Carbon
     {
-        return isset($this->filters['endDate']) 
-            ? Carbon::parse($this->filters['endDate'])->endOfDay() 
+        if ($this->endDate) {
+            return $this->endDate;
+        }
+
+        $this->endDate = isset($this->filters['endDate'])
+            ? Carbon::parse($this->filters['endDate'])->endOfDay()
             : now()->endOfDay();
+
+        return $this->endDate;
     }
 
     protected function getCacheKey(string $method): string
@@ -99,9 +114,9 @@ class DashboardStats
     public function getSalesTrend(): array
     {
         return Cache::remember($this->getCacheKey('trend'), $this->cacheSeconds, function () {
-            $days = 7;
-            $startDate = $this->getStartDate() ?? now()->subDays($days);
+            $startDate = $this->getStartDate() ?? now()->subDays(6)->startOfDay();
             $endDate = $this->getEndDate() ?? now();
+            $days = $startDate->diffInDays($endDate) + 1;
 
             $currentPeriod = $this->getDailySales($startDate, $endDate);
             
@@ -121,8 +136,7 @@ class DashboardStats
     {
         return Cache::remember($this->getCacheKey('status'), $this->cacheSeconds, function () {
             $results = Transaction::query()
-                ->when($this->getStartDate(), fn($q) => $q->whereDate('created_at', '>=', $this->getStartDate()))
-                ->when($this->getEndDate(), fn($q) => $q->whereDate('created_at', '<=', $this->getEndDate()))
+                ->when($this->getStartDate() && $this->getEndDate(), fn($q) => $q->whereBetween('created_at', [$this->getStartDate(), $this->getEndDate()]))
                 ->select('status', DB::raw('COUNT(*) as count'))
                 ->groupBy('status')
                 ->pluck('count', 'status')
@@ -145,8 +159,7 @@ class DashboardStats
                 ->join('transactions', 'transcation_products.transaction_id', '=', 'transactions.id')
                 ->join('products', 'transcation_products.product_id', '=', 'products.id')
                 ->where('transactions.status', 'completed')
-                ->when($this->getStartDate(), fn($q) => $q->whereDate('transactions.complete_date', '>=', $this->getStartDate()))
-                ->when($this->getEndDate(), fn($q) => $q->whereDate('transactions.complete_date', '<=', $this->getEndDate()))
+                ->tap(fn ($query) => $this->applyCompletedDateRange($query, $this->getStartDate(), $this->getEndDate()))
                 ->groupBy('products.id', 'products.name')
                 ->selectRaw('
                     products.id,
@@ -184,6 +197,10 @@ class DashboardStats
 
     protected function getCombinedStats(): array
     {
+        if ($this->combinedStats !== null) {
+            return $this->combinedStats;
+        }
+
         $startDate = $this->getStartDate();
         $endDate = $this->getEndDate();
         $prevPeriod = $this->getPreviousPeriod();
@@ -191,9 +208,7 @@ class DashboardStats
         $current = TransactionProduct::query()
             ->join('transactions', 'transcation_products.transaction_id', '=', 'transactions.id')
             ->where('transactions.status', 'completed')
-            ->whereNotNull('transactions.complete_date')
-            ->when($startDate, fn($q) => $q->whereDate('transactions.complete_date', '>=', $startDate))
-            ->when($endDate, fn($q) => $q->whereDate('transactions.complete_date', '<=', $endDate))
+            ->tap(fn ($query) => $this->applyCompletedDateRange($query, $startDate, $endDate))
             ->selectRaw('
                 SUM((transcation_products.price * transcation_products.quantity) - transcation_products.discount) as revenue,
                 COUNT(DISTINCT transactions.id) as orders
@@ -203,21 +218,21 @@ class DashboardStats
         $previous = TransactionProduct::query()
             ->join('transactions', 'transcation_products.transaction_id', '=', 'transactions.id')
             ->where('transactions.status', 'completed')
-            ->whereNotNull('transactions.complete_date')
-            ->whereDate('transactions.complete_date', '>=', $prevPeriod['start'])
-            ->whereDate('transactions.complete_date', '<=', $prevPeriod['end'])
+            ->tap(fn ($query) => $this->applyCompletedDateRange($query, $prevPeriod['start'], $prevPeriod['end']))
             ->selectRaw('
                 SUM((transcation_products.price * transcation_products.quantity) - transcation_products.discount) as revenue,
                 COUNT(DISTINCT transactions.id) as orders
             ')
             ->first();
 
-        return [
+        $this->combinedStats = [
             'current_revenue' => $current->revenue ?? 0,
             'current_orders' => $current->orders ?? 0,
             'previous_revenue' => $previous->revenue ?? 0,
             'previous_orders' => $previous->orders ?? 0,
         ];
+
+        return $this->combinedStats;
     }
 
     protected function getDailySales(Carbon $startDate, Carbon $endDate): array
@@ -227,9 +242,8 @@ class DashboardStats
         $results = TransactionProduct::query()
             ->join('transactions', 'transcation_products.transaction_id', '=', 'transactions.id')
             ->where('transactions.status', 'completed')
-            ->whereDate('transactions.complete_date', '>=', $startDate)
-            ->whereDate('transactions.complete_date', '<=', $endDate)
-            ->selectRaw('DATE(transactions.complete_date) as date, SUM((transcation_products.price * transcation_products.quantity) - transcation_products.discount) as total')
+            ->tap(fn ($query) => $this->applyCompletedDateRange($query, $startDate, $endDate))
+            ->selectRaw('DATE(IFNULL(transactions.complete_date, transactions.created_at)) as date, SUM((transcation_products.price * transcation_products.quantity) - transcation_products.discount) as total')
             ->groupBy('date')
             ->pluck('total', 'date')
             ->toArray();
@@ -250,22 +264,45 @@ class DashboardStats
 
     protected function getPreviousPeriod(): array
     {
+        if ($this->previousPeriod !== null) {
+            return $this->previousPeriod;
+        }
+
         $startDate = $this->getStartDate();
         $endDate = $this->getEndDate();
         
         if (!$startDate || !$endDate) {
             $days = 7;
-            return [
+            $this->previousPeriod = [
                 'start' => now()->subDays($days * 2)->startOfDay(),
                 'end' => now()->subDays($days)->endOfDay(),
             ];
+
+            return $this->previousPeriod;
         }
 
         $days = $startDate->diffInDays($endDate);
-        return [
+        $this->previousPeriod = [
             'start' => $startDate->copy()->subDays($days + 1)->startOfDay(),
             'end' => $startDate->copy()->subDay()->endOfDay(),
         ];
+
+        return $this->previousPeriod;
+    }
+
+    protected function applyCompletedDateRange($query, Carbon $startDate, Carbon $endDate): void
+    {
+        $query->where(function ($outer) use ($startDate, $endDate) {
+            $outer
+                ->where(function ($q) use ($startDate, $endDate) {
+                    $q->whereNotNull('transactions.complete_date')
+                        ->whereBetween('transactions.complete_date', [$startDate, $endDate]);
+                })
+                ->orWhere(function ($q) use ($startDate, $endDate) {
+                    $q->whereNull('transactions.complete_date')
+                        ->whereBetween('transactions.created_at', [$startDate, $endDate]);
+                });
+        });
     }
 
     protected function calculatePercentChange(float $current, float $previous): float
