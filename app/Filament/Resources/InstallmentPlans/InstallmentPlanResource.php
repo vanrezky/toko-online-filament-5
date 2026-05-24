@@ -88,7 +88,7 @@ class InstallmentPlanResource extends Resource
                             ->disabled(fn(?InstallmentPlan $record) => $record?->installments()->exists())
                             ->helperText(fn(?InstallmentPlan $record) => $record?->installments()->exists() ? __('admin/installment-plan-resource.fields.is_active_helper') : null),
                     ]),
-            ]);
+            ])->columns(1);
     }
 
     public static function table(Table $table): Table

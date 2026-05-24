@@ -62,7 +62,7 @@ class ContentsRelationManager extends RelationManager
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
-            ]);
+            ])->columns(1);
     }
 
     public function table(Table $table): Table
@@ -85,7 +85,7 @@ class ContentsRelationManager extends RelationManager
                 TextColumn::make('value')
                     ->label('Value')
                     ->limit(60)
-                    ->tooltip(fn ($record) => $record->value),
+                    ->tooltip(fn($record) => $record->value),
             ])
             ->filters([])
             ->headerActions([

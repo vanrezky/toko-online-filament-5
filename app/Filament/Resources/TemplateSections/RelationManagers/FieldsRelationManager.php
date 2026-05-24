@@ -85,7 +85,7 @@ class FieldsRelationManager extends RelationManager
                             ->default(0),
                     ])
                     ->columns(2),
-            ]);
+            ])->columns(1);
     }
 
     public function table(Table $table): Table

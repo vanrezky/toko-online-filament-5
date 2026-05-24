@@ -93,7 +93,7 @@ class CustomerLevelResource extends Resource
                             ->disabled(fn(?CustomerLevel $record) => $record?->hasCustomers())
                             ->helperText(fn(?CustomerLevel $record) => $record?->hasCustomers() ? __('admin/customer-level-resource.fields.is_active_helper') : null),
                     ])->columns(2),
-            ]);
+            ])->columns(1);
     }
 
     public static function table(Table $table): Table

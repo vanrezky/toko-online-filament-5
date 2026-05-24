@@ -207,7 +207,7 @@ class CustomerResource extends Resource
 
                 Hidden::make('email_verified_at')
                     ->default(now())->dehydrated(),
-            ]);
+            ])->columns(1);
     }
 
     public static function table(Table $table): Table

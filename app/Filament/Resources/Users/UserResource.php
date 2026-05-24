@@ -74,7 +74,7 @@ class UserResource extends Resource
                             ->hiddenOn('view')
                     ])
                     ->columns(2)
-            ]);
+            ])->columns(1);
     }
 
     public static function table(Table $table): Table

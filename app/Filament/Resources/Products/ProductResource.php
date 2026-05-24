@@ -271,7 +271,7 @@ class ProductResource extends Resource
                             ->disk(getActiveDisk())
                             ->rules(['required', 'mimes:png,jpg,jpeg,webp,gif'])
                             ->directory(UploadPath::PRODUCT_UPLOAD_PATH),
-                    ]),
+                    ])->columnSpanFull(),
                 Section::make(__('admin/product-resource.fields.other_settings'))
                     ->schema([
                         TagsInput::make('tags')
@@ -285,7 +285,7 @@ class ProductResource extends Resource
                             ->default(Status::ACTIVE)
                             ->native(false)
                             ->required(),
-                    ]),
+                    ])->columnSpanFull(),
                 Tabs::make('Advanced Settings')
                     ->schema([
                         // @feature-toggle: reseller — uncomment to re-enable Reseller Price tab

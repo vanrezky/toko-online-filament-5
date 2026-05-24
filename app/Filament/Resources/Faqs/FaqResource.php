@@ -60,18 +60,21 @@ class FaqResource extends Resource
     {
         return $schema
             ->components([
-                Section::make([
-                    TextInput::make('question')
-                        ->label(__('admin/faq-resource.fields.question'))
-                        ->required()
-                        ->maxLength(255),
-                    RichEditor::make('answer')
-                        ->label(__('admin/faq-resource.fields.answer'))
-                        ->required()
-                        ->maxLength(65535)
-                        ->columnSpanFull(),
-                ])
-            ]);
+                Section::make()
+                    ->schema([
+                        TextInput::make('question')
+                            ->label(__('admin/faq-resource.fields.question'))
+                            ->required()
+                            ->maxLength(255),
+                        RichEditor::make('answer')
+                            ->label(__('admin/faq-resource.fields.answer'))
+                            ->required()
+                            ->maxLength(65535)
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull(),
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table

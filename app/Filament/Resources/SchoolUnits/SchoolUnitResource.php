@@ -101,7 +101,8 @@ class SchoolUnitResource extends Resource
                         ->required()
                         ->maxLength(20),
                 ])->columns(2)
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
