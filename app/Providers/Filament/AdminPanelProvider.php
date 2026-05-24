@@ -9,6 +9,7 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Support\Assets\Css;
 use Filament\Support\Colors\Color;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -86,6 +87,9 @@ class AdminPanelProvider extends PanelProvider
                         'sm' => 2,
                     ]),
 
+            ])
+            ->assets([
+                Css::make('admin-theme-overrides', resource_path('css/filament/admin/theme.css')),
             ])
             ->sidebarCollapsibleOnDesktop();
     }
