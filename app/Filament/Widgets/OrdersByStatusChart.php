@@ -67,16 +67,7 @@ class OrdersByStatusChart extends ChartWidget
                         'padding' => 15,
                     ],
                 ],
-                'tooltip' => [
-                    'callbacks' => [
-                        'label' => function ($context) {
-                            $total = array_sum($context->dataset->data);
-                            $value = $context->raw;
-                            $percent = $total > 0 ? round(($value / $total) * 100, 1) : 0;
-                            return "{$context->label}: {$value} ({$percent}%)";
-                        },
-                    ],
-                ],
+                'tooltip' => [],
             ],
         ];
     }

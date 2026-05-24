@@ -55,26 +55,12 @@ class TopProductsChart extends ChartWidget
             'maintainAspectRatio' => false,
             'plugins' => [
                 'legend' => ['display' => false],
-                'tooltip' => [
-                    'callbacks' => [
-                        'label' => function ($context) {
-                            $isQuantity = ($this->filter ?? 'quantity') === 'quantity';
-                            if ($isQuantity) {
-                                return " {$context->raw} units";
-                            }
-                            return ' ' . toMoney($context->raw);
-                        },
-                    ],
-                ],
+                'tooltip' => [],
             ],
             'scales' => [
                 'x' => [
                     'grid' => ['display' => false],
-                    'ticks' => [
-                        'callback' => function ($value) {
-                            return toMoney($value);
-                        },
-                    ],
+                    'ticks' => [],
                 ],
                 'y' => [
                     'grid' => ['display' => false],

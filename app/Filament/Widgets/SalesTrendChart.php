@@ -71,13 +71,6 @@ class SalesTrendChart extends ChartWidget
                 'tooltip' => [
                     'mode' => 'index',
                     'intersect' => false,
-                    'callbacks' => [
-                        'label' => function ($context) {
-                            $label = $context->dataset->label ?? '';
-                            $value = toMoney($context->raw);
-                            return "{$label}: {$value}";
-                        },
-                    ],
                 ],
             ],
             'scales' => [
@@ -88,11 +81,7 @@ class SalesTrendChart extends ChartWidget
                 'y' => [
                     'beginAtZero' => true,
                     'grid' => ['color' => 'rgba(0, 0, 0, 0.05)'],
-                    'ticks' => [
-                        'callback' => function ($value) {
-                            return toMoney($value);
-                        },
-                    ],
+                    'ticks' => [],
                 ],
             ],
         ];
