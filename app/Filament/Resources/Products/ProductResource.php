@@ -267,7 +267,6 @@ class ProductResource extends Resource
                                 '1:1',
                             ])
                             ->downloadable()
-                            ->optimize('webp')
                             ->panelLayout('grid')
                             ->disk(getActiveDisk())
                             ->rules(['required', 'mimes:png,jpg,jpeg,webp,gif'])

@@ -152,7 +152,6 @@ class ProductVariantsRelationManager extends RelationManager
                     ->imageEditorAspectRatios([
                         '1:1'
                     ])
-                    ->optimize('webp')
                     ->disk(getActiveDisk())
                     ->rules(['required', 'mimes:png,jpg,jpeg,webp,gif', 'max:1024'])
                     ->maxSize(1024)
