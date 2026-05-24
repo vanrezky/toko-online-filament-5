@@ -191,8 +191,7 @@ class CustomerResource extends Resource
                             ->placeholder('Kosongkan untuk gunakan default dari level')
                             ->numeric()
                             ->nullable()
-                            ->prefix('Rp')
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                            ->prefix('Rp'),
                         Placeholder::make('effective_credit_limit')
                             ->label(__('admin/customer-resource.fields.effective_credit_limit'))
                             ->content(fn($record): string => 'Rp ' . number_format($record?->effective_credit_limit ?? 0, 0, ',', '.')),

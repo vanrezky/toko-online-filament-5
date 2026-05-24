@@ -82,16 +82,13 @@ class BalanceResource extends Resource
                     ->numeric()
                     ->sortable(false),
                 TextColumn::make('amount')
-                    ->money('   ')
-                    ->prefix(settings('currency_text'))
+                    ->money('IDR')
                     ->sortable(),
                 TextColumn::make('charge')
-                    ->money('   ')
-                    ->prefix(settings('currency_text'))
+                    ->money('IDR')
                     ->sortable(),
                 TextColumn::make('post_balance')
-                    ->money('   ')
-                    ->prefix(settings('currency_text'))
+                    ->money('IDR')
                     ->sortable(),
                 TextColumn::make('trx_type')
                     ->getStateUsing(fn(Balance $record): string => self::getTrxTypeLabel($record->trx_type))

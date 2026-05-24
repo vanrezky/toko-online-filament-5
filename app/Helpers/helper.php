@@ -2,7 +2,6 @@
 
 use App\Settings\GeneralSettings;
 use Illuminate\Validation\Rules\Password;
-use Akaunting\Money\Money;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -72,7 +71,9 @@ if (!function_exists('getUrlImage')) {
 if (!function_exists('toMoney')) {
     function toMoney($price): string
     {
-        return Money::IDR($price);
+        $amount = is_numeric($price) ? (float) $price : 0;
+
+        return 'Rp ' . number_format($amount, 0, ',', '.');
     }
 }
 

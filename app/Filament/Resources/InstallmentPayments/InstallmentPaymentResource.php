@@ -62,8 +62,7 @@ class InstallmentPaymentResource extends Resource
                 TextInput::make('installment_number')
                     ->disabled(),
                 TextInput::make('amount')
-                    ->disabled()
-                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                    ->disabled(),
                 DatePicker::make('due_date')
                     ->disabled(),
                 Select::make('status')

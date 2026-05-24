@@ -86,8 +86,7 @@ class CustomerLevelResource extends Resource
                             ->label(__('admin/customer-level-resource.fields.default_credit_limit'))
                             ->numeric()
                             ->prefix('Rp')
-                            ->default(0)
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                            ->default(0),
                         Toggle::make('is_active')
                             ->label(__('admin/customer-level-resource.fields.is_active'))
                             ->default(true)

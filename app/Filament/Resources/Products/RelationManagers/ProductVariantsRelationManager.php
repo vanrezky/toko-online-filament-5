@@ -136,8 +136,7 @@ class ProductVariantsRelationManager extends RelationManager
                     ->label(__('admin/product-resource.product-variant.fields.price'))
                     ->numeric()
                     ->required()
-                    ->default(fn() => $this->getOwnerRecord()->price)
-                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                    ->default(fn() => $this->getOwnerRecord()->price),
                 TextInput::make('stock')
                     ->label(__('admin/product-resource.product-variant.fields.stock'))
                     ->numeric()

@@ -166,8 +166,7 @@ class ManageWebsite extends SettingsPage
                                     ->helperText('Jika total belanja di bawah nilai ini, opsi cicilan akan dinonaktifkan.')
                                     ->rules('nullable|numeric')
                                     ->default(1000000)
-                                    ->required()
-                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                                    ->required(),
                                 TextInput::make('billing_cutoff_day')
                                     ->label('Tanggal Cutoff Tagihan')
                                     ->helperText('Transaksi pada tanggal ini atau sebelumnya masuk siklus bulan berjalan.')

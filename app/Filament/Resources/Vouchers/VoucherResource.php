@@ -114,20 +114,17 @@ class VoucherResource extends Resource
                             Group::make([
                                 TextInput::make('discount_min')
                                     ->label(__('admin/voucher-resource.fields.discount_min'))
-                                    ->required()
-                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                                    ->required(),
 
                                 TextInput::make('discount')
                                     ->label(fn(Get $get) => $get('discount_type') == VoucherDiscountType::FIXED->value ? __('admin/voucher-resource.fields.discount') : __('admin/voucher-resource.fields.discount_percentage'))
                                     ->required()
                                     ->rules('numeric')
-                                    ->maxLength(fn(Get $get) => $get('discount_type') == VoucherDiscountType::PERCENTAGE->value ? 100 : null)
-                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                                    ->maxLength(fn(Get $get) => $get('discount_type') == VoucherDiscountType::PERCENTAGE->value ? 100 : null),
                                 TextInput::make('discount_max')
                                     ->label(__('admin/voucher-resource.fields.discount_max'))
                                     ->required(fn(Get $get): bool => $get('discount_type') == VoucherDiscountType::PERCENTAGE->value)
                                     ->visible(fn(Get $get): bool => $get('discount_type') == VoucherDiscountType::PERCENTAGE->value)
-                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                             ])->columns(3)
                         ]),
 
@@ -214,7 +211,7 @@ class VoucherResource extends Resource
                 TextColumn::make('product_type')
                     ->badge(),
                 TextColumn::make('discount')
-                    ->money(currency: '   ')
+                    ->money(currency: 'IDR')
                     ->badge()
                     ->icon(fn(Voucher $record): string => match ($record->discount_type) {
                         VoucherDiscountType::FIXED => 'heroicon-o-tag',

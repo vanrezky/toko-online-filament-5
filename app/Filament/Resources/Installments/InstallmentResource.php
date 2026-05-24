@@ -67,20 +67,16 @@ class InstallmentResource extends Resource
                             ->disabled(),
                         TextInput::make('principal_amount')
                             ->label(__('admin/installment-resource.fields.principal_amount'))
-                            ->disabled()
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                            ->disabled(),
                         TextInput::make('fee_amount')
                             ->label(__('admin/installment-resource.fields.fee_amount'))
-                            ->disabled()
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                            ->disabled(),
                         TextInput::make('total_amount')
                             ->label(__('admin/installment-resource.fields.total_amount'))
-                            ->disabled()
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                            ->disabled(),
                         TextInput::make('monthly_amount')
                             ->label(__('admin/installment-resource.fields.monthly_amount'))
-                            ->disabled()
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                            ->disabled(),
                     ])->columns(2),
                 Section::make(__('admin/installment-resource.sections.payment_progress'))
                     ->schema([
@@ -92,12 +88,10 @@ class InstallmentResource extends Resource
                             ->disabled(),
                         TextInput::make('paid_amount')
                             ->label(__('admin/installment-resource.fields.paid_amount'))
-                            ->disabled()
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                            ->disabled(),
                         TextInput::make('remaining_amount')
                             ->label(__('admin/installment-resource.fields.remaining_amount'))
-                            ->disabled()
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                            ->disabled(),
                         Select::make('status')
                             ->options([
                                 'active' => __('admin/installment-resource.status_options.active'),

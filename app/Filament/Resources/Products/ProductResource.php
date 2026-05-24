@@ -169,13 +169,11 @@ class ProductResource extends Resource
                                         ->helperText(__('admin/product-resource.fields.min_order_helper'))
                                         ->required()
                                         ->default(1)
-                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->maxValue(fn(Get $get) => $get('stock')),
                                     TextInput::make('sale_price')
                                         ->rules('nullable|numeric')
                                         ->label(__('admin/product-resource.fields.sale_price'))
                                         ->helperText(__('admin/product-resource.fields.sale_price_helper'))
-                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->rules([
                                             fn(Get $get, ?Model $record): Closure => function (string $attribute, $value, Closure $fail) use ($get, $record) {
                                                 $price = $get('price');
@@ -189,13 +187,11 @@ class ProductResource extends Resource
                                         ->label(__('admin/product-resource.fields.price'))
                                         ->helperText(__('admin/product-resource.fields.price_helper'))
                                         ->required()
-                                        ->live(onBlur: true)
-                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                                        ->live(onBlur: true),
                                     TextInput::make('afiliate_price')
                                         ->rules('nullable|numeric')
                                         ->label(__('admin/product-resource.fields.afiliate_price'))
-                                        ->helperText(__('admin/product-resource.fields.afiliate_price_helper'))
-                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                                        ->helperText(__('admin/product-resource.fields.afiliate_price_helper')),
                                 ]
                             )->inlineLabel(),
                         Tab::make(__('admin/product-resource.tabs.inventory'))
@@ -205,8 +201,7 @@ class ProductResource extends Resource
                                     ->label(__('admin/product-resource.fields.weight'))
                                     ->helperText(__('admin/product-resource.fields.weight_helper'))
                                     ->visible(fn(Get $get): bool => ! $get('digital'))
-                                    ->required(fn(Get $get): bool => ! $get('digital'))
-                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                                    ->required(fn(Get $get): bool => ! $get('digital')),
                                 Select::make('warehouse_id')
                                     ->label(__('admin/product-resource.fields.warehouse_id'))
                                     ->helperText(str(__('admin/product-resource.fields.warehouse_id_helper'))->inlineMarkdown()->toHtmlString())
@@ -221,15 +216,13 @@ class ProductResource extends Resource
                                     ->helperText(__('admin/product-resource.fields.stock_helper'))
                                     ->required()
                                     ->default(1)
-                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->live(),
                                 TextInput::make('security_stock')
                                     ->rules('nullable|numeric')
                                     ->helperText(__('admin/product-resource.fields.security_stock_helper'))
                                     ->required()
                                     ->default(0)
-                                    ->maxValue(fn(Get $get) => $get('stock'))
-                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                                    ->maxValue(fn(Get $get) => $get('stock')),
                             ])->inlineLabel(),
                         Tab::make(__('admin/product-resource.tabs.faqs'))
                             ->schema([
@@ -332,7 +325,6 @@ class ProductResource extends Resource
                         //                     ->default(fn(Get $get) => $get('../../price'))
                         //                     ->live(onBlur: true)
                         //                     ->hint(fn(Get $get): string => 'Normal Price: Rp ' . number_format($get('../../price') ?? 0, 0, ',', '.'))
-                        //                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                         //             ])->grid(['md' => 2]),
                         //     ]),
                         Tab::make(__('admin/product-resource.tabs.wholesales'))
@@ -506,13 +498,11 @@ class ProductResource extends Resource
         return [
             TextInput::make('min_qty')
                 ->label(__('admin/product-resource.fields.min_qty'))
-                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                 ->required()
                 ->default(0)
                 ->distinct(),
             TextInput::make('price')
                 ->label(__('admin/product-resource.fields.price_per_item'))
-                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                 ->required()
                 ->default(fn(Get $get) => $get('../../price'))
                 ->live(onBlur: true)

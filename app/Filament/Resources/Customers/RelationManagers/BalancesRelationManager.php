@@ -31,12 +31,9 @@ class BalancesRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('created_at')->label(__('Date'))->dateTime()
                     ->sortable(),
-                TextColumn::make('amount')->money('   ')->sortable()
-                    ->prefix(settings('currency_text')),
-                TextColumn::make('charge')->money('   ')->sortable()
-                    ->prefix(settings('currency_text')),
-                TextColumn::make('post_balance')->money('   ')
-                    ->prefix(settings('currency_text')),
+                TextColumn::make('amount')->money('IDR')->sortable(),
+                TextColumn::make('charge')->money('IDR')->sortable(),
+                TextColumn::make('post_balance')->money('IDR'),
                 TextColumn::make('trx_type')
                     ->getStateUsing(fn(Balance $record): string => self::getTrxTypeLabel($record->trx_type))
                     ->badge()
