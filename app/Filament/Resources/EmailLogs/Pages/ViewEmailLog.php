@@ -16,7 +16,7 @@ class ViewEmailLog extends ViewRecord
 
     public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 Section::make('Email Information')
                     ->schema([
@@ -52,6 +52,7 @@ class ViewEmailLog extends ViewRecord
                         TextEntry::make('created_at')
                             ->dateTime(),
                     ])->columns(2),
-            ]);
+            ])
+            ->columns(1);
     }
 }

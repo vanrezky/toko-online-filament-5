@@ -228,7 +228,8 @@ class InstallmentResource extends Resource
                             ->label(__('admin/installment-resource.fields.expected_end_date'))
                             ->date(),
                     ])->columns(2),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function getRelations(): array

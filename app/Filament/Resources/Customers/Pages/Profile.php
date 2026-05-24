@@ -87,7 +87,7 @@ class Profile extends ViewRecord
 
     public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
 
                 Section::make([
@@ -171,7 +171,7 @@ class Profile extends ViewRecord
 
 
 
-            ])->columns(3);
+            ])->columns(1);
     }
 
 

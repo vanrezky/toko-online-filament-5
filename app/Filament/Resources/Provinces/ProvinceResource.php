@@ -66,7 +66,8 @@ class ProvinceResource extends Resource
                         TextEntry::make('name')->label('Pronvice name'),
                         // TextEntry::make('rajaongkir')->label('Rajaongkir code'),
                     ])->columns(2)
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table

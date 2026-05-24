@@ -233,7 +233,8 @@ class InstallmentPaymentResource extends Resource
                             ->label(__('admin/installment-payment-resource.fields.notes'))
                             ->placeholder('-'),
                     ])->columns(2),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function getRelations(): array

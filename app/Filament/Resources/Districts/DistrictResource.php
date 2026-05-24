@@ -63,7 +63,8 @@ class DistrictResource extends Resource
                         TextEntry::make('postal_code'),
                         // TextEntry::make('rajaongkir')->label('Rajaongkir code'),
                     ])->columns(2)
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
