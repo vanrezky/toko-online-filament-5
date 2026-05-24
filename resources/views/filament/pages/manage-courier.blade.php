@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <x-filament-panels::form wire:submit="save">
+    <form wire:submit="save" class="space-y-6">
         {{ $this->form }}
 
         <div class="flex justify-start">
@@ -7,7 +7,7 @@
                 {{ __('admin/page-manage-courier.view.save_settings') }}
             </x-filament::button>
         </div>
-    </x-filament-panels::form>
+    </form>
 
     <x-filament::section>
         <x-slot name="heading">

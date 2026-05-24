@@ -102,16 +102,17 @@ class EmailTemplateResource extends Resource
                                 'italic',
                                 'underline',
                                 'strike',
-                                'alignLeft',
+                                'alignStart',
                                 'alignCenter',
-                                'alignRight',
+                                'alignEnd',
                                 'orderedList',
                                 'bulletList',
                                 'link',
                             ])
                             ->columnSpanFull(),
                     ])->columns(1),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
