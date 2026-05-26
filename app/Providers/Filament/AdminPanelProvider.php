@@ -32,12 +32,12 @@ class AdminPanelProvider extends PanelProvider
             ->brandName(settings('site_name'))
             ->brandLogo(settings('logo'))
             ->colors([
-                'danger' => '#F3797E',
+                'danger' => '#F43F5E',
                 'gray' => Color::Gray,
-                'info' => '#3490DC',
-                'primary' => '#4B49AC',
-                'success' => Color::Green,
-                'warning' => Color::Orange,
+                'info' => '#3B82F6',
+                'primary' => '#0EA5A4',
+                'success' => '#22C55E',
+                'warning' => '#F59E0B',
             ])
             ->font('Karla')
             ->navigationGroups(['Master', 'Produk', 'Promo', 'Customer', 'Pelanggan', 'Report', 'Laporan', 'Transaction', 'Transaksi', 'Settings', 'Pengaturan', 'Blog', 'Logs', 'Wilayah'])
@@ -89,7 +89,7 @@ class AdminPanelProvider extends PanelProvider
 
             ])
             ->assets([
-                Css::make('admin-theme-overrides', resource_path('css/filament/admin/theme.css')),
+                Css::make('admin-custom-hooks', resource_path('css/filament/admin/theme.css')),
             ])
             ->sidebarCollapsibleOnDesktop();
     }

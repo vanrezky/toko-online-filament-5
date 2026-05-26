@@ -1,5 +1,5 @@
 .fi-active {
-    color: #4b49ac !important;
+    color: #0ea5a4 !important;
 }
 
 .column-title {
@@ -19,7 +19,7 @@
 }
 
 .fi-topbar {
-    background-color: #4b49ac;
+    /* background-color: #4b49ac; */
 }
 
 .fi-sidebar-nav {
@@ -69,19 +69,19 @@
 }
 
 .fi-sidebar-item:hover {
-    background-color: rgba(75, 73, 172, 0.06) !important;
+    background-color: rgba(14, 165, 164, 0.08) !important;
 }
 
 .fi-sidebar-item-active {
     position: relative;
-    border-left: 2px solid #4b49ac !important;
-    background-color: rgba(75, 73, 172, 0.08) !important;
+    border-left: 2px solid #0ea5a4 !important;
+    background-color: rgba(14, 165, 164, 0.12) !important;
 }
 
 .fi-sidebar-item-active .fi-sidebar-item-label {
     font-size: 0.875rem !important;
     font-weight: 600 !important;
-    color: #4b49ac !important;
+    color: #0ea5a4 !important;
 }
 
 .fi-sidebar-item-label {
@@ -113,7 +113,7 @@
 }
 
 .fi-sidebar-item-active .fi-icon {
-    color: #4b49ac !important;
+    color: #0ea5a4 !important;
 }
 
 .fi-sidebar-item:hover .fi-icon {
