@@ -83,6 +83,21 @@ Toko Online Private adalah modul transformasi dari platform e-commerce umum (UMK
 
 ## 4. Core Features
 
+### 4.0 Status Matrix (Source of Truth)
+
+Status harus konsisten dan tidak overlap antar domain.
+
+- `transactions.status`: `packed`, `in_transit`, `shipped`, `delivered`, `picked_up`, `completed`, `cancelled`
+- `transactions.billing_status`: `not_applicable`, `pending`, `submitted`, `paid`, `failed`, `cancelled`
+- `installments.status`: `active`, `overdue`, `completed`, `cancelled`
+- `installment_payments.status`: `unpaid`, `partial`, `paid`, `overdue`, `cancelled`
+
+Aturan cancel order:
+
+- Hanya order `packed` yang boleh dibatalkan.
+- Saat cancel full-payment: `transactions.status=cancelled` dan `transactions.billing_status=cancelled`.
+- Saat cancel installment: `transactions.status=cancelled`, `installments.status=cancelled`, dan `installment_payments` unpaid/partial/overdue menjadi `cancelled`.
+
 ### 4.1 Partial Private Access
 
 **Katalog Publik (tanpa login):**
@@ -281,7 +296,7 @@ Halaman `/orders` yang dimodifikasi:
 | Tanggal       | Tanggal transaksi                   |
 | Total         | Total pembayaran                    |
 | Metode        | Tunai / Cicilan                     |
-| Status        | Belum bayar / Diproses / Dikirim / Selesai |
+| Status        | Diproses / Dikirim / Selesai / Dibatalkan |
 | Aksi          | Lihat Detail                        |
 
 **Tab 2 — Cicilan Aktif:**
@@ -1133,7 +1148,7 @@ export const installmentService = {
       ├── ✅ Mencukupi → konfirmasi checkout
       └── ❌ Tidak mencukupi → error dengan info sisa limit
    b. Buat transaksi + installment + jadwal cicilan
-   c. Status transaksi: "Pending" (menunggu verifikasi admin)
+    c. Status transaksi: "packed" (diproses)
 5. Anggota diarahkan ke halaman konfirmasi + jadwal cicilan
 ```
 
@@ -1401,7 +1416,7 @@ protected function schedule(Schedule $schedule)
 - [ ] Anggota bisa simulasi cicilan di halaman produk dan checkout
 - [ ] Checkout cicilan membuat transaksi + jadwal cicilan otomatis
 - [ ] Jadwal cicilan menampilkan angsuran per bulan dengan tanggal jatuh tempo
-- [ ] Status cicilan: active, completed, overdue, defaulted
+- [ ] Status cicilan: active, completed, overdue, cancelled
 
 ### 16.3 Credit Limit
 

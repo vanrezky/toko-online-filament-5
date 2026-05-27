@@ -1,6 +1,6 @@
 <script setup>
-import { computed } from "vue";
-import { Link } from "@inertiajs/vue3";
+import { computed, getCurrentInstance } from "vue";
+import { Link, router } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { useI18n } from "vue-i18n";
 import { Package, ChevronLeft, MapPin, Truck, CreditCard, CheckCircle2, Store } from "lucide-vue-next";
@@ -9,24 +9,45 @@ const props = defineProps({
     order: Object,
 });
 const { t } = useI18n();
+const { proxy } = getCurrentInstance();
 
 const statusColors = {
-    unpaid: "text-[#fa8456] bg-[#fff5f0] border-[#fed7aa]",
     packed: "text-[#6366f1] bg-[#eef2ff] border-[#c7d2fe]",
+    in_transit: "text-[#0ea5e9] bg-[#ecfeff] border-[#a5f3fc]",
     shipped: "text-[#3b82f6] bg-[#eff6ff] border-[#bfdbfe]",
+    picked_up: "text-[#14b8a6] bg-[#f0fdfa] border-[#99f6e4]",
     delivered: "text-[#22c55e] bg-[#f0fdf4] border-[#bbf7d0]",
     completed: "text-[#16a34a] bg-[#dcfce7] border-[#86efac]",
-    rejected: "text-[#ef4444] bg-[#fef2f2] border-[#fecaca]",
+    cancelled: "text-gray-500 bg-gray-50 border-gray-200",
 };
 
 const statusLabels = computed(() => ({
-    unpaid: t("labels.order.status.unpaid"),
     packed: t("labels.order.status.packed"),
+    in_transit: t("labels.order.status.in_transit"),
     shipped: t("labels.order.status.shipped"),
+    picked_up: t("labels.order.status.picked_up"),
     delivered: t("labels.order.status.delivered"),
     completed: t("labels.order.status.completed"),
-    rejected: t("labels.order.status.rejected"),
+    cancelled: t("labels.order.status.cancelled") || "Dibatalkan",
 }));
+
+const cancelOrder = () => {
+    proxy.$confirm({
+        title: "Batalkan Pesanan",
+        message: "Apakah Anda yakin ingin membatalkan pesanan ini?",
+        button: {
+            no: "Tidak",
+            yes: "Ya, Batalkan",
+        },
+        callback: (confirm) => {
+            if (confirm) {
+                router.post(route("frontend.orders.cancel", props.order.id), {}, {
+                    preserveScroll: true,
+                });
+            }
+        },
+    });
+};
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
@@ -211,10 +232,18 @@ const getGroupedProducts = () => {
                                     </div>
                                     <div class="flex justify-between">
                                         <span>{{ t("labels.order.payment_status_label") }}</span>
-                                        <span class="font-semibold" :class="order.status === 'unpaid' ? 'text-[#fa8456]' : 'text-[#22c55e]'">
-                                            {{ order.status === "unpaid" ? t("labels.order.status.unpaid") : t("labels.order.status.paid") }}
+                                        <span class="font-semibold text-[#2d1b0e]">
+                                            {{ order.payment_type === 'installment' ? t('labels.payment.installment') : t('labels.payment.full') }}
                                         </span>
                                     </div>
+                                </div>
+                                <div v-if="order.status === 'packed'" class="mt-4 pt-4 border-t border-[#f0eef5]">
+                                    <button
+                                        @click="cancelOrder"
+                                        class="w-full rounded-xl border border-red-200 bg-red-50/50 py-3 text-sm font-semibold text-red-600 transition-all hover:bg-red-50 hover:text-red-700 active:scale-[0.98]"
+                                    >
+                                        Batalkan Pesanan
+                                    </button>
                                 </div>
                             </section>
 

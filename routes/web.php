@@ -75,6 +75,7 @@ Route::name('frontend.')->group(function () {
         Route::get('/orders', [OrderController::class, 'index'])->name('orders');
         Route::get('/orders/{transaction}', [OrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{transaction}/pay', [OrderController::class, 'pay'])->name('orders.pay');
+        Route::post('/orders/{transaction}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
 
         Route::get('/installments', [InstallmentController::class, 'index'])->name('installments');
         Route::get('/installments/{uuid}', [InstallmentController::class, 'show'])->name('installments.show');

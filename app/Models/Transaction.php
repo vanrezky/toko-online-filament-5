@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionStatus;
 use App\Services\CodeGeneratorService;
 use App\Traits\HasUuidTrait;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -37,6 +38,7 @@ class Transaction extends Model
     protected $casts = [
         'timelimit' => 'datetime',
         'billing_due_date' => 'date',
+        'status' => TransactionStatus::class,
     ];
 
     protected static function booted(): void

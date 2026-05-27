@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { useI18n } from "vue-i18n";
-import { Package, ChevronRight, Clock, CheckCircle2, Truck, AlertCircle } from "lucide-vue-next";
+import { Package, ChevronRight } from "lucide-vue-next";
 
 const props = defineProps({
     orders: Array,
@@ -11,21 +11,23 @@ const props = defineProps({
 const { t } = useI18n();
 
 const statusColors = {
-    unpaid: "text-[#fa8456] bg-[#fff5f0]",
     packed: "text-[#6366f1] bg-[#eef2ff]",
+    in_transit: "text-[#0ea5e9] bg-[#ecfeff]",
     shipped: "text-[#3b82f6] bg-[#eff6ff]",
+    picked_up: "text-[#14b8a6] bg-[#f0fdfa]",
     delivered: "text-[#22c55e] bg-[#f0fdf4]",
     completed: "text-[#16a34a] bg-[#dcfce7]",
-    rejected: "text-[#ef4444] bg-[#fef2f2]",
+    cancelled: "text-gray-500 bg-gray-50",
 };
 
 const statusLabels = computed(() => ({
-    unpaid: t("labels.order.status.unpaid"),
     packed: t("labels.order.status.packed"),
+    in_transit: t("labels.order.status.in_transit"),
     shipped: t("labels.order.status.shipped"),
+    picked_up: t("labels.order.status.picked_up"),
     delivered: t("labels.order.status.delivered"),
     completed: t("labels.order.status.completed"),
-    rejected: t("labels.order.status.rejected"),
+    cancelled: t("labels.order.status.cancelled") || "Dibatalkan",
 }));
 
 const formatCurrency = (amount) => {
@@ -95,18 +97,6 @@ const isExpired = (dateString) => {
                             </div>
 
                             <!-- Timelimit Warning -->
-                            <div
-                                v-if="order.status === 'unpaid' && order.timelimit"
-                                class="flex items-center gap-3 rounded-xl p-4"
-                                :class="isExpired(order.timelimit) ? 'bg-red-50 text-[#ef4444]' : 'bg-[#fff5f0] text-[#fa8456]'"
-                            >
-                                <Clock class="h-4 w-4 flex-shrink-0" />
-                                <span class="text-xs font-semibold">
-                                    {{ isExpired(order.timelimit) ? t("labels.order.payment_ended") : t("labels.order.complete_payment_before") }}
-                                    {{ formatDate(order.timelimit) }} {{ formatTime(order.timelimit) }}
-                                </span>
-                            </div>
-
                             <!-- Preview Images -->
                             <div class="flex gap-3 overflow-x-auto border-t border-[#f0eef5] pt-5">
                                 <div v-for="item in order.products" :key="item.uuid" class="group/item relative flex-shrink-0">

@@ -32,8 +32,7 @@ class SendOrderExpiryReminder implements ShouldQueue
             return;
         }
 
-        // Double-check: Don't send if already paid
-        if ($transaction->status !== 'unpaid') {
+        if ($transaction->status !== 'packed') {
             return;
         }
 

@@ -21,7 +21,8 @@ const getStatusColor = (status) => {
         unpaid: 'bg-yellow-100 text-yellow-800',
         partial: 'bg-blue-100 text-blue-800',
         paid: 'bg-green-100 text-green-800',
-        overdue: 'bg-red-100 text-red-800'
+        overdue: 'bg-red-100 text-red-800',
+        cancelled: 'bg-gray-100 text-gray-800'
     }
     return colors[status] || colors.unpaid
 }
@@ -31,7 +32,8 @@ const getStatusLabel = (status) => {
         unpaid: 'Belum Bayar',
         partial: 'Sebagian',
         paid: 'Lunas',
-        overdue: 'Terlambat'
+        overdue: 'Terlambat',
+        cancelled: 'Dibatalkan'
     }
     return labels[status] || 'Belum Bayar'
 }
@@ -64,9 +66,11 @@ const formatDate = (date) => {
                         <p class="text-sm text-gray-500">Status</p>
                         <span :class="['px-2 py-1 rounded-full text-xs font-medium',
                             installment?.status === 'active' ? 'bg-yellow-100 text-yellow-800' :
-                            installment?.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800']">
+                            installment?.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            installment?.status === 'cancelled' ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800']">
                             {{ installment?.status === 'active' ? 'Aktif' :
-                               installment?.status === 'completed' ? 'Lunas' : 'Terlambat' }}
+                               installment?.status === 'completed' ? 'Lunas' :
+                               installment?.status === 'cancelled' ? 'Dibatalkan' : 'Terlambat' }}
                         </span>
                     </div>
                     <div>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\InstallmentStatus;
 use App\Services\CodeGeneratorService;
 use App\Traits\HasModelTrait;
 use App\Traits\HasUuidTrait;
@@ -75,12 +76,12 @@ class Installment extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->where('status', InstallmentStatus::Active->value);
     }
 
     public function scopeOverdue($query)
     {
-        return $query->where('status', 'overdue');
+        return $query->where('status', InstallmentStatus::Overdue->value);
     }
 
     public function scopeForCustomer($query, $customerId)
@@ -101,7 +102,7 @@ class Installment extends Model
     public function getIsOverdueAttribute(): bool
     {
         return $this->payments()
-            ->where('status', 'overdue')
+            ->where('status', InstallmentStatus::Overdue->value)
             ->exists();
     }
 }

@@ -253,6 +253,7 @@ CREATE TABLE `customer_addresses` (
   `phone` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `postal_code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `source_type` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'manual',
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `is_featured` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT NULL,
@@ -264,6 +265,7 @@ CREATE TABLE `customer_addresses` (
   KEY `customer_addresses_district_id_foreign` (`district_id`),
   KEY `customer_addresses_sub_district_id_foreign` (`sub_district_id`),
   KEY `customer_addresses_village_id_foreign` (`village_id`),
+  KEY `customer_addresses_source_type_index` (`source_type`),
   CONSTRAINT `customer_addresses_customer_id_foreign` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE,
   CONSTRAINT `customer_addresses_district_id_foreign` FOREIGN KEY (`district_id`) REFERENCES `districts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `customer_addresses_province_id_foreign` FOREIGN KEY (`province_id`) REFERENCES `provinces` (`id`) ON DELETE CASCADE,
@@ -306,6 +308,7 @@ CREATE TABLE `customers` (
   `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `reseller_id` bigint unsigned DEFAULT NULL,
   `customer_level_id` bigint unsigned DEFAULT NULL,
+  `school_unit_id` bigint unsigned DEFAULT NULL,
   `is_banned` tinyint(1) NOT NULL DEFAULT '0',
   `remember_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -317,8 +320,10 @@ CREATE TABLE `customers` (
   KEY `customers_reseller_id_foreign` (`reseller_id`),
   KEY `customers_created_at_index` (`created_at`),
   KEY `customers_customer_level_id_foreign` (`customer_level_id`),
+  KEY `customers_school_unit_id_foreign` (`school_unit_id`),
   CONSTRAINT `customers_customer_level_id_foreign` FOREIGN KEY (`customer_level_id`) REFERENCES `customer_levels` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `customers_reseller_id_foreign` FOREIGN KEY (`reseller_id`) REFERENCES `resellers` (`id`) ON DELETE CASCADE
+  CONSTRAINT `customers_reseller_id_foreign` FOREIGN KEY (`reseller_id`) REFERENCES `resellers` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `customers_school_unit_id_foreign` FOREIGN KEY (`school_unit_id`) REFERENCES `school_units` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `districts`;
@@ -473,21 +478,31 @@ DROP TABLE IF EXISTS `installment_payments`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `installment_payments` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `installment_id` bigint unsigned NOT NULL,
   `installment_number` int unsigned NOT NULL,
   `amount` decimal(12,2) NOT NULL,
   `due_date` date NOT NULL,
+  `billing_month` date DEFAULT NULL,
   `paid_amount` decimal(12,2) NOT NULL DEFAULT '0.00',
   `paid_date` date DEFAULT NULL,
   `payment_method` enum('payroll_deduction','manual','transfer') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `status` enum('unpaid','partial','paid','overdue') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unpaid',
+  `collection_method` enum('payroll_deduction','manual','transfer') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `payroll_status` enum('scheduled','batched','submitted','confirmed_paid','failed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'scheduled',
+  `payroll_batch_reference` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `submitted_at` timestamp NULL DEFAULT NULL,
+  `confirmed_at` timestamp NULL DEFAULT NULL,
+  `status` enum('unpaid','partial','paid','overdue','cancelled') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unpaid',
   `notes` text COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `installment_payments_code_unique` (`code`),
   KEY `installment_payments_installment_id_index` (`installment_id`),
   KEY `installment_payments_status_index` (`status`),
   KEY `installment_payments_due_date_index` (`due_date`),
+  KEY `installment_payments_billing_month_index` (`billing_month`),
+  KEY `installment_payments_payroll_status_index` (`payroll_status`),
   CONSTRAINT `installment_payments_installment_id_foreign` FOREIGN KEY (`installment_id`) REFERENCES `installments` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -513,6 +528,7 @@ DROP TABLE IF EXISTS `installments`;
 CREATE TABLE `installments` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `transaction_id` bigint unsigned NOT NULL,
   `customer_id` bigint unsigned NOT NULL,
   `installment_plan_id` bigint unsigned NOT NULL,
@@ -523,7 +539,7 @@ CREATE TABLE `installments` (
   `tenor` int unsigned NOT NULL,
   `paid_amount` decimal(12,2) NOT NULL DEFAULT '0.00',
   `paid_installments` int unsigned NOT NULL DEFAULT '0',
-  `status` enum('active','completed','overdue','defaulted') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
+  `status` enum('active','completed','overdue','defaulted','cancelled') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
   `start_date` date NOT NULL,
   `expected_end_date` date NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -531,6 +547,7 @@ CREATE TABLE `installments` (
   `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `installments_uuid_unique` (`uuid`),
+  UNIQUE KEY `installments_code_unique` (`code`),
   KEY `installments_installment_plan_id_foreign` (`installment_plan_id`),
   KEY `installments_customer_id_index` (`customer_id`),
   KEY `installments_status_index` (`status`),
@@ -1036,6 +1053,32 @@ CREATE TABLE `roles` (
   UNIQUE KEY `roles_name_guard_name_unique` (`name`,`guard_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `school_units`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `school_units` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `phone` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `province_id` bigint unsigned NOT NULL,
+  `district_id` bigint unsigned NOT NULL,
+  `sub_district_id` bigint unsigned NOT NULL,
+  `village_id` bigint unsigned DEFAULT NULL,
+  `address` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `postal_code` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `school_units_province_id_foreign` (`province_id`),
+  KEY `school_units_district_id_foreign` (`district_id`),
+  KEY `school_units_sub_district_id_foreign` (`sub_district_id`),
+  KEY `school_units_village_id_foreign` (`village_id`),
+  CONSTRAINT `school_units_district_id_foreign` FOREIGN KEY (`district_id`) REFERENCES `districts` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `school_units_province_id_foreign` FOREIGN KEY (`province_id`) REFERENCES `provinces` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `school_units_sub_district_id_foreign` FOREIGN KEY (`sub_district_id`) REFERENCES `sub_districts` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `school_units_village_id_foreign` FOREIGN KEY (`village_id`) REFERENCES `villages` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `settings`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -1193,6 +1236,61 @@ CREATE TABLE `templates` (
   UNIQUE KEY `templates_code_unique` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `transaction_return_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `transaction_return_items` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `transaction_return_id` bigint unsigned NOT NULL,
+  `transaction_product_id` bigint unsigned NOT NULL,
+  `qty` bigint unsigned NOT NULL DEFAULT '1',
+  `amount` decimal(15,2) NOT NULL DEFAULT '0.00',
+  `reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `transaction_return_items_transaction_return_id_foreign` (`transaction_return_id`),
+  KEY `transaction_return_items_transaction_product_id_foreign` (`transaction_product_id`),
+  CONSTRAINT `transaction_return_items_transaction_product_id_foreign` FOREIGN KEY (`transaction_product_id`) REFERENCES `transcation_products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `transaction_return_items_transaction_return_id_foreign` FOREIGN KEY (`transaction_return_id`) REFERENCES `transaction_returns` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `transaction_returns`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `transaction_returns` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `transaction_id` bigint unsigned NOT NULL,
+  `customer_id` bigint unsigned NOT NULL,
+  `status` enum('requested','approved','rejected','received','refunded','closed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'requested',
+  `reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `notes` text COLLATE utf8mb4_unicode_ci,
+  `requested_at` timestamp NULL DEFAULT NULL,
+  `approved_at` timestamp NULL DEFAULT NULL,
+  `received_at` timestamp NULL DEFAULT NULL,
+  `refunded_at` timestamp NULL DEFAULT NULL,
+  `closed_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint unsigned DEFAULT NULL,
+  `approved_by` bigint unsigned DEFAULT NULL,
+  `processed_by` bigint unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `transaction_returns_uuid_unique` (`uuid`),
+  KEY `transaction_returns_transaction_id_foreign` (`transaction_id`),
+  KEY `transaction_returns_customer_id_foreign` (`customer_id`),
+  KEY `transaction_returns_created_by_foreign` (`created_by`),
+  KEY `transaction_returns_approved_by_foreign` (`approved_by`),
+  KEY `transaction_returns_processed_by_foreign` (`processed_by`),
+  KEY `transaction_returns_status_index` (`status`),
+  CONSTRAINT `transaction_returns_approved_by_foreign` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `transaction_returns_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `transaction_returns_customer_id_foreign` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `transaction_returns_processed_by_foreign` FOREIGN KEY (`processed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `transaction_returns_transaction_id_foreign` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `transaction_shipping_details`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -1239,22 +1337,22 @@ DROP TABLE IF EXISTS `transactions`;
 CREATE TABLE `transactions` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `customer_id` bigint unsigned NOT NULL,
   `timelimit` datetime DEFAULT NULL,
   `customer_address_id` bigint unsigned NOT NULL,
   `weight` bigint unsigned NOT NULL DEFAULT '0',
   `shipping_cost` decimal(15,2) NOT NULL DEFAULT '0.00',
-  `courier_id` bigint unsigned NOT NULL,
-  `from_village_id` bigint unsigned DEFAULT NULL,
-  `to_village_id` bigint unsigned DEFAULT NULL,
   `cod` tinyint(1) NOT NULL DEFAULT '0',
   `cod_fee` decimal(15,2) NOT NULL DEFAULT '0.00',
   `payment_method` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `payment_type` enum('full','installment') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'full' COMMENT 'full = bayar lunas, installment = cicilan',
+  `billing_due_date` date DEFAULT NULL,
+  `billing_status` enum('not_applicable','pending','submitted','paid','failed','cancelled') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'not_applicable',
   `installment_plan_id` bigint unsigned DEFAULT NULL,
   `receipt_code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `delivery_date` datetime DEFAULT NULL,
-  `status` enum('unpaid','packed','shipped','delivered','rejected','completed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unpaid',
+  `status` enum('unpaid','packed','in_transit','shipped','delivered','picked_up','rejected','cancelled','completed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unpaid',
   `complete_date` datetime DEFAULT NULL,
   `request_cancellation` tinyint(1) NOT NULL DEFAULT '0',
   `notes` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -1262,9 +1360,9 @@ CREATE TABLE `transactions` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `transactions_uuid_unique` (`uuid`),
+  UNIQUE KEY `transactions_code_unique` (`code`),
   KEY `transactions_customer_id_index` (`customer_id`),
   KEY `transactions_customer_address_id_index` (`customer_address_id`),
-  KEY `transactions_courier_id_index` (`courier_id`),
   KEY `transactions_receipt_code_index` (`receipt_code`),
   KEY `transactions_delivery_date_index` (`delivery_date`),
   KEY `transactions_status_index` (`status`),
@@ -1273,13 +1371,11 @@ CREATE TABLE `transactions` (
   KEY `transactions_status_complete_date_index` (`status`,`complete_date`),
   KEY `transactions_created_at_status_index` (`created_at`,`status`),
   KEY `transactions_installment_plan_id_foreign` (`installment_plan_id`),
-  KEY `transactions_from_village_id_foreign` (`from_village_id`),
-  KEY `transactions_to_village_id_foreign` (`to_village_id`),
+  KEY `transactions_billing_due_date_index` (`billing_due_date`),
+  KEY `transactions_billing_status_index` (`billing_status`),
   CONSTRAINT `transactions_customer_address_id_foreign` FOREIGN KEY (`customer_address_id`) REFERENCES `customer_addresses` (`id`),
   CONSTRAINT `transactions_customer_id_foreign` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`),
-  CONSTRAINT `transactions_from_village_id_foreign` FOREIGN KEY (`from_village_id`) REFERENCES `villages` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `transactions_installment_plan_id_foreign` FOREIGN KEY (`installment_plan_id`) REFERENCES `installment_plans` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `transactions_to_village_id_foreign` FOREIGN KEY (`to_village_id`) REFERENCES `villages` (`id`) ON DELETE SET NULL
+  CONSTRAINT `transactions_installment_plan_id_foreign` FOREIGN KEY (`installment_plan_id`) REFERENCES `installment_plans` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `transcation_products`;
@@ -1553,3 +1649,15 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (103,'2026_05_16_00
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (104,'2024_05_17_042221_create_permission_tables',26);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (105,'2025_05_18_000000_add_soft_deletes_to_customers_table',27);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (107,'2026_05_19_000001_change_district_to_village_in_transactions_table',28);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (108,'2026_05_19_120000_add_readable_codes_and_billing_columns',29);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (109,'2026_05_20_000001_drop_legacy_shipping_columns_from_transactions_table',30);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (110,'2026_05_21_100001_create_school_units_table',31);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (111,'2026_05_21_100002_add_school_unit_id_to_customers_table',31);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (112,'2026_05_21_100003_add_source_type_to_customer_addresses_table',31);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (113,'2026_05_21_120000_add_installment_min_order_amount_to_general_settings',32);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (114,'2026_05_21_130000_add_billing_cycle_fields_to_general_settings',33);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (115,'2026_05_21_150000_update_transaction_status_enum_for_fulfillment_flow',34);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (116,'2026_05_21_151000_create_transaction_returns_table',34);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (117,'2026_05_21_151100_create_transaction_return_items_table',34);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (118,'2026_05_27_102603_add_cancelled_status_to_installments_and_payments_table',35);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (119,'2026_05_27_120000_add_cancelled_to_transaction_billing_status_enum',36);

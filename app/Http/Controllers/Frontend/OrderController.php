@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Enums\InstallmentStatus;
+use App\Enums\TransactionStatus;
 use App\Services\PaymentGatewayService;
 use Exception;
 use App\Http\Controllers\Controller;
@@ -82,7 +84,7 @@ class OrderController extends Controller
             abort(403);
         }
 
-        if ($transaction->status !== 'unpaid') {
+        if ($transaction->status !== TransactionStatus::packed->value || $transaction->payment_type !== 'full') {
             return response()->json(['error' => __('messages.error.order_already_paid')], 400);
         }
 
@@ -107,4 +109,41 @@ class OrderController extends Controller
         }
     }
 
+    public function cancel(Transaction $transaction)
+    {
+        if ($transaction->customer_id !== Auth::guard('customer')->id()) {
+            abort(403);
+        }
+
+        if ($transaction->status !== TransactionStatus::packed->value) {
+            return back()->with('error', 'Pesanan ini tidak dapat dibatalkan.');
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($transaction) {
+            // Restore product stock
+            foreach ($transaction->products as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                }
+            }
+
+            // Update transaction status
+            $transaction->update([
+                'status' => TransactionStatus::cancelled->value,
+                'billing_status' => $transaction->payment_type === 'full' ? 'cancelled' : 'not_applicable',
+            ]);
+
+            // Update installment status if applicable
+            if ($transaction->payment_type === 'installment' && $transaction->installment) {
+                $transaction->installment->update(['status' => InstallmentStatus::Cancelled->value]);
+
+                $transaction->installment->payments()
+                    ->whereIn('status', ['unpaid', 'partial', 'overdue'])
+                    ->update(['status' => 'cancelled']);
+            }
+        });
+
+        return redirect()->route('frontend.orders.show', $transaction->uuid)
+            ->with('success', 'Pesanan berhasil dibatalkan.');
+    }
 }

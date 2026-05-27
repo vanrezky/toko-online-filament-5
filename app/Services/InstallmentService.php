@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\InstallmentStatus;
 use App\Models\Customer;
 use App\Models\Installment;
 use App\Models\InstallmentPayment;
@@ -31,7 +32,7 @@ class InstallmentService
             'tenor' => $plan->tenor,
             'paid_amount' => 0,
             'paid_installments' => 0,
-            'status' => 'active',
+            'status' => InstallmentStatus::Active->value,
             'start_date' => $startDate,
             'expected_end_date' => $expectedEndDate,
         ]);
