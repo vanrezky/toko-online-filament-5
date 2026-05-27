@@ -27,17 +27,18 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->profile()
             ->brandName(settings('site_name'))
             ->brandLogo(settings('logo'))
             ->colors([
-                'danger' => '#F43F5E',
+                'danger' => '#F3797E',
                 'gray' => Color::Gray,
-                'info' => '#3B82F6',
-                'primary' => '#0EA5A4',
-                'success' => '#22C55E',
-                'warning' => '#F59E0B',
+                'info' => '#3490DC',
+                'primary' => '#4B49AC',
+                'success' => Color::Green,
+                'warning' => Color::Orange,
             ])
             ->font('Karla')
             ->navigationGroups(['Master', 'Produk', 'Promo', 'Customer', 'Pelanggan', 'Report', 'Laporan', 'Transaction', 'Transaksi', 'Settings', 'Pengaturan', 'Blog', 'Logs', 'Wilayah'])
@@ -89,7 +90,7 @@ class AdminPanelProvider extends PanelProvider
 
             ])
             ->assets([
-                Css::make('admin-custom-hooks', resource_path('css/filament/admin/theme.css')),
+                Css::make('admin-custom-hooks', resource_path('css/filament/admin/custom-theme.css')),
             ])
             ->sidebarCollapsibleOnDesktop();
     }

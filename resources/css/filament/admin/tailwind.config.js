@@ -1,15 +1,16 @@
-import preset from "../../../../vendor/filament/filament/tailwind.config.preset.js";
+// import preset from './vendor/filament/support/tailwind.config.preset'
 /** @type {import('tailwindcss').Config} */
 export default {
     presets: [preset],
     content: [
         "./app/Filament/**/*.php",
+        "./resources/views/**/*.blade.php",
         "./resources/views/filament/**/*.blade.php",
         "./vendor/filament/**/*.blade.php",
         "./vendor/filament/*/src/**/*.php",
         "./vendor/bezhan-salleh/**/*.blade.php",
-        "node_modules/preline/dist/*.js",
     ],
+
     safelist: [
         "dark",
         {
