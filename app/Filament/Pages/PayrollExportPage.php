@@ -25,6 +25,15 @@ class PayrollExportPage extends Page
     public ?int $selectedLevelId = null;
     public array $previewData = [];
 
+    protected function canExport(): bool
+    {
+        if ($this->previewData === []) {
+            return false;
+        }
+
+        return (int) ($this->previewData['total_customers'] ?? 0) > 0;
+    }
+
     public function mount(): void
     {
         $this->selectedMonth = now()->month;
@@ -50,10 +59,14 @@ class PayrollExportPage extends Page
             Action::make('exportDraft')
                 ->label(__('admin/payroll-export-page.actions.export_draft_excel'))
                 ->action('exportDraft')
-                ->color('success'),
+                ->color('success')
+                ->disabled(fn (): bool => ! $this->canExport())
+                ->extraAttributes(fn (): array => ! $this->canExport() ? ['style' => 'cursor: not-allowed;'] : []),
             Action::make('exportFinal')
                 ->label(__('admin/payroll-export-page.actions.export_final_submit'))
                 ->color('danger')
+                ->disabled(fn (): bool => ! $this->canExport())
+                ->extraAttributes(fn (): array => ! $this->canExport() ? ['style' => 'cursor: not-allowed;'] : [])
                 ->requiresConfirmation()
                 ->modalSubmitActionLabel(__('admin/payroll-export-page.actions.export_final_submit'))
                 ->modalHeading(__('admin/payroll-export-page.confirmations.final_heading'))
@@ -157,6 +170,16 @@ class PayrollExportPage extends Page
 
     public function exportDraft()
     {
+        if (! $this->canExport()) {
+            Notification::make()
+                ->title(__('admin/payroll-export-page.notifications.no_eligible_items_title'))
+                ->body(__('admin/payroll-export-page.notifications.no_eligible_items_body'))
+                ->warning()
+                ->send();
+
+            return null;
+        }
+
         $service = app(PayrollExportService::class);
         return $service->exportToExcel(
             $this->selectedMonth,
@@ -167,6 +190,16 @@ class PayrollExportPage extends Page
 
     public function exportFinalAndSubmit()
     {
+        if (! $this->canExport()) {
+            Notification::make()
+                ->title(__('admin/payroll-export-page.notifications.no_eligible_items_title'))
+                ->body(__('admin/payroll-export-page.notifications.no_eligible_items_body'))
+                ->warning()
+                ->send();
+
+            return null;
+        }
+
         $service = app(PayrollExportService::class);
         $result = $service->submitAndExportFinal(
             $this->selectedMonth,
