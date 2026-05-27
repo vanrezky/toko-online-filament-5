@@ -167,11 +167,8 @@ class Profile extends ViewRecord
                         TextEntry::make('remaining_credit_limit')
                             ->label(__('admin/customer-resource.profile.remaining_credit'))
                             ->money('IDR'),
-                    ])->inlineLabel()->columnSpan(2),
-
-
-
-            ])->columns(1);
+                    ])->inlineLabel()->columnSpanFull(),
+            ])->columns(3);
     }
 
 
