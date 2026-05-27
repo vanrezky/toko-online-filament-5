@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\TransactionStatus;
 use Filament\Tables\Columns\TextColumn;
 use App\Models\Transaction;
 use Filament\Tables;
@@ -51,12 +52,14 @@ class RecentOrdersTable extends BaseWidget
             TextColumn::make('status')
                 ->label('Status')
                 ->badge()
-                ->color(fn (?string $state): string => match ($state) {
-                    'unpaid' => 'warning',
-                    'packed', 'in_transit', 'shipped' => 'info',
-                    'delivered', 'picked_up', 'completed' => 'success',
-                    'rejected', 'cancelled' => 'danger',
-                    default => 'gray',
+                ->formatStateUsing(function (TransactionStatus|string|null $state): string {
+                    if ($state instanceof TransactionStatus) {
+                        return (string) $state->getLabel();
+                    }
+
+                    return is_string($state) && $state !== ''
+                        ? ucfirst($state)
+                        : '-';
                 }),
 
             TextColumn::make('created_at')

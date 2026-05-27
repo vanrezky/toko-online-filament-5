@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\TransactionStatus;
 use App\Services\DashboardStats;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\ChartWidget;
@@ -20,31 +21,29 @@ class OrdersByStatusChart extends ChartWidget
         $stats = new DashboardStats($filters);
         $data = $stats->getOrdersByStatus();
 
-        $statusLabels = [
-            'unpaid' => 'Unpaid',
-            'shipped' => 'Shipped',
-            'delivered' => 'Delivered',
-            'rejected' => 'Rejected',
-            'completed' => 'Completed',
-        ];
-
-        $statusColors = [
-            'unpaid' => '#f59e0b',
-            'shipped' => '#3b82f6',
-            'delivered' => '#8b5cf6',
-            'rejected' => '#ef4444',
-            'completed' => '#22c55e',
-        ];
+        $labels = [];
+        $colors = [];
+        foreach (TransactionStatus::cases() as $status) {
+            $labels[$status->value] = (string) $status->getLabel();
+            $colors[$status->value] = match ($status->getColor()) {
+                'warning' => '#f59e0b',
+                'primary' => '#3b82f6',
+                'info' => '#06b6d4',
+                'success' => '#22c55e',
+                'danger' => '#ef4444',
+                default => '#9ca3af',
+            };
+        }
 
         return [
             'datasets' => [
                 [
                     'data' => array_values($data),
-                    'backgroundColor' => array_map(fn($status) => $statusColors[$status], array_keys($data)),
+                    'backgroundColor' => array_map(fn ($status) => $colors[$status] ?? '#9ca3af', array_keys($data)),
                     'borderWidth' => 0,
                 ],
             ],
-            'labels' => array_map(fn($status) => $statusLabels[$status], array_keys($data)),
+            'labels' => array_map(fn ($status) => $labels[$status] ?? $status, array_keys($data)),
         ];
     }
 

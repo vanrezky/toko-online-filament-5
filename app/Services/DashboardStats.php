@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\TransactionStatus;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Transaction;
@@ -142,10 +143,9 @@ class DashboardStats
                 ->pluck('count', 'status')
                 ->toArray();
 
-            $statuses = ['unpaid', 'shipped', 'delivered', 'rejected', 'completed'];
             $result = [];
-            foreach ($statuses as $status) {
-                $result[$status] = $results[$status] ?? 0;
+            foreach (TransactionStatus::cases() as $status) {
+                $result[$status->value] = $results[$status->value] ?? 0;
             }
 
             return $result;
