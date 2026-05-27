@@ -1,14 +1,19 @@
 <script setup>
-import { computed } from "vue";
-import { Link } from "@inertiajs/vue3";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { Link, router } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { useI18n } from "vue-i18n";
-import { Package, ChevronRight } from "lucide-vue-next";
+import { Package, ChevronRight, ChevronLeft } from "lucide-vue-next";
 
 const props = defineProps({
-    orders: Array,
+    orders: Object,
+    activeStatus: String,
 });
 const { t } = useI18n();
+
+const activeTab = ref(props.activeStatus || "all");
+const items = ref([]);
+const isLoadingMore = ref(false);
 
 const statusColors = {
     packed: "text-[#6366f1] bg-[#eef2ff]",
@@ -21,6 +26,7 @@ const statusColors = {
 };
 
 const statusLabels = computed(() => ({
+    all: t("labels.filters.all") || "Semua",
     packed: t("labels.order.status.packed"),
     in_transit: t("labels.order.status.in_transit"),
     shipped: t("labels.order.status.shipped"),
@@ -29,6 +35,83 @@ const statusLabels = computed(() => ({
     completed: t("labels.order.status.completed"),
     cancelled: t("labels.order.status.cancelled") || "Dibatalkan",
 }));
+
+const tabs = computed(() => ["all", "packed", "in_transit", "shipped", "picked_up", "delivered", "completed", "cancelled"]);
+
+const nextPageUrl = computed(() => props.orders?.links?.next || null);
+const currentPage = computed(() => props.orders?.meta?.current_page || 1);
+
+const syncItemsFromProps = () => {
+    const newItems = props.orders?.data || [];
+
+    if (currentPage.value <= 1) {
+        items.value = newItems;
+        return;
+    }
+
+    const existingIds = new Set(items.value.map((o) => o.id));
+    for (const order of newItems) {
+        if (!existingIds.has(order.id)) items.value.push(order);
+    }
+};
+
+watch(
+    () => props.activeStatus,
+    (status) => {
+        activeTab.value = status || "all";
+    },
+);
+
+watch(
+    () => props.orders,
+    () => syncItemsFromProps(),
+    { deep: true, immediate: true },
+);
+
+const switchTab = (tab) => {
+    if (isLoadingMore.value) return;
+    if (activeTab.value === tab && currentPage.value === 1) return;
+
+    activeTab.value = tab;
+    router.get(
+        route("frontend.orders"),
+        { status: tab, per_page: 10 },
+        {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+            only: ["orders", "activeStatus"],
+        },
+    );
+};
+
+const loadMore = () => {
+    if (isLoadingMore.value) return;
+    if (!nextPageUrl.value) return;
+
+    isLoadingMore.value = true;
+    router.get(
+        nextPageUrl.value,
+        {},
+        {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+            only: ["orders"],
+            onFinish: () => {
+                isLoadingMore.value = false;
+            },
+        },
+    );
+};
+
+const onScroll = () => {
+    const distanceFromBottom = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+    if (distanceFromBottom < 200) loadMore();
+};
+
+onMounted(() => window.addEventListener("scroll", onScroll, { passive: true }));
+onBeforeUnmount(() => window.removeEventListener("scroll", onScroll));
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
@@ -60,12 +143,41 @@ const isExpired = (dateString) => {
             <div class="container mx-auto px-4 md:px-6">
                 <div class="mx-auto max-w-4xl space-y-8">
                     <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                        <h1 class="text-3xl font-bold text-[#2d1b0e]">{{ t("labels.orders.heading") }}</h1>
+                        <div class="space-y-2">
+                            <Link
+                                :href="route('frontend.account')"
+                                class="group flex w-fit items-center gap-2 text-sm text-[#6b5a4d] transition-colors hover:text-[#fa8456]"
+                            >
+                                <ChevronLeft class="h-4 w-4" />
+                                <span>kembali</span>
+                            </Link>
+                            <h1 class="text-3xl font-bold text-[#2d1b0e]">{{ t("labels.orders.heading") }}</h1>
+                        </div>
                     </div>
 
-                    <div v-if="orders && orders.length > 0" class="space-y-5">
+                    <!-- Tabs (always visible) -->
+                    <div class="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
+                        <div class="flex w-max items-center gap-2 pb-1">
+                            <button
+                                v-for="tab in tabs"
+                                :key="tab"
+                                type="button"
+                                class="inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold transition-all"
+                                :class="
+                                    activeTab === tab
+                                        ? 'border-[#fa8456] bg-[#fff5f0] text-[#fa8456]'
+                                        : 'border-[#e8e6ef] bg-white text-[#6b5a4d] hover:bg-[#f5f3fc]'
+                                "
+                                @click="switchTab(tab)"
+                            >
+                                <span>{{ statusLabels[tab] || tab }}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-if="items && items.length > 0" class="space-y-5">
                         <div
-                            v-for="order in orders"
+                            v-for="order in items"
                             :key="order.id"
                             class="group space-y-5 rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-sm transition-all hover:shadow-md"
                         >
@@ -114,23 +226,20 @@ const isExpired = (dateString) => {
                                 </div>
                             </div>
                         </div>
+
+                        <div v-if="isLoadingMore" class="py-4 text-center text-sm text-[#6b5a4d]">
+                            {{ t("labels.actions.loading") || "Memuat..." }}
+                        </div>
                     </div>
 
                     <!-- Empty State -->
-                    <div v-else class="space-y-6 border border-[#e8e6ef] bg-white py-24 text-center shadow-sm">
+                    <div v-else class="space-y-6 border border-[#e8e6ef] bg-white py-16 text-center shadow-sm">
                         <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#f5f3fc]">
                             <Package class="h-10 w-10 text-[#c4bfc9]" />
                         </div>
                         <div class="space-y-2">
-                            <h2 class="text-base font-bold text-[#2d1b0e]">{{ t("labels.orders.empty_title") }}</h2>
-                            <p class="text-sm text-[#6b5a4d]">{{ t("labels.orders.empty_description") }}</p>
+                            <h2 class="text-base font-bold text-[#2d1b0e]">{{ t("labels.orders.none") }}</h2>
                         </div>
-                        <Link
-                            :href="route('frontend.products')"
-                            class="inline-block rounded-full bg-[#fa8456] px-10 py-4 text-sm font-bold text-white shadow-md transition-all hover:bg-[#e56f3f] hover:shadow-lg"
-                        >
-                            {{ t("labels.actions.start_shopping") }}
-                        </Link>
                     </div>
                 </div>
             </div>

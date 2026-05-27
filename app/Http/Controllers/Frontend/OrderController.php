@@ -18,7 +18,13 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $orders = Transaction::with([
+        $status = $request->string('status')->toString();
+        $perPage = (int) $request->integer('per_page', 10);
+        if ($perPage <= 0 || $perPage > 50) {
+            $perPage = 10;
+        }
+
+        $ordersQuery = Transaction::with([
             'products' => function($query) {
                 $query->select('id', 'transaction_id', 'product_id', 'quantity', 'price', 'discount', 'description');
             },
@@ -28,11 +34,19 @@ class OrderController extends Controller
             'products.product.media'
         ])
         ->where('customer_id', Auth::guard('customer')->id())
-        ->orderBy('created_at', 'desc')
-        ->get(['id', 'uuid', 'code', 'customer_id', 'status', 'shipping_cost', 'cod_fee', 'created_at', 'timelimit']);
+        ->orderBy('created_at', 'desc');
+
+        if ($status !== '' && $status !== 'all') {
+            $ordersQuery->where('status', $status);
+        }
+
+        $orders = $ordersQuery
+            ->paginate($perPage, ['id', 'uuid', 'code', 'customer_id', 'status', 'shipping_cost', 'cod_fee', 'created_at', 'timelimit'])
+            ->withQueryString();
 
         return Inertia::render('Orders/Index', [
-            'orders' => OrderResource::collection($orders)
+            'orders' => OrderResource::collection($orders),
+            'activeStatus' => $status === '' ? 'all' : $status,
         ]);
     }
 

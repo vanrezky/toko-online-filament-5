@@ -28,6 +28,8 @@ const props = defineProps({
     user: Object,
     addresses: Object,
     provinces: Array,
+    totalOrders: Number,
+    recentOrders: Array,
 });
 
 const page = usePage();
@@ -225,6 +227,39 @@ const setFeaturedAddress = (address) => {
 };
 
 const featuredAddress = computed(() => props.addresses?.find((a) => a.is_featured));
+
+const statusColors = {
+    packed: "text-[#6366f1] bg-[#eef2ff]",
+    in_transit: "text-[#0ea5e9] bg-[#ecfeff]",
+    shipped: "text-[#3b82f6] bg-[#eff6ff]",
+    picked_up: "text-[#14b8a6] bg-[#f0fdfa]",
+    delivered: "text-[#22c55e] bg-[#f0fdf4]",
+    completed: "text-[#16a34a] bg-[#dcfce7]",
+    cancelled: "text-gray-500 bg-gray-50",
+};
+
+const statusLabels = computed(() => ({
+    packed: t("labels.order.status.packed"),
+    in_transit: t("labels.order.status.in_transit"),
+    shipped: t("labels.order.status.shipped"),
+    picked_up: t("labels.order.status.picked_up"),
+    delivered: t("labels.order.status.delivered"),
+    completed: t("labels.order.status.completed"),
+    cancelled: t("labels.order.status.cancelled") || "Dibatalkan",
+}));
+
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount || 0);
+};
+
+const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString("id-ID", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    });
+};
 </script>
 
 <template>
@@ -249,11 +284,11 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                             <!-- Profile Card -->
                             <div class="overflow-hidden rounded-2xl bg-white shadow-xl">
                                 <!-- Header with Gradient -->
-                                <div class="bg-gradient-to-r from-primary to-primary/80 p-6 pb-8">
-                                    <div class="-mt-12 flex flex-col items-center text-center">
+                                <div class="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6">
+                                    <div class="flex flex-col items-center text-center">
                                         <div class="relative">
                                             <div
-                                                class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-secondary shadow-lg"
+                                                class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-secondary shadow-md"
                                             >
                                                 <img
                                                     v-if="user.image || user.profile_photo_url"
@@ -263,13 +298,13 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                                 <User v-else class="h-10 w-10 text-muted-foreground" />
                                             </div>
                                             <div
-                                                class="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-primary text-primary-foreground shadow"
+                                                class="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-primary text-primary-foreground shadow"
                                             >
                                                 <CheckCircle2 class="h-4 w-4" />
                                             </div>
                                         </div>
-                                        <p class="mt-3 font-bold text-white">{{ user.full_name }}</p>
-                                        <p class="text-sm text-white/70">{{ user.email }}</p>
+                                        <p class="mt-3 font-bold text-foreground">{{ user.full_name }}</p>
+                                        <p class="text-sm text-muted-foreground">{{ user.email }}</p>
                                     </div>
                                 </div>
 
@@ -324,13 +359,6 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                         <Heart class="h-4 w-4" />
                                         <span>{{ t("labels.account.wishlist") }}</span>
                                     </Link>
-                                    <Link
-                                        :href="route('frontend.orders')"
-                                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
-                                    >
-                                        <Clock class="h-4 w-4" />
-                                        <span>{{ t("labels.account.order_history") }}</span>
-                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -341,33 +369,43 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                         <!-- OVERVIEW SECTION -->
                         <div v-if="activeSection === 'overview'" class="space-y-6">
                             <!-- Stats Grid -->
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div
-                                    class="group overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-6 shadow-xl shadow-primary/20 transition-all hover:shadow-2xl hover:shadow-primary/30"
-                                >
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <div class="mb-2 flex items-center gap-2">
-                                                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
-                                                    <Package class="h-5 w-5 text-white" />
-                                                </div>
-                                                <span class="text-xs font-semibold uppercase tracking-wider text-white/80">{{ t("labels.account.total_orders") }}</span>
-                                            </div>
-                                            <h3 class="text-4xl font-bold text-white">0</h3>
-                                        </div>
-                                        <div class="rounded-2xl bg-white/20 p-3 backdrop-blur-sm transition-transform group-hover:scale-110">
-                                            <Package class="h-8 w-8 text-white" />
-                                        </div>
-                                    </div>
-                                </div>
+	                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+	                                <div
+	                                    class="group overflow-hidden rounded-2xl bg-white p-5 shadow-lg ring-1 ring-black/5 transition-all hover:shadow-xl"
+	                                >
+	                                    <div class="flex items-center justify-between">
+	                                        <div>
+	                                            <div class="mb-2 flex items-center gap-2">
+	                                                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+	                                                    <Package class="h-5 w-5 text-primary" />
+	                                                </div>
+	                                                <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t("labels.account.total_orders") }}</span>
+	                                            </div>
+	                                            <h3 class="text-3xl font-bold text-foreground">{{ totalOrders || 0 }}</h3>
+	                                        </div>
+	                                        <div class="rounded-2xl bg-secondary p-2.5 transition-transform group-hover:scale-105">
+	                                            <Package class="h-7 w-7 text-muted-foreground" />
+	                                        </div>
+	                                    </div>
+	                                    <div class="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
+	                                        <span class="text-xs text-muted-foreground">{{ t("labels.account.all_time") }}</span>
+	                                        <Link
+	                                            :href="route('frontend.orders')"
+	                                            class="inline-flex items-center gap-1 text-xs font-semibold text-primary outline-none transition-colors hover:text-primary/80 focus:outline-none focus-visible:outline-none focus-visible:ring-0"
+	                                        >
+	                                            {{ t("labels.actions.view_all") }}
+	                                            <ChevronRight class="h-3 w-3" />
+	                                        </Link>
+	                                    </div>
+	                                </div>
 
-                                <div class="group overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all hover:shadow-xl">
-                                    <div class="mb-2 flex items-center gap-2">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                                            <MapPin class="h-5 w-5 text-primary" />
-                                        </div>
-                                        <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t("labels.account.default_address") }}</span>
-                                    </div>
+	                                <div class="group overflow-hidden rounded-2xl bg-white p-5 shadow-lg transition-all hover:shadow-xl">
+	                                    <div class="mb-2 flex items-center gap-2">
+	                                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+	                                            <MapPin class="h-5 w-5 text-primary" />
+	                                        </div>
+	                                        <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t("labels.account.default_address") }}</span>
+	                                    </div>
                                     <div v-if="featuredAddress" class="space-y-2">
                                         <div class="flex items-center gap-2">
                                             <h4 class="font-bold text-foreground">{{ featuredAddress.name }}</h4>
@@ -396,7 +434,39 @@ const featuredAddress = computed(() => props.addresses?.find((a) => a.is_feature
                                     <Clock class="h-5 w-5 text-primary" />
                                     {{ t("labels.account.recent_activity") }}
                                 </h3>
-                                <div class="flex flex-col items-center justify-center py-12 text-center">
+                                <div v-if="recentOrders && recentOrders.length > 0" class="space-y-3">
+                                    <Link
+                                        v-for="order in recentOrders"
+                                        :key="order.id"
+                                        :href="route('frontend.orders.show', order.id)"
+                                        class="group flex items-center justify-between gap-4 rounded-xl border border-border bg-white px-4 py-3 transition-all hover:bg-secondary/40"
+                                    >
+                                        <div class="min-w-0">
+                                            <p class="truncate text-sm font-semibold text-foreground">
+                                                {{ t("labels.order.order_number", { id: order.code }) }}
+                                            </p>
+                                            <p class="mt-0.5 text-xs text-muted-foreground">{{ formatDate(order.created_at) }}</p>
+                                        </div>
+	                                        <div class="flex flex-shrink-0 items-center gap-3">
+	                                            <span
+	                                                class="rounded-full px-2.5 py-0.5 text-[10px] font-medium leading-none"
+	                                                :class="statusColors[order.status] || 'bg-secondary text-muted-foreground'"
+	                                            >
+	                                                {{ statusLabels[order.status] || order.status }}
+	                                            </span>
+                                            <p class="text-sm font-bold text-primary">{{ formatCurrency(order.total) }}</p>
+                                            <ChevronRight class="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
+                                        </div>
+                                    </Link>
+                                    <Link
+                                        :href="route('frontend.orders')"
+                                        class="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-primary/80"
+                                    >
+                                        {{ t("labels.account.menu.orders") }}
+                                        <ChevronRight class="h-4 w-4" />
+                                    </Link>
+                                </div>
+                                <div v-else class="flex flex-col items-center justify-center py-12 text-center">
                                     <div
                                         class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-secondary/50 shadow-inner"
                                     >

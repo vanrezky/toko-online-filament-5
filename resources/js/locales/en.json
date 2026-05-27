@@ -193,8 +193,11 @@
         "standard_shipping": "Standard Shipping",
         "status": {
             "unpaid": "Awaiting Payment",
+            "packed": "Packed",
+            "in_transit": "In Transit",
             "paid": "Paid",
             "shipped": "Shipped",
+            "picked_up": "Picked Up",
             "delivered": "Delivered",
             "completed": "Completed",
             "rejected": "Rejected",
@@ -267,6 +270,11 @@
         "type_free_shipping": "FREE SHIPPING",
         "type_discount": "DISCOUNT"
     },
+    "labels": {
+        "account": {
+            "all_time": "All time"
+        }
+    },
     "account": {
         "heading": "My Account",
         "menu": {
@@ -325,6 +333,7 @@
     },
     "orders": {
         "heading": "My Orders",
+        "none": "no orders",
         "empty_title": "No Orders Yet",
         "empty_description": "You have not made any transactions yet."
     },
