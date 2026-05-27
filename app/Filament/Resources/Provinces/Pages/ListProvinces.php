@@ -11,10 +11,15 @@ class ListProvinces extends ListRecords
 {
     protected static string $resource = ProvinceResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/province-resource.pages.list.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            // CreateAction::make(),
         ];
     }
 }

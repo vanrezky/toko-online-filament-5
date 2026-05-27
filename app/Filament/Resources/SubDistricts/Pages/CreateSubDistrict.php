@@ -9,4 +9,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateSubDistrict extends CreateRecord
 {
     protected static string $resource = SubDistrictResource::class;
+
+    public function getTitle(): string
+    {
+        return __('admin/sub-district-resource.pages.create.title');
+    }
 }

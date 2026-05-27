@@ -11,10 +11,15 @@ class ListCountries extends ListRecords
 {
     protected static string $resource = CountryResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/country-resource.pages.list.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            // CreateAction::make(),
         ];
     }
 }

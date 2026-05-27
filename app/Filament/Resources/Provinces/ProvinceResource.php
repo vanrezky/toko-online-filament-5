@@ -23,9 +23,27 @@ class ProvinceResource extends Resource
     protected static ?string $model = Province::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-office';
-    protected static ?string $navigationLabel = 'Provinsi';
-    protected static string | \UnitEnum | null $navigationGroup = 'Wilayah';
     protected static ?int $navigationSort = 2;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/province-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/province-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/province-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/province-resource.plural_model_label');
+    }
 
     public static function canCreate(): bool
     {
@@ -36,20 +54,21 @@ class ProvinceResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('Province Information')
+                Section::make(__('admin/province-resource.fields.province_information'))
                     ->schema([
                         Select::make('country_id')
-                            // ->label('Country')
+                            ->label(__('admin/province-resource.fields.country_id'))
                             ->relationship('country', titleAttribute: 'name')
-                            // ->options(Country::all()->pluck('name', 'id'))
-                            ->placeholder('Select Country')
+                            ->placeholder(__('admin/province-resource.fields.country_placeholder'))
                             ->searchable()
                             ->preload()
                             ->required(),
                         TextInput::make('name')
+                            ->label(__('admin/province-resource.fields.name'))
                             ->required()
                             ->maxLength(255),
                         TextInput::make('rajaongkir')
+                            ->label(__('admin/province-resource.fields.rajaongkir'))
                             ->required()
                             ->maxLength(255),
                     ])->columns(2)
@@ -60,10 +79,10 @@ class ProvinceResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('Province Information')
+                Section::make(__('admin/province-resource.fields.province_information'))
                     ->schema([
-                        TextEntry::make('country.name')->label('Country name'),
-                        TextEntry::make('name')->label('Pronvice name'),
+                        TextEntry::make('country.name')->label(__('admin/province-resource.columns.country_name')),
+                        TextEntry::make('name')->label(__('admin/province-resource.columns.name')),
                         // TextEntry::make('rajaongkir')->label('Rajaongkir code'),
                     ])->columns(2)
             ])
@@ -75,27 +94,30 @@ class ProvinceResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('country.name')
-                    ->label('Country')
+                    ->label(__('admin/province-resource.columns.country_name'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('name')
+                    ->label(__('admin/province-resource.columns.name'))
                     ->searchable()
                     ->sortable(),
                 // Tables\Columns\TextColumn::make('rajaongkir')
                 //     ->searchable()
                 //     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label(__('admin/province-resource.columns.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('admin/province-resource.columns.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('country_id')
-                    ->label('Country')
+                    ->label(__('admin/province-resource.fields.country_id'))
                     ->relationship('country', titleAttribute: 'name')
                     ->searchable()
                     ->preload()

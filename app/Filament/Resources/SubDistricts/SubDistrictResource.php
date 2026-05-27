@@ -21,9 +21,27 @@ class SubDistrictResource extends Resource
 {
     protected static ?string $model = SubDistrict::class;
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-storefront';
-    protected static ?string $navigationLabel = 'Kecamatan';
-    protected static string | \UnitEnum | null $navigationGroup = 'Wilayah';
     protected static ?int $navigationSort = 4;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/sub-district-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/sub-district-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/sub-district-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/sub-district-resource.plural_model_label');
+    }
 
     public static function canCreate(): bool
     {
@@ -34,13 +52,15 @@ class SubDistrictResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('Sub District Information')
+                Section::make(__('admin/sub-district-resource.fields.sub_district_information'))
                     ->schema([
                         Select::make('district_id')
+                            ->label(__('admin/sub-district-resource.fields.district_id'))
                             ->relationship('district', titleAttribute: 'name')
                             ->searchable()
                             ->required(),
                         TextInput::make('name')
+                            ->label(__('admin/sub-district-resource.fields.name'))
                             ->required()
                             ->maxLength(255),
                         // Forms\Components\TextInput::make('rajaongkir')
@@ -57,10 +77,10 @@ class SubDistrictResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('Subdistrict Information')
+                Section::make(__('admin/sub-district-resource.fields.sub_district_information'))
                     ->schema([
-                        TextEntry::make('district.name')->label('District'),
-                        TextEntry::make('name')->label('Subdistrict name'),
+                        TextEntry::make('district.name')->label(__('admin/sub-district-resource.columns.district_name')),
+                        TextEntry::make('name')->label(__('admin/sub-district-resource.columns.name')),
                         // TextEntry::make('postal_code'),
                         // TextEntry::make('rajaongkir')->label('Rajaongkir code'),
                     ])->columns(2)
@@ -73,9 +93,10 @@ class SubDistrictResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('district.name')
-
+                    ->label(__('admin/sub-district-resource.columns.district_name'))
                     ->sortable(),
                 TextColumn::make('name')
+                    ->label(__('admin/sub-district-resource.columns.name'))
                     ->searchable()
                     ->sortable(),
                 // Tables\Columns\TextColumn::make('rajaongkir')
@@ -84,17 +105,19 @@ class SubDistrictResource extends Resource
                 // Tables\Columns\TextColumn::make('postal_code')
                 //     ->searchable(),
                 TextColumn::make('created_at')
+                    ->label(__('admin/sub-district-resource.columns.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('admin/sub-district-resource.columns.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('district_id')
-                    ->label('District')
+                    ->label(__('admin/sub-district-resource.fields.district_id'))
                     ->relationship('district', titleAttribute: 'name')
                     ->searchable()
                     ->preload()

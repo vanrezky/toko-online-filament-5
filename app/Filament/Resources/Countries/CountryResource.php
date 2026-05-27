@@ -19,9 +19,27 @@ class CountryResource extends Resource
     protected static ?string $model = Country::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-flag';
-    protected static ?string $navigationLabel = 'Negara';
-    protected static string | \UnitEnum | null $navigationGroup = 'Wilayah';
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/country-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/country-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/country-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/country-resource.plural_model_label');
+    }
 
     public static function canCreate(): bool
     {
@@ -32,13 +50,14 @@ class CountryResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('Country Information')
+                Section::make(__('admin/country-resource.fields.country_information'))
                     ->schema([
                         TextInput::make('iso')
-                            ->label('ISO')
+                            ->label(__('admin/country-resource.fields.iso'))
                             ->required()
                             ->maxLength(2),
                         TextInput::make('name')
+                            ->label(__('admin/country-resource.fields.name'))
                             ->required()
                             ->maxLength(255),
                     ])->columns(2)
@@ -51,17 +70,20 @@ class CountryResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('iso')
-                    ->label('ISO')
+                    ->label(__('admin/country-resource.columns.iso'))
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('name')
+                    ->label(__('admin/country-resource.columns.name'))
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('created_at')
+                    ->label(__('admin/country-resource.columns.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('admin/country-resource.columns.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

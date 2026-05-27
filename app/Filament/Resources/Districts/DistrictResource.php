@@ -20,10 +20,28 @@ class DistrictResource extends Resource
     protected static ?string $model = District::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-storefront';
-    protected static ?string $navigationLabel = 'Kota/Kabupaten';
-    protected static string | \UnitEnum | null $navigationGroup = 'Wilayah';
     // protected static ?string $slug = 'district';
     protected static ?int $navigationSort = 3;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/district-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/district-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/district-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/district-resource.plural_model_label');
+    }
 
     public static function canCreate(): bool
     {
@@ -35,18 +53,22 @@ class DistrictResource extends Resource
         return $schema
             ->components([
                 TextInput::make('province_id')
+                    ->label(__('admin/district-resource.fields.province_id'))
                     ->required()
                     ->numeric(),
                 TextInput::make('type')
+                    ->label(__('admin/district-resource.fields.type'))
                     ->required()
                     ->maxLength(50),
                 TextInput::make('name')
+                    ->label(__('admin/district-resource.fields.name'))
                     ->required()
                     ->maxLength(255),
                 // Forms\Components\TextInput::make('rajaongkir')
                 //     ->required()
                 //     ->maxLength(20),
                 TextInput::make('postal_code')
+                    ->label(__('admin/district-resource.fields.postal_code'))
                     ->maxLength(255),
             ]);
     }
@@ -55,12 +77,12 @@ class DistrictResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('District Information')
+                Section::make(__('admin/district-resource.fields.district_information'))
                     ->schema([
-                        TextEntry::make('province.name')->label('Province'),
-                        TextEntry::make('name')->label('District'),
-                        TextEntry::make('type'),
-                        TextEntry::make('postal_code'),
+                        TextEntry::make('province.name')->label(__('admin/district-resource.columns.province_name')),
+                        TextEntry::make('name')->label(__('admin/district-resource.columns.name')),
+                        TextEntry::make('type')->label(__('admin/district-resource.columns.type')),
+                        TextEntry::make('postal_code')->label(__('admin/district-resource.columns.postal_code')),
                         // TextEntry::make('rajaongkir')->label('Rajaongkir code'),
                     ])->columns(2)
             ])
@@ -72,21 +94,27 @@ class DistrictResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('province.name')
+                    ->label(__('admin/district-resource.columns.province_name'))
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('type')
+                    ->label(__('admin/district-resource.columns.type'))
                     ->searchable(),
                 TextColumn::make('name')
+                    ->label(__('admin/district-resource.columns.name'))
                     ->searchable(),
                 // Tables\Columns\TextColumn::make('rajaongkir')
                 //     ->searchable(),
                 TextColumn::make('postal_code')
+                    ->label(__('admin/district-resource.columns.postal_code'))
                     ->searchable(),
                 TextColumn::make('created_at')
+                    ->label(__('admin/district-resource.columns.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('admin/district-resource.columns.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

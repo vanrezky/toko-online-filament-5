@@ -9,4 +9,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateDistrict extends CreateRecord
 {
     protected static string $resource = DistrictResource::class;
+
+    public function getTitle(): string
+    {
+        return __('admin/district-resource.pages.create.title');
+    }
 }

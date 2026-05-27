@@ -11,6 +11,11 @@ class EditProvince extends EditRecord
 {
     protected static string $resource = ProvinceResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/province-resource.pages.edit.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [

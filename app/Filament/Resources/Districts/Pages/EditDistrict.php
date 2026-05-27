@@ -11,6 +11,11 @@ class EditDistrict extends EditRecord
 {
     protected static string $resource = DistrictResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/district-resource.pages.edit.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [

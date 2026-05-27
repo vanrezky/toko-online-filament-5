@@ -11,10 +11,15 @@ class ListDistricts extends ListRecords
 {
     protected static string $resource = DistrictResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/district-resource.pages.list.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            // CreateAction::make(),
         ];
     }
 }
