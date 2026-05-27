@@ -109,8 +109,8 @@ jobs:
             cd ${{ env.DEPLOY_PATH }}
 
             echo "=== Creating .env file ==="
-            cat > .env << 'ENVEOF'
-            APP_NAME=TokoOnline
+            cat > .env << ENVEOF
+            APP_NAME="TokoOnline"
             APP_ENV=${{ secrets.APP_ENV }}
             APP_KEY=${{ secrets.APP_KEY }}
             APP_DEBUG=${{ secrets.APP_DEBUG }}
@@ -145,14 +145,9 @@ jobs:
             MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
             MAIL_ENCRYPTION=tls
             MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS }}
-            MAIL_FROM_NAME="${APP_NAME}"
+            MAIL_FROM_NAME="TokoOnline"
 
-            VITE_APP_NAME="${APP_NAME}"
-            VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
-            VITE_PUSHER_HOST="${PUSHER_HOST}"
-            VITE_PUSHER_PORT="${PUSHER_PORT}"
-            VITE_PUSHER_SCHEME="${PUSHER_SCHEME}"
-            VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+            VITE_APP_NAME="TokoOnline"
 
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             OPENAI_ORGANIZATION=${{ secrets.OPENAI_ORGANIZATION }}
