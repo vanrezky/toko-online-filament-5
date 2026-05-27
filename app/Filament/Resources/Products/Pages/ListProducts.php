@@ -33,11 +33,12 @@ class ListProducts extends ListRecords
             'all' => Tab::make()->label(__('admin/product-resource.tabs_list.all')),
             'low_stock' => Tab::make()
                 ->label(__('admin/product-resource.tabs_list.low_stock'))
-                ->modifyQueryUsing(fn (Builder $query): Builder => $query->whereColumn('stock', '<=', 'security_stock')->where('stock', '>', Status::COUNT_OUT_OF_STOCK))
-                ->badge(Product::query()->whereColumn('stock', '<=', 'security_stock')->where('stock', '>', Status::COUNT_OUT_OF_STOCK)->count()),
+                ->modifyQueryUsing(fn(Builder $query): Builder => $query->whereColumn('stock', '<=', 'security_stock')->where('stock', '>', Status::COUNT_OUT_OF_STOCK))
+                ->badge(Product::query()->whereColumn('stock', '<=', 'security_stock')->where('stock', '>', Status::COUNT_OUT_OF_STOCK)->count())
+                ->badgeColor('warning'),
             'out_of_stock' => Tab::make()
                 ->label(__('admin/product-resource.tabs_list.out_of_stock'))
-                ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('stock', Status::COUNT_OUT_OF_STOCK))
+                ->modifyQueryUsing(fn(Builder $query): Builder => $query->where('stock', Status::COUNT_OUT_OF_STOCK))
                 ->badge(Product::query()->where('stock', Status::COUNT_OUT_OF_STOCK)->count())
                 ->badgeColor('danger'),
 
