@@ -133,6 +133,7 @@ jobs:
             QUEUE_CONNECTION=database
             SESSION_DRIVER=file
             SESSION_LIFETIME=120
+            SESSION_SECURE_COOKIE=false
 
             REDIS_HOST=${{ secrets.REDIS_HOST || '127.0.0.1' }}
             REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD || 'null' }}
@@ -161,6 +162,11 @@ jobs:
             mkdir -p storage/framework/sessions
             mkdir -p storage/framework/testing
             mkdir -p bootstrap/cache
+            mkdir -p public/build
+
+            echo "=== Ensuring deploy user can write ==="
+            sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} storage bootstrap/cache public/build
+            sudo chmod -R 775 storage bootstrap/cache public/build
 
             echo "=== Removing stale Laravel cache files ==="
             rm -f bootstrap/cache/*.php
