@@ -264,11 +264,11 @@ class ViewTransaction extends ViewRecord
                         TextEntry::make('created_at')
                             ->label(__('admin/transaction-resource.entries.order_date'))
                             ->dateTime('d M Y, H:i'),
-                        TextEntry::make('timelimit')
-                            ->label(__('admin/transaction-resource.entries.payment_deadline'))
-                            ->dateTime('d M Y, H:i')
-                            ->placeholder(__('admin/transaction-resource.entries.not_set')),
-                    ])->columns(4),
+                        // TextEntry::make('timelimit')
+                        //     ->label(__('admin/transaction-resource.entries.payment_deadline'))
+                        //     ->dateTime('d M Y, H:i')
+                        //     ->placeholder(__('admin/transaction-resource.entries.not_set')),
+                    ])->columns(3),
 
                 Section::make(__('admin/transaction-resource.sections.order_summary'))
                     ->icon('heroicon-o-currency-dollar')
