@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Users;
 
-use App\Services\NavigationBadgeCache;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
@@ -33,13 +32,6 @@ class UserResource extends Resource
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-users';
     protected static string | \UnitEnum | null $navigationGroup = 'Pengaturan';
     protected static ?string $slug = 'setting/users';
-
-    public static function getNavigationBadge(): ?string
-    {
-        $count = NavigationBadgeCache::getUserCount();
-        return $count > 0 ? (string) $count : null;
-    }
-
 
     public static function form(Schema $schema): Schema
     {

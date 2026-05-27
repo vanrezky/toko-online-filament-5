@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Pages;
 
-use App\Services\NavigationBadgeCache;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -63,12 +62,6 @@ class PageResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin/page-resource.plural_model_label');
-    }
-
-    public static function getNavigationBadge(): ?string
-    {
-        $count = NavigationBadgeCache::getPageCount();
-        return $count > 0 ? (string) $count : null;
     }
 
     public static function form(Schema $schema): Schema

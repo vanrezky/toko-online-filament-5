@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Customers;
 
-use App\Services\NavigationBadgeCache;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\FileUpload;
@@ -96,17 +95,6 @@ class CustomerResource extends Resource
     // {
     //     return EmployeeResource::getUrl('view', ['record' => $record]);
     // }
-
-    public static function getNavigationBadge(): ?string
-    {
-        $count = NavigationBadgeCache::getCustomerCount();
-        return $count > 0 ? (string) $count : null;
-    }
-
-    public static function getNavigationBadgeColor(): ?string
-    {
-        return NavigationBadgeCache::getCustomerCount() > 10 ? 'info' : 'primary';
-    }
 
     public static function form(Schema $schema): Schema
     {

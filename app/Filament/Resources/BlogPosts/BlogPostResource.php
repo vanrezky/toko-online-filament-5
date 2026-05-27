@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\BlogPosts;
 
-use App\Services\NavigationBadgeCache;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -69,12 +68,6 @@ class BlogPostResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin/blog-post-resource.plural_model_label');
-    }
-
-    public static function getNavigationBadge(): ?string
-    {
-        $count = NavigationBadgeCache::getBlogPostCount();
-        return $count > 0 ? (string) $count : null;
     }
 
     public static function form(Schema $schema): Schema
