@@ -21,7 +21,7 @@ class Dashboard extends \Filament\Pages\Dashboard
 
     protected static ?string $title = 'Dashboard';
 
-    protected static ?string $slug = 'dashboard';
+    protected static string $routePath = 'dashboard';
 
     public function filtersForm(Schema $schema): Schema
     {
@@ -38,16 +38,17 @@ class Dashboard extends \Filament\Pages\Dashboard
                             ->default(now()->toDateString())
                             ->displayFormat('d M Y'),
                     ])
-                    ->columns(2),
-            ]);
+                    ->columns(2)
+                    ->columnSpanFull(),
+            ])->columns(1);
     }
 
     public function getWidgets(): array
     {
         return [
             SalesStatsOverviewWidget::class,
-            SalesTrendChart::class,
-            TopProductsChart::class,
+            // SalesTrendChart::class,
+            // TopProductsChart::class,
             OrdersByStatusChart::class,
             RecentOrdersTable::class,
             LowStockAlertWidget::class,

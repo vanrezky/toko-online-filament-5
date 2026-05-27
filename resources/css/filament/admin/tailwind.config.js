@@ -47,16 +47,16 @@ export default {
             borderRadius: {
                 "4xl": "2rem",
             },
-            colors: {
-                primary: "#4B49AC",
-                supporting: {
-                    light: "#7DA0FA",
-                    mid: "#7978E9",
-                    dark: "#98BDFF",
-                    danger: "#F3797E",
-                    info: "#3490DC",
-                },
-            },
+            // colors: {
+            //     primary: "#4B49AC",
+            //     supporting: {
+            //         light: "#7DA0FA",
+            //         mid: "#7978E9",
+            //         dark: "#98BDFF",
+            //         danger: "#F3797E",
+            //         info: "#3490DC",
+            //     },
+            // },
         },
     },
 };
