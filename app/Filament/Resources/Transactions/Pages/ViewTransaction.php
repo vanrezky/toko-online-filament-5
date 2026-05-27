@@ -8,6 +8,7 @@ use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Infolists\Components\RepeatableEntry;
 use App\Enums\CourierCode;
+use App\Enums\TransactionStatus;
 use App\Filament\Resources\Transactions\TransactionResource;
 use App\Models\Transaction;
 use Filament\Actions;
@@ -41,8 +42,7 @@ class ViewTransaction extends ViewRecord
         $isPickupOrder = $this->isPickupOrder($record);
 
         switch ($record->status) {
-            case 'unpaid':
-            case 'packed':
+            case TransactionStatus::packed:
                 if ($isPickupOrder) {
                     $actions[] = Action::make('markPickedUp')
                         ->label(__('admin/transaction-resource.actions.mark_as_picked_up'))
@@ -54,37 +54,23 @@ class ViewTransaction extends ViewRecord
                     $actions[] = Action::make('markInTransit')
                         ->label(__('admin/transaction-resource.actions.mark_as_shipped'))
                         ->icon('heroicon-o-truck')
-                        ->color('info')
+                        ->color('primary')
                         ->requiresConfirmation()
                         ->action(fn() => $this->updateStatus('in_transit'));
                 }
-
-                $actions[] = Action::make('markRejected')
-                    ->label(__('admin/transaction-resource.actions.mark_as_rejected'))
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->action(fn() => $this->updateStatus('rejected'));
                 break;
 
-            case 'in_transit':
-            case 'shipped':
+            case TransactionStatus::in_transit:
+            case TransactionStatus::shipped:
                 $actions[] = Action::make('markDelivered')
                     ->label(__('admin/transaction-resource.actions.mark_as_delivered'))
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
                     ->action(fn() => $this->updateStatus('delivered'));
-
-                $actions[] = Action::make('markRejected')
-                    ->label(__('admin/transaction-resource.actions.mark_as_rejected'))
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->action(fn() => $this->updateStatus('rejected'));
                 break;
 
-            case 'picked_up':
+            case TransactionStatus::picked_up:
                 $actions[] = Action::make('markCompletedFromPickup')
                     ->label(__('admin/transaction-resource.actions.mark_as_completed'))
                     ->icon('heroicon-o-check-badge')
@@ -93,7 +79,7 @@ class ViewTransaction extends ViewRecord
                     ->action(fn() => $this->updateStatus('completed'));
                 break;
 
-            case 'delivered':
+            case TransactionStatus::delivered:
                 $actions[] = Action::make('markCompleted')
                     ->label(__('admin/transaction-resource.actions.mark_as_completed'))
                     ->icon('heroicon-o-check-badge')
@@ -155,7 +141,7 @@ class ViewTransaction extends ViewRecord
             $actions[] = Action::make('markBillingSubmitted')
                 ->label('Tandai Tagihan Diajukan')
                 ->icon('heroicon-o-paper-airplane')
-                ->color('info')
+                ->color('warning')
                 ->requiresConfirmation()
                 ->action(fn() => $this->updateBillingStatus('submitted'));
         }
@@ -248,19 +234,17 @@ class ViewTransaction extends ViewRecord
                         TextEntry::make('status')
                             ->label(__('admin/transaction-resource.entries.status'))
                             ->badge()
-                            ->color(fn(string $state): string => match ($state) {
-                                'unpaid' => 'warning',
-                                'packed' => 'info',
-                                'in_transit' => 'info',
-                                'shipped' => 'info',
-                                'delivered' => 'success',
-                                'picked_up' => 'success',
-                                'rejected' => 'danger',
-                                'cancelled' => 'danger',
-                                'completed' => 'success',
-                                default => 'gray',
-                            })
-                            ->formatStateUsing(fn(string $state): string => __("admin/transaction-resource.status.{$state}")),
+                            ->formatStateUsing(function (TransactionStatus|string|null $state): string {
+                                if ($state instanceof TransactionStatus) {
+                                    return (string) $state->getLabel();
+                                }
+
+                                if (is_string($state) && $state !== '') {
+                                    return ucfirst(__("admin/transaction-resource.status.{$state}"));
+                                }
+
+                                return '-';
+                            }),
                         TextEntry::make('created_at')
                             ->label(__('admin/transaction-resource.entries.order_date'))
                             ->dateTime('d M Y, H:i'),

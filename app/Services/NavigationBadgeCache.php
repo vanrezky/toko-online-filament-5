@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\TransactionStatus;
 use App\Models\Transaction;
 use App\Models\Customer;
 use App\Models\User;
@@ -20,7 +21,16 @@ class NavigationBadgeCache
     public static function getTransactionNotShippedCount(): int
     {
         return Cache::remember('nav_transaction_not_shipped', self::$cacheSeconds, function () {
-            return Transaction::whereIn('status', ['unpaid', 'packed'])->count();
+            return Transaction::whereIn('status', [
+                TransactionStatus::packed->value,
+            ])->count();
+        });
+    }
+
+    public static function getTransactionCountByStatus(TransactionStatus $status): int
+    {
+        return Cache::remember("nav_transaction_status_{$status->value}", self::$cacheSeconds, function () use ($status) {
+            return Transaction::where('status', $status->value)->count();
         });
     }
 
@@ -83,6 +93,9 @@ class NavigationBadgeCache
     public static function forgetAll(): void
     {
         Cache::forget('nav_transaction_not_shipped');
+        foreach (TransactionStatus::cases() as $status) {
+            Cache::forget("nav_transaction_status_{$status->value}");
+        }
         Cache::forget('nav_customer_count');
         Cache::forget('nav_user_count');
         Cache::forget('nav_warehouse_count');

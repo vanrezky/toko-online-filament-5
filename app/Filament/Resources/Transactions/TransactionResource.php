@@ -9,7 +9,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Actions\ViewAction;
@@ -20,6 +19,7 @@ use App\Filament\Resources\Transactions\Pages\ViewTransaction;
 use App\Filament\Resources\Transactions\Pages\EditTransaction;
 use App\Services\NavigationBadgeCache;
 use App\Enums\CourierCode;
+use App\Enums\TransactionStatus;
 use App\Models\Transaction;
 use Filament\Forms;
 use Filament\Resources\Resource;
@@ -69,17 +69,7 @@ class TransactionResource extends Resource
                             ->disabled(),
                         Select::make('status')
                             ->label(__('admin/transaction-resource.fields.status'))
-                            ->options([
-                                'unpaid' => __('admin/transaction-resource.status.unpaid'),
-                                'packed' => __('admin/transaction-resource.status.packed'),
-                                'in_transit' => __('admin/transaction-resource.status.in_transit'),
-                                'shipped' => __('admin/transaction-resource.status.shipped'),
-                                'delivered' => __('admin/transaction-resource.status.delivered'),
-                                'picked_up' => __('admin/transaction-resource.status.picked_up'),
-                                'rejected' => __('admin/transaction-resource.status.rejected'),
-                                'cancelled' => __('admin/transaction-resource.status.cancelled'),
-                                'completed' => __('admin/transaction-resource.status.completed'),
-                            ])
+                            ->options(TransactionStatus::class)
                             ->required(),
                         TextInput::make('receipt_code')
                             ->label(__('admin/transaction-resource.fields.receipt_code'))
@@ -174,14 +164,8 @@ class TransactionResource extends Resource
                     ->wrap()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                BadgeColumn::make('status')
-                    ->colors([
-                        'warning' => 'unpaid',
-                        'info' => ['packed', 'in_transit', 'shipped'],
-                        'success' => ['delivered', 'picked_up', 'completed'],
-                        'danger' => ['rejected', 'cancelled'],
-                    ])
-                    ->formatStateUsing(fn (string $state): string => ucfirst(__("admin/transaction-resource.status.{$state}")))
+                TextColumn::make('status')
+                    ->badge()
                     ->sortable(),
 
                 // Tables\Columns\IconColumn::make('cod')
@@ -212,17 +196,7 @@ class TransactionResource extends Resource
             ->filters([
                 SelectFilter::make('status')
                     ->label(__('admin/transaction-resource.fields.status'))
-                    ->options([
-                        'unpaid' => __('admin/transaction-resource.status.unpaid'),
-                        'packed' => __('admin/transaction-resource.status.packed'),
-                        'in_transit' => __('admin/transaction-resource.status.in_transit'),
-                        'shipped' => __('admin/transaction-resource.status.shipped'),
-                        'delivered' => __('admin/transaction-resource.status.delivered'),
-                        'picked_up' => __('admin/transaction-resource.status.picked_up'),
-                        'rejected' => __('admin/transaction-resource.status.rejected'),
-                        'cancelled' => __('admin/transaction-resource.status.cancelled'),
-                        'completed' => __('admin/transaction-resource.status.completed'),
-                    ])
+                    ->options(TransactionStatus::class)
                     ->multiple()
                     ->preload(),
 
@@ -298,7 +272,7 @@ class TransactionResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return (string) NavigationBadgeCache::getTransactionNotShippedCount();
+        return (string) NavigationBadgeCache::getTransactionCountByStatus(TransactionStatus::packed);
     }
 
     public static function getNavigationBadgeColor(): ?string
