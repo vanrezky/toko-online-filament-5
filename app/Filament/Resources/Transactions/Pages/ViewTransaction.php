@@ -8,6 +8,7 @@ use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Infolists\Components\RepeatableEntry;
 use App\Enums\CourierCode;
+use App\Enums\TransactionBillingStatus;
 use App\Enums\TransactionStatus;
 use App\Filament\Resources\Transactions\TransactionResource;
 use App\Models\Transaction;
@@ -463,14 +464,34 @@ class ViewTransaction extends ViewRecord
                             ->label('Status Tagihan')
                             ->badge()
                             ->visible(fn(Transaction $record): bool => $record->payment_type === 'full')
-                            ->color(fn(?string $state): string => match ($state) {
-                                'pending' => 'warning',
-                                'submitted' => 'info',
-                                'paid' => 'success',
-                                'failed' => 'danger',
-                                default => 'gray',
+                            ->color(function (TransactionBillingStatus|string|null $state): string {
+                                if ($state instanceof TransactionBillingStatus) {
+                                    return is_array($state->getColor()) ? 'gray' : (string) ($state->getColor() ?? 'gray');
+                                }
+
+                                if (! is_string($state) || $state === '') {
+                                    return 'gray';
+                                }
+
+                                return match ($state) {
+                                    'pending' => 'warning',
+                                    'submitted' => 'info',
+                                    'paid' => 'success',
+                                    'failed', 'cancelled' => 'danger',
+                                    default => 'gray',
+                                };
                             })
-                            ->formatStateUsing(fn(?string $state): string => $state ? ucfirst($state) : '-'),
+                            ->formatStateUsing(function (TransactionBillingStatus|string|null $state): string {
+                                if ($state instanceof TransactionBillingStatus) {
+                                    return (string) $state->getLabel();
+                                }
+
+                                if (is_string($state) && $state !== '') {
+                                    return ucfirst(__("admin/transaction-resource.billing_status.{$state}"));
+                                }
+
+                                return '-';
+                            }),
                         TextEntry::make('billing_due_date')
                             ->label('Jatuh Tempo Tagihan')
                             ->date('d M Y')

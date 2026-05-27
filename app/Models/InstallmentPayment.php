@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\InstallmentPaymentStatus;
+use App\Enums\InstallmentStatus;
 use App\Services\CodeGeneratorService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -64,14 +66,14 @@ class InstallmentPayment extends Model
 
     public function scopeUnpaid($query)
     {
-        return $query->where('status', 'unpaid');
+        return $query->where('status', InstallmentPaymentStatus::unpaid->value);
     }
 
     public function scopeOverdue($query)
     {
-        return $query->where('status', 'overdue')
+        return $query->where('status', InstallmentPaymentStatus::overdue->value)
             ->orWhere(function ($q) {
-                $q->where('status', 'unpaid')
+                $q->where('status', InstallmentPaymentStatus::unpaid->value)
                   ->where('due_date', '<', now());
             });
     }
@@ -85,8 +87,10 @@ class InstallmentPayment extends Model
     public function markAsPaid(float $paidAmount, string $method, ?string $notes = null): void
     {
         $newPaidAmount = min((float) $this->amount, (float) $this->paid_amount + $paidAmount);
-        $status = $newPaidAmount >= (float) $this->amount ? 'paid' : 'partial';
-        $wasPaid = $this->status === 'paid';
+        $status = $newPaidAmount >= (float) $this->amount
+            ? InstallmentPaymentStatus::paid->value
+            : InstallmentPaymentStatus::partial->value;
+        $wasPaid = $this->status === InstallmentPaymentStatus::paid->value;
 
         $this->update([
             'paid_amount' => $newPaidAmount,
@@ -107,10 +111,10 @@ class InstallmentPayment extends Model
             $installment->increment('paid_installments');
         }
 
-        $paidInstallments = $installment->payments()->where('status', 'paid')->count();
+        $paidInstallments = $installment->payments()->where('status', InstallmentPaymentStatus::paid->value)->count();
 
         if ($paidInstallments >= $installment->tenor) {
-            $installment->update(['status' => 'completed']);
+            $installment->update(['status' => InstallmentStatus::Completed->value]);
         }
     }
 }

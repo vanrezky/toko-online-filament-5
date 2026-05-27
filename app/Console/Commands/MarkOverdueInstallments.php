@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Enums\InstallmentStatus;
+use App\Enums\InstallmentPaymentStatus;
 use App\Models\Installment;
 use App\Models\InstallmentPayment;
 use Illuminate\Console\Command;
@@ -17,10 +18,10 @@ class MarkOverdueInstallments extends Command
     {
         $count = 0;
 
-        InstallmentPayment::where('status', 'unpaid')
+        InstallmentPayment::where('status', InstallmentPaymentStatus::unpaid->value)
             ->where('due_date', '<', now()->startOfDay())
             ->each(function ($payment) use (&$count) {
-                $payment->update(['status' => InstallmentStatus::Overdue->value]);
+                $payment->update(['status' => InstallmentPaymentStatus::overdue->value]);
 
                 if ($payment->installment->status === 'active') {
                     $payment->installment->update(['status' => InstallmentStatus::Overdue->value]);

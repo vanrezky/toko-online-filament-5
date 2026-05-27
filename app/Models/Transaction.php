@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TransactionStatus;
+use App\Enums\TransactionBillingStatus;
 use App\Services\CodeGeneratorService;
 use App\Traits\HasUuidTrait;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -28,16 +29,23 @@ class Transaction extends Model
         'billing_due_date',
         'billing_status',
         'installment_plan_id',
+        'receipt_code',
+        'delivery_date',
         'status',
         'notes',
         'uuid',
         'code',
         'timelimit',
+        'complete_date',
+        'request_cancellation',
     ];
 
     protected $casts = [
         'timelimit' => 'datetime',
         'billing_due_date' => 'date',
+        'billing_status' => TransactionBillingStatus::class,
+        'delivery_date' => 'datetime',
+        'complete_date' => 'datetime',
         'status' => TransactionStatus::class,
     ];
 

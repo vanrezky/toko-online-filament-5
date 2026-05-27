@@ -45,15 +45,22 @@ return [
     ],
 
     'status' => [
-        'unpaid' => 'Belum Bayar',
         'packed' => 'Dikemas',
         'in_transit' => 'Dalam Pengiriman',
         'shipped' => 'Dikirim',
         'delivered' => 'Diterima',
         'picked_up' => 'Sudah Diambil',
-        'rejected' => 'Ditolak',
         'cancelled' => 'Dibatalkan',
         'completed' => 'Selesai',
+    ],
+
+    'billing_status' => [
+        'not_applicable' => 'Tidak Berlaku',
+        'pending' => 'Menunggu',
+        'submitted' => 'Diajukan',
+        'paid' => 'Lunas',
+        'failed' => 'Gagal',
+        'cancelled' => 'Dibatalkan',
     ],
 
     'filters' => [

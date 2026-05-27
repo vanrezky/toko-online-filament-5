@@ -3,7 +3,8 @@
 namespace App\Console\Commands;
 
 use Exception;
-use App\Enums\OrderStatus;
+use App\Enums\TransactionBillingStatus;
+use App\Enums\TransactionStatus;
 use App\Jobs\SendOrderExpiryNotification;
 use App\Jobs\SendOrderExpiryReminder;
 use App\Models\Transaction;
@@ -37,7 +38,8 @@ class CheckExpiredOrders extends Command
         // But NOT already sent reminder
         $reminderThreshold = now()->addMinutes(30);
 
-        $transactions = Transaction::where('status', 'unpaid')
+        $transactions = Transaction::where('status', TransactionStatus::packed->value)
+            ->where('billing_status', TransactionBillingStatus::pending->value)
             ->whereNotNull('timelimit')
             ->where('timelimit', '<=', $reminderThreshold)
             ->where('timelimit', '>', now())
@@ -68,7 +70,8 @@ class CheckExpiredOrders extends Command
     protected function processExpiredOrders(): void
     {
         // Find unpaid orders that have passed their timelimit
-        $transactions = Transaction::where('status', 'unpaid')
+        $transactions = Transaction::where('status', TransactionStatus::packed->value)
+            ->where('billing_status', TransactionBillingStatus::pending->value)
             ->whereNotNull('timelimit')
             ->where('timelimit', '<', now())
             ->with('customer')
@@ -82,8 +85,11 @@ class CheckExpiredOrders extends Command
             }
 
             try {
-                // Update status to expired
-                $transaction->update(['status' => OrderStatus::Expired->value]);
+                // Mark as cancelled (expired unpaid order)
+                $transaction->update([
+                    'status' => TransactionStatus::cancelled->value,
+                    'billing_status' => TransactionBillingStatus::cancelled->value,
+                ]);
 
                 // Send expiry notification
                 SendOrderExpiryNotification::dispatch($transaction);
