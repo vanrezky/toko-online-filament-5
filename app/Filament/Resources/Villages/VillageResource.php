@@ -20,17 +20,38 @@ class VillageResource extends Resource
     protected static ?string $model = Village::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static string | \UnitEnum | null $navigationGroup = 'Wilayah';
     protected static ?int $navigationSort = 5;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/village-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/village-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/village-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/village-resource.plural_model_label');
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
                 TextInput::make('sub_district_id')
+                    ->label(__('admin/village-resource.fields.sub_district_id'))
                     ->required()
                     ->numeric(),
                 TextInput::make('name')
+                    ->label(__('admin/village-resource.fields.name'))
                     ->required()
                     ->maxLength(100),
                 // Forms\Components\TextInput::make('postal_code')
@@ -46,8 +67,10 @@ class VillageResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('subDistrict.name'),
+                TextColumn::make('subDistrict.name')
+                    ->label(__('admin/village-resource.columns.sub_district_name')),
                 TextColumn::make('name')
+                    ->label(__('admin/village-resource.columns.name'))
                     ->searchable(),
                 // Tables\Columns\TextColumn::make('postal_code')
                 //     ->searchable(),
@@ -58,10 +81,12 @@ class VillageResource extends Resource
                 //     ->label('Apicoid Code')
                 //     ->searchable(),
                 TextColumn::make('created_at')
+                    ->label(__('admin/village-resource.columns.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('admin/village-resource.columns.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

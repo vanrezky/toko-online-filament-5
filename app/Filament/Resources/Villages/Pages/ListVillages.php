@@ -10,6 +10,11 @@ class ListVillages extends ListRecords
 {
     protected static string $resource = VillageResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/village-resource.pages.list.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [
