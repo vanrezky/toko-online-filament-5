@@ -13,7 +13,6 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Actions\ViewAction;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
@@ -601,7 +600,6 @@ class TransactionResource extends Resource
                                 ->send();
                         }),
 
-                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
