@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\CourierCode;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,6 +17,7 @@ class OrderResource extends JsonResource
     {
         $subtotal = $this->products->sum(fn($p) => ($p->price - $p->discount) * $p->quantity);
         $total = $subtotal + $this->shipping_cost + $this->cod_fee;
+        $cancelledAt = (($this->status?->value ?? (string) $this->status) === 'cancelled') ? $this->updated_at : null;
 
         $shippingGroups = $this->shippingDetails->groupBy('warehouse_id')->map(function ($items, $warehouseId) {
             $firstItem = $items->first();
@@ -24,11 +26,13 @@ class OrderResource extends JsonResource
             return [
                 'warehouse_id' => $warehouseId,
                 'warehouse_name' => $warehouse?->name,
+                'warehouse_contact_name' => $warehouse?->contact_name,
+                'warehouse_contact_phone' => $warehouse?->contact_phone,
                 'courier_code' => $firstItem->courier_code,
                 'courier_name' => $firstItem->courier_name,
                 'estimation' => $firstItem->estimation,
                 'price' => $items->sum('price'),
-                'is_pickup' => $firstItem->courier_code === 'PICKUP',
+                'is_pickup' => strtolower((string) $firstItem->courier_code) === CourierCode::PICKUP->value,
                 'warehouse_address' => $warehouse ? implode(', ', array_filter([
                     $warehouse->address,
                     $warehouse->village?->name,
@@ -51,6 +55,12 @@ class OrderResource extends JsonResource
             'payment_method' => $this->payment_method,
             'payment_type' => $this->payment_type,
             'installment_plan_id' => $this->installment_plan_id,
+            'receipt_code' => $this->receipt_code,
+            'billing_status' => $this->billing_status,
+            'billing_due_date' => $this->billing_due_date,
+            'delivery_date' => $this->delivery_date,
+            'complete_date' => $this->complete_date,
+            'cancelled_at' => $cancelledAt,
             'installment_plan' => $this->installment?->installmentPlan ? [
                 'tenor' => $this->installment->installmentPlan->tenor,
                 'fee_percentage' => $this->installment->installmentPlan->fee_percentage,
@@ -61,6 +71,9 @@ class OrderResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'subtotal' => $subtotal,
+            'product_discount' => $this->product_discount,
+            'voucher_discount' => $this->voucher_discount,
+            'total_discount' => $this->total_discount,
             'total' => $total,
             'address' => $hasDelivery ? [
                 'name' => $this->address?->name,
@@ -74,6 +87,12 @@ class OrderResource extends JsonResource
             ] : null,
             'shipping_groups' => $shippingGroups,
             'products' => OrderItemResource::collection($this->products),
+            'vouchers' => $this->vouchers->map(fn ($voucher) => [
+                'voucher_code' => $voucher->voucher_code,
+                'voucher_name' => $voucher->voucher_name,
+                'voucher_type' => $voucher->voucher_type,
+                'discount_amount' => (float) $voucher->discount_amount,
+            ])->values(),
         ];
     }
 }

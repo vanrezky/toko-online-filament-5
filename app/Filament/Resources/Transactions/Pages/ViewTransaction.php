@@ -213,7 +213,7 @@ class ViewTransaction extends ViewRecord
         }
 
         return $record->shippingDetails->every(
-            fn($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value
+            fn($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value
         );
     }
 
@@ -307,13 +307,13 @@ class ViewTransaction extends ViewRecord
                                 }
 
                                 return ! $details->every(
-                                    fn($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value
+                                    fn($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value
                                 );
                             })
                             ->getStateUsing(function (Transaction $record): string {
                                 $details = $record->shippingDetails;
 
-                                if ($details->isNotEmpty() && $details->every(fn($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
+                                if ($details->isNotEmpty() && $details->every(fn($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
                                     return __('admin/transaction-resource.columns.pickup_no_address');
                                 }
 
@@ -375,7 +375,7 @@ class ViewTransaction extends ViewRecord
                                     return __('admin/transaction-resource.entries.not_set');
                                 }
 
-                                if ($details->every(fn($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
+                                if ($details->every(fn($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
                                     return __('admin/transaction-resource.columns.pickup_only');
                                 }
 

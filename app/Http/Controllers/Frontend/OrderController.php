@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\PaymentGateway;
 use App\Http\Resources\OrderResource;
+use App\Enums\CourierCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -62,6 +63,7 @@ class OrderController extends Controller
             'shippingDetails.warehouse.village',
             'shippingDetails.warehouse.district',
             'shippingDetails.warehouse.province',
+            'vouchers',
             'products' => function($query) {
                 $query->select('id', 'transaction_id', 'product_id', 'warehouse_id', 'quantity', 'price', 'discount', 'description');
             },
@@ -73,7 +75,7 @@ class OrderController extends Controller
         ]);
 
         $hasDelivery = $transaction->shippingDetails
-            ->contains(fn ($detail) => $detail->courier_code !== 'PICKUP');
+            ->contains(fn ($detail) => strtolower((string) $detail->courier_code) !== CourierCode::PICKUP->value);
 
         if ($hasDelivery) {
             $transaction->load([

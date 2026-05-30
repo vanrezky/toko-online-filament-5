@@ -131,7 +131,7 @@ class TransactionResource extends Resource
                             return '-';
                         }
 
-                        $allPickup = $details->every(fn ($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value);
+                        $allPickup = $details->every(fn ($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value);
                         if ($allPickup) {
                             return __('admin/transaction-resource.columns.pickup_only');
                         }
@@ -149,7 +149,7 @@ class TransactionResource extends Resource
                     ->getStateUsing(function (Transaction $record): string {
                         $details = $record->shippingDetails;
 
-                        if ($details->isNotEmpty() && $details->every(fn ($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
+                        if ($details->isNotEmpty() && $details->every(fn ($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
                             return __('admin/transaction-resource.columns.pickup_no_address');
                         }
 
@@ -273,7 +273,7 @@ class TransactionResource extends Resource
                         ->visible(function (Transaction $record): bool {
                             $record->loadMissing('shippingDetails');
                             $isPickup = $record->shippingDetails->isNotEmpty()
-                                && $record->shippingDetails->every(fn ($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value);
+                                && $record->shippingDetails->every(fn ($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value);
 
                             return $record->status === TransactionStatus::packed && ! $isPickup;
                         })
@@ -297,7 +297,7 @@ class TransactionResource extends Resource
                         ->visible(function (Transaction $record): bool {
                             $record->loadMissing('shippingDetails');
                             $isPickup = $record->shippingDetails->isNotEmpty()
-                                && $record->shippingDetails->every(fn ($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value);
+                                && $record->shippingDetails->every(fn ($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value);
 
                             return $record->status === TransactionStatus::packed && $isPickup;
                         })
@@ -410,7 +410,7 @@ class TransactionResource extends Resource
 
                             foreach ($records as $record) {
                                 $isPickup = $record->shippingDetails->isNotEmpty()
-                                    && $record->shippingDetails->every(fn ($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value);
+                                    && $record->shippingDetails->every(fn ($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value);
 
                                 if ($record->status !== TransactionStatus::packed || $isPickup) {
                                     $skipped++;
@@ -444,7 +444,7 @@ class TransactionResource extends Resource
 
                             foreach ($records as $record) {
                                 $isPickup = $record->shippingDetails->isNotEmpty()
-                                    && $record->shippingDetails->every(fn ($detail) => strtoupper((string) $detail->courier_code) === CourierCode::PICKUP->value);
+                                    && $record->shippingDetails->every(fn ($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value);
 
                                 if ($record->status !== TransactionStatus::packed || ! $isPickup) {
                                     $skipped++;
