@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionBillingStatus;
 use App\Services\CodeGeneratorService;
+use App\Services\EmailTemplateService;
+use App\Settings\GeneralSettings;
 use App\Traits\HasUuidTrait;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -55,6 +57,54 @@ class Transaction extends Model
             if (empty($transaction->code)) {
                 $transaction->code = CodeGeneratorService::generateUnique($transaction, 'code', 'TRX');
             }
+        });
+
+        static::updated(function (Transaction $transaction) {
+            if (! $transaction->wasChanged('status')) {
+                return;
+            }
+
+            $transaction->loadMissing('customer', 'shippingDetails');
+            $customer = $transaction->customer;
+            if (! $customer?->email) {
+                return;
+            }
+
+            $oldStatusRaw = $transaction->getOriginal('status');
+            $newStatusRaw = $transaction->status;
+
+            $oldStatusEnum = $oldStatusRaw instanceof TransactionStatus
+                ? $oldStatusRaw
+                : TransactionStatus::tryFrom((string) $oldStatusRaw);
+
+            $newStatusEnum = $newStatusRaw instanceof TransactionStatus
+                ? $newStatusRaw
+                : TransactionStatus::tryFrom((string) $newStatusRaw);
+
+            if (($newStatusEnum?->value ?? (string) $newStatusRaw) === TransactionStatus::packed->value) {
+                return;
+            }
+
+            $firstShipping = $transaction->shippingDetails->first();
+
+            $generalSettings = app(GeneralSettings::class);
+            $websiteName = $generalSettings?->site_name ?? config('app.name');
+
+            app(EmailTemplateService::class)->send(
+                code: 'order_status_changed',
+                email: $customer->email,
+                placeholders: [
+                    'customer_name' => $customer->full_name ?? trim((string) $customer->first_name . ' ' . (string) $customer->last_name),
+                    'order_id' => $transaction->code ?? $transaction->uuid,
+                    'old_status' => (string) ($oldStatusEnum?->getLabel() ?? $oldStatusRaw ?? '-'),
+                    'new_status' => (string) ($newStatusEnum?->getLabel() ?? $newStatusRaw ?? '-'),
+                    'tracking_number' => (string) ($transaction->receipt_code ?? ''),
+                    'courier_name' => (string) ($firstShipping?->courier_name ?? ''),
+                    'website_name' => (string) $websiteName,
+                ],
+                queue: true,
+                queuePriority: 'default',
+            );
         });
     }
 
