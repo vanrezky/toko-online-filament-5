@@ -2,7 +2,8 @@
 import { useForm, Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { useI18n } from "vue-i18n";
-import { ArrowRight, Lock, Mail } from "lucide-vue-next";
+import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-vue-next";
+import { ref } from "vue";
 
 const { t } = useI18n();
 
@@ -11,6 +12,8 @@ const form = useForm({
     password: "",
     remember: false,
 });
+
+const showPassword = ref(false);
 
 const submit = () => {
     form.post(route("frontend.login.post"), {
@@ -53,12 +56,21 @@ const submit = () => {
                                     <input
                                         id="password"
                                         v-model="form.password"
-                                        type="password"
+                                        :type="showPassword ? 'text' : 'password'"
                                         required
-                                        class="w-full rounded-xl border border-border bg-secondary px-4 py-3.5 pl-11 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        class="w-full rounded-xl border border-border bg-secondary px-4 py-3.5 pl-11 pr-11 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
                                         :placeholder="t('placeholders.password')"
                                     />
                                     <Lock class="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+                                    <button
+                                        type="button"
+                                        class="absolute right-3 top-2.5 rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                                        @click="showPassword = !showPassword"
+                                    >
+                                        <EyeOff v-if="showPassword" class="h-5 w-5" />
+                                        <Eye v-else class="h-5 w-5" />
+                                    </button>
                                 </div>
                                 <p v-if="form.errors.password" class="text-xs text-red-500">{{ form.errors.password }}</p>
                             </div>
