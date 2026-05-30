@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Transaction;
 use App\Services\EmailTemplateService;
+use App\Enums\EmailTemplateCode;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -38,7 +39,7 @@ class PaymentSuccessNotification extends Notification
         ];
 
         $emailTemplateService = app(EmailTemplateService::class);
-        $template = $emailTemplateService->getTemplate('payment_success');
+        $template = $emailTemplateService->getTemplate(EmailTemplateCode::PAYMENT_SUCCESS->value);
 
         if ($template) {
             $renderedSubject = $template->renderSubject($placeholders);
@@ -49,7 +50,7 @@ class PaymentSuccessNotification extends Notification
                 ->view('emails.raw', ['content' => $renderedBody]);
         }
 
-        Log::warning('Email template payment_success not found', ['customer_id' => $notifiable->id]);
+        Log::warning('Email template not found', ['template' => EmailTemplateCode::PAYMENT_SUCCESS->value, 'customer_id' => $notifiable->id]);
 
         return (new MailMessage)
             ->subject("Pembayaran Berhasil untuk Order #{$transaction->uuid}")

@@ -39,6 +39,7 @@ class EmailTemplate extends Model
         'order_expiry_reminder' => '#F59E0B 0%, #D97706 100%',
         'order_expiry' => '#DC2626 0%, #EF4444 100%',
         'order_status_changed' => '#4F46E5 0%, #7C3AED 100%',
+        'order_thank_you' => '#059669 0%, #10B981 100%',
     ];
 
     public function emailLogs(): HasMany

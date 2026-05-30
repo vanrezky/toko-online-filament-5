@@ -35,6 +35,18 @@ class EmailTemplateSeeder extends Seeder
                 'send_to_admin' => true,
             ],
             [
+                'code' => 'order_thank_you',
+                'name' => 'Ucapan Terima Kasih',
+                'subject' => 'Terima kasih! Order #{{order_id}} - {{website_name}}',
+                'header_title' => 'Terima Kasih',
+                'header_gradient' => '#059669 0%, #10B981 100%',
+                'body' => $this->getOrderThankYouContent(),
+                'placeholders' => ['customer_name', 'order_id', 'order_total', 'order_url', 'website_name', 'logo_url'],
+                'is_active' => true,
+                'is_default' => true,
+                'send_to_admin' => false,
+            ],
+            [
                 'code' => 'payment_success',
                 'name' => 'Pembayaran Berhasil',
                 'subject' => 'Pembayaran Berhasil untuk Order #{{order_id}} - {{website_name}}',
@@ -144,6 +156,20 @@ class EmailTemplateSeeder extends Seeder
                 <p><strong>Tanggal Pembayaran:</strong> {{transaction_date}}</p>
             </div>
             <p class="text-center mt-6" style="color: #059669;">Kami akan segera memproses pesanan Anda. Terima kasih telah berbelanja!</p>';
+    }
+
+    private function getOrderThankYouContent(): string
+    {
+        return '<p class="email-greeting">Halo <strong>{{customer_name}}</strong>,</p>
+            <p class="email-paragraph">Terima kasih sudah berbelanja di <strong>{{website_name}}</strong>! Pesanan Anda sudah kami terima.</p>
+            <div class="email-box">
+                <p><strong>Order ID:</strong> #{{order_id}}</p>
+                <p><strong>Total Pesanan:</strong> Rp {{order_total}}</p>
+            </div>
+            <div class="text-center">
+                <a href="{{order_url}}" class="email-button">Lihat Detail Pesanan</a>
+            </div>
+            <p class="text-muted text-sm mt-4">Kami akan memproses pesanan Anda secepatnya. Terima kasih!</p>';
     }
 
     private function getOrderExpiryReminderContent(): string

@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Transaction;
 use App\Services\EmailTemplateService;
+use App\Enums\EmailTemplateCode;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -38,7 +39,7 @@ class PaymentRequestNotification extends Notification
         ];
 
         $emailTemplateService = app(EmailTemplateService::class);
-        $template = $emailTemplateService->getTemplate('payment_request');
+        $template = $emailTemplateService->getTemplate(EmailTemplateCode::PAYMENT_REQUEST->value);
 
         if ($template) {
             $renderedSubject = $template->renderSubject($placeholders);
@@ -49,7 +50,7 @@ class PaymentRequestNotification extends Notification
                 ->view('emails.raw', ['content' => $renderedBody]);
         }
 
-        Log::warning('Email template payment_request not found', ['customer_id' => $notifiable->id]);
+        Log::warning('Email template not found', ['template' => EmailTemplateCode::PAYMENT_REQUEST->value, 'customer_id' => $notifiable->id]);
 
         return (new MailMessage)
             ->subject("Permintaan Pembayaran Order #{$transaction->uuid}")

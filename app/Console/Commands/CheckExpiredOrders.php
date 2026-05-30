@@ -8,6 +8,7 @@ use App\Enums\TransactionStatus;
 use App\Jobs\SendOrderExpiryNotification;
 use App\Jobs\SendOrderExpiryReminder;
 use App\Models\Transaction;
+use App\Enums\EmailTemplateCode;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -44,7 +45,7 @@ class CheckExpiredOrders extends Command
             ->where('timelimit', '<=', $reminderThreshold)
             ->where('timelimit', '>', now())
             ->whereDoesntHave('emailLogs', function ($query) {
-                $query->where('template_code', 'order_expiry_reminder')
+                $query->where('template_code', EmailTemplateCode::ORDER_EXPIRY_REMINDER->value)
                     ->where('created_at', '>=', now()->subHours(2));
             })
             ->with('customer')

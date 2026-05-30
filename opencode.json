@@ -10,6 +10,13 @@
         "DB_HOST": "127.0.0.1",
         "DB_PORT": "3307"
       }
+    },
+    "mysql-toko-online": {
+      "type": "local",
+      "command": ["npx", "-y", "@berthojoris/mcp-mysql-server", "mysql://sail:password@127.0.0.1:3307/toko_online"],
+      "enabled": true,
+      "timeout": 10000,
+      "environment": {}
     }
   }
 }

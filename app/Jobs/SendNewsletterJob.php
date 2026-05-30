@@ -6,6 +6,7 @@ use App\Models\EmailTemplate;
 use App\Models\NewsletterSubscriber;
 use App\Services\EmailTemplateService;
 use App\Settings\GeneralSettings;
+use App\Enums\EmailTemplateCode;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -31,7 +32,7 @@ class SendNewsletterJob implements ShouldQueue
             return;
         }
 
-        $template = EmailTemplate::getByCode('newsletter');
+        $template = EmailTemplate::getByCode(EmailTemplateCode::NEWSLETTER->value);
 
         if (! $template) {
             return;
@@ -62,7 +63,7 @@ class SendNewsletterJob implements ShouldQueue
             $placeholders['newsletter_content'] = $this->getDefaultContent($websiteName, $unsubscribeUrl);
         }
 
-        $emailService->send('newsletter', $this->subscriber->email, $placeholders, true, 'default');
+        $emailService->send(EmailTemplateCode::NEWSLETTER->value, $this->subscriber->email, $placeholders, true, 'default');
     }
 
     private function getWelcomeContent(string $websiteName, string $unsubscribeUrl): string

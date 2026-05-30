@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Transaction;
 use App\Services\EmailTemplateService;
 use App\Settings\GeneralSettings;
+use App\Enums\EmailTemplateCode;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -39,14 +40,13 @@ class SendPaymentRequestNotification implements ShouldQueue
 
         $placeholders = [
             'customer_name' => $customer->full_name ?? trim($customer->first_name . ' ' . $customer->last_name),
-            'order_id' => $transaction->uuid,
+            'order_id' => $transaction->code ?? $transaction->uuid,
             'order_total' => number_format($transaction->total_amount, 0, ',', '.'),
-            'payment_url' => $this->paymentUrl,
-            'expiry_time' => $transaction->timelimit?->format('d M Y, H:i') ?? 'N/A',
+            'order_url' => $this->paymentUrl,
             'website_name' => $websiteName,
             'logo_url' => $logoUrl,
         ];
 
-        $emailService->send('payment_request', $customer->email, $placeholders, true, 'default');
+        $emailService->send(EmailTemplateCode::ORDER_THANK_YOU->value, $customer->email, $placeholders, true, 'default');
     }
 }

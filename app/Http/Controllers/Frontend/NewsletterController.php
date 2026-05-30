@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SendNewsletterJob;
 use App\Models\EmailTemplate;
 use App\Models\NewsletterSubscriber;
+use App\Enums\EmailTemplateCode;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -67,7 +68,7 @@ class NewsletterController extends Controller
             'email' => 'required|email|max:255',
         ]);
 
-        $template = EmailTemplate::getByCode('newsletter');
+        $template = EmailTemplate::getByCode(EmailTemplateCode::NEWSLETTER->value);
 
         if (! $template) {
             return redirect()->back()->with('error', __('messages.error.newsletter_template_not_found'));

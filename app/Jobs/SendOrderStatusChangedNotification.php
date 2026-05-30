@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Models\Transaction;
 use App\Services\EmailTemplateService;
 use App\Settings\GeneralSettings;
+use App\Enums\EmailTemplateCode;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -52,6 +53,6 @@ class SendOrderStatusChangedNotification implements ShouldQueue
             'logo_url' => $logoUrl,
         ];
 
-        $emailService->send('order_status_changed', $customer->email, $placeholders, true, 'default');
+        $emailService->send(EmailTemplateCode::ORDER_STATUS_CHANGED->value, $customer->email, $placeholders, true, 'default');
     }
 }

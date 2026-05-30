@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionBillingStatus;
+use App\Enums\EmailTemplateCode;
 use App\Services\CodeGeneratorService;
 use App\Services\EmailTemplateService;
 use App\Settings\GeneralSettings;
@@ -91,7 +92,7 @@ class Transaction extends Model
             $websiteName = $generalSettings?->site_name ?? config('app.name');
 
             app(EmailTemplateService::class)->send(
-                code: 'order_status_changed',
+                code: EmailTemplateCode::ORDER_STATUS_CHANGED->value,
                 email: $customer->email,
                 placeholders: [
                     'customer_name' => $customer->full_name ?? trim((string) $customer->first_name . ' ' . (string) $customer->last_name),

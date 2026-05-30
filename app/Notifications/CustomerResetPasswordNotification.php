@@ -6,6 +6,7 @@ use Throwable;
 use App\Models\EmailLog;
 use App\Models\EmailTemplate;
 use App\Services\EmailTemplateService;
+use App\Enums\EmailTemplateCode;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -56,7 +57,7 @@ class CustomerResetPasswordNotification extends Notification implements ShouldQu
         $logoUrl = settings('logo') ?? asset('images/logo.png');
 
         $emailTemplateService = app(EmailTemplateService::class);
-        $template = $emailTemplateService->getTemplate('reset_password');
+        $template = $emailTemplateService->getTemplate(EmailTemplateCode::RESET_PASSWORD->value);
 
         $placeholders = [
             'customer_name' => $notifiable->full_name ?? trim($notifiable->first_name . ' ' . $notifiable->last_name),
@@ -101,7 +102,7 @@ class CustomerResetPasswordNotification extends Notification implements ShouldQu
     {
         return EmailLog::create([
             'email_template_id' => $template?->id,
-            'template_code' => 'reset_password',
+            'template_code' => EmailTemplateCode::RESET_PASSWORD->value,
             'recipient_email' => $notifiable->email,
             'subject' => $subject,
             'body' => $body,

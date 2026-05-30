@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Transaction;
 use App\Services\EmailTemplateService;
 use App\Settings\GeneralSettings;
+use App\Enums\EmailTemplateCode;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -44,6 +45,6 @@ class SendOrderExpiryNotification implements ShouldQueue
             'logo_url' => $logoUrl,
         ];
 
-        $emailService->send('order_expiry', $customer->email, $placeholders, true, 'low');
+        $emailService->send(EmailTemplateCode::ORDER_EXPIRY->value, $customer->email, $placeholders, true, 'low');
     }
 }

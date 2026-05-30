@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Transaction;
 use App\Services\EmailTemplateService;
+use App\Enums\EmailTemplateCode;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -35,7 +36,7 @@ class OrderExpiryNotification extends Notification
         ];
 
         $emailTemplateService = app(EmailTemplateService::class);
-        $template = $emailTemplateService->getTemplate('order_expiry');
+        $template = $emailTemplateService->getTemplate(EmailTemplateCode::ORDER_EXPIRY->value);
 
         if ($template) {
             $renderedSubject = $template->renderSubject($placeholders);
@@ -46,7 +47,7 @@ class OrderExpiryNotification extends Notification
                 ->view('emails.raw', ['content' => $renderedBody]);
         }
 
-        Log::warning('Email template order_expiry not found', ['customer_id' => $notifiable->id]);
+        Log::warning('Email template not found', ['template' => EmailTemplateCode::ORDER_EXPIRY->value, 'customer_id' => $notifiable->id]);
 
         return (new MailMessage)
             ->subject("Order #{$transaction->uuid} Kadaluarsa")
