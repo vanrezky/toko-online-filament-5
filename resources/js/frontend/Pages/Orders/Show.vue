@@ -292,22 +292,25 @@ const statusDates = computed(() => {
                                         <div v-for="item in group.products" :key="item.id" class="flex gap-5">
                                             <div class="h-24 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-[#f5f3fc]">
                                                 <img
-                                                    :src="item.product?.thumbnail || 'https://placehold.co/100x120/f5f3fc/2d1b0e?text=Produk'"
+                                                    :src="item.product_thumbnail || item.product?.thumbnail"
+                                                    :alt="item.product_name || item.product?.name || 'Produk'"
                                                     class="h-full w-full object-cover"
                                                 />
                                             </div>
                                             <div class="flex flex-grow flex-col py-1">
                                                 <div class="flex justify-between">
                                                     <div>
-                                                        <h4 class="text-sm font-bold text-[#2d1b0e]">{{ item.product?.name }}</h4>
-                                                        <p v-if="item.description" class="mt-1 text-xs text-[#6b5a4d]">{{ item.description }}</p>
+                                                        <h4 class="text-sm font-bold text-[#2d1b0e]">{{ item.product_name || item.product?.name }}</h4>
+                                                        <p v-if="item.variant_name || item.description" class="mt-1 text-xs text-[#6b5a4d]">
+                                                            {{ item.variant_name || item.description }}
+                                                        </p>
                                                     </div>
                                                     <p class="text-sm font-bold text-[#fa8456]">{{ formatCurrency(item.price) }}</p>
                                                 </div>
                                                 <div class="mt-auto flex items-center justify-between text-sm text-[#6b5a4d]">
                                                     <span>{{ t("labels.order.quantity", { qty: item.quantity }) }}</span>
                                                     <span class="font-semibold text-[#2d1b0e]"
-                                                        >{{ t("labels.order.line_total", { amount: formatCurrency(item.price * item.quantity) }) }}</span
+                                                        >{{ t("labels.order.line_total", { amount: formatCurrency(item.total) }) }}</span
                                                     >
                                                 </div>
                                             </div>

@@ -214,7 +214,8 @@ const isExpired = (dateString) => {
                                 <div v-for="item in order.products" :key="item.uuid" class="group/item relative flex-shrink-0">
                                     <div class="h-20 w-16 overflow-hidden rounded-xl bg-[#f5f3fc]">
                                         <img
-                                            :src="item.product?.thumbnail || 'https://placehold.co/100x120/f5f3fc/2d1b0e?text=Produk'"
+                                            :src="item.product_thumbnail || item.product?.thumbnail"
+                                            :alt="item.product_name || item.product?.name || 'Produk'"
                                             class="h-full w-full object-cover"
                                         />
                                     </div>

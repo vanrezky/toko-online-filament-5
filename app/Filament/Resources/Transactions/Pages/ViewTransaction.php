@@ -14,6 +14,7 @@ use App\Filament\Resources\Transactions\TransactionResource;
 use App\Models\Transaction;
 use Filament\Actions;
 use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -339,8 +340,19 @@ class ViewTransaction extends ViewRecord
                     ->schema([
                         RepeatableEntry::make('products')
                             ->schema([
-                                TextEntry::make('product.name')
+                                ImageEntry::make('product_snapshot.featured_image_url')
+                                    ->label('Gambar')
+                                    ->defaultImageUrl(asset('images/placeholders/product-snapshot.svg'))
+                                    ->extraImgAttributes([
+                                        'alt' => 'Product snapshot image',
+                                        'loading' => 'lazy',
+                                        'class' => 'w-24 rounded-lg border border-gray-200 object-cover dark:border-white/10',
+                                    ]),
+                                TextEntry::make('display_product_name')
                                     ->label(__('admin/transaction-resource.entries.product')),
+                                TextEntry::make('display_variant_name')
+                                    ->label('Variant')
+                                    ->placeholder('-'),
                                 TextEntry::make('quantity')
                                     ->label(__('admin/transaction-resource.entries.qty')),
                                 TextEntry::make('price')
@@ -360,7 +372,7 @@ class ViewTransaction extends ViewRecord
                                     ->trueIcon('heroicon-m-cloud-arrow-down')
                                     ->falseIcon(null)
                                     ->trueColor('info'),
-                            ])->columns(6),
+                            ])->columns(8),
                     ]),
 
                 Section::make(__('admin/transaction-resource.sections.shipping_information'))
@@ -448,14 +460,6 @@ class ViewTransaction extends ViewRecord
                 Section::make(__('admin/transaction-resource.sections.additional_information'))
                     ->icon('heroicon-o-information-circle')
                     ->schema([
-                        TextEntry::make('cod')
-                            ->label(__('admin/transaction-resource.entries.payment_method'))
-                            ->formatStateUsing(fn(bool $state) => $state ? 'COD (Bayar di Tempat)' : 'Transfer')
-                            ->badge()
-                            ->color(fn(bool $state) => $state ? 'warning' : 'info'),
-                        TextEntry::make('payment_method')
-                            ->label(__('admin/transaction-resource.entries.payment_gateway'))
-                            ->placeholder(__('admin/transaction-resource.entries.not_set')),
                         TextEntry::make('payment_type')
                             ->label('Jenis Pembayaran')
                             ->badge()
@@ -524,7 +528,7 @@ class ViewTransaction extends ViewRecord
             'address.district',
             'address.subDistrict',
             'address.village',
-            'products.product',
+            'products',
             'vouchers',
             'shippingDetails.warehouse',
         ]);

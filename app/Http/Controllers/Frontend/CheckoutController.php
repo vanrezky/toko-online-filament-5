@@ -23,6 +23,7 @@ use App\Services\CacheService;
 use App\Services\CreditLimitService;
 use App\Services\InstallmentService;
 use App\Services\PaymentGatewayService;
+use App\Services\TransactionProductImageSnapshotService;
 use App\Services\VoucherCookieService;
 use App\Services\VoucherService;
 use App\Settings\GeneralSettings;
@@ -42,16 +43,20 @@ class CheckoutController extends Controller
 
     protected CreditLimitService $creditLimitService;
 
+    protected TransactionProductImageSnapshotService $transactionProductImageSnapshotService;
+
     public function __construct(
         VoucherCookieService $cookieService,
         VoucherService $voucherService,
         InstallmentService $installmentService,
-        CreditLimitService $creditLimitService
+        CreditLimitService $creditLimitService,
+        TransactionProductImageSnapshotService $transactionProductImageSnapshotService
     ) {
         $this->cookieService = $cookieService;
         $this->voucherService = $voucherService;
         $this->installmentService = $installmentService;
         $this->creditLimitService = $creditLimitService;
+        $this->transactionProductImageSnapshotService = $transactionProductImageSnapshotService;
     }
 
     public function __invoke(Request $request, PaymentGatewayService $paymentGatewayService, GeneralSettings $generalSettings)
@@ -336,15 +341,38 @@ class CheckoutController extends Controller
             }
 
             foreach ($cart->items as $item) {
+                $variant = $item->productVariant;
+                $product = $item->product;
+                $unitPrice = (float) $item->price;
+                $discountAmount = (float) ($item->discount ?? 0);
+                $lineSubtotal = ($unitPrice * (int) $item->quantity) - $discountAmount;
+                $imageSnapshot = $this->transactionProductImageSnapshotService->snapshotFeaturedImage($product);
+
                 $transaction->products()->create([
                     'customer_id' => $customer->id,
-                    'is_digital' => false,
+                    'is_digital' => (bool) ($product->digital ?? false),
                     'product_id' => $item->product_id,
+                    'product_name' => $product->name,
+                    'product_code' => $product->code,
+                    'variant_name' => $variant?->variant_name,
+                    'variant_sku' => $variant?->sku,
+                    'weight_snapshot' => $variant?->weight ?: $product->weight,
                     'warehouse_id' => $item->product->warehouse_id ?: 1,
                     'quantity' => $item->quantity,
-                    'price' => $item->price,
-                    'discount' => $item->discount,
-                    'description' => $item->productVariant?->variant_name,
+                    'price' => $unitPrice,
+                    'discount' => $discountAmount,
+                    'line_subtotal' => $lineSubtotal,
+                    'description' => $variant?->variant_name,
+                    'product_snapshot' => [
+                        'product_name' => $product->name,
+                        'product_code' => $product->code,
+                        'variant_name' => $variant?->variant_name,
+                        'variant_sku' => $variant?->sku,
+                        'weight' => $variant?->weight ?: $product->weight,
+                        'is_digital' => (bool) ($product->digital ?? false),
+                        'featured_image_path' => $imageSnapshot['featured_image_path'],
+                        'featured_image_url' => $imageSnapshot['featured_image_url'],
+                    ],
                 ]);
             }
 

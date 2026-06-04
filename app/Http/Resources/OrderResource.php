@@ -15,7 +15,7 @@ class OrderResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $subtotal = $this->products->sum(fn($p) => ($p->price - $p->discount) * $p->quantity);
+        $subtotal = $this->products->sum(fn($p) => (float) $p->subtotal);
         $total = $subtotal + $this->shipping_cost + $this->cod_fee;
         $cancelledAt = (($this->status?->value ?? (string) $this->status) === 'cancelled') ? $this->updated_at : null;
 

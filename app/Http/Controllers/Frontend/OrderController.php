@@ -27,12 +27,24 @@ class OrderController extends Controller
 
         $ordersQuery = Transaction::with([
             'products' => function($query) {
-                $query->select('id', 'transaction_id', 'product_id', 'quantity', 'price', 'discount', 'description');
-            },
-            'products.product' => function($query) {
-                $query->select('id', 'uuid', 'name', 'slug');
-            },
-            'products.product.media'
+                $query->select(
+                    'id',
+                    'uuid',
+                    'transaction_id',
+                    'product_id',
+                    'warehouse_id',
+                    'product_name',
+                    'product_code',
+                    'variant_name',
+                    'variant_sku',
+                    'line_subtotal',
+                    'quantity',
+                    'price',
+                    'discount',
+                    'description',
+                    'product_snapshot'
+                );
+            }
         ])
         ->where('customer_id', Auth::guard('customer')->id())
         ->orderBy('created_at', 'desc');
@@ -65,13 +77,24 @@ class OrderController extends Controller
             'shippingDetails.warehouse.province',
             'vouchers',
             'products' => function($query) {
-                $query->select('id', 'transaction_id', 'product_id', 'warehouse_id', 'quantity', 'price', 'discount', 'description');
-            },
-            'products.product' => function($query) {
-                $query->select('id', 'uuid', 'name', 'slug', 'description');
-            },
-            'products.product.media',
-            'products.product.category:id,name'
+                $query->select(
+                    'id',
+                    'uuid',
+                    'transaction_id',
+                    'product_id',
+                    'warehouse_id',
+                    'product_name',
+                    'product_code',
+                    'variant_name',
+                    'variant_sku',
+                    'line_subtotal',
+                    'quantity',
+                    'price',
+                    'discount',
+                    'description',
+                    'product_snapshot'
+                );
+            }
         ]);
 
         $hasDelivery = $transaction->shippingDetails

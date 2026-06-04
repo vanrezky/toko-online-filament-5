@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Transactions;
 
+use App\Exports\SelectedTransactionsExport;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
@@ -34,6 +35,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Override;
 use Filament\Notifications\Notification;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TransactionResource extends Resource
 {
@@ -396,6 +398,18 @@ class TransactionResource extends Resource
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    BulkAction::make('download_selected')
+                        ->label('Download transaksi terpilih')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('gray')
+                        ->deselectRecordsAfterCompletion()
+                        ->action(function (Collection $records) {
+                            return Excel::download(
+                                new SelectedTransactionsExport($records->values()),
+                                'transaksi-terpilih-' . now()->format('Ymd-His') . '.xlsx'
+                            );
+                        }),
+
                     BulkAction::make('mark_in_transit')
                         ->label(__('admin/transaction-resource.actions.mark_as_shipped'))
                         ->icon('heroicon-o-truck')

@@ -19,11 +19,28 @@ class TransactionProduct extends Model
         'customer_id',
         'is_digital',
         'product_id',
+        'product_name',
+        'product_code',
+        'variant_name',
+        'variant_sku',
+        'weight_snapshot',
         'warehouse_id',
         'quantity',
         'price',
         'discount',
+        'line_subtotal',
         'description',
+        'product_snapshot',
+    ];
+
+    protected $casts = [
+        'product_snapshot' => 'array',
+        'line_subtotal' => 'decimal:2',
+    ];
+
+    protected $appends = [
+        'display_product_name',
+        'display_variant_name',
     ];
     public function transaction(): BelongsTo
     {
@@ -42,6 +59,28 @@ class TransactionProduct extends Model
 
     public function getSubtotalAttribute(): float
     {
+        if ($this->line_subtotal !== null) {
+            return (float) $this->line_subtotal;
+        }
+
         return ($this->price * $this->quantity) - $this->discount;
+    }
+
+    public function getDisplayProductNameAttribute(): string
+    {
+        return (string) (
+            $this->product_name
+            ?? $this->product_snapshot['product_name']
+            ?? 'Item transaksi historis #' . $this->id
+        );
+    }
+
+    public function getDisplayVariantNameAttribute(): ?string
+    {
+        $variantName = $this->variant_name
+            ?? $this->product_snapshot['variant_name']
+            ?? $this->description;
+
+        return filled($variantName) ? (string) $variantName : null;
     }
 }
