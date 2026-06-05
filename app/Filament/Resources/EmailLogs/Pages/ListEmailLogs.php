@@ -8,4 +8,9 @@ use Filament\Resources\Pages\ListRecords;
 class ListEmailLogs extends ListRecords
 {
     protected static string $resource = EmailLogResource::class;
+
+    public function getTitle(): string
+    {
+        return __('admin/email-log-resource.pages.list.title');
+    }
 }

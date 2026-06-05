@@ -18,54 +18,75 @@ class EmailLogResource extends Resource
     protected static ?string $model = EmailLog::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-envelope-open';
-
-    protected static string | \UnitEnum | null $navigationGroup = 'Logs';
-
-    protected static ?string $navigationLabel = 'Email Logs';
-
-    protected static ?string $modelLabel = 'Email Log';
-
     protected static ?int $navigationSort = 3;
-
     protected static ?string $slug = 'email-logs';
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/email-log-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/email-log-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/email-log-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/email-log-resource.plural_model_label');
+    }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
                 TextColumn::make('template_code')
+                    ->label(__('admin/email-log-resource.columns.template_code'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('recipient_email')
+                    ->label(__('admin/email-log-resource.columns.recipient_email'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('subject')
+                    ->label(__('admin/email-log-resource.columns.subject'))
                     ->limit(50),
                 BadgeColumn::make('status')
+                    ->label(__('admin/email-log-resource.columns.status'))
                     ->colors([
                         'success' => 'sent',
                         'danger' => 'failed',
                         'warning' => 'pending',
                     ])
-                    ->formatStateUsing(fn($state) => ucfirst($state)),
+                    ->formatStateUsing(fn($state) => __('admin/email-log-resource.status_options.' . $state)),
                 TextColumn::make('error_message')
+                    ->label(__('admin/email-log-resource.columns.error_message'))
                     ->limit(50)
                     ->tooltip(fn($state) => $state),
                 TextColumn::make('sent_at')
+                    ->label(__('admin/email-log-resource.columns.sent_at'))
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label(__('admin/email-log-resource.columns.created_at'))
                     ->dateTime()
                     ->sortable(),
             ])
             ->filters([
                 SelectFilter::make('status')
+                    ->label(__('admin/email-log-resource.filters.status'))
                     ->options([
-                        'pending' => 'Pending',
-                        'sent' => 'Sent',
-                        'failed' => 'Failed',
+                        'pending' => __('admin/email-log-resource.status_options.pending'),
+                        'sent' => __('admin/email-log-resource.status_options.sent'),
+                        'failed' => __('admin/email-log-resource.status_options.failed'),
                     ]),
                 SelectFilter::make('template_code')
+                    ->label(__('admin/email-log-resource.filters.template_code'))
                     ->relationship('emailTemplate', 'code')
                     ->searchable(),
             ])

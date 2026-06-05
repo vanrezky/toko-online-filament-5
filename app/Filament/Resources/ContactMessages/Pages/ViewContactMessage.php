@@ -11,6 +11,11 @@ class ViewContactMessage extends ViewRecord
 {
     protected static string $resource = ContactMessageResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/contact-message-resource.pages.view.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [

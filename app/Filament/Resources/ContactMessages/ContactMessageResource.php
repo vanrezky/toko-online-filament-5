@@ -29,13 +29,28 @@ class ContactMessageResource extends Resource
     protected static ?string $model = ContactMessage::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-envelope';
-
-    protected static string | \UnitEnum | null $navigationGroup = 'Logs';
-    protected static ?string $navigationLabel = 'Contact Messages';
-    protected static ?string $modelLabel = 'Contact Message';
-    protected static ?string $pluralModelLabel = 'Contact Messages';
     protected static ?int $navigationSort = 3;
     protected static ?string $slug = 'contact-messages';
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/contact-message-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/contact-message-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/contact-message-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/contact-message-resource.plural_model_label');
+    }
 
     public static function getNavigationBadge(): ?string
     {
@@ -52,29 +67,33 @@ class ContactMessageResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('Message Details')
+                Section::make(__('admin/contact-message-resource.sections.message_details'))
                     ->schema([
                         TextInput::make('name')
+                            ->label(__('admin/contact-message-resource.fields.name'))
                             ->disabled(),
                         TextInput::make('email')
+                            ->label(__('admin/contact-message-resource.fields.email'))
                             ->disabled(),
                         TextInput::make('subject')
+                            ->label(__('admin/contact-message-resource.fields.subject'))
                             ->disabled(),
                         Textarea::make('message')
+                            ->label(__('admin/contact-message-resource.fields.message'))
                             ->disabled()
                             ->columnSpanFull()
                             ->rows(8),
                     ])->columns(2),
-                Section::make('Status')
+                Section::make(__('admin/contact-message-resource.sections.status'))
                     ->schema([
                         Toggle::make('is_read')
-                            ->label('Mark as Read'),
+                            ->label(__('admin/contact-message-resource.fields.is_read')),
                         DateTimePicker::make('read_at')
                             ->disabled()
-                            ->label('Read At'),
+                            ->label(__('admin/contact-message-resource.fields.read_at')),
                         DateTimePicker::make('created_at')
                             ->disabled()
-                            ->label('Received At'),
+                            ->label(__('admin/contact-message-resource.fields.created_at')),
                     ])->columns(3),
             ]);
     }
@@ -85,35 +104,39 @@ class ContactMessageResource extends Resource
             ->columns([
                 IconColumn::make('is_read')
                     ->boolean()
-                    ->label('Read')
+                    ->label(__('admin/contact-message-resource.columns.is_read'))
                     ->trueIcon('heroicon-o-envelope-open')
                     ->falseIcon('heroicon-o-envelope')
                     ->trueColor('success')
                     ->falseColor('warning'),
                 TextColumn::make('name')
+                    ->label(__('admin/contact-message-resource.columns.name'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('email')
+                    ->label(__('admin/contact-message-resource.columns.email'))
                     ->searchable()
                     ->copyable(),
                 TextColumn::make('subject')
+                    ->label(__('admin/contact-message-resource.columns.subject'))
                     ->searchable()
                     ->limit(40),
                 TextColumn::make('message')
+                    ->label(__('admin/contact-message-resource.columns.message'))
                     ->limit(60)
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->dateTime('d M Y, H:i')
                     ->sortable()
-                    ->label('Received'),
+                    ->label(__('admin/contact-message-resource.columns.created_at')),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('is_read')
-                    ->label('Status')
+                    ->label(__('admin/contact-message-resource.filters.is_read'))
                     ->options([
-                        '0' => 'Unread',
-                        '1' => 'Read',
+                        '0' => __('admin/contact-message-resource.filters.unread'),
+                        '1' => __('admin/contact-message-resource.filters.read'),
                     ]),
             ])
             ->recordActions([
@@ -127,8 +150,8 @@ class ContactMessageResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->emptyStateHeading('No messages yet')
-            ->emptyStateDescription('Messages from the contact form will appear here.');
+            ->emptyStateHeading(__('admin/contact-message-resource.empty_state.heading'))
+            ->emptyStateDescription(__('admin/contact-message-resource.empty_state.description'));
     }
 
     public static function getRelations(): array

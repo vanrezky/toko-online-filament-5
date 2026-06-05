@@ -10,6 +10,11 @@ class ListContactMessages extends ListRecords
 {
     protected static string $resource = ContactMessageResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/contact-message-resource.pages.list.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [];
