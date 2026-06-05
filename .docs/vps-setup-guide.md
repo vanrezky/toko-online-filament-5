@@ -344,15 +344,14 @@ sudo chmod -R 775 /var/www/html
 ### 8.1 Buat Directory dan Clone Repo
 
 ```bash
-sudo mkdir -p /var/www/tokoonline
-sudo chown -R deploy:deploy /var/www/tokoonline
-cd /var/www/tokoonline
+cd /var/www/html
 ```
 
 ### 8.2 Clone Project (Jika ada Git repo)
 
 ```bash
-git clone https://github.com/USERNAME/REPO.git .
+git clone https://github.com/USERNAME/REPO.git /tmp/tokoonline
+rsync -av --delete /tmp/tokoonline/ /var/www/html/
 ```
 
 ### 8.3 Atau Upload Manual via SCP
@@ -360,7 +359,7 @@ git clone https://github.com/USERNAME/REPO.git .
 Dari Mac kamu:
 
 ```bash
-scp -r /path/to/local/project/* deploy@IP_VPS:/var/www/tokoonline/
+scp -r /path/to/local/project/* deploy@IP_VPS:/var/www/html/
 ```
 
 ### 8.4 Install Dependencies
@@ -416,10 +415,8 @@ php artisan migrate --force
 ### 8.9 Set Permission
 
 ```bash
-sudo chown -R www-data:www-data /var/www/tokoonline
-sudo chmod -R 755 /var/www/tokoonline
-sudo chmod -R 775 /var/www/tokoonline/storage
-sudo chmod -R 775 /var/www/tokoonline/bootstrap/cache
+sudo chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/build
+sudo chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/build
 ```
 
 ---
@@ -494,7 +491,7 @@ sudo systemctl reload nginx
 Edit `.env`:
 
 ```bash
-nano /var/www/tokoonline/.env
+nano /var/www/html/.env
 ```
 
 ```env
@@ -508,19 +505,53 @@ php artisan queue:table
 php artisan migrate
 ```
 
-### 10.3 Setup Cron untuk Queue Worker
+### 10.3 Rekomendasi: Jalankan Queue Worker dengan Supervisor atau systemd
+
+Queue worker tidak ideal dijalankan via cron per menit. Untuk production, gunakan process manager agar worker selalu hidup.
+
+Contoh paling sederhana dengan Supervisor:
+
+```bash
+sudo apt install supervisor -y
+sudo nano /etc/supervisor/conf.d/tokoonline-worker.conf
+```
+
+```ini
+[program:tokoonline-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php /var/www/html/artisan queue:work --sleep=3 --tries=3 --timeout=60
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/var/www/html/storage/logs/worker.log
+stopwaitsecs=3600
+```
+
+Aktifkan:
+
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl status
+```
+
+### 10.4 Fallback: Cron untuk Queue Worker
+
+Jika belum memakai Supervisor, cron fallback masih bisa dipakai, tetapi hanya sementara:
 
 ```bash
 crontab -e
 ```
 
-Tambah baris:
-
 ```cron
-* * * * * cd /var/www/tokoonline && php artisan queue:work --stop-when-empty --tries=3 --timeout=60 >> /dev/null 2>&1
+* * * * * cd /var/www/html && php artisan queue:work --stop-when-empty --tries=3 --timeout=60 >> /dev/null 2>&1
 ```
 
-### 10.4 Restart Queue Worker (Manual untuk test)
+### 10.5 Restart Queue Worker (Manual untuk test)
 
 ```bash
 php artisan queue:work
@@ -539,7 +570,7 @@ crontab -e
 Tambah baris:
 
 ```cron
-* * * * * cd /var/www/tokoonline && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /var/www/html && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 ### 11.2 Verify Scheduler Running
@@ -656,10 +687,10 @@ php artisan optimize
 sudo tail -f /var/log/nginx/error.log
 
 # Laravel log
-sudo tail -f /var/www/tokoonline/storage/logs/laravel.log
+sudo tail -f /var/www/html/storage/logs/laravel.log
 
 # Queue log
-sudo tail -f /var/www/tokoonline/storage/logs/worker.log
+sudo tail -f /var/www/html/storage/logs/worker.log
 ```
 
 ### 14.2 Restart Services
@@ -727,7 +758,7 @@ df -h
 
 ```bash
 # Pull latest code
-cd /var/www/tokoonline
+cd /var/www/html
 git pull origin main
 
 # Install dependencies
@@ -743,8 +774,7 @@ php artisan view:cache
 php artisan migrate --force
 
 # Restart queue worker
-pkill -f "queue:work"
-php artisan queue:work --daemon &
+sudo -u www-data php artisan queue:restart
 ```
 
 ---
