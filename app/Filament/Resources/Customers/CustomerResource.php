@@ -29,6 +29,7 @@ use App\Constants\UploadPath;
 use App\Filament\Resources\Customers\RelationManagers\BalancesRelationManager;
 use App\Filament\Resources\Customers\RelationManagers\CustomerAddressRelationManager;
 use App\Models\Customer;
+use App\Settings\GeneralSettings;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -62,6 +63,11 @@ class CustomerResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin/customer-resource.plural_model_label');
+    }
+
+    public static function shouldShowCreditInformation(): bool
+    {
+        return app(GeneralSettings::class)->enforce_credit_limit;
     }
 
     // protected static ?string $navigationLabel = 'Customer';
@@ -193,7 +199,8 @@ class CustomerResource extends Resource
                             ->content(fn($record): string => 'Rp ' . number_format($record?->remaining_credit_limit ?? 0, 0, ',', '.')),
                     ])
                     ->collapsible()
-                    ->collapsed(false),
+                    ->collapsed(false)
+                    ->visible(fn (): bool => static::shouldShowCreditInformation()),
 
                 Hidden::make('email_verified_at')
                     ->default(now())->dehydrated(),
@@ -254,11 +261,13 @@ class CustomerResource extends Resource
                     ->label(__('admin/customer-resource.columns.remaining_credit_limit'))
                     ->money('IDR')
                     ->sortable()
-                    ->color(fn (Customer $record): string => $record->remaining_credit_limit > 0 ? 'success' : 'danger'),
+                    ->color(fn (Customer $record): string => $record->remaining_credit_limit > 0 ? 'success' : 'danger')
+                    ->visible(fn (): bool => static::shouldShowCreditInformation()),
                 TextColumn::make('effective_credit_limit')
                     ->label(__('admin/customer-resource.columns.credit_limit'))
                     ->money('IDR')
                     ->sortable()
+                    ->visible(fn (): bool => static::shouldShowCreditInformation())
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->label(__('admin/customer-resource.columns.created_at'))

@@ -150,6 +150,9 @@ class Profile extends ViewRecord
                         TextEntry::make('schoolUnit.name')
                             ->label(__('admin/customer-resource.fields.school_unit_id'))
                             ->default('-'),
+                        TextEntry::make('customerLevel.name')
+                            ->label(__('admin/customer-resource.profile.customer_level'))
+                            ->default('-'),
                         TextEntry::make('is_active')
                             ->label(__('admin/customer-resource.profile.status'))
                             ->badge()
@@ -160,9 +163,6 @@ class Profile extends ViewRecord
                 Section::make(__('admin/customer-resource.sections.credit_settings'))
                     ->icon('heroicon-o-star')
                     ->schema([
-                        TextEntry::make('customerLevel.name')
-                            ->label(__('admin/customer-resource.profile.customer_level'))
-                            ->default('-'),
                         TextEntry::make('effective_credit_limit')
                             ->label(__('admin/customer-resource.profile.credit_limit'))
                             ->money('IDR'),
@@ -172,7 +172,10 @@ class Profile extends ViewRecord
                         TextEntry::make('remaining_credit_limit')
                             ->label(__('admin/customer-resource.profile.remaining_credit'))
                             ->money('IDR'),
-                    ])->inlineLabel()->columnSpanFull(),
+                    ])
+                    ->inlineLabel()
+                    ->columnSpanFull()
+                    ->visible(fn (): bool => CustomerResource::shouldShowCreditInformation()),
             ])->columns(3);
     }
 
