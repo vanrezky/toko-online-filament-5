@@ -42,6 +42,7 @@ const selectedInstallmentPlan = ref(null);
 const installmentCalculations = ref(null);
 const isLoadingInstallment = ref(false);
 const creditLimitRemaining = ref(props.creditLimit?.remaining || 0);
+const isCreditLimitEnforced = computed(() => props.creditLimit?.enforced !== false);
 const installmentMinOrderAmount = computed(() => Number(props.installmentMinOrderAmount || 1000000));
 
 watch(
@@ -216,6 +217,7 @@ watch(isInstallmentEligible, (eligible) => {
 });
 
 const isOverLimit = computed(() => {
+    if (!isCreditLimitEnforced.value) return false;
     if (!creditLimitRemaining.value) return false;
 
     // For installment, check if selected plan's total exceeds limit
@@ -664,7 +666,7 @@ const applyVoucher = async () => {
                                 </div>
 
                                 <!-- Credit Limit Info - Show for both payment types -->
-                                <div class="mt-4 rounded-lg border border-[#e8e6ef] p-4">
+                                <div v-if="isCreditLimitEnforced" class="mt-4 rounded-lg border border-[#e8e6ef] p-4">
                                     <div class="flex justify-between text-sm">
                                         <span>Sisa Limit Kredit</span>
                                         <span class="font-semibold" :class="isOverLimit ? 'text-red-500' : 'text-green-600'">

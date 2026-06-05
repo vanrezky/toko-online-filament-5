@@ -50,6 +50,8 @@ return [
     ],
 
     'filters' => [
+        'customer' => 'Pelanggan',
+        'transaction' => 'Transaksi',
         'status' => 'Status',
         'payment_method' => 'Metode Pembayaran',
         'payroll_status' => 'Status Payroll',

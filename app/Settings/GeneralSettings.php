@@ -72,6 +72,8 @@ class GeneralSettings extends Settings
 
     public ?float $payment_percent_charge;
 
+    public bool $enforce_credit_limit = true;
+
     public ?int $installment_min_order_amount = 1000000;
 
     public ?int $billing_cutoff_day = 25;

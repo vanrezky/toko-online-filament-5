@@ -156,6 +156,7 @@ class CustomerResource extends Resource
                         TextInput::make('password')
                             ->label(__('admin/customer-resource.fields.password'))
                             ->password()
+                            ->revealable(filament()->arePasswordsRevealable())
                             ->rules([securePassword()])
                             ->required()
                             ->same('confirm_password')
@@ -165,6 +166,7 @@ class CustomerResource extends Resource
                         TextInput::make('confirm_password')
                             ->label(__('admin/customer-resource.fields.confirm_password'))
                             ->password()
+                            ->revealable(filament()->arePasswordsRevealable())
                             ->required()
                             ->maxLength(255)
                             ->visible(fn(string $operation): bool  => $operation === 'create'),

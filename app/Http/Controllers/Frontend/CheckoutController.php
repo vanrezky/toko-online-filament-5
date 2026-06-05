@@ -90,6 +90,7 @@ class CheckoutController extends Controller
             'creditLimit' => [
                 'remaining' => $customer->remaining_credit_limit,
                 'effective' => $customer->effective_credit_limit,
+                'enforced' => $this->creditLimitService->shouldEnforceLimit(),
             ],
             'installmentMinOrderAmount' => (int) ($generalSettings->installment_min_order_amount ?? 1000000),
         ]);

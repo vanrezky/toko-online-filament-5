@@ -141,6 +141,52 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
         $this->assertDatabaseCount('transactions', 0);
     }
 
+    public function test_full_checkout_is_allowed_when_credit_limit_enforcement_is_disabled(): void
+    {
+        Queue::fake();
+
+        $this->mockPaymentGateway();
+        $this->setGeneralSetting('enforce_credit_limit', false);
+
+        $customer = $this->createCustomer(100_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 150_000);
+
+        $cart = Cart::create([
+            'customer_id' => $customer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 150_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')
+            ->postJson(route('frontend.checkout.store'), [
+                'address_id' => $address->id,
+                'shipping_methods' => [
+                    (string) $warehouse->id => [
+                        'courier_code' => 'KURIR_TOKO',
+                        'courier_name' => 'Kurir Toko',
+                        'price' => 20_000,
+                        'weight' => 500,
+                        'estimation' => '1-2 hari',
+                    ],
+                ],
+                'payment_type' => 'full',
+                'notes' => 'credit enforcement disabled',
+            ]);
+
+        $response->assertOk()->assertJson(['success' => true]);
+        $this->assertDatabaseCount('transactions', 1);
+    }
+
     public function test_full_checkout_uses_cumulative_outstanding_for_limit_validation(): void
     {
         Queue::fake();
@@ -342,17 +388,19 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
 
     private function setBillingSettings(int $cutoffDay, int $dueDay, int $monthOffset): void
     {
-        DB::table('settings')->where('group', 'general')->where('name', 'billing_cutoff_day')->update([
-            'payload' => json_encode($cutoffDay),
-        ]);
+        $this->setGeneralSetting('billing_cutoff_day', $cutoffDay);
+        $this->setGeneralSetting('billing_due_day', $dueDay);
+        $this->setGeneralSetting('billing_due_month_offset', $monthOffset);
+    }
 
-        DB::table('settings')->where('group', 'general')->where('name', 'billing_due_day')->update([
-            'payload' => json_encode($dueDay),
-        ]);
-
-        DB::table('settings')->where('group', 'general')->where('name', 'billing_due_month_offset')->update([
-            'payload' => json_encode($monthOffset),
-        ]);
+    private function setGeneralSetting(string $name, mixed $value): void
+    {
+        DB::table('settings')
+            ->where('group', 'general')
+            ->where('name', $name)
+            ->update([
+                'payload' => json_encode($value),
+            ]);
     }
 
     private function createGeo(): array

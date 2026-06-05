@@ -15,6 +15,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\Facades\DB;
 use Filament\Actions as Act;
+use Filament\Support\Enums\Width;
 use Livewire\Component;
 
 class Profile extends ViewRecord
@@ -61,9 +62,12 @@ class Profile extends ViewRecord
             Act\Action::make('change_password')
                 ->label(__('admin/customer-resource.actions.change_password'))
                 ->icon('heroicon-o-lock-closed')
+                ->modalWidth(Width::Medium)
+                ->modalSubmitActionLabel(__('labels.actions.save'))
                 ->schema([
                     TextInput::make('password')
                         ->password()
+                        ->revealable(filament()->arePasswordsRevealable())
                         ->label(__('admin/customer-resource.actions.new_password'))
                         ->rules([securePassword()])
                         ->required()
@@ -71,6 +75,7 @@ class Profile extends ViewRecord
                         ->maxLength(20),
                     TextInput::make('password_confirmation')
                         ->password()
+                        ->revealable(filament()->arePasswordsRevealable())
                         ->label(__('admin/customer-resource.actions.confirm_password'))
                         ->required()
                         ->maxLength(255)

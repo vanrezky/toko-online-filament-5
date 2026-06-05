@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Grid;
 use Filament\Forms\Components\Select;
@@ -14,6 +15,8 @@ use Filament\Pages\Page;
 
 class PayrollExportPage extends Page
 {
+    use HasPageShield;
+
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-arrow-down';
     protected static string | \UnitEnum | null $navigationGroup = 'Transaksi';
     protected static ?int $navigationSort = 5;

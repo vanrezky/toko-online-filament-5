@@ -213,15 +213,18 @@ class TransactionResource extends Resource
                     ->preload(),
 
                 SelectFilter::make('billing_status')
-                    ->label('Billing Status')
+                    ->label(__('admin/transaction-resource.filters.billing_status'))
                     ->options(TransactionBillingStatus::class)
                     ->multiple()
                     ->preload(),
 
                 Filter::make('created_at')
+                    ->label(__('admin/transaction-resource.filters.created_at'))
                     ->schema([
-                        DatePicker::make('created_from'),
-                        DatePicker::make('created_until'),
+                        DatePicker::make('created_from')
+                            ->label(__('admin/transaction-resource.filters.created_from')),
+                        DatePicker::make('created_until')
+                            ->label(__('admin/transaction-resource.filters.created_until')),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -243,24 +246,6 @@ class TransactionResource extends Resource
                             );
                     })
                     ->columns(2),
-
-                Filter::make('cod')
-                    ->schema([
-                        Toggle::make('cod_only'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query->when(
-                            $data['cod_only'],
-                            fn (Builder $query): Builder => $query->where('cod', true)
-                        );
-                    })
-                    ->indicateUsing(function (array $data): ?string {
-                        if (! $data['cod_only']) {
-                            return null;
-                        }
-
-                        return __('admin/transaction-resource.filters.cod_only');
-                    }),
             ])
             ->recordActions([
                 ActionGroup::make([

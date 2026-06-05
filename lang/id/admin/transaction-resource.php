@@ -64,7 +64,10 @@ return [
     ],
 
     'filters' => [
-        'cod_only' => 'Hanya pesanan COD',
+        'billing_status' => 'Status Penagihan',
+        'created_at' => 'Tanggal Transaksi',
+        'created_from' => 'Dari Tanggal',
+        'created_until' => 'Sampai Tanggal',
     ],
 
     'sections' => [

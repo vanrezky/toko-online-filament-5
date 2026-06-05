@@ -3,9 +3,19 @@
 namespace App\Services;
 
 use App\Models\Customer;
+use App\Settings\GeneralSettings;
 
 class CreditLimitService
 {
+    public function __construct(
+        protected GeneralSettings $generalSettings
+    ) {}
+
+    public function shouldEnforceLimit(): bool
+    {
+        return (bool) ($this->generalSettings->enforce_credit_limit ?? true);
+    }
+
     public function getEffectiveLimit(Customer $customer): float
     {
         return $customer->effective_credit_limit;
@@ -23,11 +33,19 @@ class CreditLimitService
 
     public function canCreateInstallment(Customer $customer, float $amount): bool
     {
+        if (! $this->shouldEnforceLimit()) {
+            return true;
+        }
+
         return $customer->canCreateInstallment($amount);
     }
 
     public function canCreateFullBilling(Customer $customer, float $amount): bool
     {
+        if (! $this->shouldEnforceLimit()) {
+            return true;
+        }
+
         return $customer->remaining_credit_limit >= $amount;
     }
 

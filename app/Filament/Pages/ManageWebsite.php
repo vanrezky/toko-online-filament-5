@@ -29,11 +29,6 @@ class ManageWebsite extends SettingsPage
 
     protected static string $settings = GeneralSettings::class;
 
-    public static function canAccess(): bool
-    {
-        return isSuperUser();
-    }
-
     public static function getNavigationGroup(): ?string
     {
         return __('admin/page-manage-website.navigation_group');
@@ -161,6 +156,11 @@ class ManageWebsite extends SettingsPage
                         Tab::make('Pembayaran')
                             ->icon('heroicon-o-banknotes')
                             ->schema([
+                                Toggle::make('enforce_credit_limit')
+                                    ->label('Gunakan Limit Kredit')
+                                    ->helperText('Nonaktifkan jika checkout anggota tidak lagi perlu dibatasi oleh sisa limit kredit.')
+                                    ->default(true)
+                                    ->required(),
                                 TextInput::make('installment_min_order_amount')
                                     ->label('Minimum Belanja untuk Cicilan')
                                     ->helperText('Jika total belanja di bawah nilai ini, opsi cicilan akan dinonaktifkan.')

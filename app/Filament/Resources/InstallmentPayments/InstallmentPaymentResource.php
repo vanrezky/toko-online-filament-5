@@ -17,13 +17,19 @@ use Filament\Schemas\Components\Section;
 use App\Filament\Resources\InstallmentPayments\Pages\ListInstallmentPayments;
 use App\Filament\Resources\InstallmentPayments\Pages\ViewInstallmentPayment;
 use App\Filament\Resources\InstallmentPayments\Pages\EditInstallmentPayment;
+use App\Models\Customer;
 use App\Models\InstallmentPayment;
+use App\Models\Transaction;
 use Filament\Forms;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class InstallmentPaymentResource extends Resource
 {
@@ -146,6 +152,59 @@ class InstallmentPaymentResource extends Resource
                     ]),
             ])
             ->filters([
+                Filter::make('customer_transaction')
+                    ->columnSpan(2)
+                    ->schema([
+                        Select::make('customer_id')
+                            ->label(__('admin/installment-payment-resource.filters.customer'))
+                            ->options(fn (): array => Customer::query()
+                                ->whereHas('installments.payments')
+                                ->orderBy('first_name')
+                                ->orderBy('last_name')
+                                ->get()
+                                ->mapWithKeys(fn (Customer $customer): array => [
+                                    $customer->id => $customer->full_name,
+                                ])
+                                ->all())
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->columnSpan(1)
+                            ->afterStateUpdated(fn (callable $set) => $set('transaction_id', null)),
+                        Select::make('transaction_id')
+                            ->label(__('admin/installment-payment-resource.filters.transaction'))
+                            ->options(fn (Get $get): array => Transaction::query()
+                                ->where('customer_id', $get('customer_id'))
+                                ->whereHas('installment.payments')
+                                ->orderByDesc('created_at')
+                                ->get()
+                                ->mapWithKeys(fn (Transaction $transaction): array => [
+                                    $transaction->id => $transaction->code,
+                                ])
+                                ->all())
+                            ->searchable()
+                            ->preload()
+                            ->columnSpan(1)
+                            ->disabled(fn (Get $get): bool => blank($get('customer_id'))),
+                    ])
+                    ->columns(2)
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['customer_id'] ?? null,
+                                fn (Builder $query, $customerId): Builder => $query->whereHas(
+                                    'installment',
+                                    fn (Builder $installmentQuery): Builder => $installmentQuery->where('customer_id', $customerId)
+                                )
+                            )
+                            ->when(
+                                $data['transaction_id'] ?? null,
+                                fn (Builder $query, $transactionId): Builder => $query->whereHas(
+                                    'installment',
+                                    fn (Builder $installmentQuery): Builder => $installmentQuery->where('transaction_id', $transactionId)
+                                )
+                            );
+                    }),
                 SelectFilter::make('status')
                     ->label(__('admin/installment-payment-resource.filters.status'))
                     ->options([
@@ -153,13 +212,6 @@ class InstallmentPaymentResource extends Resource
                         'partial' => __('admin/installment-payment-resource.status_options.partial'),
                         'paid' => __('admin/installment-payment-resource.status_options.paid'),
                         'overdue' => __('admin/installment-payment-resource.status_options.overdue'),
-                    ]),
-                SelectFilter::make('payment_method')
-                    ->label(__('admin/installment-payment-resource.filters.payment_method'))
-                    ->options([
-                        'payroll_deduction' => __('admin/installment-payment-resource.payment_method_options.payroll_deduction'),
-                        'manual' => __('admin/installment-payment-resource.payment_method_options.manual'),
-                        'transfer' => __('admin/installment-payment-resource.payment_method_options.transfer'),
                     ]),
                 SelectFilter::make('payroll_status')
                     ->label(__('admin/installment-payment-resource.filters.payroll_status'))
@@ -171,6 +223,8 @@ class InstallmentPaymentResource extends Resource
                         'failed' => __('admin/installment-payment-resource.payroll_status_options.failed'),
                     ]),
             ])
+            ->filtersLayout(FiltersLayout::AboveContent)
+            ->filtersFormColumns(4)
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),

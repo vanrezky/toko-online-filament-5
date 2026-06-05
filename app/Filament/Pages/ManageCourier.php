@@ -35,11 +35,6 @@ class ManageCourier extends Page
         $this->form->fill($settings->toArray());
     }
 
-    public static function canAccess(): bool
-    {
-        return isSuperUser();
-    }
-
     public static function getNavigationLabel(): string
     {
         return __('admin/page-manage-courier.navigation_label');

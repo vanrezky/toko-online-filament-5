@@ -1,11 +1,11 @@
 <?php
 
+use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\Balances\BalanceResource;
 use App\Filament\Resources\NewsletterSubscribers\NewsletterSubscriberResource;
 use App\Filament\Resources\Resellers\ResellerResource;
 use App\Filament\Resources\Sliders\SliderResource;
 use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
-use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 
@@ -50,16 +50,13 @@ return [
         'merge' => true,
         'generate' => true,
         'methods' => [
-            'viewAny', 'view', 'create', 'update', 'delete', 'deleteAny', 'restore',
-            'forceDelete', 'forceDeleteAny', 'restoreAny', 'replicate', 'reorder',
+            'view',
+            'create',
+            'update',
+            'delete',
         ],
         'single_parameter_methods' => [
-            'viewAny',
             'create',
-            'deleteAny',
-            'forceDeleteAny',
-            'restoreAny',
-            'reorder',
         ],
     ],
 
@@ -72,7 +69,6 @@ return [
         'subject' => 'model',
         'manage' => [
             RoleResource::class => [
-                'viewAny',
                 'view',
                 'create',
                 'update',

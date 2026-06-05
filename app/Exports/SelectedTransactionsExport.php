@@ -212,6 +212,6 @@ class SelectedTransactionsExport implements FromCollection, ShouldAutoSize, With
     {
         return $date
             ->locale('id')
-            ->translatedFormat('d F Y H:i:s');
+            ->translatedFormat('d F Y H:i');
     }
 }
