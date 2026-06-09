@@ -168,6 +168,10 @@ jobs:
             sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} storage bootstrap/cache public/build
             sudo chmod -R 775 storage bootstrap/cache public/build
 
+            echo "=== Handing runtime paths to www-data ==="
+            sudo chown -R www-data:www-data storage bootstrap/cache public/build
+            sudo chmod -R 775 storage bootstrap/cache public/build
+
             echo "=== Removing stale Laravel cache files ==="
             rm -f bootstrap/cache/*.php
 
@@ -185,10 +189,6 @@ jobs:
             sudo -u www-data php artisan route:cache
             sudo -u www-data php artisan icons:cache
             sudo -u www-data php artisan filament:optimize
-
-            echo "=== Fixing permissions for www-data ==="
-            sudo chown -R www-data:www-data storage bootstrap/cache public/build
-            sudo chmod -R 775 storage bootstrap/cache public/build
 
             echo "=== Restarting queue workers ==="
             sudo supervisorctl restart laravel-worker-dev:*
