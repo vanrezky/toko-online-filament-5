@@ -1,11 +1,11 @@
-name: Deploy to Production
+name: Deploy to Development
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
 
 concurrency:
-  group: production-deploy
+  group: development-deploy
   cancel-in-progress: false
 
 env:
@@ -17,7 +17,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    environment: production
+    environment: development
     timeout-minutes: 20
 
     steps:
@@ -110,7 +110,7 @@ jobs:
 
             echo "=== Creating .env file ==="
             cat > .env << ENVEOF
-            APP_NAME="TokoOnline"
+            APP_NAME="TokoOnline Dev"
             APP_ENV=${{ secrets.APP_ENV }}
             APP_KEY=${{ secrets.APP_KEY }}
             APP_DEBUG=${{ secrets.APP_DEBUG }}
@@ -118,7 +118,7 @@ jobs:
 
             LOG_CHANNEL=daily
             LOG_DEPRECATIONS_CHANNEL=null
-            LOG_LEVEL=warning
+            LOG_LEVEL=debug
 
             DB_CONNECTION=mysql
             DB_HOST=${{ secrets.DB_HOST }}
@@ -139,16 +139,16 @@ jobs:
             REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD || 'null' }}
             REDIS_PORT=${{ secrets.REDIS_PORT || '6379' }}
 
-            MAIL_MAILER=smtp
+            MAIL_MAILER=${{ secrets.MAIL_MAILER || 'log' }}
             MAIL_HOST=${{ secrets.MAIL_HOST }}
             MAIL_PORT=${{ secrets.MAIL_PORT || '587' }}
             MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
             MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
             MAIL_ENCRYPTION=tls
             MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS }}
-            MAIL_FROM_NAME="TokoOnline"
+            MAIL_FROM_NAME="TokoOnline Dev"
 
-            VITE_APP_NAME="TokoOnline"
+            VITE_APP_NAME="TokoOnline Dev"
 
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             OPENAI_ORGANIZATION=${{ secrets.OPENAI_ORGANIZATION }}
@@ -175,40 +175,47 @@ jobs:
             php artisan storage:link 2>/dev/null || true
 
             echo "=== Clearing caches ==="
-            php artisan optimize:clear
+            sudo -u www-data php artisan optimize:clear
 
             echo "=== Running migrations ==="
-            php artisan migrate --force
+            sudo -u www-data php artisan migrate --force
 
             echo "=== Caching configs ==="
-            php artisan config:cache
-            php artisan route:cache
-            php artisan icons:cache
-            php artisan filament:optimize
+            sudo -u www-data php artisan config:cache
+            sudo -u www-data php artisan route:cache
+            sudo -u www-data php artisan icons:cache
+            sudo -u www-data php artisan filament:optimize
 
             echo "=== Fixing permissions for www-data ==="
             sudo chown -R www-data:www-data storage bootstrap/cache public/build
             sudo chmod -R 775 storage bootstrap/cache public/build
 
             echo "=== Restarting queue workers ==="
+            sudo supervisorctl restart laravel-worker-dev:*
             sudo -u www-data php artisan queue:restart
 
             echo "=== Deployment complete! ==="
 
       - name: Health check
-        run: |
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.APP_URL }})
-          if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 302 ]; then
-            echo "::error::Health check failed with HTTP status $HTTP_STATUS"
-            exit 1
-          fi
-          echo "Health check passed (HTTP $HTTP_STATUS)"
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_SSH_PORT || 22 }}
+          script: |
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8081)
+            if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 302 ]; then
+              echo "Health check failed with HTTP status $HTTP_STATUS"
+              exit 1
+            fi
+            echo "Health check passed (HTTP $HTTP_STATUS)"
 
       - name: Notify deployment status
         if: always()
         run: |
           if [ "${{ job.status }}" = "success" ]; then
-            echo "Deployment successful for commit ${{ github.sha }}"
+            echo "Development deployment successful for commit ${{ github.sha }}"
           else
-            echo "Deployment failed for commit ${{ github.sha }}"
+            echo "Development deployment failed for commit ${{ github.sha }}"
           fi
