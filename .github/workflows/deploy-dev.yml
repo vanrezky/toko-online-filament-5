@@ -173,7 +173,7 @@ jobs:
             sudo chmod -R 775 storage bootstrap/cache public/build
 
             echo "=== Removing stale Laravel cache files ==="
-            rm -f bootstrap/cache/*.php
+            sudo rm -f bootstrap/cache/*.php
 
             echo "=== Creating storage link ==="
             php artisan storage:link 2>/dev/null || true
