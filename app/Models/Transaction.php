@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Transaction extends Model
 {
@@ -147,6 +148,11 @@ class Transaction extends Model
     public function installment(): HasOne
     {
         return $this->hasOne(Installment::class);
+    }
+
+    public function emailLogs(): MorphMany
+    {
+        return $this->morphMany(EmailLog::class, 'reference');
     }
 
     public function getSubtotalAttribute(): float

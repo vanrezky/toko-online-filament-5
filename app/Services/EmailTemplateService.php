@@ -7,12 +7,20 @@ use App\Jobs\SendEmailJob;
 use App\Models\Customer;
 use App\Models\EmailLog;
 use App\Models\EmailTemplate;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class EmailTemplateService
 {
-    public function send(string $code, string $email, array $placeholders = [], bool $queue = true, string $queuePriority = 'default'): ?EmailLog
+    public function send(
+        string $code,
+        string $email,
+        array $placeholders = [],
+        bool $queue = true,
+        string $queuePriority = 'default',
+        ?Model $referenceModel = null,
+    ): ?EmailLog
     {
         $template = EmailTemplate::getByCode($code);
 
@@ -33,6 +41,8 @@ class EmailTemplateService
             'body' => $renderedBody,
             'placeholders' => $placeholders,
             'status' => 'pending',
+            'reference_type' => $referenceModel ? $referenceModel::class : null,
+            'reference_id' => $referenceModel?->getKey(),
         ]);
 
         if ($queue) {
@@ -49,14 +59,21 @@ class EmailTemplateService
         return $emailLog;
     }
 
-    public function sendToCustomer(string $code, Customer $customer, array $placeholders = [], bool $queue = true, string $queuePriority = 'default'): ?EmailLog
+    public function sendToCustomer(
+        string $code,
+        Customer $customer,
+        array $placeholders = [],
+        bool $queue = true,
+        string $queuePriority = 'default',
+        ?Model $referenceModel = null,
+    ): ?EmailLog
     {
         $customerPlaceholders = array_merge($placeholders, [
             'customer_name' => $customer->full_name ?? trim($customer->first_name . ' ' . $customer->last_name),
             'email' => $customer->email,
         ]);
 
-        return $this->send($code, $customer->email, $customerPlaceholders, $queue, $queuePriority);
+        return $this->send($code, $customer->email, $customerPlaceholders, $queue, $queuePriority, $referenceModel);
     }
 
     public function getTemplate(string $code): ?EmailTemplate

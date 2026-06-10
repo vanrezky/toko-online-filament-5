@@ -49,6 +49,13 @@ class SendOrderExpiryReminder implements ShouldQueue
             'logo_url' => $logoUrl,
         ];
 
-        $emailService->send(EmailTemplateCode::ORDER_EXPIRY_REMINDER->value, $customer->email, $placeholders, true, 'low');
+        $emailService->send(
+            EmailTemplateCode::ORDER_EXPIRY_REMINDER->value,
+            $customer->email,
+            $placeholders,
+            true,
+            'low',
+            $transaction,
+        );
     }
 }
