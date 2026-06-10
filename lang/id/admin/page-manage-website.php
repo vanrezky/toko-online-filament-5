@@ -56,6 +56,18 @@ return [
         'admin_emails_helper' => 'Masukkan alamat email yang dipisahkan dengan koma (,) untuk menerima notifikasi pesanan, pembayaran, dan event penting. Contoh: admin@example.com, support@example.com',
     ],
 
+    'actions' => [
+        'test_email' => 'Kirim Email Test',
+        'recipient_email' => 'Email Penerima',
+        'modal_submit' => 'Kirim',
+        'modal_cancel' => 'Tutup',
+    ],
+
+    'notifications' => [
+        'test_email_success' => 'Email test berhasil dikirim',
+        'test_email_failed' => 'Email test gagal',
+    ],
+
     'file_helpers' => [
         'logo_supported' => 'File didukung: jpeg, jpg, png. Ukuran maksimal 1MB',
         'favicon_supported' => 'File didukung: jpeg, jpg, png, ico. Ukuran maksimal 1MB',

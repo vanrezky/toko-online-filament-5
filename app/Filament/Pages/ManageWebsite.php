@@ -6,6 +6,8 @@ use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Actions;
+use Filament\Actions\Action;
 use App\Constants\UploadPath;
 use App\Settings\GeneralSettings;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
@@ -14,7 +16,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Pages\SettingsPage;
+use Illuminate\Support\Facades\Mail;
 use Override;
 
 class ManageWebsite extends SettingsPage
@@ -126,7 +130,49 @@ class ManageWebsite extends SettingsPage
                                     ]),
                                 TextInput::make('mail_username')->label(__('admin/page-manage-website.fields.mail_username'))->email(),
                                 TextInput::make('mail_password')->label(__('admin/page-manage-website.fields.mail_password')),
+                                Actions::make([
+                                    Action::make('test_email')
+                                        ->label(__('admin/page-manage-website.actions.test_email'))
+                                        ->icon('heroicon-o-paper-airplane')
+                                        ->form([
+                                            TextInput::make('recipient_email')
+                                                ->label(__('admin/page-manage-website.actions.recipient_email'))
+                                                ->email()
+                                                ->required(),
+                                        ])
+                                        ->modalSubmitActionLabel(__('admin/page-manage-website.actions.modal_submit'))
+                                        ->modalCancelActionLabel(__('admin/page-manage-website.actions.modal_cancel'))
+                                        ->action(function (array $data) {
+                                            $settings = app(GeneralSettings::class);
+                                            $formData = $this->data;
+                                            $settings->loadMailSettingsToConfig([
+                                                'mail_host' => $formData['mail_host'] ?? null,
+                                                'mail_port' => $formData['mail_port'] ?? null,
+                                                'encryption' => $formData['mail_encryption'] ?? null,
+                                                'username' => $formData['mail_username'] ?? null,
+                                                'password' => $formData['mail_password'] ?? null,
+                                                'from_address' => $formData['mail_from'] ?? null,
+                                                'from_name' => $formData['mail_from'] ?? null,
+                                            ]);
 
+                                            try {
+                                                Mail::raw('Test', function ($message) use ($data) {
+                                                    $message->to($data['recipient_email'])
+                                                        ->subject('Test Email');
+                                                });
+
+                                                Notification::make()
+                                                    ->title(__('admin/page-manage-website.notifications.test_email_success'))
+                                                    ->success()
+                                                    ->send();
+                                            } catch (\Exception $e) {
+                                                Notification::make()
+                                                    ->title(__('admin/page-manage-website.notifications.test_email_failed') . ': ' . $e->getMessage())
+                                                    ->danger()
+                                                    ->send();
+                                            }
+                                        }),
+                                ]),
                             ])->columns(2),
                         Tab::make(__('admin/page-manage-website.tabs.system'))
                             ->icon('heroicon-o-wrench')

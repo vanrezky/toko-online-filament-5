@@ -7,6 +7,7 @@ use App\Jobs\SendEmailJob;
 use App\Models\Customer;
 use App\Models\EmailLog;
 use App\Models\EmailTemplate;
+use App\Settings\GeneralSettings;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -128,6 +129,8 @@ class EmailTemplateService
     public function sendNow(EmailLog $emailLog): bool
     {
         try {
+            app(GeneralSettings::class)->loadMailSettingsToConfig();
+
             Mail::html($emailLog->body, function ($message) use ($emailLog) {
                 $message->to($emailLog->recipient_email)
                     ->subject($emailLog->subject);

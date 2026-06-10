@@ -108,4 +108,17 @@ class GeneralSettings extends Settings
 
         return asset('assets/images/favicon.ico');
     }
+
+    public function loadMailSettingsToConfig($data = null): void
+    {
+        config([
+            'mail.mailers.smtp.host' => $data['mail_host'] ?? $this->mail_host,
+            'mail.mailers.smtp.port' => $data['mail_port'] ?? $this->mail_port,
+            'mail.mailers.smtp.encryption' => $data['encryption'] ?? $this->mail_encryption,
+            'mail.mailers.smtp.username' => $data['username'] ?? $this->mail_username,
+            'mail.mailers.smtp.password' => $data['password'] ?? $this->mail_password,
+            'mail.from.address' => $data['from_address'] ?? $this->mail_from,
+            'mail.from.name' => $data['from_name'] ?? $this->mail_from,
+        ]);
+    }
 }
