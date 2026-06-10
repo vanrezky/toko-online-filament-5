@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateEmailTemplate extends CreateRecord
 {
     protected static string $resource = EmailTemplateResource::class;
+
+    public function getTitle(): string
+    {
+        return __('admin/email-template-resource.pages.create.title');
+    }
 }

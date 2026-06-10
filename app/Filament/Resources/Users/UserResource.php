@@ -30,36 +30,62 @@ class UserResource extends Resource
     protected static ?string $model = User::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-users';
-    protected static string | \UnitEnum | null $navigationGroup = 'Pengaturan';
     protected static ?string $slug = 'setting/users';
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/user-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/user-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/user-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/user-resource.plural_model_label');
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Section::make('User Information')
+                Section::make(__('admin/user-resource.section'))
                     ->schema([
                         TextInput::make('name')
+                            ->label(__('admin/user-resource.fields.name'))
                             ->required()
                             ->maxLength(255),
                         TextInput::make('email')
+                            ->label(__('admin/user-resource.fields.email'))
                             ->email()
                             ->required()
                             ->minLength(5)
                             ->maxLength(50)
                             ->unique(ignoreRecord: true),
                         Select::make('roles')
+                            ->label(__('admin/user-resource.fields.roles'))
                             ->relationship('roles', titleAttribute: 'name', modifyQueryUsing: fn($query) => $query->whereNot('name', 'super_admin')),
                         TextInput::make('password')
+                            ->label(__('admin/user-resource.fields.password'))
                             ->password()
+                            ->revealable()
                             ->rules([securePassword()])
                             ->required()
                             ->maxLength(255)
                             ->minLength(8)
                             ->hiddenOn('view'),
                         TextInput::make('confirm_password')
+                            ->label(__('admin/user-resource.fields.confirm_password'))
                             ->same('password')
                             ->password()
+                            ->revealable()
                             ->required()
                             ->maxLength(255)
                             ->minLength(8)
@@ -75,23 +101,29 @@ class UserResource extends Resource
             ->modifyQueryUsing(fn(Builder $query): Builder => $query->superUser(false))
             ->columns([
                 TextColumn::make('name')
+                    ->label(__('admin/user-resource.columns.name'))
                     ->searchable(),
                 TextColumn::make('email')
+                    ->label(__('admin/user-resource.columns.email'))
                     ->searchable(),
                 TextColumn::make('email_verified_at')
+                    ->label(__('admin/user-resource.columns.email_verified_at'))
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label(__('admin/user-resource.columns.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('admin/user-resource.columns.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Filter::make('verified')
+                    ->label(__('admin/user-resource.filters.verified'))
                     ->query(fn(Builder $query): Builder => $query->whereNotNull('email_verified_at'))
             ])
             ->recordActions([

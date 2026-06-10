@@ -31,72 +31,90 @@ class EmailTemplateResource extends Resource
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-envelope';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Pengaturan';
-
-    protected static ?string $navigationLabel = 'Email Templates';
-
-    protected static ?string $modelLabel = 'Email Template';
-
     protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'email-templates';
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/email-template-resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin/email-template-resource.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin/email-template-resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin/email-template-resource.plural_model_label');
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Section::make('Template Information')
+                Section::make(__('admin/email-template-resource.sections.template_information'))
                     ->schema([
                         TextInput::make('code')
+                            ->label(__('admin/email-template-resource.fields.code'))
                             ->required()
                             ->maxLength(100)
                             ->unique(ignorable: fn ($record) => $record)
                             ->disabled(fn ($record) => $record !== null)
-                            ->helperText('Unique identifier for this template (e.g., reset_password, payment_success)')
+                            ->helperText(__('admin/email-template-resource.fields.code_helper'))
                             ->columnSpan(1),
                         TextInput::make('name')
+                            ->label(__('admin/email-template-resource.fields.name'))
                             ->required()
                             ->maxLength(255)
                             ->columnSpan(1),
                         Toggle::make('is_active')
-                            ->label('Active')
+                            ->label(__('admin/email-template-resource.fields.is_active'))
                             ->default(true)
                             ->inline(false)
                             ->columnSpan(1),
                         Toggle::make('send_to_admin')
-                            ->label('Send Copy to Admin')
+                            ->label(__('admin/email-template-resource.fields.send_to_admin'))
                             ->default(false)
                             ->inline(false)
-                            ->helperText('Send a copy of this email to admin emails configured in Settings > Notifications')
+                            ->helperText(__('admin/email-template-resource.fields.send_to_admin_helper'))
                             ->columnSpan(1),
                     ])->columns(2),
 
-                Section::make('Header Settings')
+                Section::make(__('admin/email-template-resource.sections.header_settings'))
                     ->schema([
                         TextInput::make('header_title')
-                            ->label('Header Title')
+                            ->label(__('admin/email-template-resource.fields.header_title'))
                             ->maxLength(255)
-                            ->helperText('Title shown in email header (e.g., "Pembayaran Berhasil")'),
+                            ->helperText(__('admin/email-template-resource.fields.header_title_helper')),
                         ColorPicker::make('header_gradient')
-                            ->label('Header Gradient Start')
-                            ->helperText('Gradient color for email header. Leave empty for default.')
+                            ->label(__('admin/email-template-resource.fields.header_gradient'))
+                            ->helperText(__('admin/email-template-resource.fields.header_gradient_helper'))
                             ->columnSpan(1),
                     ])->columns(2),
 
-                Section::make('Email Content')
+                Section::make(__('admin/email-template-resource.sections.email_content'))
                     ->schema([
                         TextInput::make('subject')
+                            ->label(__('admin/email-template-resource.fields.subject'))
                             ->required()
                             ->maxLength(255)
-                            ->helperText('Email subject. Use {{placeholder}} for dynamic values.')
+                            ->helperText(__('admin/email-template-resource.fields.subject_helper'))
                             ->columnSpanFull()
                             ->maxLength(255),
                         View::make('filament.forms.placeholders'),
 
                         RichEditor::make('body')
+                            ->label(__('admin/email-template-resource.fields.body'))
                             ->required()
                             ->maxLength(65535)
-                            ->helperText('Email body content. Use {{placeholder}} for dynamic values. Styles are applied automatically.')
+                            ->helperText(__('admin/email-template-resource.fields.body_helper'))
                             ->toolbarButtons([
                                 'bold',
                                 'italic',
@@ -120,30 +138,35 @@ class EmailTemplateResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('code')
+                    ->label(__('admin/email-template-resource.columns.code'))
                     ->searchable()
                     ->sortable()
                     ->badge(),
                 TextColumn::make('name')
+                    ->label(__('admin/email-template-resource.columns.name'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('subject')
+                    ->label(__('admin/email-template-resource.columns.subject'))
                     ->limit(50),
                 IconColumn::make('is_active')
-                    ->label('Status')
+                    ->label(__('admin/email-template-resource.columns.is_active'))
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle'),
                 IconColumn::make('send_to_admin')
-                    ->label('Admin Copy')
+                    ->label(__('admin/email-template-resource.columns.send_to_admin'))
                     ->boolean()
                     ->trueIcon('heroicon-o-bell')
                     ->falseIcon('heroicon-o-bell-slash'),
                 TextColumn::make('updated_at')
+                    ->label(__('admin/email-template-resource.columns.updated_at'))
                     ->dateTime()
                     ->sortable(),
             ])
             ->filters([
                 Filter::make('is_active')
+                    ->label(__('admin/email-template-resource.fields.is_active'))
                     ->query(fn ($query) => $query->where('is_active', true))
                     ->toggle(),
             ])

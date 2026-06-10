@@ -8,4 +8,9 @@ use Filament\Resources\Pages\ListRecords;
 class ListEmailTemplates extends ListRecords
 {
     protected static string $resource = EmailTemplateResource::class;
+
+    public function getTitle(): string
+    {
+        return __('admin/email-template-resource.pages.list.title');
+    }
 }

@@ -11,6 +11,11 @@ class EditEmailTemplate extends EditRecord
 {
     protected static string $resource = EmailTemplateResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/email-template-resource.pages.edit.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [
