@@ -68,6 +68,7 @@ class PageResource extends Resource
     {
         return $schema
             ->components([
+
                 Tabs::make()
                     ->schema([
                         Tab::make(__('admin/page-resource.tabs.title_and_content'))
