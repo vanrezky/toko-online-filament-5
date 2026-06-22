@@ -81,6 +81,7 @@ class CustomerLevelResource extends Resource
 
                 Section::make(__('admin/customer-level-resource.sections.credit_settings'))
                     ->description(__('admin/customer-level-resource.sections.credit_settings_description'))
+                    ->hidden()
                     ->schema([
                         TextInput::make('default_credit_limit')
                             ->label(__('admin/customer-level-resource.fields.default_credit_limit'))
@@ -110,7 +111,8 @@ class CustomerLevelResource extends Resource
                 TextColumn::make('default_credit_limit')
                     ->label(__('admin/customer-level-resource.columns.default_credit_limit'))
                     ->money('IDR')
-                    ->sortable(),
+                    ->sortable()
+                    ->hidden(),
                 IconColumn::make('is_active')
                     ->label(__('admin/customer-level-resource.columns.is_active'))
                     ->boolean()

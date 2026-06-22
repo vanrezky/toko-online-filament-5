@@ -190,7 +190,8 @@ class ProductResource extends Resource
                                     TextInput::make('afiliate_price')
                                         ->rules('nullable|numeric')
                                         ->label(__('admin/product-resource.fields.afiliate_price'))
-                                        ->helperText(__('admin/product-resource.fields.afiliate_price_helper')),
+                                        ->helperText(__('admin/product-resource.fields.afiliate_price_helper'))
+                                        ->hidden(),
                                 ]
                             )->inlineLabel(),
                         Tab::make(__('admin/product-resource.tabs.inventory'))
@@ -327,6 +328,7 @@ class ProductResource extends Resource
                         //     ]),
                         Tab::make(__('admin/product-resource.tabs.wholesales'))
                             ->label(__('admin/product-resource.tabs.wholesales'))
+                            ->hidden()
                             ->schema([
                                 Repeater::make('wholesales')
                                     ->label(__('admin/product-resource.tabs.wholesales_price'))
@@ -387,7 +389,7 @@ class ProductResource extends Resource
                 TextColumn::make('afiliate_price')
                     ->numeric()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->hidden(),
                 TextColumn::make('min_order')
                     ->numeric()
                     ->sortable()
