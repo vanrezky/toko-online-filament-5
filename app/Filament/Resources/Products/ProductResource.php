@@ -153,7 +153,6 @@ class ProductResource extends Resource
                                     ->placeholder(__('admin/product-resource.fields.description'))
                                     ->helperText(__('admin/product-resource.fields.description_helper'))
                                     ->required()
-                                    ->string()
                                     ->disableToolbarButtons([
                                         'attachFiles',
                                     ])

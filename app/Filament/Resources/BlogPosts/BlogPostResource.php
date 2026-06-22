@@ -92,7 +92,6 @@ class BlogPostResource extends Resource
                                     ->hiddenLabel()
                                     ->placeholder(__('admin/blog-post-resource.placeholders.post_content'))
                                     ->required()
-                                    ->string()
                                     ->columnSpanFull(),
                                 Select::make('blog_category_id')
                                     ->label(__('admin/blog-post-resource.fields.category_id'))

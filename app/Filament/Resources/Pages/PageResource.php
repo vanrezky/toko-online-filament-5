@@ -85,7 +85,6 @@ class PageResource extends Resource
                                     ->hiddenLabel()
                                     ->placeholder(__('admin/page-resource.placeholders.page_content'))
                                     ->required()
-                                    ->string()
                                     ->columnSpanFull(),
                             ]),
 
