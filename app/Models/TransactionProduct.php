@@ -63,7 +63,7 @@ class TransactionProduct extends Model
             return (float) $this->line_subtotal;
         }
 
-        return ($this->price * $this->quantity) - $this->discount;
+        return (($this->price - $this->discount) * $this->quantity);
     }
 
     public function getDisplayProductNameAttribute(): string

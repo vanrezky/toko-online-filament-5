@@ -305,7 +305,12 @@ const statusDates = computed(() => {
                                                             {{ item.variant_name || item.description }}
                                                         </p>
                                                     </div>
-                                                    <p class="text-sm font-bold text-[#fa8456]">{{ formatCurrency(item.price) }}</p>
+                                                    <div class="flex items-center gap-2">
+                                                        <p class="text-sm font-bold text-[#fa8456]">{{ formatCurrency(item.final_price || item.price) }}</p>
+                                                        <p v-if="item.price > (item.final_price || item.price)" class="text-xs text-[#6b5a4d] line-through">
+                                                            {{ formatCurrency(item.price) }}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                                 <div class="mt-auto flex items-center justify-between text-sm text-[#6b5a4d]">
                                                     <span>{{ t("labels.order.quantity", { qty: item.quantity }) }}</span>

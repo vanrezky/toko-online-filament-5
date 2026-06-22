@@ -271,7 +271,7 @@ class CheckoutController extends Controller
         $pendingVouchers = $this->cookieService->get();
         $validatedVouchers = $this->voucherService->validateFromCookie($pendingVouchers, $cart, $customer);
 
-        $subtotal = $cart->items->sum(fn($item) => ($item->price - $item->discount) * $item->quantity);
+        $subtotal = $cart->items->sum(fn($item) => $item->price * $item->quantity);
         $productDiscount = $validatedVouchers['product']['discount_amount'] ?? 0;
         $shippingDiscount = $validatedVouchers['shipping']['discount_amount'] ?? 0;
         $discountedShippingFee = max(0, $totalShippingCost - $shippingDiscount);
@@ -344,9 +344,10 @@ class CheckoutController extends Controller
             foreach ($cart->items as $item) {
                 $variant = $item->productVariant;
                 $product = $item->product;
-                $unitPrice = (float) $item->price;
+                $finalUnitPrice = (float) $item->price;
                 $discountAmount = (float) ($item->discount ?? 0);
-                $lineSubtotal = ($unitPrice * (int) $item->quantity) - $discountAmount;
+                $baseUnitPrice = $finalUnitPrice + $discountAmount;
+                $lineSubtotal = $finalUnitPrice * (int) $item->quantity;
                 $imageSnapshot = $this->transactionProductImageSnapshotService->snapshotFeaturedImage($product);
 
                 $transaction->products()->create([
@@ -360,7 +361,7 @@ class CheckoutController extends Controller
                     'weight_snapshot' => $variant?->weight ?: $product->weight,
                     'warehouse_id' => $item->product->warehouse_id ?: 1,
                     'quantity' => $item->quantity,
-                    'price' => $unitPrice,
+                    'price' => $baseUnitPrice,
                     'discount' => $discountAmount,
                     'line_subtotal' => $lineSubtotal,
                     'description' => $variant?->variant_name,

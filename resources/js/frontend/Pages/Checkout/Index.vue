@@ -111,18 +111,24 @@ onMounted(() => {
 });
 
 const items = computed(() => props.cart?.items || []);
-const subtotal = computed(() => items.value.reduce((total, item) => total + item.price * item.quantity, 0));
+const subtotal = computed(() => {
+    return items.value.reduce((total, item) => total + (item.original_price || item.price) * item.quantity, 0);
+});
+
+const saleProductDiscount = computed(() => {
+    return items.value.reduce((total, item) => total + (item.discount || 0) * item.quantity, 0);
+});
 
 const shippingDiscount = computed(() => {
     return localValidatedVouchers.value?.shipping?.discount_amount || 0;
 });
 
-const productDiscount = computed(() => {
+const voucherProductDiscount = computed(() => {
     return localValidatedVouchers.value?.product?.discount_amount || 0;
 });
 
 const totalVoucherDiscount = computed(() => {
-    return shippingDiscount.value + productDiscount.value;
+    return shippingDiscount.value + voucherProductDiscount.value;
 });
 
 const hasAnyVoucher = computed(() => {
@@ -164,7 +170,7 @@ const discountedShippingFee = computed(() => {
 
 const total = computed(() => subtotal.value + discountedShippingFee.value);
 const grandTotal = computed(() => {
-    return subtotal.value + discountedShippingFee.value - productDiscount.value;
+    return subtotal.value - saleProductDiscount.value + discountedShippingFee.value - voucherProductDiscount.value;
 });
 
 const isInstallmentEligible = computed(() => {
@@ -822,7 +828,12 @@ const applyVoucher = async () => {
                                                 {{ item.product_variant.variant_name }}
                                             </p>
                                             <p class="mt-2 text-xs text-[#6b5a4d]">Qty: {{ item.quantity }}</p>
-                                            <p class="mt-2 text-sm font-bold text-[#fa8456]">{{ formatCurrency(item.price) }}</p>
+                                            <div class="mt-2 flex items-center gap-2">
+                                                <p class="text-sm font-bold text-[#fa8456]">{{ formatCurrency(item.price) }}</p>
+                                                <p v-if="item.original_price && item.original_price > item.price" class="text-xs text-[#6b5a4d] line-through">
+                                                    {{ formatCurrency(item.original_price) }}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -841,9 +852,13 @@ const applyVoucher = async () => {
                                             </span>
                                         </span>
                                     </div>
-                                    <div v-if="productDiscount > 0" class="flex justify-between text-sm text-green-600">
+                                    <div v-if="saleProductDiscount > 0" class="flex justify-between text-sm text-green-600">
                                         <span>{{ t('labels.checkout.product_discount') }}</span>
-                                        <span class="font-semibold">-{{ formatCurrency(productDiscount) }}</span>
+                                        <span class="font-semibold">-{{ formatCurrency(saleProductDiscount) }}</span>
+                                    </div>
+                                    <div v-if="voucherProductDiscount > 0" class="flex justify-between text-sm text-green-600">
+                                        <span>{{ t('labels.checkout.voucher_discount') }}</span>
+                                        <span class="font-semibold">-{{ formatCurrency(voucherProductDiscount) }}</span>
                                     </div>
                                     <div class="flex justify-between border-t border-[#e8e6ef] pt-4">
                                         <span class="text-sm font-bold text-[#2d1b0e]">{{ t('labels.checkout.total') }}</span>

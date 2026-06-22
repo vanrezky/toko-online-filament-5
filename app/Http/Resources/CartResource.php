@@ -26,6 +26,8 @@ class CartResource extends JsonResource
                     'product' => ProductSimpleResource::make($item->product),
                     'quantity' => $item->quantity,
                     'price' => $item->price,
+                    'discount' => $item->discount,
+                    'original_price' => $item->price + ($item->discount ?? 0),
                     'product_variant' => !empty($item->productVariant) ?
                         [
                             'id' => $item->productVariant->uuid,

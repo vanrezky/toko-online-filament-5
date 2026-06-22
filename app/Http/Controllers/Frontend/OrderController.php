@@ -123,7 +123,7 @@ class OrderController extends Controller
             abort(403);
         }
 
-        if ($transaction->status !== TransactionStatus::packed->value || $transaction->payment_type !== 'full') {
+        if ($transaction->status !== TransactionStatus::packed || $transaction->payment_type !== 'full') {
             return response()->json(['error' => __('messages.error.order_already_paid')], 400);
         }
 
@@ -154,7 +154,7 @@ class OrderController extends Controller
             abort(403);
         }
 
-        if ($transaction->status !== TransactionStatus::packed->value) {
+        if ($transaction->status !== TransactionStatus::packed) {
             return back()->with('error', 'Pesanan ini tidak dapat dibatalkan.');
         }
 

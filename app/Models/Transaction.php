@@ -157,12 +157,36 @@ class Transaction extends Model
 
     public function getSubtotalAttribute(): float
     {
-        return (float) $this->products->sum(fn($p) => $p->price * $p->quantity);
+        return (float) $this->products->sum(function ($product) {
+            $baseUnitPrice = (float) $product->price;
+            $discountPerUnit = (float) $product->discount;
+            $finalLineSubtotal = (float) $product->subtotal;
+            $baseLineSubtotal = $baseUnitPrice * (int) $product->quantity;
+
+            // Older rows stored `price` as final unit price while newer rows store normal unit price.
+            if ($discountPerUnit > 0 && abs($finalLineSubtotal - $baseLineSubtotal) < 0.01) {
+                $baseUnitPrice += $discountPerUnit;
+            }
+
+            return $baseUnitPrice * (int) $product->quantity;
+        });
     }
 
     public function getProductDiscountAttribute(): float
     {
-        return (float) $this->products->sum('discount');
+        return (float) $this->products->sum(function ($product) {
+            $baseUnitPrice = (float) $product->price;
+            $discountPerUnit = (float) $product->discount;
+            $finalLineSubtotal = (float) $product->subtotal;
+            $baseLineSubtotal = $baseUnitPrice * (int) $product->quantity;
+
+            if ($discountPerUnit > 0 && abs($finalLineSubtotal - $baseLineSubtotal) < 0.01) {
+                $baseUnitPrice += $discountPerUnit;
+                $baseLineSubtotal = $baseUnitPrice * (int) $product->quantity;
+            }
+
+            return max(0, $baseLineSubtotal - $finalLineSubtotal);
+        });
     }
 
     public function getVoucherDiscountAttribute(): float
