@@ -179,8 +179,8 @@ jobs:
             sudo rm -f bootstrap/cache/*.php
 
             echo "=== Ensuring storage link exists ==="
-            rm -rf public/storage
-            php artisan storage:link
+            sudo rm -rf public/storage
+            sudo -u www-data php artisan storage:link
 
             echo "=== Clearing caches ==="
             sudo -u www-data php artisan optimize:clear
