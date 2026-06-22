@@ -89,6 +89,7 @@ jobs:
             --exclude='.git' \
             --exclude='.DS_Store' \
             --exclude='node_modules' \
+            --exclude='public/storage' \
             --exclude='storage/app/public/' \
             --exclude='storage/logs/' \
             --exclude='storage/framework/cache/data/' \
@@ -173,8 +174,9 @@ jobs:
             echo "=== Removing stale Laravel cache files ==="
             rm -f bootstrap/cache/*.php
 
-            echo "=== Creating storage link ==="
-            php artisan storage:link 2>/dev/null || true
+            echo "=== Ensuring storage link exists ==="
+            rm -rf public/storage
+            php artisan storage:link
 
             echo "=== Clearing caches ==="
             php artisan optimize:clear
