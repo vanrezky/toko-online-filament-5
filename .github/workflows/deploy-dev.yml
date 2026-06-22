@@ -171,16 +171,16 @@ jobs:
             sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} storage bootstrap/cache public/build
             sudo chmod -R 775 storage bootstrap/cache public/build
 
-            echo "=== Handing runtime paths to www-data ==="
-            sudo chown -R www-data:www-data storage bootstrap/cache public/build
-            sudo chmod -R 775 storage bootstrap/cache public/build
-
             echo "=== Removing stale Laravel cache files ==="
             sudo rm -f bootstrap/cache/*.php
 
             echo "=== Ensuring storage link exists ==="
             sudo rm -rf public/storage
-            sudo -u www-data php artisan storage:link
+            php artisan storage:link
+
+            echo "=== Handing runtime paths to www-data ==="
+            sudo chown -R www-data:www-data storage bootstrap/cache public/build
+            sudo chmod -R 775 storage bootstrap/cache public/build
 
             echo "=== Clearing caches ==="
             sudo -u www-data php artisan optimize:clear
