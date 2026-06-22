@@ -176,7 +176,7 @@ class ProductResource extends Resource
                                         ->rules([
                                             fn(Get $get, ?Model $record): Closure => function (string $attribute, $value, Closure $fail) use ($get, $record) {
                                                 $price = $get('price');
-                                                if ($value !== null && $price !== null && (float) $value <= (float) $price) {
+                                                if ($value !== null && $price !== null && (float) $value >= (float) $price) {
                                                     $fail(__('admin/product-resource.notifications.sale_price_error'));
                                                 }
                                             },
