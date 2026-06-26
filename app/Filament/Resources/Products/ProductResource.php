@@ -114,6 +114,8 @@ class ProductResource extends Resource
                                         ->required()
                                         ->columnSpanFull(),
                                     Select::make('digital')
+                                        ->default(false)
+                                        ->hidden()
                                         ->label(__('admin/product-resource.fields.digital'))
                                         ->helperText(__('admin/product-resource.fields.digital_helper'))
                                         ->required()
@@ -225,6 +227,7 @@ class ProductResource extends Resource
                                     ->maxValue(fn(Get $get) => $get('stock')),
                             ])->inlineLabel(),
                         Tab::make(__('admin/product-resource.tabs.faqs'))
+                            ->hidden()
                             ->schema([
                                 Repeater::make('faqs')
                                     ->relationship('faqs')
@@ -242,6 +245,7 @@ class ProductResource extends Resource
 
                             ]),
                         Tab::make(__('admin/product-resource.tabs.seo'))
+                            ->hidden()
                             ->schema([
                                 TitleSchema::slug()
                                     ->required()
@@ -273,6 +277,7 @@ class ProductResource extends Resource
                             ->directory(UploadPath::PRODUCT_UPLOAD_PATH),
                     ])->columnSpanFull(),
                 Section::make(__('admin/product-resource.fields.other_settings'))
+                    ->hidden()
                     ->schema([
                         TagsInput::make('tags')
                             ->label(__('admin/product-resource.fields.tags'))
@@ -283,68 +288,69 @@ class ProductResource extends Resource
                             ->helperText(__('admin/product-resource.fields.is_active_helper'))
                             ->options(self::getStatusOptions())
                             ->default(Status::ACTIVE)
+                            ->hidden()
                             ->native(false)
                             ->required(),
                     ])->columnSpanFull(),
-                Tabs::make('Advanced Settings')
-                    ->schema([
-                        // @feature-toggle: reseller — uncomment to re-enable Reseller Price tab
-                        // Tabs\Tab::make('Reseller Price')
-                        //     ->schema([
-                        //         Forms\Components\Repeater::make('resellerPrices')
-                        //             ->relationship('resellerPrices')
-                        //             ->hiddenLabel()
-                        //             ->reorderable(false)
-                        //             ->deleteAction(function (Action $action) {
-                        //                 $action->requiresConfirmation();
-                        //             })
-                        //             ->defaultItems(0)
-                        //             ->schema([
-                        //                 Forms\Components\Select::make('reseller_id')
-                        //                     ->label(__('Reseller Level'))
-                        //                     ->options(Reseller::active()->get()->pluck('name_level', 'id')->toArray())
-                        //                     ->disableOptionsWhenSelectedInSiblingRepeaterItems()
-                        //                     ->hintAction(
-                        //                         Action::make('wholesale')
-                        //                             ->icon('heroicon-m-currency-dollar')
-                        //                             ->label('Add wholesale')
-                        //                             ->form([
-                        //                                 Forms\Components\Repeater::make('wholesales')
-                        //                                     ->default(fn($record): array => $record ? $record->wholesales->toArray() : [])
-                        //                                     ->schema(self::getWholesalesSchema())
-                        //                                     ->hiddenLabel()
-                        //                                     ->grid(['lg' => 2]),
-                        //                             ])
-                        //                             ->action(fn(array $data, $record) => self::setActionWholesales($data, $record))
-                        //                             ->visible(fn($record): bool => ! empty($record))
-                        //                     ),
-                        //                 Forms\Components\TextInput::make('price')
-                        //                     ->required()
-                        //                     ->numeric()
-                        //                     ->default(fn(Get $get) => $get('../../price'))
-                        //                     ->live(onBlur: true)
-                        //                     ->hint(fn(Get $get): string => 'Normal Price: Rp ' . number_format($get('../../price') ?? 0, 0, ',', '.'))
-                        //             ])->grid(['md' => 2]),
-                        //     ]),
-                        Tab::make(__('admin/product-resource.tabs.wholesales'))
-                            ->label(__('admin/product-resource.tabs.wholesales'))
-                            ->hidden()
-                            ->schema([
-                                Repeater::make('wholesales')
-                                    ->label(__('admin/product-resource.tabs.wholesales_price'))
-                                    ->relationship('wholesales', fn(Builder $query): Builder => $query->whereNull('reseller_id'))
-                                    ->reorderable(false)
-                                    ->hiddenLabel()
-                                    // ->collapsible()
-                                    ->deleteAction(
-                                        fn(Action $action) => $action->requiresConfirmation(),
-                                    )
-                                    ->cloneable()
-                                    ->defaultItems(0)
-                                    ->schema(self::getWholesalesSchema())
-                                    ->grid(['xl' => 2]),
-                            ]),
-                    ])->columnSpanFull(),
+                // Tabs::make('Advanced Settings')
+                //     ->schema([
+                // @feature-toggle: reseller — uncomment to re-enable Reseller Price tab
+                // Tabs\Tab::make('Reseller Price')
+                //     ->schema([
+                //         Forms\Components\Repeater::make('resellerPrices')
+                //             ->relationship('resellerPrices')
+                //             ->hiddenLabel()
+                //             ->reorderable(false)
+                //             ->deleteAction(function (Action $action) {
+                //                 $action->requiresConfirmation();
+                //             })
+                //             ->defaultItems(0)
+                //             ->schema([
+                //                 Forms\Components\Select::make('reseller_id')
+                //                     ->label(__('Reseller Level'))
+                //                     ->options(Reseller::active()->get()->pluck('name_level', 'id')->toArray())
+                //                     ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                //                     ->hintAction(
+                //                         Action::make('wholesale')
+                //                             ->icon('heroicon-m-currency-dollar')
+                //                             ->label('Add wholesale')
+                //                             ->form([
+                //                                 Forms\Components\Repeater::make('wholesales')
+                //                                     ->default(fn($record): array => $record ? $record->wholesales->toArray() : [])
+                //                                     ->schema(self::getWholesalesSchema())
+                //                                     ->hiddenLabel()
+                //                                     ->grid(['lg' => 2]),
+                //                             ])
+                //                             ->action(fn(array $data, $record) => self::setActionWholesales($data, $record))
+                //                             ->visible(fn($record): bool => ! empty($record))
+                //                     ),
+                //                 Forms\Components\TextInput::make('price')
+                //                     ->required()
+                //                     ->numeric()
+                //                     ->default(fn(Get $get) => $get('../../price'))
+                //                     ->live(onBlur: true)
+                //                     ->hint(fn(Get $get): string => 'Normal Price: Rp ' . number_format($get('../../price') ?? 0, 0, ',', '.'))
+                //             ])->grid(['md' => 2]),
+                //     ]),
+                //     Tab::make(__('admin/product-resource.tabs.wholesales'))
+                //         ->label(__('admin/product-resource.tabs.wholesales'))
+                //         ->hidden()
+                //         ->schema([
+                //             Repeater::make('wholesales')
+                //                 ->label(__('admin/product-resource.tabs.wholesales_price'))
+                //                 ->relationship('wholesales', fn(Builder $query): Builder => $query->whereNull('reseller_id'))
+                //                 ->reorderable(false)
+                //                 ->hiddenLabel()
+                //                 // ->collapsible()
+                //                 ->deleteAction(
+                //                     fn(Action $action) => $action->requiresConfirmation(),
+                //                 )
+                //                 ->cloneable()
+                //                 ->defaultItems(0)
+                //                 ->schema(self::getWholesalesSchema())
+                //                 ->grid(['xl' => 2]),
+                //         ]),
+                // ])->columnSpanFull(),
             ])->columns(3);
     }
 
