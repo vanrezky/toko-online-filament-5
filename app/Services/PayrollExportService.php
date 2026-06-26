@@ -2,20 +2,24 @@
 
 namespace App\Services;
 
+use App\Exports\PayrollDeductionExport;
 use App\Models\InstallmentPayment;
 use App\Models\Transaction;
+use App\Settings\GeneralSettings;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\PayrollDeductionExport;
 
 class PayrollExportService
 {
     public function getMonthlyDeductions(int $month, int $year, ?int $customerLevelId = null): Collection
     {
+        $duePeriod = $this->resolveDuePeriod($month, $year);
+
         $query = InstallmentPayment::with(['installment.customer', 'installment.customer.customerLevel'])
-            ->whereYear('due_date', $year)
-            ->whereMonth('due_date', $month)
+            ->whereYear('due_date', $duePeriod->year)
+            ->whereMonth('due_date', $duePeriod->month)
             ->whereIn('status', ['unpaid', 'overdue'])
             ->whereNotNull('payment_method');
 
@@ -169,9 +173,11 @@ class PayrollExportService
 
     protected function baseInstallmentPaymentsQuery(int $month, int $year, ?int $customerLevelId = null)
     {
+        $duePeriod = $this->resolveDuePeriod($month, $year);
+
         $query = InstallmentPayment::with(['installment.customer.customerLevel', 'installment.transaction'])
-            ->whereYear('due_date', $year)
-            ->whereMonth('due_date', $month)
+            ->whereYear('due_date', $duePeriod->year)
+            ->whereMonth('due_date', $duePeriod->month)
             ->whereIn('status', ['unpaid', 'partial', 'overdue'])
             ->whereHas('installment.transaction', function ($q) {
                 $q->where('status', 'completed');
@@ -188,13 +194,15 @@ class PayrollExportService
 
     protected function baseFullBillsQuery(int $month, int $year, ?int $customerLevelId = null)
     {
+        $duePeriod = $this->resolveDuePeriod($month, $year);
+
         $query = Transaction::with(['customer.customerLevel'])
             ->where('payment_type', 'full')
             ->where('status', 'completed')
             ->whereIn('billing_status', ['pending', 'submitted', 'failed'])
             ->whereNotNull('billing_due_date')
-            ->whereYear('billing_due_date', $year)
-            ->whereMonth('billing_due_date', $month);
+            ->whereYear('billing_due_date', $duePeriod->year)
+            ->whereMonth('billing_due_date', $duePeriod->month);
 
         if ($customerLevelId) {
             $query->whereHas('customer', function ($q) use ($customerLevelId) {
@@ -203,6 +211,14 @@ class PayrollExportService
         }
 
         return $query;
+    }
+
+    protected function resolveDuePeriod(int $month, int $year): Carbon
+    {
+        $settings = app(GeneralSettings::class);
+        $dueMonthOffset = max(0, (int) ($settings->billing_due_month_offset ?? 1));
+
+        return Carbon::create($year, $month, 1)->startOfMonth()->addMonthsNoOverflow($dueMonthOffset);
     }
 
     protected function getMonthName(int $month): string

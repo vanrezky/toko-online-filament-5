@@ -320,11 +320,11 @@ class TransactionResource extends Resource
                         ->color('success')
                         ->requiresConfirmation()
                         ->visible(fn (Transaction $record): bool => in_array($record->status, [TransactionStatus::delivered, TransactionStatus::picked_up], true))
-                        ->action(function (Transaction $record): void {
-                            $record->update([
-                                'status' => TransactionStatus::completed->value,
-                                'complete_date' => now(),
-                            ]);
+                ->action(function (Transaction $record): void {
+                    $record->update(array_merge([
+                        'status' => TransactionStatus::completed->value,
+                        'complete_date' => now(),
+                    ], self::resolveBillingCompletionAttributes($record)));
 
                             Notification::make()
                                 ->title(__('admin/transaction-resource.notifications.status_updated'))
@@ -502,14 +502,14 @@ class TransactionResource extends Resource
                                 if (! in_array($record->status, [TransactionStatus::delivered, TransactionStatus::picked_up], true)) {
                                     $skipped++;
                                     continue;
-                                }
+                    }
 
-                                $record->update([
-                                    'status' => TransactionStatus::completed->value,
-                                    'complete_date' => now(),
-                                ]);
-                                $updated++;
-                            }
+                    $record->update(array_merge([
+                        'status' => TransactionStatus::completed->value,
+                        'complete_date' => now(),
+                    ], self::resolveBillingCompletionAttributes($record)));
+                    $updated++;
+                }
 
                             Notification::make()
                                 ->title(__('admin/transaction-resource.notifications.status_updated'))
@@ -627,5 +627,29 @@ class TransactionResource extends Resource
     public static function getNavigationBadgeColor(): ?string
     {
         return 'warning';
+    }
+
+    protected static function resolveBillingCompletionAttributes(Transaction $record): array
+    {
+        if ($record->payment_type !== 'full') {
+            return [];
+        }
+
+        $settings = app(\App\Settings\GeneralSettings::class);
+        $billingCycleService = app(\App\Services\BillingCycleService::class);
+
+        $billingCutoffDay = max(1, (int) ($settings->billing_cutoff_day ?? 25));
+        $billingDueDay = max(1, (int) ($settings->billing_due_day ?? 5));
+        $billingDueMonthOffset = max(0, (int) ($settings->billing_due_month_offset ?? 1));
+
+        $cycleMonthKey = $billingCycleService->resolveCycleMonthKey(now(), $billingCutoffDay);
+
+        return [
+            'billing_due_date' => $billingCycleService->resolveDueDate(
+                $cycleMonthKey,
+                $billingDueDay,
+                $billingDueMonthOffset,
+            ),
+        ];
     }
 }
