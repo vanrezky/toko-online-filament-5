@@ -6,6 +6,7 @@ use App\Traits\HasMeta;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -16,6 +17,39 @@ class Category extends Model implements HasMedia
     use HasFactory, HasMeta, InteractsWithMedia;
 
     protected $fillable = ['name', 'slug', 'is_active', 'is_featured'];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($category) {
+            if (empty($category->slug) && !empty($category->name)) {
+                $category->slug = Str::slug($category->name);
+                
+                // Ensure slug is unique
+                $originalSlug = $category->slug;
+                $counter = 1;
+                while (static::where('slug', $category->slug)->exists()) {
+                    $category->slug = $originalSlug . '-' . $counter;
+                    $counter++;
+                }
+            }
+        });
+
+        static::updating(function ($category) {
+            if (empty($category->slug) && !empty($category->name)) {
+                $category->slug = Str::slug($category->name);
+                
+                // Ensure slug is unique (excluding current record)
+                $originalSlug = $category->slug;
+                $counter = 1;
+                while (static::where('slug', $category->slug)->where('id', '!=', $category->id)->exists()) {
+                    $category->slug = $originalSlug . '-' . $counter;
+                    $counter++;
+                }
+            }
+        });
+    }
 
     public function scopeActive($query)
     {
