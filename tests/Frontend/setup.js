@@ -1,5 +1,8 @@
 import { config } from '@vue/test-utils';
 import { vi } from 'vitest';
+import { createI18n } from 'vue-i18n';
+import en from '../../resources/js/locales/en.json';
+import id from '../../resources/js/locales/id.json';
 
 // Mock global route function used by Ziggy
 global.route = vi.fn((name, params) => {
@@ -19,10 +22,35 @@ global.toast = {
     info: vi.fn(),
 };
 
+// Setup i18n for tests
+const i18n = createI18n({
+    legacy: false,
+    locale: 'en',
+    fallbackLocale: 'en',
+    globalInjection: true,
+    messages: {
+        en: {
+            ...en,
+            labels: en,
+            meta: {
+                newsletter_manage: {
+                    title: 'Newsletter Management'
+                }
+            }
+        },
+        id: {
+            ...id,
+            labels: id,
+        },
+    },
+});
+
 // Global config for Vue Test Utils
 config.global.mocks = {
     route: global.route,
 };
+
+config.global.plugins = [i18n];
 
 // Mock Inertia's usePage
 vi.mock('@inertiajs/vue3', async () => {

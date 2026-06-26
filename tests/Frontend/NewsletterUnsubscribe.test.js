@@ -29,7 +29,7 @@ describe('Newsletter Unsubscribe Page', () => {
             email: 'test@example.com',
         });
 
-        expect(wrapper.text()).toContain('Berhasil Unsubscribe');
+        expect(wrapper.text()).toContain('Successfully Unsubscribed');
         expect(wrapper.text()).toContain('test@example.com');
     });
 
@@ -39,7 +39,7 @@ describe('Newsletter Unsubscribe Page', () => {
             email: 'test@example.com',
         });
 
-        expect(wrapper.text()).toContain('Sudah Unsubscribe');
+        expect(wrapper.text()).toContain('Already Unsubscribed');
         expect(wrapper.text()).toContain('test@example.com');
     });
 
@@ -49,6 +49,6 @@ describe('Newsletter Unsubscribe Page', () => {
             email: 'test@example.com',
         });
 
-        expect(wrapper.text()).toContain('Kembali ke Beranda');
+        expect(wrapper.text()).toContain('Back to Home');
     });
 });

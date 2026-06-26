@@ -450,7 +450,7 @@
         }
     },
     "placeholders": {
-        "email": "email@example.com",
+        "email": "{'email@example.com'}",
         "password": "••••••••",
         "password_min": "Min. 8 characters",
         "full_name": "Full name",

@@ -26,7 +26,7 @@ describe('Footer Newsletter Form', () => {
         });
 
         const input = wrapper.find('input[type="email"]');
-        expect(input.attributes('placeholder')).toBe('Enter your email');
+        expect(input.attributes('placeholder')).toBe('email@example.com');
     });
 
     it('can type email into input', async () => {
