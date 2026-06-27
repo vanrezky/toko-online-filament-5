@@ -185,8 +185,8 @@ class ProductVariantsRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->before(function () {
-                        $this->handleVariantCreation($this->mountedTableActionsData[0]);
+                    ->before(function (array $data) {
+                        $this->handleVariantCreation($data);
                     })
                     ->after(function () {
                         $this->getOwnerRecord()->productVariants()->whereNull('sku')->delete();
@@ -330,7 +330,7 @@ class ProductVariantsRelationManager extends RelationManager
                 foreach ($attribute['product_attribute_options'] as $option) {
                     $attributeOptions[] = [
                         'product_attribute_id' => $attribute['product_attribute_id'],
-                        'product_attribute_option_id' => $option['product_attribute_option_id'],
+                        'product_attribute_option_id' => $option,
                     ];
                 }
                 $options[] = $attributeOptions;

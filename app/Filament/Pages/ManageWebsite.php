@@ -9,6 +9,7 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Actions;
 use Filament\Actions\Action;
 use App\Constants\UploadPath;
+use App\Services\BillingDueDateSyncService;
 use App\Settings\GeneralSettings;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Forms\Components\FileUpload;
@@ -33,9 +34,57 @@ class ManageWebsite extends SettingsPage
 
     protected static string $settings = GeneralSettings::class;
 
+    protected array $previousBillingSettings = [];
+
+    protected ?array $billingDueDateSyncSummary = null;
+
     public static function getNavigationGroup(): ?string
     {
         return __('admin/page-manage-website.navigation_group');
+    }
+
+    protected function beforeSave(): void
+    {
+        $settings = app(GeneralSettings::class);
+
+        $this->previousBillingSettings = [
+            'billing_due_day' => $settings->billing_due_day,
+            'billing_due_month_offset' => $settings->billing_due_month_offset,
+        ];
+    }
+
+    protected function afterSave(): void
+    {
+        $settings = app(GeneralSettings::class);
+
+        $this->billingDueDateSyncSummary = app(BillingDueDateSyncService::class)
+            ->syncForSettingsChange(
+                $this->previousBillingSettings,
+                [
+                    'billing_due_day' => $settings->billing_due_day,
+                    'billing_due_month_offset' => $settings->billing_due_month_offset,
+                ],
+            );
+    }
+
+    protected function getSavedNotificationMessage(): ?string
+    {
+        if (! $this->billingDueDateSyncSummary) {
+            return 'Pengaturan website berhasil disimpan.';
+        }
+
+        $transactionsUpdated = (int) ($this->billingDueDateSyncSummary['transactions_updated'] ?? 0);
+        $installmentPaymentsUpdated = (int) ($this->billingDueDateSyncSummary['installment_payments_updated'] ?? 0);
+
+        if (($transactionsUpdated + $installmentPaymentsUpdated) === 0) {
+            return 'Pengaturan website berhasil disimpan.';
+        }
+
+        return sprintf(
+            'Pengaturan website berhasil disimpan. %d tagihan full payment dan %d tagihan cicilan diperbarui.',
+            $transactionsUpdated,
+            $installmentPaymentsUpdated,
+        );
     }
 
     public function form(Schema $schema): Schema
