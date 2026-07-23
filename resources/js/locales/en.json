@@ -1,5 +1,9 @@
 {
     "meta": {
+        "blog": {
+            "title": "Blog",
+            "description": "Discover tips, inspiration, and curated information for your everyday life."
+        },
         "newsletter_manage": {
             "title": "Manage Newsletter"
         },
@@ -507,6 +511,24 @@
         "faq": {
             "heading": "Frequently Asked Questions",
             "subheading": "What you need to know about {name}"
+        },
+        "blog": {
+            "articles": "Articles",
+            "featured": "Featured article",
+            "latest_articles": "Latest reads",
+            "keep_exploring": "Keep exploring",
+            "pagination": "Article page navigation",
+            "continue_reading": "Continue reading",
+            "read_time": "{minutes} min read",
+            "share": "Share:",
+            "tags": "Tags:",
+            "related_articles": "Read next",
+            "link_copied": "Link copied",
+            "copy_link": "Copy article link",
+            "share_on_facebook": "Share article on Facebook",
+            "share_on_twitter": "Share article on Twitter",
+            "empty_title": "No articles found",
+            "empty_description": "Try a different keyword or category to find more to read."
         },
         "page": {
             "content_unavailable": "This page's content is not available yet."

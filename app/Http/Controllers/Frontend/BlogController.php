@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Enums\BlogPostStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\BlogPostRelatedResource;
 use App\Http\Resources\BlogPostResource;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
@@ -58,33 +59,34 @@ class BlogController extends Controller
         // Increment views
         $post->increment('views');
 
-        // Get related posts from same category
-        $relatedPosts = BlogPost::where('blog_category_id', $post->blog_category_id)
-            ->where('id', '!=', $post->id)
+        $tagIds = $post->tags->modelKeys();
+
+        $relatedPosts = BlogPost::query()
+            ->select(['id', 'blog_category_id', 'title', 'slug', 'published_at', 'image'])
+            ->whereKeyNot($post->getKey())
             ->where('is_status', BlogPostStatus::PUBLISHED)
+            ->with('category:id,name,slug')
+            ->where(function ($query) use ($post, $tagIds) {
+                $query->where('blog_category_id', $post->blog_category_id);
+
+                if ($tagIds !== []) {
+                    $query->orWhereHas('tags', fn ($tagQuery) => $tagQuery->whereIn('tags.id', $tagIds));
+                }
+            })
+            ->when(
+                $tagIds !== [],
+                fn ($query) => $query->withCount([
+                    'tags as shared_tags_count' => fn ($tagQuery) => $tagQuery->whereIn('tags.id', $tagIds),
+                ])->orderByDesc('shared_tags_count'),
+            )
+            ->orderByRaw('blog_category_id = ? desc', [$post->blog_category_id])
             ->latest('published_at')
             ->limit(4)
             ->get();
 
-        // Get suggested posts based on tags (excluding same category posts already in relatedPosts)
-        $postTags = $post->tags->pluck('name')->toArray();
-        $relatedPostIds = $relatedPosts->pluck('id')->toArray();
-        
-        $suggestedPosts = collect();
-        if (!empty($postTags)) {
-            $suggestedPosts = BlogPost::withAnyTags($postTags)
-                ->where('id', '!=', $post->id)
-                ->whereNotIn('id', $relatedPostIds)
-                ->where('is_status', BlogPostStatus::PUBLISHED)
-                ->latest('published_at')
-                ->limit(3)
-                ->get();
-        }
-
         return Inertia::render('Blog/Show', [
             'post' => BlogPostResource::make($post),
-            'relatedPosts' => BlogPostResource::collection($relatedPosts),
-            'suggestedPosts' => BlogPostResource::collection($suggestedPosts),
+            'relatedPosts' => BlogPostRelatedResource::collection($relatedPosts),
         ]);
     }
 }

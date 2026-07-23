@@ -204,6 +204,10 @@
         "products": {
             "title": "List Produk"
         },
+        "blog": {
+            "title": "Blog",
+            "description": "Temukan tips, inspirasi, dan informasi pilihan untuk menemani keseharian Anda."
+        },
         "newsletter_manage": {
             "title": "Kelola Newsletter"
         },
@@ -262,6 +266,24 @@
             "page_subheading": "Temukan jawaban atas pertanyaan yang paling sering diajukan di bawah ini.",
             "still_have_questions": "Masih punya pertanyaan?",
             "contact_team": "Jika Anda tidak menemukan jawabannya, tim kami siap membantu."
+        },
+        "blog": {
+            "articles": "Artikel",
+            "featured": "Artikel pilihan",
+            "latest_articles": "Bacaan terbaru",
+            "keep_exploring": "Lanjutkan eksplorasi",
+            "pagination": "Navigasi halaman artikel",
+            "continue_reading": "Lanjut membaca",
+            "read_time": "{minutes} menit baca",
+            "share": "Bagikan:",
+            "tags": "Tag:",
+            "related_articles": "Baca juga",
+            "link_copied": "Tautan disalin",
+            "copy_link": "Salin tautan artikel",
+            "share_on_facebook": "Bagikan artikel di Facebook",
+            "share_on_twitter": "Bagikan artikel di Twitter",
+            "empty_title": "Belum ada artikel ditemukan",
+            "empty_description": "Coba ubah kata kunci atau kategori untuk menemukan bacaan lain."
         },
         "page": {
             "content_unavailable": "Konten halaman ini belum tersedia."
