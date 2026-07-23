@@ -508,6 +508,9 @@
             "heading": "Frequently Asked Questions",
             "subheading": "What you need to know about {name}"
         },
+        "page": {
+            "content_unavailable": "This page's content is not available yet."
+        },
         "trust": {
             "free_shipping": "Free Shipping",
             "free_shipping_note": "Minimum purchase applies",

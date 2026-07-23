@@ -98,8 +98,8 @@ const submit = () => {
                     </div>
                 </div>
 
-                <label for="remember" class="text-muted-foreground flex min-h-11 cursor-pointer items-center gap-3 text-sm">
-                    <FormCheckbox id="remember" v-model="form.remember" type="checkbox" class="h-5 w-5 shrink-0" />
+                <label for="remember" class="text-muted-foreground flex min-h-11 cursor-pointer items-start gap-3 text-sm">
+                    <FormCheckbox id="remember" v-model="form.remember" type="checkbox" class="mt-0.5" />
                     <span>{{ t("labels.auth.remember_me") }}</span>
                 </label>
 

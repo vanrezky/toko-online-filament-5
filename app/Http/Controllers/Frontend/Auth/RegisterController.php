@@ -36,12 +36,18 @@ class RegisterController extends Controller
             $this->sendLockoutResponse($request);
         }
 
-        $request->validate([
+        $rules = [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:customers',
             'password' => ['required', 'confirmed', securePassword(8)],
-        ]);
+        ];
+
+        if (settings('term_agreement', false)) {
+            $rules['terms_accepted'] = ['required', 'accepted'];
+        }
+
+        $request->validate($rules);
 
         $customer = Customer::create([
             'first_name' => $request->first_name,

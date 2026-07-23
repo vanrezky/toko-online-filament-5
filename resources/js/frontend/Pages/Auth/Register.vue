@@ -129,19 +129,21 @@ const submit = () => {
                             :placeholder="t('placeholders.password')"
                         >
                             <template #prefix><Lock class="text-muted-foreground absolute top-3.5 left-4 h-5 w-5" /></template>
-                            <template #suffix
-                                ><Button
+                            <template #suffix>
+                                <Button
                                     type="button"
-                                    class="text-muted-foreground hover:text-foreground focus:ring-primary/20 absolute top-2.5 right-3 rounded-lg p-2 transition-colors focus:ring-2 focus:outline-none"
+                                    class="text-muted-foreground hover:text-foreground focus:ring-primary/20 absolute top-1/2 right-3 -translate-y-1/2 rounded-lg p-2 transition-colors focus:ring-2 focus:outline-none"
                                     :aria-label="showPassword ? t('labels.auth.hide_password') : t('labels.auth.show_password')"
                                     @click="showPassword = !showPassword"
                                 >
                                     <EyeOff v-if="showPassword" class="h-5 w-5" />
                                     <Eye v-else class="h-5 w-5" />
                                 </Button>
-                            ></template>
+                            </template>
                         </FormInput>
-                        <p v-if="form.errors.password" id="password-error" class="text-destructive text-xs" role="alert">{{ form.errors.password }}</p>
+                        <p v-if="form.errors.password" id="password-error" class="text-destructive text-xs" role="alert">
+                            {{ form.errors.password }}
+                        </p>
                     </div>
 
                     <div class="space-y-2">
@@ -164,13 +166,14 @@ const submit = () => {
                             <template #suffix
                                 ><Button
                                     type="button"
-                                    class="text-muted-foreground hover:text-foreground focus:ring-primary/20 absolute top-2.5 right-3 rounded-lg p-2 transition-colors focus:ring-2 focus:outline-none"
+                                    class="text-muted-foreground hover:text-foreground focus:ring-primary/20 absolute top-1/2 right-3 -translate-y-1/2 rounded-lg p-2 transition-colors focus:ring-2 focus:outline-none"
                                     :aria-label="showConfirmPassword ? t('labels.auth.hide_password') : t('labels.auth.show_password')"
                                     @click="showConfirmPassword = !showConfirmPassword"
                                 >
                                     <EyeOff v-if="showConfirmPassword" class="h-5 w-5" />
-                                    <Eye v-else class="h-5 w-5" /></Button
-                            ></template>
+                                    <Eye v-else class="h-5 w-5"
+                                /></Button>
+                            </template>
                         </FormInput>
                         <p v-if="form.errors.password_confirmation" id="password-confirmation-error" class="text-destructive text-xs" role="alert">
                             {{ form.errors.password_confirmation }}
@@ -178,7 +181,7 @@ const submit = () => {
                     </div>
                 </div>
 
-                <label for="terms_accepted" class="text-muted-foreground flex min-h-11 cursor-pointer items-start gap-3 text-sm">
+                <label v-if="settings.term_agreement" for="terms_accepted" class="text-muted-foreground flex min-h-11 cursor-pointer items-start gap-3 text-sm">
                     <FormCheckbox id="terms_accepted" v-model="form.terms_accepted" type="checkbox" required class="mt-0.5" />
                     <span>
                         {{ t("labels.auth.terms_agreement_prefix") }}
@@ -196,7 +199,7 @@ const submit = () => {
                 <Button
                     type="submit"
                     :loading="form.processing"
-                    :disabled="!form.terms_accepted"
+                    :disabled="settings.term_agreement && !form.terms_accepted"
                     class="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold shadow-sm transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {{ t("labels.actions.register") }}

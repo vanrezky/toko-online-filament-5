@@ -263,6 +263,9 @@
             "still_have_questions": "Masih punya pertanyaan?",
             "contact_team": "Jika Anda tidak menemukan jawabannya, tim kami siap membantu."
         },
+        "page": {
+            "content_unavailable": "Konten halaman ini belum tersedia."
+        },
         "contact": {
             "heading": "Hubungi Kami",
             "subheading": "Punya pertanyaan atau butuh bantuan? Kirim pesan kepada kami."

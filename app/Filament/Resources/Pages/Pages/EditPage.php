@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Pages\Pages;
 
 use Filament\Actions\DeleteAction;
 use App\Filament\Resources\Pages\PageResource;
+use App\Models\Page;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
@@ -14,7 +15,8 @@ class EditPage extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            DeleteAction::make()
+                ->visible(fn (Page $record): bool => ! $record->isRequiredLegalPage()),
         ];
     }
 }

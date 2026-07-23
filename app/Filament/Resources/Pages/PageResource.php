@@ -89,7 +89,10 @@ class PageResource extends Resource
 
                         Tab::make(__('admin/page-resource.tabs.seo'))
                             ->schema([
-                                TitleSchema::slug()->required()->maxLength(255),
+                                TitleSchema::slug()
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->disabled(fn (?Page $record): bool => $record?->isRequiredLegalPage() ?? false),
                                 TitleSchema::hidden(),
                                 MetaSchema::get(),
                             ]),
@@ -119,6 +122,7 @@ class PageResource extends Resource
                                     ])
                                     ->default(BlogPostStatus::PUBLISHED->value)
                                     ->native(false)
+                                    ->disabled(fn (?Page $record): bool => $record?->isRequiredLegalPage() ?? false)
                                     ->required(),
                                 Toggle::make('show_in_menu')
                                     ->label(__('admin/page-resource.fields.show_in_menu'))
@@ -185,11 +189,13 @@ class PageResource extends Resource
                 ActionGroup::make([
                     EditAction::make(),
                     DeleteAction::make()
+                        ->visible(fn (Page $record): bool => ! $record->isRequiredLegalPage())
                         ->color('danger'),
                 ])
             ])
+            ->checkIfRecordIsSelectableUsing(fn (Page $record): bool => ! $record->isRequiredLegalPage())
             ->toolbarActions([
-                DeleteBulkAction::make(),
+                DeleteBulkAction::make()->authorizeIndividualRecords('delete'),
             ]);
     }
 

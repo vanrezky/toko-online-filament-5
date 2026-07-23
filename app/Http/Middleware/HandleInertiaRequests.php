@@ -49,6 +49,7 @@ class HandleInertiaRequests extends Middleware
                     'favicon' => $settings->getFavicon() ?? '',
                     'site_name' => $settings->site_name ?? '',
                     'is_private_store' => (bool) ($settings->is_private_store ?? false),
+                    'term_agreement' => (bool) ($settings->term_agreement ?? false),
                     'site_description' => $settings->site_description ?? '',
                     'site_keywords' => $settings->site_keywords ?? '',
                     'social_title' => $settings->social_title ?? '',
