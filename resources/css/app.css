@@ -6,6 +6,8 @@
     :root {
         --background: 30 25% 99%;
         --foreground: 20 30% 15%;
+        --card: 30 25% 99%;
+        --card-foreground: 20 30% 15%;
         --primary: 25 80% 55%;
         --primary-foreground: 0 0% 98%;
         --secondary: 40 30% 95%;
@@ -19,12 +21,12 @@
         --border: 30 10% 92%;
         --input: 30 10% 92%;
         --ring: 25 80% 55%;
-        --radius: 1rem;
+        --radius: 0.625rem;
     }
 
     body {
-        @apply bg-background text-foreground antialiased;
-        font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;
+        @apply bg-background text-foreground antialiased tracking-normal;
+        font-family: "Space Grotesk", "Noto Sans", sans-serif;
     }
 }
 
@@ -38,7 +40,7 @@
     }
 
     .input-elegant {
-        @apply w-full rounded-none border border-gray-200 bg-white px-4 py-3 text-sm transition-all duration-300 focus:border-black focus:outline-none;
+        @apply min-w-0 w-full rounded-none border border-gray-200 bg-white px-4 py-3 text-sm transition-colors outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/50;
     }
 }
 

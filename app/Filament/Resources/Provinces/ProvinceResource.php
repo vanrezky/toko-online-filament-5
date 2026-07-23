@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Provinces;
 
+use App\Filament\Clusters\RegionCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
@@ -23,16 +24,13 @@ class ProvinceResource extends Resource
     protected static ?string $model = Province::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-office';
+
+    protected static ?string $cluster = RegionCluster::class;
     protected static ?int $navigationSort = 2;
 
     public static function getNavigationLabel(): string
     {
         return __('admin/province-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/province-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

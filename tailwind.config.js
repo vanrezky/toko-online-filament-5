@@ -18,7 +18,8 @@ module.exports = {
         },
         extend: {
             fontFamily: {
-                sans: ["Plus Jakarta Sans", "Noto Sans", "sans-serif"],
+                sans: ["Space Grotesk", "Noto Sans", "sans-serif"],
+                display: ["DM Serif Display", "Georgia", "serif"],
             },
             colors: {
                 border: "hsl(var(--border))",

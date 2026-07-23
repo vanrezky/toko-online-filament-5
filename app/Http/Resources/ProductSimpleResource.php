@@ -45,7 +45,10 @@ class ProductSimpleResource extends JsonResource
             'discount_percentage' => $discountPercentage,
             'min_order' => $this->min_order,
             'thumbnail' => $this->resource->getMedia()->first()?->getUrl('thumb'),
-            'currency' => settings('currency_text', 'Rp')
+            'currency' => settings('currency_text', 'Rp'),
+            'rating_average' => round((float) ($this->reviews_avg_rating ?? 0), 1),
+            'review_count' => (int) ($this->reviews_count ?? 0),
+            'sold_count' => (int) ($this->completed_sold_count ?? 0) + (int) $this->fake_sold_count,
         ];
     }
 }

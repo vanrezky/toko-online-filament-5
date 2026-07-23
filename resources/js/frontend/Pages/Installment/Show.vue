@@ -1,10 +1,12 @@
 <script setup>
 import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
+import { formatCurrency, formatDate } from '../../lib/utils'
+import { getInstallmentStatusColor, getInstallmentStatusLabel } from '../../lib/installment-status'
 
-const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
-};
+const dateFormat = { day: 'numeric', month: 'long', year: 'numeric' }
+const { t } = useI18n()
 
 const props = defineProps({
     installment: Object,
@@ -16,35 +18,6 @@ const progressPercentage = computed(() => {
     return Math.round((props.installment.paid_installments / props.installment.tenor) * 100)
 })
 
-const getStatusColor = (status) => {
-    const colors = {
-        unpaid: 'bg-yellow-100 text-yellow-800',
-        partial: 'bg-blue-100 text-blue-800',
-        paid: 'bg-green-100 text-green-800',
-        overdue: 'bg-red-100 text-red-800',
-        cancelled: 'bg-gray-100 text-gray-800'
-    }
-    return colors[status] || colors.unpaid
-}
-
-const getStatusLabel = (status) => {
-    const labels = {
-        unpaid: 'Belum Bayar',
-        partial: 'Sebagian',
-        paid: 'Lunas',
-        overdue: 'Terlambat',
-        cancelled: 'Dibatalkan'
-    }
-    return labels[status] || 'Belum Bayar'
-}
-
-const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    })
-}
 </script>
 
 <template>
@@ -64,13 +37,8 @@ const formatDate = (date) => {
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Status</p>
-                        <span :class="['px-2 py-1 rounded-full text-xs font-medium',
-                            installment?.status === 'active' ? 'bg-yellow-100 text-yellow-800' :
-                            installment?.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            installment?.status === 'cancelled' ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800']">
-                            {{ installment?.status === 'active' ? 'Aktif' :
-                               installment?.status === 'completed' ? 'Lunas' :
-                               installment?.status === 'cancelled' ? 'Dibatalkan' : 'Terlambat' }}
+                        <span :class="['px-2 py-1 rounded-full text-xs font-medium', getInstallmentStatusColor(installment?.status)]">
+                            {{ getInstallmentStatusLabel(installment?.status, t) }}
                         </span>
                     </div>
                     <div>
@@ -130,11 +98,11 @@ const formatDate = (date) => {
                     <tbody class="divide-y divide-gray-200">
                         <tr v-for="payment in schedule" :key="payment.installment_number">
                             <td class="px-6 py-4 text-sm">{{ payment.installment_number }} / {{ installment?.tenor }}</td>
-                            <td class="px-6 py-4 text-sm">{{ formatDate(payment.due_date) }}</td>
+                            <td class="px-6 py-4 text-sm">{{ formatDate(payment.due_date, dateFormat) }}</td>
                             <td class="px-6 py-4 text-sm font-medium">{{ formatCurrency(payment.amount) }}</td>
                             <td class="px-6 py-4">
-                                <span :class="['px-2 py-1 rounded-full text-xs font-medium', getStatusColor(payment.status)]">
-                                    {{ getStatusLabel(payment.status) }}
+                                <span :class="['px-2 py-1 rounded-full text-xs font-medium', getInstallmentStatusColor(payment.status)]">
+                                    {{ getInstallmentStatusLabel(payment.status, t) }}
                                 </span>
                             </td>
                         </tr>

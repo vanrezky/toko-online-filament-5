@@ -2,6 +2,7 @@
 import { computed, watch, onMounted } from "vue";
 import { useColorScheme } from "../composables/useColorScheme";
 import DefaultLayout from "./Templates/Default/BaseLayout.vue";
+import PageShell from "./PageShell.vue";
 
 const props = defineProps({
     title: String,
@@ -16,6 +17,7 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    shell: { type: Boolean, default: true },
 });
 
 const { colorScheme, setColorScheme, applyColorScheme } = useColorScheme();
@@ -45,6 +47,7 @@ const Layout = computed(() => {
 
 <template>
     <component :is="Layout" :title="title" :description="description" :keywords="keywords" :social-image="socialImage">
-        <slot />
+        <PageShell v-if="props.shell"><slot /></PageShell>
+        <slot v-else />
     </component>
 </template>

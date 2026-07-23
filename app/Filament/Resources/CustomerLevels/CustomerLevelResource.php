@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\CustomerLevels;
 
+use App\Filament\Clusters\CustomerCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
@@ -30,6 +31,8 @@ use Filament\Tables\Table;
 class CustomerLevelResource extends Resource
 {
     protected static ?string $model = CustomerLevel::class;
+
+    protected static ?string $cluster = CustomerCluster::class;
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-users';
     protected static ?string $slug = 'customer-levels';
     protected static ?int $navigationSort = 1;
@@ -38,11 +41,6 @@ class CustomerLevelResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('admin/customer-level-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/customer-level-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

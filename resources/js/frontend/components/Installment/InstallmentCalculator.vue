@@ -1,6 +1,8 @@
 <script setup>
+import Button from "@frontend/components/UI/Button.vue";
 import { ref, computed, watch } from 'vue'
 import { installmentService } from '@/frontend/services/installmentService'
+import { formatCurrency } from '../../lib/utils'
 
 const props = defineProps({
     amount: {
@@ -46,14 +48,6 @@ const selectPlan = async (planId) => {
     }
 }
 
-const formatCurrency = (value) => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0
-    }).format(value)
-}
-
 watch(() => props.amount, async (newAmount) => {
     if (selectedPlan.value && newAmount) {
         await selectPlan(selectedPlan.value.id)
@@ -77,7 +71,7 @@ fetchPlans()
             </div>
 
             <div class="grid grid-cols-2 gap-2">
-                <button v-for="plan in plans" :key="plan.id"
+                <Button v-for="plan in plans" :key="plan.id"
                     @click="selectPlan(plan.id)"
                     :class="[
                         'p-3 rounded-lg border text-left transition',
@@ -87,7 +81,7 @@ fetchPlans()
                     ]">
                     <p class="font-medium">{{ plan.tenor }} bulan</p>
                     <p class="text-xs text-gray-500">{{ plan.fee_percentage }}% fee</p>
-                </button>
+                </Button>
             </div>
 
             <div v-if="simulationResult" class="mt-4 p-3 bg-gray-50 rounded-lg text-sm">

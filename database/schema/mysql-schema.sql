@@ -953,6 +953,7 @@ CREATE TABLE `products` (
   `code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `stock` int unsigned NOT NULL DEFAULT '0',
   `security_stock` bigint unsigned NOT NULL DEFAULT '0',
+  `fake_sold_count` int unsigned NOT NULL DEFAULT '0',
   `weight` int unsigned DEFAULT NULL,
   `price` double(15,2) NOT NULL,
   `sale_price` double(15,2) DEFAULT NULL,
@@ -1407,6 +1408,32 @@ CREATE TABLE `transcation_products` (
   CONSTRAINT `transcation_products_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   CONSTRAINT `transcation_products_transaction_id_foreign` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`) ON DELETE CASCADE,
   CONSTRAINT `transcation_products_warehouse_id_foreign` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouses` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `product_reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_reviews` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` bigint unsigned NOT NULL,
+  `transaction_product_id` bigint unsigned DEFAULT NULL,
+  `customer_id` bigint unsigned DEFAULT NULL,
+  `rating` tinyint unsigned NOT NULL,
+  `review` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `reviewer_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `is_anonymous` tinyint(1) NOT NULL DEFAULT '0',
+  `is_admin` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `product_reviews_transaction_product_id_unique` (`transaction_product_id`),
+  KEY `product_reviews_product_id_is_admin_index` (`product_id`,`is_admin`),
+  KEY `product_reviews_product_rating_created_index` (`product_id`,`rating`,`created_at`),
+  KEY `product_reviews_product_created_index` (`product_id`,`created_at`),
+  KEY `product_reviews_customer_id_foreign` (`customer_id`),
+  CONSTRAINT `product_reviews_customer_id_foreign` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `product_reviews_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `product_reviews_transaction_product_id_foreign` FOREIGN KEY (`transaction_product_id`) REFERENCES `transcation_products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `user_details`;

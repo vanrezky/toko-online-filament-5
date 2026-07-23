@@ -1,32 +1,27 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { Link } from "@inertiajs/vue3";
 import VoucherCard from "./VoucherCard.vue";
 import voucherService from "../../services/voucherService";
 import { ChevronRight } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
+import { getSectionContent } from "../../lib/utils";
 
 const props = defineProps({
-    title: {
-        type: String,
-        default: "Voucher Tersedia",
-    },
-    subtitle: {
-        type: String,
-        default: "Simpan dan gunakan saat checkout",
-    },
-    limit: {
-        type: Number,
-        default: 4,
-    },
+    template: { type: Object, default: null },
 });
 
 const vouchers = ref([]);
 const isLoading = ref(true);
+const { t } = useI18n();
+const title = computed(() => getSectionContent(props.template, "vouchers", "title", t("labels.voucher.available_title")));
+const subtitle = computed(() => getSectionContent(props.template, "vouchers", "subtitle", t("labels.voucher.available_subtitle")));
+const limit = computed(() => Number(getSectionContent(props.template, "vouchers", "limit", 4)) || 4);
 
 onMounted(async () => {
     try {
         const response = await voucherService.getVouchers();
-        vouchers.value = (response.data || []).slice(0, props.limit);
+        vouchers.value = (response.data || []).slice(0, limit.value);
     } catch (error) {
         console.error("Failed to load vouchers:", error);
     } finally {

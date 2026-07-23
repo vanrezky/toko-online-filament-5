@@ -22,7 +22,7 @@ const items = computed(() => {
 
 <template>
   <TemplateWrapper :title="t('meta.wishlist.title')">
-    <div class="py-12 md:py-20">
+    <div class="py-12">
       <div class="container mx-auto px-4 md:px-6">
         <div class="max-w-6xl mx-auto space-y-12">
           <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">

@@ -6,6 +6,7 @@ use App\Traits\HasUuidTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TransactionProduct extends Model
 {
@@ -55,6 +56,11 @@ class TransactionProduct extends Model
     public function productVariant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class, 'product_variant_id');
+    }
+
+    public function review(): HasOne
+    {
+        return $this->hasOne(ProductReview::class);
     }
 
     public function getSubtotalAttribute(): float

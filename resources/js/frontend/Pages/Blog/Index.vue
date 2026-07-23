@@ -1,7 +1,9 @@
 <script setup>
+import Button from "@frontend/components/UI/Button.vue";
 import { ref, watch } from "vue";
 import { Link, router } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
+import FormInput from "../../components/UI/FormInput.vue";
 import { Search, Calendar, User, ArrowRight, Tag } from "lucide-vue-next";
 import debounce from "lodash/debounce";
 import { useI18n } from "vue-i18n";
@@ -39,7 +41,7 @@ watch([search, selectedCategory], () => {
 
 <template>
     <TemplateWrapper :title="t('meta.blog.title')" :description="t('meta.blog.description')">
-        <div class="bg-gradient-to-br from-secondary/50 via-white to-secondary/30 py-12 md:py-20">
+        <div class="bg-gradient-to-br from-secondary/50 via-white to-secondary/30 py-12">
             <div class="container mx-auto px-4">
                 <div class="mx-auto max-w-6xl space-y-12">
                     <!-- Header -->
@@ -52,21 +54,20 @@ watch([search, selectedCategory], () => {
                         </div>
 
                         <div class="w-full md:w-80">
-                            <div class="relative">
-                                <input
+                            <FormInput
                                     v-model="search"
                                     type="text"
                                     :placeholder="t('placeholders.search_articles')"
-                                    class="w-full rounded-xl border border-border bg-white py-4 pl-12 pr-6 text-sm shadow-sm transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-                                />
-                                <Search class="absolute left-4 top-4 h-4 w-4 text-muted-foreground" />
-                            </div>
+                                    class="bg-white py-4 shadow-sm"
+                                >
+                                <template #prefix><Search class="absolute left-4 top-4 h-4 w-4 text-muted-foreground" /></template>
+                            </FormInput>
                         </div>
                     </div>
 
                     <!-- Categories Filter -->
                     <div class="no-scrollbar flex flex-wrap gap-3 overflow-x-auto pb-4">
-                        <button
+                        <Button
                             @click="selectedCategory = ''"
                             class="whitespace-nowrap rounded-full px-6 py-2.5 text-sm font-semibold transition-all"
                             :class="
@@ -76,8 +77,8 @@ watch([search, selectedCategory], () => {
                             "
                         >
                             {{ t('labels.filters.all') }}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             v-for="cat in categories"
                             :key="cat.slug"
                             @click="selectedCategory = cat.slug"
@@ -89,7 +90,7 @@ watch([search, selectedCategory], () => {
                             "
                         >
                             {{ cat.name }}
-                        </button>
+                        </Button>
                     </div>
 
                     <!-- Posts Grid -->
@@ -148,7 +149,7 @@ watch([search, selectedCategory], () => {
                             <h3 class="text-xl font-bold text-foreground">{{ t('labels.blog.empty_title') }}</h3>
                             <p class="text-sm text-muted-foreground">{{ t('labels.blog.empty_description') }}</p>
                         </div>
-                        <button
+                        <Button
                             @click="
                                 search = '';
                                 selectedCategory = '';
@@ -156,7 +157,7 @@ watch([search, selectedCategory], () => {
                             class="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-colors hover:bg-primary/90"
                         >
                             {{ t('labels.actions.reset_filters') }}
-                        </button>
+                        </Button>
                     </div>
 
                     <!-- Pagination -->

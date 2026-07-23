@@ -20,6 +20,10 @@ class HandleInertiaRequests extends Middleware
 {
     protected $rootView = 'frontend';
 
+    public function __construct(private readonly TemplateService $templateService)
+    {
+    }
+
     public function version(Request $request): ?string
     {
         return parent::version($request);
@@ -44,6 +48,7 @@ class HandleInertiaRequests extends Middleware
                     'logo' => $settings->getLogo() ?? '',
                     'favicon' => $settings->getFavicon() ?? '',
                     'site_name' => $settings->site_name ?? '',
+                    'is_private_store' => (bool) ($settings->is_private_store ?? false),
                     'site_description' => $settings->site_description ?? '',
                     'site_keywords' => $settings->site_keywords ?? '',
                     'social_title' => $settings->social_title ?? '',
@@ -109,9 +114,7 @@ class HandleInertiaRequests extends Middleware
                     );
                 });
             },
-            'colorScheme' => function () {
-                return app(TemplateService::class)->getColorScheme();
-            },
+            'colorScheme' => fn () => $this->templateService->getColorScheme(),
         ]);
     }
 }

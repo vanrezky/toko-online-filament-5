@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BlogPosts;
 
+use App\Filament\Clusters\ContentCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -45,6 +46,8 @@ class BlogPostResource extends Resource
 {
     protected static ?string $model = BlogPost::class;
 
+    protected static ?string $cluster = ContentCluster::class;
+
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-text';
 
     protected static ?int $navigationSort = 1;
@@ -53,11 +56,6 @@ class BlogPostResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('admin/blog-post-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/blog-post-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

@@ -93,8 +93,8 @@
         "empty_description": "Sepertinya tidak ada flash sale yang aktif saat ini. Silakan cek kembali nanti!"
     },
     "hero": {
-        "default_title": "Diskon Spesial Hari Ini",
-        "default_subtitle": "Dapatkan promo terbaik untuk produk favorit Anda. Promo terbatas, jangan sampai ketinggalan!"
+        "default_title": "Pilihan yang tepat untuk keseharian Anda",
+        "default_subtitle": "Jelajahi koleksi yang dipilih untuk menemani momen, kebutuhan, dan cara Anda menjalani hari."
     },
     "orders": {
         "heading": "Pesanan Saya",
@@ -197,11 +197,15 @@
         "price_min": "Min",
         "price_max": "Max",
         "new_password_confirmation": "Ulangi password baru",
-        "password_confirmation": "Ulangi kata sandi"
+        "password_confirmation": "Ulangi kata sandi",
+        "confirm_password": "Ulangi kata sandi"
     },
     "meta": {
         "products": {
             "title": "List Produk"
+        },
+        "newsletter_manage": {
+            "title": "Kelola Newsletter"
         },
         "orders": {
             "title": "Order"
@@ -211,6 +215,15 @@
         },
         "login": {
             "title": "Login"
+        },
+        "register": {
+            "title": "Daftar"
+        },
+        "forgot_password": {
+            "title": "Lupa Kata Sandi"
+        },
+        "reset_password": {
+            "title": "Reset Kata Sandi"
         }
     },
     "form": {
@@ -220,6 +233,28 @@
         "price": "Harga"
     },
     "labels": {
+        "carousel": {
+            "previous": "Slide sebelumnya",
+            "next": "Slide berikutnya",
+            "preview": {
+                "action": "Jelajahi produk",
+                "modest_wear_eyebrow": "Pilihan busana",
+                "modest_wear_title": "Gaya yang menemani keseharian Anda",
+                "modest_wear_description": "Temukan koleksi yang nyaman dipakai dan mudah dipadukan.",
+                "electronics_eyebrow": "Kebutuhan elektronik",
+                "electronics_title": "Teknologi yang terasa lebih dekat",
+                "electronics_description": "Pilih perangkat untuk bekerja, terhubung, dan menikmati waktu Anda.",
+                "essentials_eyebrow": "Pilihan sehari-hari",
+                "essentials_title": "Hal-hal kecil yang membuat hari lebih baik",
+                "essentials_description": "Jelajahi pilihan praktis yang melengkapi rutinitas Anda."
+            }
+        },
+        "home_story": {
+            "eyebrow": "Untuk setiap keseharian",
+            "title": "Pilih koleksi yang terasa tepat untuk Anda",
+            "description": "Mulai dari pilihan yang menemani rutinitas hingga kebutuhan yang membantu Anda bergerak, jelajahi koleksi sesuai cara Anda menjalani hari.",
+            "action": "Lihat koleksi"
+        },
         "faq": {
             "heading": "Pertanyaan yang Sering Diajukan",
             "subheading": "Yang perlu Anda ketahui tentang {name}",
@@ -234,6 +269,7 @@
         },
         "auth": {
             "welcome": "Selamat Datang",
+            "register_heading": "Buat Akun",
             "login_subtitle": "Masuk ke akun Anda untuk melanjutkan.",
             "create_account": "Buat Akun",
             "register_subtitle": "Daftar untuk pengalaman belanja terbaik.",
@@ -242,14 +278,25 @@
             "forgot_password_description": "Masukkan email Anda dan kami akan mengirim link untuk mereset kata sandi.",
             "reset_password_heading": "Reset Password",
             "reset_password_description": "Masukkan password baru untuk akun Anda.",
+            "private_store_badge": "Mode Private",
+            "registration_closed_title": "Pendaftaran umum sedang ditutup",
+            "registration_closed_description": "Akun pelanggan hanya dapat ditambahkan oleh admin. Jika Anda sudah memiliki akun, silakan masuk untuk melanjutkan.",
+            "registration_closed_short": "Pendaftaran akun baru sedang ditutup.",
+            "registration_closed_cta": "Lihat informasi pendaftaran",
             "remember_me": "Ingat saya",
             "no_account": "Belum punya akun?",
             "has_account": "Sudah punya akun?",
+            "terms_agreement_prefix": "Saya setuju dengan",
+            "terms_and_conditions": "Syarat & Ketentuan",
+            "terms_agreement_connector": "dan",
+            "privacy_policy": "Kebijakan Privasi",
             "password_requirements_title": "Password harus mengandung:",
             "password_min_length": "Minimal 8 karakter",
             "password_uppercase": "1 huruf besar",
             "password_number": "1 angka",
-            "password_symbol": "1 simbol"
+            "password_symbol": "1 simbol",
+            "show_password": "Tampilkan kata sandi",
+            "hide_password": "Sembunyikan kata sandi"
         },
         "dialogs": {
             "delete_address_title": "Hapus Alamat",
@@ -269,6 +316,7 @@
             "email": "Email",
             "password": "Kata Sandi",
             "password_confirmation": "Konfirmasi Kata Sandi",
+            "confirm_password": "Konfirmasi Kata Sandi",
             "new_password": "Password Baru",
             "subject": "Subjek",
             "message": "Pesan",
@@ -360,7 +408,9 @@
             "home": "Beranda",
             "load_more": "Lihat Lebih Banyak",
             "loading": "Memuat...",
-            "login": "Masuk",
+            "retry": "Coba lagi",
+        "login": "Masuk",
+        "login_now": "Masuk sekarang",
             "logout": "Keluar",
             "manage": "Kelola",
             "manage_addresses": "Kelola Alamat",
@@ -371,8 +421,9 @@
             "read_more": "Baca Selengkapnya",
             "register": "Daftar",
             "register_now": "Daftar sekarang",
-            "reset": "Reset",
-            "reset_filters": "Reset Filter",
+        "reset": "Reset",
+        "reset_password": "Reset Kata Sandi",
+        "reset_filters": "Reset Filter",
             "save_address": "Simpan Alamat",
             "search": "Cari",
             "select_options": "Pilih Opsi",
@@ -404,7 +455,10 @@
             "shipping": "Ongkir",
             "product": "Produk",
             "all_categories": "Semua Kategori",
-            "active": "Filter Aktif"
+            "active": "Filter Aktif",
+            "price_under": "<{amount}",
+            "price_between": "{min}-{max}",
+            "price_over": ">{amount}"
         },
 
         "footer": {
@@ -453,11 +507,70 @@
             "weight": "Berat",
             "availability": "Tersedia:",
             "stock_unit": "{stock} unit",
+            "stock": "Stok: {stock} tersisa",
             "out_of_stock": "Stok Habis",
             "quantity": "Jumlah",
             "min_order": "Min. pemesanan: {min} unit",
             "wholesale_active": "Harga Grosir! Min. {qty} unit @ {price}",
-            "wholesale_next": "Beli {qty}+ unit untuk harga grosir {price}"
+            "wholesale_next": "Beli {qty}+ unit untuk harga grosir {price}",
+            "reviews": "ulasan",
+            "sold": "Terjual",
+            "save": "Simpan",
+            "saved": "Tersimpan",
+            "save_to_wishlist": "Simpan ke wishlist",
+            "saved_to_wishlist": "Tersimpan di wishlist",
+            "buy_now": "Beli Sekarang",
+            "description": "Deskripsi Produk",
+            "read_more": "Baca Selengkapnya",
+            "show_less": "Tampilkan Lebih Sedikit",
+            "loading_reviews": "Memuat ulasan...",
+            "reviews_load_failed": "Ulasan tidak dapat dimuat. Silakan coba lagi.",
+            "reviews_heading": "Penilaian Produk",
+            "rated_as": "Produk ini dinilai",
+            "good_quality": "kualitas bagus",
+            "all": "Semua",
+            "stars": "{rating} Bintang",
+            "no_reviews": "Belum ada ulasan untuk produk ini.",
+            "load_more_reviews": "Muat lebih banyak ulasan",
+            "discount_off": "{discount}% OFF",
+            "weight_unit": "{weight} kg",
+            "verified_purchase": "Terverifikasi",
+            "new": "Baru",
+            "best_seller": "Terlaris",
+            "no_image": "Gambar belum tersedia",
+            "save_amount": "Hemat {amount}",
+            "select_options_hint": "Pilih {options} sebelum melanjutkan.",
+            "decrease_quantity": "Kurangi jumlah",
+            "increase_quantity": "Tambah jumlah",
+            "view_image": "Lihat gambar {number}",
+            "review_image_alt": "Foto ulasan {number}",
+            "close_image_viewer": "Tutup tampilan gambar"
+        },
+        "installment": {
+            "status": {
+                "active": "Aktif",
+                "completed": "Lunas",
+                "overdue": "Terlambat",
+                "defaulted": "Wanprestasi",
+                "pending": "Menunggu Diproses",
+                "submitted": "Diajukan ke Keuangan",
+                "failed": "Gagal Dipotong",
+                "unpaid": "Belum Bayar",
+                "partial": "Sebagian",
+                "paid": "Lunas",
+                "cancelled": "Dibatalkan"
+            }
+        },
+        "header": {
+            "home": "Beranda",
+            "products": "Produk",
+            "cart": "Keranjang",
+            "contact": "Kontak",
+            "wishlist": "Wishlist",
+            "account": "Akun Saya",
+            "login": "Masuk",
+            "search_placeholder": "Cari di {site}..",
+            "search_products": "Ketik produk yang Anda cari..."
         },
         "products": {
             "default_title": "Semua Produk",
@@ -513,7 +626,18 @@
             "new_heading": "Alamat Pengiriman Baru",
             "edit_heading": "Edit Alamat",
             "new_description": "Tambahkan alamat baru untuk pengiriman",
-            "edit_description": "Perbarui informasi alamat Anda"
+            "edit_description": "Perbarui informasi alamat Anda",
+            "managed_by_admin": "Alamat dikelola admin berdasarkan unit sekolah.",
+            "synced_from_school_unit": "Sinkron otomatis dari unit sekolah",
+            "awaiting_school_unit": "Alamat akan muncul otomatis setelah admin menetapkan unit sekolah."
+        },
+        "newsletter": {
+            "unsubscribed_title": "Berhasil Berhenti Berlangganan",
+            "unsubscribed_text": "Email {email} telah berhasil dihapus dari daftar newsletter kami.",
+            "unsubscribed_note": "Anda tidak akan lagi menerima email newsletter dari kami.",
+            "already_unsubscribed_title": "Sudah Berhenti Berlangganan",
+            "already_unsubscribed_text": "Email {email} sudah berhenti berlangganan dari newsletter kami.",
+            "resubscribe_note": "Jika ingin berlangganan kembali, silakan kunjungi halaman utama kami."
         },
         "orders": {
             "heading": "Pesanan Saya",
@@ -573,7 +697,20 @@
                 "rejected": "Ditolak",
                 "cancelled": "Dibatalkan"
             },
-            "payment_method": "Metode Pembayaran"
+            "payment_method": "Metode Pembayaran",
+            "review": {
+                "rate": "Nilai",
+                "all_submitted": "Semua penilaian telah dikirimkan",
+                "title": "Nilai Produk",
+                "description": "Berikan penilaian untuk semua produk dalam pesanan ini.",
+                "product_rating": "Nilai Produk",
+                "upload_photo": "Upload Foto",
+                "experience": "Pengalaman atau review",
+                "experience_placeholder": "Ceritakan pengalaman Anda (maks. 1000 kata)",
+                "anonymous": "Tampilkan sebagai anonim",
+                "submit": "Kirim",
+                "close": "Tutup"
+            }
         }
     }
 }

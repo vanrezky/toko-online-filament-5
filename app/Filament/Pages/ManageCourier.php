@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Clusters\SettingsCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -23,8 +24,10 @@ class ManageCourier extends Page
     use HasPageShield;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-truck';
-    protected static ?int $navigationSort = 6;
-    protected static ?string $slug = 'setting/courier';
+    protected static ?string $cluster = SettingsCluster::class;
+
+    protected static ?int $navigationSort = 3;
+    protected static ?string $slug = 'courier';
 
     protected string $view = 'filament.pages.manage-courier';
 
@@ -38,11 +41,6 @@ class ManageCourier extends Page
     public static function getNavigationLabel(): string
     {
         return __('admin/page-manage-courier.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/page-manage-courier.navigation_group');
     }
 
     public function form(Schema $schema): Schema

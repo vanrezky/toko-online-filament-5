@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Villages;
 
+use App\Filament\Clusters\RegionCluster;
 use Filament\Schemas\Schema;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\TextColumn;
@@ -20,16 +21,13 @@ class VillageResource extends Resource
     protected static ?string $model = Village::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?string $cluster = RegionCluster::class;
     protected static ?int $navigationSort = 5;
 
     public static function getNavigationLabel(): string
     {
         return __('admin/village-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/village-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

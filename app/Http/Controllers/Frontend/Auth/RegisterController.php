@@ -19,6 +19,10 @@ class RegisterController extends Controller
 
     public function __invoke(Request $request)
     {
+        if (settings('is_private_store', false)) {
+            return redirect()->route('frontend.registration-closed');
+        }
+
         return Inertia::render('Auth/Register', [
             'secure_password' => settings('secure_password'),
         ]);
@@ -26,6 +30,8 @@ class RegisterController extends Controller
 
     public function register(Request $request)
     {
+        abort_if(settings('is_private_store', false), 403);
+
         if ($this->hasTooManyAttempts($request)) {
             $this->sendLockoutResponse($request);
         }

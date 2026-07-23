@@ -4,7 +4,6 @@ use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\Balances\BalanceResource;
 use App\Filament\Resources\NewsletterSubscribers\NewsletterSubscriberResource;
 use App\Filament\Resources\Resellers\ResellerResource;
-use App\Filament\Resources\Sliders\SliderResource;
 use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
@@ -48,7 +47,7 @@ return [
     'policies' => [
         'path' => app_path('Policies'),
         'merge' => true,
-        'generate' => true,
+        'generate' => false,
         'methods' => [
             'view',
             'create',
@@ -76,7 +75,6 @@ return [
             ],
         ],
         'exclude' => [
-            SliderResource::class,
             // @feature-toggle: uncomment to re-generate permissions when re-enabling
             NewsletterSubscriberResource::class,
             BalanceResource::class,

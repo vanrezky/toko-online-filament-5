@@ -80,6 +80,7 @@ class ProductResource extends JsonResource
                 ])->unique('min_qty')->sortBy('min_qty')->values()
                 : [],
             'faqs' => ProductFaqResource::collection($this->faqs),
+            'sold_count' => (int) ($this->completed_sold_count ?? 0) + (int) $this->fake_sold_count,
             'meta' => MetaResource::make($this->whenLoaded('meta')),
         ];
     }

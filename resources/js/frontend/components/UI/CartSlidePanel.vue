@@ -1,4 +1,5 @@
 <script setup>
+import Button from "@frontend/components/UI/Button.vue";
 import { computed, ref } from "vue";
 import { Link, router, usePage } from "@inertiajs/vue3";
 import { X, Minus, Plus, ShoppingBag, Trash2 } from "lucide-vue-next";
@@ -79,9 +80,9 @@ const continueShopping = () => {
                 <!-- Header -->
                 <div class="flex items-center justify-between border-b border-border p-4">
                     <h2 class="text-lg font-bold text-foreground">{{ t('labels.cart.your_cart') }}</h2>
-                    <button @click="closeCart" class="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                    <Button @click="closeCart" class="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                         <X class="h-5 w-5" />
-                    </button>
+                    </Button>
                 </div>
 
                 <!-- Cart Items -->
@@ -93,12 +94,12 @@ const continueShopping = () => {
                         </div>
                         <h3 class="mb-2 text-lg font-bold text-foreground">{{ t('labels.cart.empty_title') }}</h3>
                         <p class="mb-6 text-sm text-muted-foreground">{{ t('labels.cart.empty_description') }}</p>
-                        <button
+                        <Button
                             @click="continueShopping"
                             class="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                         >
                             {{ t('labels.actions.start_shopping') }}
-                        </button>
+                        </Button>
                     </div>
 
                     <!-- Items List -->
@@ -125,30 +126,30 @@ const continueShopping = () => {
                                             {{ formatCurrency(item.price) }}
                                         </p>
                                     </div>
-                                    <button
+                                    <Button
                                         @click="removeItem(item.id)"
                                         class="flex-shrink-0 p-1 text-muted-foreground transition-colors hover:text-destructive"
                                     >
                                         <Trash2 class="h-4 w-4" />
-                                    </button>
+                                    </Button>
                                 </div>
 
                                 <!-- Quantity Controls -->
                                 <div class="mt-2 flex items-center gap-3">
                                     <div class="flex items-center rounded-full border border-border">
-                                        <button
+                                        <Button
                                             @click="updateQuantity(item, -1)"
                                             class="flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
                                         >
                                             <Minus class="h-3 w-3" />
-                                        </button>
+                                        </Button>
                                         <span class="w-8 text-center text-sm font-semibold">{{ item.quantity }}</span>
-                                        <button
+                                        <Button
                                             @click="updateQuantity(item, 1)"
                                             class="flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
                                         >
                                             <Plus class="h-3 w-3" />
-                                        </button>
+                                        </Button>
                                     </div>
                                     <span class="text-sm font-semibold text-foreground">
                                         {{ formatCurrency(item.price * item.quantity) }}
@@ -179,18 +180,18 @@ const continueShopping = () => {
 
                     <!-- Actions -->
                     <div class="space-y-3">
-                        <button
+                        <Button
                             @click="proceedToCheckout"
                             class="w-full rounded-full bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-md transition-colors hover:bg-primary/90 hover:shadow-lg"
                         >
                             {{ t('labels.actions.proceed_to_checkout') }}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             @click="continueShopping"
                             class="w-full rounded-full bg-secondary py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
                         >
                             {{ t('labels.actions.continue_shopping') }}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

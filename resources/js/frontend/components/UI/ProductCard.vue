@@ -1,8 +1,10 @@
 <script setup>
+import Button from "@frontend/components/UI/Button.vue";
 import { Link, router, usePage } from "@inertiajs/vue3";
-import { computed, ref } from "vue";
-import { ShoppingCart, Heart } from "lucide-vue-next";
-import { formatCurrency } from "../../lib/utils";
+import { computed } from "vue";
+import { Heart, Star } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
+import { formatCompactNumber, formatCurrency } from "../../lib/utils";
 
 const props = defineProps({
     product: {
@@ -16,8 +18,9 @@ const props = defineProps({
     },
 });
 
-const isHovered = ref(false);
 const page = usePage();
+const { t, locale } = useI18n();
+const formatProductCount = (count) => formatCompactNumber(count, locale.value);
 
 const isWishlisted = computed(() => {
     return page.props.wishlist_product_ids?.includes(props.product.id);
@@ -48,34 +51,21 @@ const discountPercentage = computed(() => {
 
 const badge = computed(() => {
     if (isSale.value) {
-        return { text: `${discountPercentage.value}%`, class: "bg-gradient-to-r from-destructive to-rose-500 text-white" };
+        return { text: `${discountPercentage.value}%`, class: "bg-destructive text-white" };
     }
     if (props.product.is_new) {
-        return { text: "Baru", class: "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground" };
+        return { text: t("labels.product.new"), class: "bg-primary text-primary-foreground" };
     }
     if (props.product.is_featured || props.product.is_best_seller) {
-        return { text: "Terlaris", class: "bg-gradient-to-r from-amber-500 to-orange-500 text-white" };
+        return { text: t("labels.product.best_seller"), class: "bg-amber-700 text-white" };
     }
     return null;
 });
 
-const addToCart = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    router.post(
-        route("frontend.cart.store"),
-        { product_id: props.product.id, quantity: 1 },
-        {
-            preserveScroll: true,
-            onSuccess: (page) => {},
-            onError: (errors) => {
-                if (errors?.redirect) {
-                    window.location.href = errors.redirect;
-                }
-            },
-        },
-    );
-};
+const truncatedProductName = computed(() => {
+    const name = props.product.name || "";
+    return name.length > 22 ? `${name.slice(0, 22)} ...` : name;
+});
 
 const toggleWishlist = (e) => {
     e.preventDefault();
@@ -86,16 +76,20 @@ const toggleWishlist = (e) => {
         return;
     }
 
-    router.post(route("frontend.wishlist.toggle"), {
-        product_id: props.product.id,
-    }, {
-        preserveScroll: true,
-        onError: (errors) => {
-            if (errors?.redirect) {
-                window.location.href = errors.redirect;
-            }
+    router.post(
+        route("frontend.wishlist.toggle"),
+        {
+            product_id: props.product.id,
         },
-    });
+        {
+            preserveScroll: true,
+            onError: (errors) => {
+                if (errors?.redirect) {
+                    window.location.href = errors.redirect;
+                }
+            },
+        },
+    );
 };
 
 const sizeClasses = computed(() => {
@@ -111,105 +105,87 @@ const sizeClasses = computed(() => {
 </script>
 
 <template>
-    <div
-        class="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/10"
-        :class="sizeClasses"
-        @mouseenter="isHovered = true"
-        @mouseleave="isHovered = false"
-    >
-        <!-- Image Container -->
-        <Link :href="route('frontend.product-detail', product.slug)" class="relative aspect-square overflow-hidden bg-slate-100">
-            <!-- Product Image -->
-            <img
-                v-if="product.thumbnail"
-                :src="product.thumbnail"
-                :alt="product.name"
-                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
+    <article>
+        <Link
+            :href="route('frontend.product-detail', product.slug)"
+            class="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-background transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:transition-none"
+            :class="sizeClasses"
+        >
+            <!-- Image Container -->
+            <div class="relative aspect-square overflow-hidden bg-slate-100">
+                <!-- Product Image -->
+                <img
+                    v-if="product.thumbnail"
+                    :src="product.thumbnail"
+                    :alt="product.name"
+                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none"
+                />
 
-            <!-- No Image Placeholder -->
-            <div
-                v-else
-                class="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-slate-100 to-slate-200 text-slate-400"
-                aria-hidden="true"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-                    />
-                </svg>
-                <span class="text-xs font-medium">No Image</span>
+                <!-- No Image Placeholder -->
+                <div
+                    v-else
+                    class="flex h-full w-full flex-col items-center justify-center gap-2 bg-muted text-muted-foreground"
+                    aria-hidden="true"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                        />
+                    </svg>
+                    <span class="text-xs font-medium">{{ t("labels.product.no_image") }}</span>
+                </div>
+
+                <div v-if="badge" class="absolute top-3 left-3 px-2 py-1 text-xs font-semibold" :class="badge.class">
+                    {{ badge.text }}
+                </div>
+
+                <!-- Wishlist Button -->
+                <Button
+                    @click="toggleWishlist"
+                    :icon="Heart"
+                    :icon-props="{ fill: isWishlisted ? 'currentColor' : 'none' }"
+                    size="icon"
+                    class="absolute top-3 right-3 z-10 h-9 w-9 rounded-full bg-background/95 p-0 shadow-sm transition-colors duration-200 hover:bg-background focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
+                    :class="isWishlisted ? 'text-destructive opacity-100' : 'text-slate-400 opacity-100'"
+                    :aria-label="t('labels.product.save_to_wishlist')"
+                />
             </div>
 
-            <!-- Gradient Overlay on Hover -->
-            <div
-                class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-            ></div>
+            <!-- Content Section -->
+            <div class="flex grow flex-col p-3 sm:p-4">
+                <div
+                    v-if="product.category_name"
+                    class="text-primary mb-2 inline-block self-start text-xs font-semibold tracking-wide uppercase"
+                >
+                    {{ product.category_name }}
+                </div>
+                <!-- Product Name -->
+                <h3 class="text-foreground group-hover:text-primary mb-3 line-clamp-2 text-sm font-medium leading-snug transition-colors sm:text-base">
+                    {{ truncatedProductName }}
+                </h3>
 
-            <!-- Badge with Gradient -->
-            <div v-if="badge" class="absolute left-3 top-3 px-2.5 py-1 text-xs font-bold shadow-lg" :class="badge.class">
-                {{ badge.text }}
-            </div>
-
-            <!-- Wishlist Button -->
-            <button
-                @click="toggleWishlist"
-                class="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-white hover:shadow-lg"
-                :class="isWishlisted ? 'text-destructive opacity-100' : 'text-slate-400 opacity-0 group-hover:opacity-100'"
-                aria-label="Tambah ke wishlist"
-            >
-                <Heart class="h-4 w-4" :fill="isWishlisted ? 'currentColor' : 'none'" />
-            </button>
-
-            <!-- Sale Price Tag -->
-            <div v-if="isSale" class="absolute bottom-3 left-3">
-                <div class="rounded-lg bg-white/95 px-2 py-1 text-xs font-bold text-destructive shadow-sm backdrop-blur-sm">
-                    Hemat {{ formatCurrency(originalPrice - displayPrice) }}
+                <!-- Price & Cart Section -->
+                <div class="mt-auto flex items-end justify-between gap-2">
+                    <div class="min-w-0 flex-1">
+                        <span class="text-foreground text-sm font-semibold sm:text-base">
+                            {{ formatCurrency(displayPrice) }}
+                        </span>
+                        <p v-if="isSale" class="text-primary mt-1 text-xs font-medium">
+                            {{ t("labels.product.save_amount", { amount: formatCurrency(originalPrice - displayPrice) }) }}
+                        </p>
+                    </div>
+                </div>
+                <div class="text-muted-foreground mt-3 flex items-center justify-between gap-2 border-t border-border pt-3 text-xs">
+                    <span class="flex items-center gap-1 font-medium text-amber-700">
+                        <Star class="h-3.5 w-3.5 fill-current" />
+                        {{ product.rating_average?.toFixed?.(1) || "0.0" }}
+                        <span class="text-muted-foreground">({{ formatProductCount(product.review_count) }})</span>
+                    </span>
+                    <span>{{ formatProductCount(product.sold_count) }} {{ t("labels.product.sold") }}</span>
                 </div>
             </div>
         </Link>
-
-        <!-- Content Section -->
-        <div class="flex flex-grow flex-col p-4">
-            <!-- Category Badge -->
-            <div
-                class="mb-2 inline-block h-5 min-h-5 self-start rounded-full px-2 py-0.5 text-xs font-semibold"
-                :class="product.category_name ? 'bg-primary/10 text-primary' : 'bg-transparent'"
-            >
-                {{ product.category_name || "" }}
-            </div>
-
-            <!-- Product Name -->
-            <Link :href="route('frontend.product-detail', product.slug)" class="block">
-                <h3 class="mb-2 line-clamp-2 text-sm font-bold leading-tight text-foreground transition-colors group-hover:text-primary sm:text-base">
-                    {{ product.name }}
-                </h3>
-            </Link>
-
-            <!-- Price & Cart Section -->
-            <div class="mt-auto flex items-end justify-between gap-2">
-                <div class="min-w-0 flex-1">
-                    <div class="inline-flex items-center gap-1.5 rounded-lg bg-primary/5 px-2 py-1">
-                        <span class="text-sm font-bold text-primary sm:text-base">
-                            {{ formatCurrency(displayPrice) }}
-                        </span>
-                    </div>
-                    <span v-if="originalPrice" class="ml-1.5 text-xs text-slate-400 line-through">
-                        {{ formatCurrency(originalPrice) }}
-                    </span>
-                </div>
-
-                <!-- Add to Cart Button -->
-                <button
-                    @click="addToCart"
-                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/40 active:scale-90"
-                    aria-label="Tambah ke keranjang"
-                >
-                    <ShoppingCart class="h-5 w-5" />
-                </button>
-            </div>
-        </div>
-    </div>
+    </article>
 </template>

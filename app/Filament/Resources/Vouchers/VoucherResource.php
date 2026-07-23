@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Vouchers;
 
+use App\Filament\Clusters\PromotionCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -37,6 +38,8 @@ class VoucherResource extends Resource
 {
     protected static ?string $model = Voucher::class;
 
+    protected static ?string $cluster = PromotionCluster::class;
+
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-scissors';
     protected static ?string $slug = 'vouchers';
     protected static ?int $navigationSort = 1;
@@ -44,11 +47,6 @@ class VoucherResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('admin/voucher-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/voucher-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

@@ -244,6 +244,32 @@ class ProductResource extends Resource
                                     ]),
 
                             ]),
+                        Tab::make('Review & Rating')
+                            ->schema([
+                                TextInput::make('fake_sold_count')
+                                    ->label('Penjualan pemancing')
+                                    ->helperText('Penjualan riil dihitung otomatis dari transaksi completed.')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0),
+                                Repeater::make('adminReviews')
+                                    ->relationship('adminReviews')
+                                    ->label('Review admin')
+                                    ->helperText('Hanya review yang dibuat admin yang ditampilkan di sini.')
+                                    ->defaultItems(0)
+                                    ->schema([
+                                        TextInput::make('reviewer_name')->label('Nama pengulas')->required()->maxLength(255),
+                                        TextInput::make('rating')->label('Rating')->numeric()->minValue(1)->maxValue(5)->required(),
+                                        Textarea::make('review')->label('Ulasan')->rows(3)->maxLength(7000),
+                                        Forms\Components\Hidden::make('is_admin')->default(true),
+                                        SpatieMediaLibraryFileUpload::make('images')
+                                            ->collection('images')
+                                            ->image()
+                                            ->multiple()
+                                            ->maxFiles(3)
+                                            ->maxSize(5120),
+                                    ])->columns(2),
+                            ])->columns(2),
                         Tab::make(__('admin/product-resource.tabs.seo'))
                             ->hidden()
                             ->schema([

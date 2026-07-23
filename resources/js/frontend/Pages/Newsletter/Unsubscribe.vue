@@ -24,7 +24,7 @@ const isAlreadyUnsubscribed = props.status === "already_unsubscribed";
         :title="t('meta.newsletter_manage.title')"
         description="Kelola langganan newsletter Anda"
     >
-        <section class="py-12 md:py-20">
+        <section class="py-12">
             <div class="container mx-auto px-4">
                 <div class="mx-auto max-w-lg">
                     <div class="rounded-2xl bg-white p-8 shadow-lg md:p-10">

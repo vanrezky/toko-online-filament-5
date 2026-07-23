@@ -2,6 +2,7 @@
 
 namespace App\Settings;
 
+use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 use Spatie\LaravelSettings\Settings;
 
 class GeneralSettings extends Settings
@@ -50,9 +51,10 @@ class GeneralSettings extends Settings
 
     public ?string $mail_username;
 
+    #[ShouldBeEncrypted]
     public ?string $mail_password;
 
-    public ?int $force_sll;
+    public ?int $force_ssl;
 
     public ?string $secure_password;
 
@@ -85,6 +87,8 @@ class GeneralSettings extends Settings
     public bool $site_active;
 
     public ?string $admin_emails;
+
+    public bool $is_private_store = false;
 
     public static function group(): string
     {

@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { formatCurrency } from '../../lib/utils'
 
 const props = defineProps({
     installment: Object,
@@ -18,13 +19,6 @@ const sizeClasses = computed(() => {
     return sizes[props.size] || sizes.md
 })
 
-const formatCurrency = (value) => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0
-    }).format(value)
-}
 </script>
 
 <template>

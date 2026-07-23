@@ -9,6 +9,7 @@ use App\Jobs\SendOrderExpiryNotification;
 use App\Jobs\SendOrderExpiryReminder;
 use App\Models\Transaction;
 use App\Enums\EmailTemplateCode;
+use App\Services\TransactionCancellationService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -86,11 +87,7 @@ class CheckExpiredOrders extends Command
             }
 
             try {
-                // Mark as cancelled (expired unpaid order)
-                $transaction->update([
-                    'status' => TransactionStatus::cancelled->value,
-                    'billing_status' => TransactionBillingStatus::cancelled->value,
-                ]);
+                app(TransactionCancellationService::class)->cancel($transaction);
 
                 // Send expiry notification
                 SendOrderExpiryNotification::dispatch($transaction);

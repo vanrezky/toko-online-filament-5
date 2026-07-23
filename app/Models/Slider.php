@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Constants\UploadPath;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Services\CacheService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
@@ -14,17 +14,62 @@ class Slider extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
 
-    protected $fillable = ['description', 'is_active', 'target_link', 'target_anchor', 'start_at', 'end_at'];
+    public const CACHE_KEY = 'storefront:sliders';
+
+    public const CACHE_TTL = 300;
+
+    protected $fillable = [
+        'eyebrow',
+        'title',
+        'description',
+        'target_link',
+        'button_label',
+        'sort_order',
+        'is_active',
+        'start_at',
+        'end_at',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'sort_order' => 'integer',
+        'start_at' => 'datetime',
+        'end_at' => 'datetime',
+    ];
+
+    protected static function booted(): void
+    {
+        static::created(fn () => self::clearCache());
+        static::updated(fn () => self::clearCache());
+        static::deleted(fn () => self::clearCache());
+    }
+
+    public static function clearCache(): void
+    {
+        CacheService::delete(self::CACHE_KEY);
+    }
 
     public function getImageUrlAttribute(): string
     {
-        return $this->image ? getUrlImage($this->image) : '';
+        return $this->getFirstMediaUrl();
     }
 
-
-    public function scopeActive($condition)
+    public function scopeActive(Builder $query): Builder
     {
-        return $condition->where('is_active', true);
+        return $query->where('is_active', true);
+    }
+
+    public function scopeVisible(Builder $query): Builder
+    {
+        return $query
+            ->active()
+            ->where(fn (Builder $query) => $query->whereNull('start_at')->orWhere('start_at', '<=', now()))
+            ->where(fn (Builder $query) => $query->whereNull('end_at')->orWhere('end_at', '>=', now()));
+    }
+
+    public function scopeOrdered(Builder $query): Builder
+    {
+        return $query->orderBy('sort_order')->orderByDesc('id');
     }
 
     public function registerAllMediaConversions(?Media $media = null): void

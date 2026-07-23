@@ -11,6 +11,11 @@ class EditSlider extends EditRecord
 {
     protected static string $resource = SliderResource::class;
 
+    public function getTitle(): string
+    {
+        return __('admin/slider-resource.pages.edit.title');
+    }
+
     protected function getHeaderActions(): array
     {
         return [

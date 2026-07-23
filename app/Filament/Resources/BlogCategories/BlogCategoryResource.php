@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BlogCategories;
 
+use App\Filament\Clusters\ContentCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -29,6 +30,8 @@ class BlogCategoryResource extends Resource
 {
     protected static ?string $model = BlogCategory::class;
 
+    protected static ?string $cluster = ContentCluster::class;
+
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     protected static ?int $navigationSort = 2;
@@ -37,11 +40,6 @@ class BlogCategoryResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('admin/blog-category-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/blog-category-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

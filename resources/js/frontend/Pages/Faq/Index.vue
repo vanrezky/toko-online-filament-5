@@ -1,7 +1,10 @@
 <script setup>
+import Button from "@frontend/components/UI/Button.vue";
 import { ref, computed } from 'vue';
 import TemplateWrapper from '../../components/TemplateWrapper.vue';
+import PageShell from '../../components/PageShell.vue';
 import { ChevronDown, HelpCircle } from 'lucide-vue-next';
+import Card from '../../components/UI/Card.vue';
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
@@ -23,65 +26,58 @@ const toggle = (index) => {
 </script>
 
 <template>
-  <TemplateWrapper 
+  <TemplateWrapper :shell="false"
     :title="t('meta.faq.title')"
     :description="t('meta.faq.description')"
   >
-    <div class="py-12 md:py-24 bg-white">
-      <div class="container mx-auto px-4 md:px-6">
-        <div class="max-w-3xl mx-auto space-y-12">
-          <!-- Header -->
-          <div class="text-center space-y-4">
-            <h1 class="text-4xl md:text-5xl font-bold text-black tracking-tight uppercase">{{ t('labels.faq.page_heading') }}</h1>
-            <p class="text-gray-500 text-lg">{{ t('labels.faq.page_subheading') }}</p>
-          </div>
+    <PageShell
+      container
+      :title="t('labels.faq.page_heading')"
+      :description="t('labels.faq.page_subheading')"
+    >
+      <div class="mx-auto max-w-4xl space-y-3">
+        <Card
+          v-for="(faq, index) in items"
+          :key="index"
+          as="article"
+          class="overflow-hidden"
+        >
+          <Button
+            @click="toggle(index)"
+            class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold transition-colors hover:bg-muted/50 md:px-6"
+            :class="{ 'bg-muted/50': openIndex === index }"
+          >
+            <span>{{ faq.question }}</span>
+            <ChevronDown
+              class="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300"
+              :class="{ 'rotate-180': openIndex === index }"
+            />
+          </Button>
 
-          <!-- FAQ Accordion -->
-          <div class="space-y-4 pt-8">
-            <div 
-              v-for="(faq, index) in items" 
-              :key="index"
-              class="border border-gray-100 overflow-hidden"
-            >
-              <button 
-                @click="toggle(index)"
-                class="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors"
-                :class="{ 'bg-gray-50': openIndex === index }"
-              >
-                <span class="font-bold text-black text-sm uppercase tracking-wider">{{ faq.question }}</span>
-                <ChevronDown 
-                  class="w-5 h-5 text-gray-400 transition-transform duration-300"
-                  :class="{ 'rotate-180': openIndex === index }"
-                />
-              </button>
-              
-              <div 
-                v-show="openIndex === index"
-                class="p-6 pt-0 text-gray-500 text-sm leading-relaxed prose prose-sm max-w-none"
-                v-html="faq.answer"
-              ></div>
-            </div>
-          </div>
+          <div
+            v-show="openIndex === index"
+            class="prose prose-sm max-w-none border-t border-border px-5 py-4 leading-relaxed text-muted-foreground md:px-6"
+            v-html="faq.answer"
+          ></div>
+        </Card>
 
-          <!-- Still need help? -->
-          <div class="mt-20 p-12 bg-gray-50 text-center space-y-6">
-            <div class="w-16 h-16 bg-white flex items-center justify-center mx-auto rounded-full shadow-sm">
-              <HelpCircle class="w-6 h-6 text-black" />
-            </div>
-            <div class="space-y-2">
-              <h3 class="text-xl font-bold text-black uppercase tracking-tight">{{ t('labels.faq.still_have_questions') }}</h3>
-              <p class="text-gray-500 text-sm">{{ t('labels.faq.contact_team') }}</p>
-            </div>
-            <a 
-              href="mailto:support@example.com" 
-              class="inline-block bg-black text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-800 transition-all shadow-lg"
-            >
-              {{ t('labels.actions.contact_support') }}
-            </a>
+        <Card variant="elevated" class="flex flex-col items-center gap-5 p-6 text-center md:p-8">
+          <div class="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-full">
+            <HelpCircle class="h-6 w-6" />
           </div>
-        </div>
+          <div class="space-y-1">
+            <h2 class="text-xl font-bold text-foreground">{{ t('labels.faq.still_have_questions') }}</h2>
+            <p class="text-sm text-muted-foreground">{{ t('labels.faq.contact_team') }}</p>
+          </div>
+          <a
+            href="mailto:support@example.com"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors"
+          >
+            {{ t('labels.actions.contact_support') }}
+          </a>
+        </Card>
       </div>
-    </div>
+    </PageShell>
   </TemplateWrapper>
 </template>
 

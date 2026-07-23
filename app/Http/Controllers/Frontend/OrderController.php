@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Enums\InstallmentStatus;
 use App\Enums\TransactionStatus;
 use App\Services\PaymentGatewayService;
+use App\Services\TransactionCancellationService;
 use Exception;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
@@ -76,6 +77,7 @@ class OrderController extends Controller
             'shippingDetails.warehouse.district',
             'shippingDetails.warehouse.province',
             'vouchers',
+            'products.review',
             'products' => function($query) {
                 $query->select(
                     'id',
@@ -148,7 +150,7 @@ class OrderController extends Controller
         }
     }
 
-    public function cancel(Transaction $transaction)
+    public function cancel(Transaction $transaction, TransactionCancellationService $transactionCancellationService)
     {
         if ($transaction->customer_id !== Auth::guard('customer')->id()) {
             abort(403);
@@ -159,18 +161,7 @@ class OrderController extends Controller
         }
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($transaction) {
-            // Restore product stock
-            foreach ($transaction->products as $item) {
-                if ($item->product) {
-                    $item->product->increment('stock', $item->quantity);
-                }
-            }
-
-            // Update transaction status
-            $transaction->update([
-                'status' => TransactionStatus::cancelled->value,
-                'billing_status' => $transaction->payment_type === 'full' ? 'cancelled' : 'not_applicable',
-            ]);
+            app(TransactionCancellationService::class)->cancel($transaction);
 
             // Update installment status if applicable
             if ($transaction->payment_type === 'installment' && $transaction->installment) {

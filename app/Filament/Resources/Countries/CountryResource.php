@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Countries;
 
+use App\Filament\Clusters\RegionCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
@@ -19,16 +20,13 @@ class CountryResource extends Resource
     protected static ?string $model = Country::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-flag';
+
+    protected static ?string $cluster = RegionCluster::class;
     protected static ?int $navigationSort = 1;
 
     public static function getNavigationLabel(): string
     {
         return __('admin/country-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/country-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ContactMessages;
 
+use App\Filament\Clusters\MonitoringCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
@@ -28,6 +29,8 @@ class ContactMessageResource extends Resource
 {
     protected static ?string $model = ContactMessage::class;
 
+    protected static ?string $cluster = MonitoringCluster::class;
+
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-envelope';
     protected static ?int $navigationSort = 3;
     protected static ?string $slug = 'contact-messages';
@@ -35,11 +38,6 @@ class ContactMessageResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('admin/contact-message-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/contact-message-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

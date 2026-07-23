@@ -11,12 +11,13 @@ use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\CheckoutController;
 use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\FaqController;
+use App\Http\Controllers\Frontend\FlashsaleController;
 use App\Http\Controllers\Frontend\HomeController;
-use App\Http\Controllers\Frontend\ProductDetailController;
 use App\Http\Controllers\Frontend\NewsletterController;
 use App\Http\Controllers\Frontend\OrderController;
 use App\Http\Controllers\Frontend\PageController;
 use App\Http\Controllers\Frontend\ProductController;
+use App\Http\Controllers\Frontend\ProductReviewController;
 use App\Http\Controllers\Frontend\VoucherController;
 use App\Http\Controllers\Frontend\WishlistController;
 use App\Http\Controllers\Frontend\InstallmentController;
@@ -39,21 +40,34 @@ Route::get('/login', function () {
 })->name('login');
 
 Route::name('frontend.')->group(function () {
-    Route::get('/', [HomeController::class, 'index'])->middleware('auth.customer')->name('home');
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 
     // Guest routes for customers - login only (disabled for fully private)
     Route::middleware('auth.customer.guest')->group(function () {
+        Route::get('/register-closed', fn() => \Inertia\Inertia::render('Auth/RegistrationClosed'))
+            ->name('registration-closed');
+
+        Route::get('/register', RegisterController::class)->name('signup');
+        Route::post('/register', [RegisterController::class, 'register'])->name('signup.post');
+        Route::get('/forgot-password', ForgotPasswordController::class)->name('forgot-password');
+        Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('forgot-password.send');
+        Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('reset-password');
+        Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('reset-password.update');
+
         Route::get('/login', LoginController::class)->name('login');
         Route::post('/login', [LoginController::class, 'login'])->name('login.post');
-
-        // @feature-toggle: toko-private — comment to re-enable registration
-        // Route::get('/register', RegisterController::class)->name('signup');
-        // Route::post('/register', [RegisterController::class, 'register'])->name('signup.post');
-        // Route::get('/forgot-password', ForgotPasswordController::class)->name('forgot-password');
-        // Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('forgot-password.send');
-        // Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('reset-password');
-        // Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('reset-password.update');
     });
+
+    Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+    Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+    Route::get('/flash-sale', FlashsaleController::class)->name('flashsales');
+
+    // Public content routes
+    Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+    Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
+    Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
+    Route::get('/faq', FaqController::class)->name('faq');
 
     // All routes require authentication (fully private)
     Route::middleware('auth.customer')->group(function () {
@@ -76,6 +90,8 @@ Route::name('frontend.')->group(function () {
         Route::get('/orders/{transaction}', [OrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{transaction}/pay', [OrderController::class, 'pay'])->name('orders.pay');
         Route::post('/orders/{transaction}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+        Route::post('/orders/{transaction}/products/{transactionProduct}/review', [ProductReviewController::class, 'store'])->name('orders.products.review.store');
+        Route::post('/orders/{transaction}/reviews', [ProductReviewController::class, 'storeBatch'])->name('orders.reviews.store');
 
         Route::get('/installments', [InstallmentController::class, 'index'])->name('installments');
         Route::get('/installments/{uuid}', [InstallmentController::class, 'show'])->name('installments.show');
@@ -85,32 +101,22 @@ Route::name('frontend.')->group(function () {
         Route::patch('/cart/{item}', [CartController::class, 'update'])->name('cart.update');
         Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
 
-        Route::get('/products', ProductController::class)->name('products');
-        Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
-        Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
-        Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
         Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
-        Route::get('/faq', FaqController::class)->name('faq');
-        Route::get('/contact', [ContactController::class, 'index'])->name('contact');
-        Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
-        Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
-        Route::post('/newsletter/send-test', [NewsletterController::class, 'sendTest'])->name('newsletter.send-test');
         Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
         Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers');
         Route::post('/vouchers/apply', [VoucherController::class, 'apply'])->name('vouchers.apply');
         Route::post('/vouchers/remove', [VoucherController::class, 'remove'])->name('vouchers.remove');
-
-
     });
 
+    Route::get('/products', ProductController::class)->name('products');
+    Route::get('/products/{product}/reviews', [ProductReviewController::class, 'index'])->name('products.reviews');
+    Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
+    Route::post('/newsletter/send-test', [NewsletterController::class, 'sendTest'])->name('newsletter.send-test');
     Route::get('/newsletter/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
-
     // Webhook routes (no auth - webhook handles its own auth)
     Route::post('/webhooks/payment/{gateway}', PaymentWebhookController::class)->name('webhooks.payment');
 
-    // Wildcard for product detail - MUST BE LAST, requires auth
-    Route::middleware('auth.customer')->group(function () {
-        Route::get('{product}', ProductDetailController::class)->name('product-detail');
-    });
+    // Wildcard for product detail - MUST BE LAST
+    Route::get('{product}', [ProductController::class, 'show'])->name('product-detail');
 });

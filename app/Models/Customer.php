@@ -92,6 +92,11 @@ class Customer extends Authenticatable implements HasMedia
         return $this->hasMany(Installment::class);
     }
 
+    public function productReviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
     public function getEffectiveCreditLimitAttribute(): float
     {
         return (float) ($this->credit_limit ?? $this->customerLevel?->default_credit_limit ?? 0);

@@ -145,7 +145,7 @@ class ContactMessageTest extends TestCase
         ContactMessage::factory()->count(3)->create();
 
         $response = $this->actingAs($admin)
-            ->get('/admin/contact-messages');
+            ->get('/admin/monitoring/contact-messages');
 
         $response->assertStatus(200);
     }
@@ -164,7 +164,7 @@ class ContactMessageTest extends TestCase
         ]);
 
         $response = $this->actingAs($admin)
-            ->get("/admin/contact-messages/{$message->id}");
+            ->get("/admin/monitoring/contact-messages/{$message->id}");
 
         $response->assertStatus(200);
     }

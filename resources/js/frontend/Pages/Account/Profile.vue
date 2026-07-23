@@ -1,7 +1,14 @@
 <script setup>
+import Button from "@frontend/components/UI/Button.vue";
 import { ref, computed, watch, getCurrentInstance } from "vue";
 import { Link, useForm, router, usePage } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
+import PageShell from "../../components/PageShell.vue";
+import FormFile from "../../components/UI/FormFile.vue";
+import FormInput from "../../components/UI/FormInput.vue";
+import Card from "../../components/UI/Card.vue";
+import { formatCurrency, formatDate } from "../../lib/utils";
+import { getOrderStatusColor, getOrderStatusLabel } from "../../lib/order-status";
 import {
     User,
     Package,
@@ -22,7 +29,9 @@ import {
 import axios from "axios";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+
+const localeCode = computed(() => (locale.value === "id" ? "id-ID" : "en-US"));
 
 const props = defineProps({
     user: Object,
@@ -228,83 +237,54 @@ const setFeaturedAddress = (address) => {
 
 const featuredAddress = computed(() => props.addresses?.find((a) => a.is_featured));
 
-const statusColors = {
-    packed: "text-[#6366f1] bg-[#eef2ff]",
-    in_transit: "text-[#0ea5e9] bg-[#ecfeff]",
-    shipped: "text-[#3b82f6] bg-[#eff6ff]",
-    picked_up: "text-[#14b8a6] bg-[#f0fdfa]",
-    delivered: "text-[#22c55e] bg-[#f0fdf4]",
-    completed: "text-[#16a34a] bg-[#dcfce7]",
-    cancelled: "text-gray-500 bg-gray-50",
-};
-
-const statusLabels = computed(() => ({
-    packed: t("labels.order.status.packed"),
-    in_transit: t("labels.order.status.in_transit"),
-    shipped: t("labels.order.status.shipped"),
-    picked_up: t("labels.order.status.picked_up"),
-    delivered: t("labels.order.status.delivered"),
-    completed: t("labels.order.status.completed"),
-    cancelled: t("labels.order.status.cancelled") || "Dibatalkan",
-}));
-
-const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount || 0);
-};
-
-const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("id-ID", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-    });
-};
+const dateFormat = { year: "numeric", month: "short", day: "numeric" };
 </script>
 
 <template>
-    <TemplateWrapper :title="t('labels.account.heading')">
-        <div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-secondary/50 via-white to-secondary/30 py-8 md:py-12">
+    <TemplateWrapper :shell="false" :title="t('labels.account.heading')">
+        <PageShell class="relative overflow-hidden">
             <!-- Decorative -->
-            <div class="absolute -left-20 -top-20 h-80 w-80 rounded-full bg-primary/5 blur-3xl"></div>
-            <div class="absolute -bottom-40 -right-20 h-96 w-96 rounded-full bg-primary/5 blur-3xl"></div>
+            <div class="bg-primary/5 absolute -top-20 -left-20 h-80 w-80 rounded-full blur-3xl"></div>
+            <div class="bg-primary/5 absolute -right-20 -bottom-40 h-96 w-96 rounded-full blur-3xl"></div>
 
             <div class="container mx-auto px-4">
                 <!-- Breadcrumb -->
-                <div class="relative z-10 mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-                    <span class="cursor-pointer transition-colors hover:text-foreground" @click="$inertia.get(route('frontend.home'))">{{ t("labels.breadcrumb.home") }}</span>
+                <div class="hidden">
+                    <span class="hover:text-foreground cursor-pointer transition-colors" @click="$inertia.get(route('frontend.home'))">{{
+                        t("labels.breadcrumb.home")
+                    }}</span>
                     <ChevronRight class="h-4 w-4" />
-                    <span class="font-medium text-foreground">{{ t("labels.account.heading") }}</span>
+                    <span class="text-foreground font-medium">{{ t("labels.account.heading") }}</span>
                 </div>
 
-                <div class="relative z-10 mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[300px_1fr]">
+                <div class="relative z-10 mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-[300px_1fr]">
                     <!-- Sidebar Navigation -->
                     <aside>
-                        <div class="sticky top-24 space-y-4">
+                        <div class="space-y-4">
                             <!-- Profile Card -->
-                            <div class="overflow-hidden rounded-2xl bg-white shadow-xl">
+                            <Card variant="elevated" class="overflow-hidden rounded-2xl border-0">
                                 <!-- Header with Gradient -->
-                                <div class="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6">
+                                <div class="from-primary/10 via-primary/5 bg-gradient-to-r to-transparent p-6">
                                     <div class="flex flex-col items-center text-center">
                                         <div class="relative">
                                             <div
-                                                class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-secondary shadow-md"
+                                                class="bg-secondary flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white shadow-md"
                                             >
                                                 <img
                                                     v-if="user.image || user.profile_photo_url"
                                                     :src="user.image || user.profile_photo_url"
                                                     class="h-full w-full object-cover"
                                                 />
-                                                <User v-else class="h-10 w-10 text-muted-foreground" />
+                                                <User v-else class="text-muted-foreground h-10 w-10" />
                                             </div>
                                             <div
-                                                class="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-primary text-primary-foreground shadow"
+                                                class="bg-primary text-primary-foreground absolute -right-1 -bottom-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white shadow"
                                             >
                                                 <CheckCircle2 class="h-4 w-4" />
                                             </div>
                                         </div>
-                                        <p class="mt-3 font-bold text-foreground">{{ user.full_name }}</p>
-                                        <p class="text-sm text-muted-foreground">{{ user.email }}</p>
+                                        <p class="text-foreground mt-3 font-bold">{{ user.full_name }}</p>
+                                        <p class="text-muted-foreground text-sm">{{ user.email }}</p>
                                     </div>
                                 </div>
 
@@ -315,24 +295,25 @@ const formatDate = (dateString) => {
                                             <Link
                                                 v-if="item.href"
                                                 :href="item.href"
-                                                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
+                                                class="text-muted-foreground hover:bg-secondary hover:text-foreground flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all"
                                             >
                                                 <component :is="item.icon" class="h-5 w-5" />
                                                 <span>{{ item.name }}</span>
                                             </Link>
-                                            <button
+                                            <Button
                                                 v-else
                                                 @click="activeSection = item.id"
-                                                class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all"
+                                                
+                                                class="flex w-full items-center justify-start gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all"
                                                 :class="
                                                     activeSection === item.id || (activeSection === 'address_form' && item.id === 'addresses')
-                                                        ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20'
+                                                        ? 'from-primary to-primary/80 text-primary-foreground shadow-primary/20 bg-gradient-to-r shadow-lg'
                                                         : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                                                 "
                                             >
                                                 <component :is="item.icon" class="h-5 w-5" />
                                                 <span>{{ item.name }}</span>
-                                            </button>
+                                            </Button>
                                         </template>
 
                                         <Link
@@ -346,15 +327,15 @@ const formatDate = (dateString) => {
                                         </Link>
                                     </nav>
                                 </div>
-                            </div>
+                            </Card>
 
                             <!-- Quick Links -->
                             <div class="overflow-hidden rounded-2xl bg-white p-4 shadow-lg">
-                                <h4 class="mb-3 text-sm font-semibold text-foreground">{{ t("labels.account.quick_links") }}</h4>
+                                <h4 class="text-foreground mb-3 text-sm font-semibold">{{ t("labels.account.quick_links") }}</h4>
                                 <div class="space-y-2">
                                     <Link
                                         :href="route('frontend.wishlist')"
-                                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
+                                        class="text-muted-foreground hover:bg-secondary hover:text-foreground flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all"
                                     >
                                         <Heart class="h-4 w-4" />
                                         <span>{{ t("labels.account.wishlist") }}</span>
@@ -369,69 +350,75 @@ const formatDate = (dateString) => {
                         <!-- OVERVIEW SECTION -->
                         <div v-if="activeSection === 'overview'" class="space-y-6">
                             <!-- Stats Grid -->
-	                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-	                                <div
-	                                    class="group overflow-hidden rounded-2xl bg-white p-5 shadow-lg ring-1 ring-black/5 transition-all hover:shadow-xl"
-	                                >
-	                                    <div class="flex items-center justify-between">
-	                                        <div>
-	                                            <div class="mb-2 flex items-center gap-2">
-	                                                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-	                                                    <Package class="h-5 w-5 text-primary" />
-	                                                </div>
-	                                                <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t("labels.account.total_orders") }}</span>
-	                                            </div>
-	                                            <h3 class="text-3xl font-bold text-foreground">{{ totalOrders || 0 }}</h3>
-	                                        </div>
-	                                        <div class="rounded-2xl bg-secondary p-2.5 transition-transform group-hover:scale-105">
-	                                            <Package class="h-7 w-7 text-muted-foreground" />
-	                                        </div>
-	                                    </div>
-	                                    <div class="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
-	                                        <span class="text-xs text-muted-foreground">{{ t("labels.account.all_time") }}</span>
-	                                        <Link
-	                                            :href="route('frontend.orders')"
-	                                            class="inline-flex items-center gap-1 text-xs font-semibold text-primary outline-none transition-colors hover:text-primary/80 focus:outline-none focus-visible:outline-none focus-visible:ring-0"
-	                                        >
-	                                            {{ t("labels.actions.view_all") }}
-	                                            <ChevronRight class="h-3 w-3" />
-	                                        </Link>
-	                                    </div>
-	                                </div>
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div
+                                    class="group overflow-hidden rounded-2xl bg-white p-5 shadow-lg ring-1 ring-black/5 transition-all hover:shadow-xl"
+                                >
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="mb-2 flex items-center gap-2">
+                                                <div class="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-xl">
+                                                    <Package class="text-primary h-5 w-5" />
+                                                </div>
+                                                <span class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">{{
+                                                    t("labels.account.total_orders")
+                                                }}</span>
+                                            </div>
+                                            <h3 class="text-foreground text-3xl font-bold">{{ totalOrders || 0 }}</h3>
+                                        </div>
+                                        <div class="bg-secondary rounded-2xl p-2.5 transition-transform group-hover:scale-105">
+                                            <Package class="text-muted-foreground h-7 w-7" />
+                                        </div>
+                                    </div>
+                                    <div class="border-border/60 mt-4 flex items-center justify-between border-t pt-3">
+                                        <span class="text-muted-foreground text-xs">{{ t("labels.account.all_time") }}</span>
+                                        <Link
+                                            :href="route('frontend.orders')"
+                                            class="text-primary hover:text-primary/80 inline-flex items-center gap-1 text-xs font-semibold transition-colors outline-none focus:outline-none focus-visible:ring-0 focus-visible:outline-none"
+                                        >
+                                            {{ t("labels.actions.view_all") }}
+                                            <ChevronRight class="h-3 w-3" />
+                                        </Link>
+                                    </div>
+                                </div>
 
-	                                <div class="group overflow-hidden rounded-2xl bg-white p-5 shadow-lg transition-all hover:shadow-xl">
-	                                    <div class="mb-2 flex items-center gap-2">
-	                                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-	                                            <MapPin class="h-5 w-5 text-primary" />
-	                                        </div>
-	                                        <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t("labels.account.default_address") }}</span>
-	                                    </div>
+                                <div class="group overflow-hidden rounded-2xl bg-white p-5 shadow-lg transition-all hover:shadow-xl">
+                                    <div class="mb-2 flex items-center gap-2">
+                                        <div class="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-xl">
+                                            <MapPin class="text-primary h-5 w-5" />
+                                        </div>
+                                        <span class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">{{
+                                            t("labels.account.default_address")
+                                        }}</span>
+                                    </div>
                                     <div v-if="featuredAddress" class="space-y-2">
                                         <div class="flex items-center gap-2">
-                                            <h4 class="font-bold text-foreground">{{ featuredAddress.name }}</h4>
-                                            <span class="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{{ t("labels.address.default_badge") }}</span>
+                                            <h4 class="text-foreground font-bold">{{ featuredAddress.name }}</h4>
+                                            <span class="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px] font-bold">{{
+                                                t("labels.address.default_badge")
+                                            }}</span>
                                         </div>
-                                        <p class="line-clamp-2 text-sm text-muted-foreground">
+                                        <p class="text-muted-foreground line-clamp-2 text-sm">
                                             {{ featuredAddress.address }}, {{ featuredAddress.village_name }}, {{ featuredAddress.sub_district_name }}
                                         </p>
                                     </div>
                                     <div v-else class="py-2">
-                                        <p class="mb-3 text-sm text-muted-foreground">{{ t("labels.address.no_default") }}</p>
+                                        <p class="text-muted-foreground mb-3 text-sm">{{ t("labels.address.no_default") }}</p>
                                     </div>
-                                    <button
+                                    <Button
                                         @click="activeSection = 'addresses'"
-                                        class="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-primary/80"
+                                        class="text-primary hover:text-primary/80 mt-4 inline-flex items-center gap-1 text-xs font-semibold transition-colors"
                                     >
                                         <Edit3 class="h-3 w-3" />
                                         {{ t("labels.actions.manage_addresses") }}
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
 
                             <!-- Recent Activity -->
                             <div class="overflow-hidden rounded-2xl bg-white p-6 shadow-lg">
-                                <h3 class="mb-6 flex items-center gap-2 text-lg font-bold text-foreground">
-                                    <Clock class="h-5 w-5 text-primary" />
+                                <h3 class="text-foreground mb-6 flex items-center gap-2 text-lg font-bold">
+                                    <Clock class="text-primary h-5 w-5" />
                                     {{ t("labels.account.recent_activity") }}
                                 </h3>
                                 <div v-if="recentOrders && recentOrders.length > 0" class="space-y-3">
@@ -439,28 +426,30 @@ const formatDate = (dateString) => {
                                         v-for="order in recentOrders"
                                         :key="order.id"
                                         :href="route('frontend.orders.show', order.id)"
-                                        class="group flex items-center justify-between gap-4 rounded-xl border border-border bg-white px-4 py-3 transition-all hover:bg-secondary/40"
+                                        class="group border-border hover:bg-secondary/40 flex items-center justify-between gap-4 rounded-xl border bg-white px-4 py-3 transition-all"
                                     >
                                         <div class="min-w-0">
-                                            <p class="truncate text-sm font-semibold text-foreground">
+                                            <p class="text-foreground truncate text-sm font-semibold">
                                                 {{ t("labels.order.order_number", { id: order.code }) }}
                                             </p>
-                                            <p class="mt-0.5 text-xs text-muted-foreground">{{ formatDate(order.created_at) }}</p>
+                                            <p class="text-muted-foreground mt-0.5 text-xs">
+                                                {{ formatDate(order.created_at, dateFormat, localeCode) }}
+                                            </p>
                                         </div>
-	                                        <div class="flex flex-shrink-0 items-center gap-3">
-	                                            <span
-	                                                class="rounded-full px-2.5 py-0.5 text-[10px] font-medium leading-none"
-	                                                :class="statusColors[order.status] || 'bg-secondary text-muted-foreground'"
-	                                            >
-	                                                {{ statusLabels[order.status] || order.status }}
-	                                            </span>
-                                            <p class="text-sm font-bold text-primary">{{ formatCurrency(order.total) }}</p>
-                                            <ChevronRight class="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
+                                        <div class="flex flex-shrink-0 items-center gap-3">
+                                            <span
+                                                class="rounded-full px-2.5 py-0.5 text-[10px] leading-none font-medium"
+                                                :class="getOrderStatusColor(order.status)"
+                                            >
+                                                {{ getOrderStatusLabel(order.status, t) }}
+                                            </span>
+                                            <p class="text-primary text-sm font-bold">{{ formatCurrency(order.total, localeCode) }}</p>
+                                            <ChevronRight class="text-muted-foreground group-hover:text-foreground h-4 w-4 transition-colors" />
                                         </div>
                                     </Link>
                                     <Link
                                         :href="route('frontend.orders')"
-                                        class="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-primary/80"
+                                        class="text-primary hover:text-primary/80 inline-flex items-center gap-2 text-sm font-semibold transition-colors"
                                     >
                                         {{ t("labels.account.menu.orders") }}
                                         <ChevronRight class="h-4 w-4" />
@@ -468,15 +457,15 @@ const formatDate = (dateString) => {
                                 </div>
                                 <div v-else class="flex flex-col items-center justify-center py-12 text-center">
                                     <div
-                                        class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-secondary/50 shadow-inner"
+                                        class="from-secondary to-secondary/50 mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br shadow-inner"
                                     >
-                                        <Package class="h-10 w-10 text-muted-foreground" />
+                                        <Package class="text-muted-foreground h-10 w-10" />
                                     </div>
-                                    <p class="mb-2 font-semibold text-foreground">{{ t("labels.account.no_activity") }}</p>
-                                    <p class="text-sm text-muted-foreground">{{ t("labels.account.no_activity_description") }}</p>
+                                    <p class="text-foreground mb-2 font-semibold">{{ t("labels.account.no_activity") }}</p>
+                                    <p class="text-muted-foreground text-sm">{{ t("labels.account.no_activity_description") }}</p>
                                     <Link
                                         :href="route('frontend.products')"
-                                        class="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/90 px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
+                                        class="from-primary to-primary/90 text-primary-foreground shadow-primary/30 hover:shadow-primary/40 mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r px-6 py-3 text-sm font-semibold shadow-lg transition-all hover:shadow-xl"
                                     >
                                         {{ t("labels.actions.start_shopping") }}
                                         <ChevronRight class="h-4 w-4" />
@@ -488,8 +477,8 @@ const formatDate = (dateString) => {
                         <!-- SETTINGS SECTION -->
                         <div v-if="activeSection === 'settings'" class="overflow-hidden rounded-2xl bg-white p-6 shadow-xl md:p-8">
                             <div class="mb-8">
-                                <h2 class="text-xl font-bold text-foreground">{{ t("labels.account.settings_heading") }}</h2>
-                                <p class="mt-1 text-sm text-muted-foreground">{{ t("labels.account.settings_description") }}</p>
+                                <h2 class="text-foreground text-xl font-bold">{{ t("labels.account.settings_heading") }}</h2>
+                                <p class="text-muted-foreground mt-1 text-sm">{{ t("labels.account.settings_description") }}</p>
                             </div>
 
                             <form @submit.prevent="submitProfile" class="space-y-8">
@@ -497,69 +486,69 @@ const formatDate = (dateString) => {
                                 <div class="flex flex-col items-center gap-4 md:items-start">
                                     <div class="group relative">
                                         <div
-                                            class="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-secondary to-secondary/50 shadow-inner"
+                                            class="from-secondary to-secondary/50 flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br shadow-inner"
                                         >
                                             <img
                                                 v-if="imagePreview || user.image || user.profile_photo_url"
                                                 :src="imagePreview || user.image || user.profile_photo_url"
                                                 class="h-full w-full object-cover"
                                             />
-                                            <User v-else class="h-12 w-12 text-muted-foreground" />
+                                            <User v-else class="text-muted-foreground h-12 w-12" />
                                         </div>
-                                        <button
+                                        <Button
                                             type="button"
                                             @click="$refs.fileInput.click()"
                                             class="absolute inset-0 flex items-center justify-center rounded-full bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
                                         >
                                             <Camera class="h-8 w-8 text-white" />
-                                        </button>
-                                        <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleImageChange" />
+                                        </Button>
+                                        <FormFile ref="fileInput" class="hidden" accept="image/*" @change="handleImageChange" />
                                     </div>
                                     <div class="text-center md:text-left">
-                                        <p class="text-sm font-semibold text-foreground">{{ t("labels.account.profile_photo") }}</p>
-                                        <p class="text-xs text-muted-foreground">{{ t("labels.account.photo_requirements") }}</p>
+                                        <p class="text-foreground text-sm font-semibold">{{ t("labels.account.profile_photo") }}</p>
+                                        <p class="text-muted-foreground text-xs">{{ t("labels.account.photo_requirements") }}</p>
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.first_name") }}</label>
-                                        <input v-model="profileForm.first_name" type="text" class="input-field" />
+                                        <label class="text-foreground text-sm font-semibold">{{ t("labels.form.first_name") }}</label>
+                                        <FormInput v-model="profileForm.first_name" type="text" />
                                         <p v-if="profileForm.errors.first_name" class="text-xs text-red-500">{{ profileForm.errors.first_name }}</p>
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.last_name") }}</label>
-                                        <input v-model="profileForm.last_name" type="text" class="input-field" />
+                                        <label class="text-foreground text-sm font-semibold">{{ t("labels.form.last_name") }}</label>
+                                        <FormInput v-model="profileForm.last_name" type="text" />
                                         <p v-if="profileForm.errors.last_name" class="text-xs text-red-500">{{ profileForm.errors.last_name }}</p>
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.email") }}</label>
-                                        <input v-model="profileForm.email" type="email" class="input-field" />
+                                        <label class="text-foreground text-sm font-semibold">{{ t("labels.form.email") }}</label>
+                                        <FormInput v-model="profileForm.email" type="email" />
                                         <p v-if="profileForm.errors.email" class="text-xs text-red-500">{{ profileForm.errors.email }}</p>
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-foreground">{{ t("labels.form.phone") }}</label>
-                                        <input v-model="profileForm.phone" type="text" class="input-field" :placeholder="t('placeholders.phone')" />
+                                        <label class="text-foreground text-sm font-semibold">{{ t("labels.form.phone") }}</label>
+                                        <FormInput v-model="profileForm.phone" type="text" :placeholder="t('placeholders.phone')" />
                                         <p v-if="profileForm.errors.phone" class="text-xs text-red-500">{{ profileForm.errors.phone }}</p>
                                     </div>
                                 </div>
 
-                                <div class="flex flex-col gap-3 border-t border-border pt-6 sm:flex-row">
-                                    <button
+                                <div class="border-border flex flex-col gap-3 border-t pt-6 sm:flex-row">
+                                    <Button
                                         type="submit"
                                         :disabled="profileForm.processing"
-                                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/90 px-8 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-lg"
+                                        class="from-primary to-primary/90 text-primary-foreground shadow-primary/30 hover:shadow-primary/40 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r px-8 py-3 text-sm font-bold shadow-lg transition-all hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-lg"
                                     >
                                         <Save class="h-4 w-4" />
                                         <span>{{ profileForm.processing ? t("labels.actions.saving") : t("labels.actions.save") }}</span>
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         type="button"
                                         @click="activeSection = 'overview'"
-                                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-white px-8 py-3 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-secondary"
+                                        class="border-border text-foreground hover:bg-secondary inline-flex items-center justify-center gap-2 rounded-xl border bg-white px-8 py-3 text-sm font-semibold shadow-sm transition-all"
                                     >
                                         {{ t("labels.actions.cancel") }}
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
                         </div>
@@ -568,11 +557,11 @@ const formatDate = (dateString) => {
                         <div v-if="activeSection === 'addresses'" class="space-y-6">
                             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <h2 class="text-xl font-bold text-foreground">{{ t("labels.address.heading") }}</h2>
-                                    <p class="mt-1 text-sm text-muted-foreground">{{ t("labels.address.description") }}</p>
+                                    <h2 class="text-foreground text-xl font-bold">{{ t("labels.address.heading") }}</h2>
+                                    <p class="text-muted-foreground mt-1 text-sm">{{ t("labels.address.description") }}</p>
                                 </div>
-                                <p class="rounded-xl bg-secondary/60 px-4 py-2 text-xs font-semibold text-muted-foreground">
-                                    Alamat dikelola admin berdasarkan unit sekolah.
+                                <p class="bg-secondary/60 text-muted-foreground rounded-xl px-4 py-2 text-xs font-semibold">
+                                    {{ t("labels.address.managed_by_admin") }}
                                 </p>
                             </div>
 
@@ -581,45 +570,45 @@ const formatDate = (dateString) => {
                                     v-for="address in addresses || []"
                                     :key="address.id"
                                     class="group overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all hover:shadow-xl"
-                                    :class="address.is_featured ? 'ring-2 ring-primary' : ''"
+                                    :class="address.is_featured ? 'ring-primary ring-2' : ''"
                                 >
                                     <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                                         <div class="space-y-2">
                                             <div class="flex items-center gap-2">
-                                                <h3 class="font-bold text-foreground">{{ address.name }}</h3>
+                                                <h3 class="text-foreground font-bold">{{ address.name }}</h3>
                                                 <span
                                                     v-if="address.is_featured"
-                                                    class="rounded-full bg-gradient-to-r from-primary to-primary/80 px-3 py-1 text-xs font-bold text-primary-foreground shadow-sm"
+                                                    class="from-primary to-primary/80 text-primary-foreground rounded-full bg-gradient-to-r px-3 py-1 text-xs font-bold shadow-sm"
                                                     >{{ t("labels.address.default_badge") }}</span
                                                 >
                                             </div>
-                                            <p class="text-sm font-medium text-primary">{{ address.phone }}</p>
-                                            <p class="text-sm text-muted-foreground">
+                                            <p class="text-primary text-sm font-medium">{{ address.phone }}</p>
+                                            <p class="text-muted-foreground text-sm">
                                                 {{ address.address }}<br />
                                                 {{ address.village_name }}, {{ address.sub_district_name }}, {{ address.district_name }}<br />
                                                 {{ address.province_name }} {{ address.postal_code }}
                                             </p>
                                         </div>
 
-                                        <div class="rounded-xl bg-secondary/40 px-3 py-2 text-xs font-semibold text-muted-foreground">
-                                            Sinkron otomatis dari unit sekolah
+                                        <div class="bg-secondary/40 text-muted-foreground rounded-xl px-3 py-2 text-xs font-semibold">
+                                            {{ t("labels.address.synced_from_school_unit") }}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div
                                     v-if="!addresses || addresses.length === 0"
-                                    class="relative overflow-hidden rounded-3xl border-2 border-dashed border-border bg-gradient-to-br from-slate-50 to-slate-100 py-16 text-center"
+                                    class="border-border relative overflow-hidden rounded-3xl border-2 border-dashed bg-gradient-to-br from-slate-50 to-slate-100 py-16 text-center"
                                 >
-                                    <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/5"></div>
-                                    <div class="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-primary/5"></div>
+                                    <div class="bg-primary/5 absolute -top-10 -right-10 h-40 w-40 rounded-full"></div>
+                                    <div class="bg-primary/5 absolute -bottom-10 -left-10 h-32 w-32 rounded-full"></div>
 
                                     <div class="relative z-10">
                                         <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-lg">
-                                            <MapPin class="h-10 w-10 text-muted-foreground" />
+                                            <MapPin class="text-muted-foreground h-10 w-10" />
                                         </div>
-                                        <p class="mb-6 text-sm font-medium text-muted-foreground">{{ t("labels.address.empty") }}</p>
-                                        <p class="text-sm font-medium text-muted-foreground">Alamat akan muncul otomatis setelah admin menetapkan unit sekolah.</p>
+                                        <p class="text-muted-foreground mb-6 text-sm font-medium">{{ t("labels.address.empty") }}</p>
+                                        <p class="text-muted-foreground text-sm font-medium">{{ t("labels.address.awaiting_school_unit") }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -627,21 +616,6 @@ const formatDate = (dateString) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </PageShell>
     </TemplateWrapper>
 </template>
-
-<style scoped>
-.input-field {
-    @apply w-full rounded-xl border border-border bg-gradient-to-r from-secondary/30 to-secondary/10 px-4 py-3.5 text-sm transition-all focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20;
-}
-
-.select-field {
-    @apply w-full appearance-none rounded-xl border border-border bg-gradient-to-r from-secondary/30 to-secondary/10 px-4 py-3.5 text-sm transition-all focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-    background-position: right 0.75rem center;
-    background-repeat: no-repeat;
-    background-size: 1.5em 1.5em;
-    padding-right: 2.5rem;
-}
-</style>

@@ -57,6 +57,7 @@ class OrderItemResource extends JsonResource
             'final_price' => $finalUnitPrice,
             'total' => $this->subtotal,
             'description' => $this->description,
+            'reviewed' => $this->review !== null,
         ];
     }
 }

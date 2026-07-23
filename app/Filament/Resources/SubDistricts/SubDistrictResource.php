@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\SubDistricts;
 
+use App\Filament\Clusters\RegionCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
@@ -21,16 +22,13 @@ class SubDistrictResource extends Resource
 {
     protected static ?string $model = SubDistrict::class;
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-storefront';
+
+    protected static ?string $cluster = RegionCluster::class;
     protected static ?int $navigationSort = 4;
 
     public static function getNavigationLabel(): string
     {
         return __('admin/sub-district-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/sub-district-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

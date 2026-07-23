@@ -1,4 +1,5 @@
 <script setup>
+import Button from "@frontend/components/UI/Button.vue";
 import { computed } from "vue";
 import { Link } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
@@ -110,24 +111,24 @@ const allRelatedPosts = computed(() => {
                             <!-- Share Buttons -->
                             <div class="flex items-center gap-3">
                                 <span class="text-sm font-semibold text-foreground">{{ t('labels.blog.share') }}</span>
-                                <button
+                                <Button
                                     @click="share('facebook')"
                                     class="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
                                 >
                                     <Facebook class="h-4 w-4" />
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     @click="share('twitter')"
                                     class="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
                                 >
                                     <Twitter class="h-4 w-4" />
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     @click="share('copy')"
                                     class="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
                                 >
                                     <LinkIcon class="h-4 w-4" />
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Pages;
 
+use App\Filament\Clusters\ContentCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -41,17 +42,14 @@ class PageResource extends Resource
 {
     protected static ?string $model = Page::class;
 
+    protected static ?string $cluster = ContentCluster::class;
+
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-text';
     protected static ?int $navigationSort = 3;
 
     public static function getNavigationLabel(): string
     {
         return __('admin/page-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/page-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

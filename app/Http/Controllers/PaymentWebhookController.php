@@ -8,6 +8,7 @@ use App\Jobs\SendOrderStatusChangedNotification;
 use App\Jobs\SendPaymentSuccessNotification;
 use App\Models\Transaction;
 use App\Services\PaymentGatewayService;
+use App\Services\TransactionCancellationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -33,25 +34,15 @@ class PaymentWebhookController extends Controller
                 $transaction = Transaction::where('uuid', $result->transactionId)->first();
 
                 if ($transaction) {
-                    if ($result->status && $transaction->status !== $result->status) {
-                        $oldStatus = $transaction->status;
-                        $newStatus = $result->status;
+                    match ($result->status) {
+                        'success' => $transaction->update(['billing_status' => 'paid']),
+                        'pending' => $transaction->update(['billing_status' => 'pending']),
+                        'failed' => $transaction->update(['billing_status' => 'failed']),
+                        'expired', 'cancelled' => app(TransactionCancellationService::class)->cancel($transaction),
+                        default => null,
+                    };
 
-                        $transaction->update(['status' => $newStatus]);
-                        Log::info("Transaction {$result->transactionId} status updated to {$newStatus} via {$gateway} webhook.");
-
-                        // Send payment success notification (unpaid -> paid)
-                        if ($oldStatus === 'unpaid' && $newStatus === 'paid') {
-                            SendPaymentSuccessNotification::dispatch($transaction, $gateway)
-                                ->onQueue('default');
-                        }
-
-                        // Send order status changed notification for other statuses
-                        if (! in_array($newStatus, ['unpaid', 'paid'])) {
-                            SendOrderStatusChangedNotification::dispatch($transaction, $oldStatus, $newStatus)
-                                ->onQueue('default');
-                        }
-                    }
+                    Log::info("Transaction {$result->transactionId} payment status updated to {$result->status} via {$gateway} webhook.");
                 } else {
                     Log::warning("Transaction {$result->transactionId} not found for {$gateway} webhook.");
                 }

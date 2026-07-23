@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     'navigation_label' => 'Kelola Kurir',
     'navigation_group' => 'Pengaturan',
 
@@ -38,6 +37,7 @@ return [
         'save_settings' => 'Simpan Pengaturan',
         'available_couriers' => 'Kurir Tersedia',
         'toggle_status_description' => 'Ubah status untuk mengaktifkan atau menonaktifkan kurir saat checkout.',
+        'activate_courier' => 'Aktifkan :courier',
+        'deactivate_courier' => 'Nonaktifkan :courier',
     ],
-
 ];

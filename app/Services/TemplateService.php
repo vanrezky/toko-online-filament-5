@@ -4,41 +4,36 @@ namespace App\Services;
 
 use App\Models\Template;
 use App\Models\TemplateSection;
-use App\Models\TemplateSectionContent;
 use Illuminate\Support\Facades\Cache;
 
 class TemplateService
 {
     protected const CACHE_PREFIX = 'template_';
     protected const CACHE_TTL = 3600; // 1 hour
+    protected const ACTIVE_CACHE_KEY = self::CACHE_PREFIX . 'active';
 
     public function getActiveTemplate(): ?Template
     {
         return Cache::remember(
-            self::CACHE_PREFIX . 'active',
+            self::ACTIVE_CACHE_KEY,
             self::CACHE_TTL,
-            function () {
-                return Template::active()->with([
-                    'sections.fields',
-                    'sections.contents'
-                ])->first();
-            }
+            fn() => Template::active()
+                ->select(['id', 'uuid', 'name', 'color_scheme'])
+                ->with([
+                    'sections' => fn($query) => $query
+                        ->where('is_active', true)
+                        ->select(['id', 'uuid', 'template_id', 'name', 'type', 'description', 'icon', 'is_active', 'order_priority'])
+                        ->orderBy('order_priority'),
+                    'sections.contents:id,section_id,field_id,value',
+                    'sections.contents.field:id,key',
+                ])
+                ->first(),
         );
     }
 
-    public function getActiveTemplateWithSections(): ?array
+    public function getActiveTemplateWithSections(): ?Template
     {
-        $template = $this->getActiveTemplate();
-        
-        if (!$template) {
-            return null;
-        }
-
-        return [
-            'template' => $template,
-            'sections' => $this->formatSections($template),
-            'color_scheme' => $template->color_scheme,
-        ];
+        return $this->getActiveTemplate();
     }
 
     public function getSectionContent(TemplateSection $section, string $key, mixed $default = null): mixed
@@ -78,18 +73,24 @@ class TemplateService
 
     public function getSectionByType(string $type): ?array
     {
-        $sections = $this->getActiveTemplateWithSections();
-        
-        if (!$sections) {
+        $template = $this->getActiveTemplate();
+
+        if (!$template) {
             return null;
         }
 
-        return collect($sections['sections'])
+        return collect($this->formatSections($template))
             ->first(fn($s) => $s['type'] === $type);
     }
 
     public function getColorScheme(): array
     {
+        $template = Cache::get(self::ACTIVE_CACHE_KEY);
+
+        if ($template instanceof Template) {
+            return $template->color_scheme ?? $this->getDefaultColorScheme();
+        }
+
         return Cache::remember(
             self::CACHE_PREFIX . 'colors',
             self::CACHE_TTL,
@@ -121,7 +122,7 @@ class TemplateService
     public function warmCache(): void
     {
         $this->clearCache();
-        $this->getActiveTemplateWithSections();
+        $this->getActiveTemplate();
         $this->getColorScheme();
     }
 }

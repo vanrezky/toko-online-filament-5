@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
+use App\Http\Resources\ProductResource;
 use App\Http\Resources\ProductSimpleResource;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\ProductStatsService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -14,7 +16,8 @@ class ProductController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $query = Product::active()->with(['media', 'category', 'resellerPrices', 'wholesales']);
+        $query = Product::active()
+            ->with(['media', 'category', 'resellerPrices', 'wholesales']);
 
         if ($request->filled('category')) {
             $query->whereHas('category', function ($q) use ($request) {
@@ -58,12 +61,35 @@ class ProductController extends Controller
         }
 
         $products = $query->paginate(12)->withQueryString();
+        ProductStatsService::attachCatalogStats($products->getCollection());
         $categories = Category::active()->get();
 
         return Inertia::render('Products/Index', [
             'products' => ProductSimpleResource::collection($products),
             'categories' => CategoryResource::collection($categories),
             'filters' => $request->only(['category', 'search', 'sort', 'price_min', 'price_max']),
+        ]);
+    }
+
+    public function show(Request $request, Product $product)
+    {
+        $product->loadMissing([
+            'category',
+            'productVariants.variantAttributes' => fn($query) => $query->with([
+                'productAttribute',
+                'productAttributeOption',
+            ]),
+            'warehouse',
+            'faqs',
+            'meta',
+            'wholesales',
+            'resellerPrices',
+        ]);
+
+        ProductStatsService::attachSales(collect([$product]));
+
+        return Inertia::render('Products/Show', [
+            'product' => ProductResource::make($product),
         ]);
     }
 }

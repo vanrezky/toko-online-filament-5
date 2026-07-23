@@ -1,4 +1,5 @@
 <script setup>
+import Button from "@frontend/components/UI/Button.vue";
 import { computed, ref } from "vue";
 import { Copy, Check, Ticket, Truck, Tag, Clock, Users, Loader2 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
@@ -162,7 +163,7 @@ const applyVoucher = () => {
                     </div>
 
                     <!-- Copy Button -->
-                    <button
+                    <Button
                         v-if="showCopyButton"
                         @click="copyCode"
                         class="flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-200"
@@ -177,7 +178,7 @@ const applyVoucher = () => {
                     >
                         <Check v-if="copied" class="h-5 w-5" />
                         <Copy v-else class="h-5 w-5" />
-                    </button>
+                    </Button>
                 </div>
 
                 <!-- Meta Info -->
@@ -193,7 +194,7 @@ const applyVoucher = () => {
                 </div>
 
                 <!-- Apply Button -->
-                <button
+                <Button
                     v-if="showApplyButton"
                     @click="applyVoucher"
                     :disabled="voucher.is_fully_used || isApplying"
@@ -215,7 +216,7 @@ const applyVoucher = () => {
                     <span>{{
                         isApplied ? t('labels.voucher.change') : voucher.is_fully_used ? t('labels.voucher.fully_used') : isApplying ? t('labels.voucher.applying') : t('labels.voucher.use')
                     }}</span>
-                </button>
+                </Button>
             </div>
         </div>
 

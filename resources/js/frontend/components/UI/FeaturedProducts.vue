@@ -1,27 +1,26 @@
 <script setup>
+import Button from "@frontend/components/UI/Button.vue";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import ProductCard from "./ProductCard.vue";
 import { ChevronRight, ChevronLeft } from "lucide-vue-next";
 import { Link } from "@inertiajs/vue3";
+import { getSectionContent } from "../../lib/utils";
 
 const props = defineProps({
     products: {
-        type: Array,
+        type: [Array, Object],
         default: () => [],
     },
-    title: {
-        type: String,
-        default: "Pilihan Terbaik",
-    },
-    subtitle: {
-        type: String,
-        default: "",
-    },
+    template: { type: Object, default: null },
     showViewAll: {
         type: Boolean,
         default: true,
     },
 });
+
+const featuredProducts = computed(() => (Array.isArray(props.products) ? props.products : props.products?.data || []).slice(0, 4));
+const sectionTitle = computed(() => getSectionContent(props.template, "featured_products", "title", "Pilihan Terbaik"));
+const sectionSubtitle = computed(() => getSectionContent(props.template, "featured_products", "subtitle", "Produk paling diminati pelanggan kami"));
 
 const scrollContainer = ref(null);
 const canScrollLeft = ref(false);
@@ -60,31 +59,31 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <section class="py-8 md:py-12">
+    <section v-if="featuredProducts.length" class="py-8 md:py-12">
         <div class="container mx-auto px-4">
             <!-- Header -->
             <div class="mb-6 flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-bold text-foreground md:text-2xl">{{ title }}</h2>
-                    <p v-if="subtitle" class="mt-1 text-sm text-muted-foreground">{{ subtitle }}</p>
+                    <h2 class="text-xl font-bold text-foreground md:text-2xl">{{ sectionTitle }}</h2>
+                    <p v-if="sectionSubtitle" class="mt-1 text-sm text-muted-foreground">{{ sectionSubtitle }}</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button
+                    <Button
                         @click="scroll('left')"
                         :disabled="!canScrollLeft"
+                        :icon="ChevronLeft"
+                        size="icon"
                         class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 text-foreground shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40 hover:disabled:shadow-md"
                         aria-label="Scroll left"
-                    >
-                        <ChevronLeft class="h-5 w-5" />
-                    </button>
-                    <button
+                    />
+                    <Button
                         @click="scroll('right')"
                         :disabled="!canScrollRight"
+                        :icon="ChevronRight"
+                        size="icon"
                         class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                         aria-label="Scroll right"
-                    >
-                        <ChevronRight class="h-5 w-5" />
-                    </button>
+                    />
                 </div>
             </div>
 
@@ -103,7 +102,7 @@ onUnmounted(() => {
                 ></div>
 
                 <div ref="scrollContainer" class="scrollbar-hidden -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4">
-                    <div v-for="product in products" :key="product.uuid || product.id" class="w-44 flex-shrink-0 snap-start md:w-52">
+                    <div v-for="product in featuredProducts" :key="product.uuid || product.id" class="w-44 flex-shrink-0 snap-start md:w-52">
                         <ProductCard :product="product" />
                     </div>
 
@@ -123,7 +122,7 @@ onUnmounted(() => {
 
                             <div class="relative z-10 mb-3 text-5xl transition-transform duration-300 group-hover:scale-110">📦</div>
                             <span class="relative z-10 mb-1 text-sm font-semibold text-foreground">Lihat Semua</span>
-                            <span class="relative z-10 text-xs text-muted-foreground">{{ products.length }}+ Produk</span>
+                            <span class="relative z-10 text-xs text-muted-foreground">{{ featuredProducts.length }}+ Produk</span>
                             <div
                                 class="relative z-10 mt-3 rounded-full bg-primary/10 px-4 py-1 text-xs font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground"
                             >

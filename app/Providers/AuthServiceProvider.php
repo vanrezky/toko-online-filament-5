@@ -5,6 +5,7 @@ namespace App\Providers;
 // use Illuminate\Support\Facades\Gate;
 
 use App\Models\ContactMessage;
+use App\Models\Flashsale;
 use App\Models\Customer;
 use App\Models\CustomerLevel;
 use App\Models\EmailLog;
@@ -20,6 +21,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Village;
 use App\Policies\ContactMessagePolicy;
+use App\Policies\FlashsalePolicy;
 use App\Policies\CustomerPolicy;
 use App\Policies\CustomerLevelPolicy;
 use App\Policies\EmailLogPolicy;
@@ -57,6 +59,7 @@ class AuthServiceProvider extends ServiceProvider
     {
         Gate::policy(Exception::class, ExceptionPolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);
+        Gate::policy(Flashsale::class, FlashsalePolicy::class);
         Gate::policy(Customer::class, CustomerPolicy::class);
         Gate::policy(Transaction::class, TransactionPolicy::class);
         Gate::policy(SchoolUnit::class, SchoolUnitPolicy::class);

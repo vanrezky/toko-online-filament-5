@@ -1,4 +1,5 @@
 <script setup>
+import Button from "@frontend/components/UI/Button.vue";
 import { ref, computed } from "vue";
 import { router } from "@inertiajs/vue3";
 import axios from "axios";
@@ -75,7 +76,7 @@ const setFilter = (filter) => {
 
                 <!-- Filter Tabs -->
                 <div class="mb-8 flex items-center justify-center gap-2">
-                    <button
+                    <Button
                         v-for="filter in filters"
                         :key="filter.key"
                         @click="setFilter(filter.key)"
@@ -88,7 +89,7 @@ const setFilter = (filter) => {
                     >
                         <component :is="filter.icon" class="h-4 w-4" />
                         <span>{{ t('labels.filters.' + filter.key) }}</span>
-                    </button>
+                    </Button>
                 </div>
 
                 <!-- Voucher Grid -->

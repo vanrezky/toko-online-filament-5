@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Faqs;
 
+use App\Filament\Clusters\ContentCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
@@ -25,6 +26,8 @@ class FaqResource extends Resource
 {
     protected static ?string $model = Faq::class;
 
+    protected static ?string $cluster = ContentCluster::class;
+
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-sparkles';
     protected static ?int $navigationSort = 1;
     protected static ?string $slug = 'faqs';
@@ -32,11 +35,6 @@ class FaqResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('admin/faq-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/faq-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

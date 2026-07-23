@@ -13,7 +13,7 @@ const props = defineProps({
     :description="page.meta?.description"
     :keywords="page.meta?.keyword"
   >
-    <div class="py-12 md:py-20 bg-white">
+    <div class="py-12 bg-white">
       <div class="container mx-auto px-4 md:px-6">
         <div class="max-w-4xl mx-auto space-y-12">
           <!-- Page Header -->

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Installments;
 
+use App\Filament\Clusters\CustomerCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
@@ -27,6 +28,8 @@ use Illuminate\Support\Str;
 class InstallmentResource extends Resource
 {
     protected static ?string $model = Installment::class;
+
+    protected static ?string $cluster = CustomerCluster::class;
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-credit-card';
     protected static ?string $slug = 'installments';
     protected static ?int $navigationSort = 3;
@@ -34,11 +37,6 @@ class InstallmentResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('admin/installment-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/installment-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

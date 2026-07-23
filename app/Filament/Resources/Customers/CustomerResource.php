@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Customers;
 
+use App\Filament\Clusters\CustomerCluster;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\FileUpload;
@@ -39,6 +40,8 @@ use Filament\Tables\Table;
 class CustomerResource extends Resource
 {
     protected static ?string $model = Customer::class;
+
+    protected static ?string $cluster = CustomerCluster::class;
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $slug = 'customers';
     protected static ?int $navigationSort = 1;
@@ -48,11 +51,6 @@ class CustomerResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('admin/customer-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/customer-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

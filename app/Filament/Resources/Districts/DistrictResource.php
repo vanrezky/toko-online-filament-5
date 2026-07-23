@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Districts;
 
+use App\Filament\Clusters\RegionCluster;
 use Filament\Schemas\Schema;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -20,17 +21,14 @@ class DistrictResource extends Resource
     protected static ?string $model = District::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-storefront';
+
+    protected static ?string $cluster = RegionCluster::class;
     // protected static ?string $slug = 'district';
     protected static ?int $navigationSort = 3;
 
     public static function getNavigationLabel(): string
     {
         return __('admin/district-resource.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('admin/district-resource.navigation_group');
     }
 
     public static function getModelLabel(): string

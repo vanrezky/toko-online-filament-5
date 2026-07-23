@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use App\Services\ProductStatsService;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -19,7 +20,7 @@ class Product extends Model implements HasMedia
 {
     use HasFactory, HasUuidTrait, HasMeta, InteractsWithMedia;
 
-    protected $fillable = ['name', 'slug', 'warehouse_id', 'category_id', 'digital', 'digital_url', 'description', 'code', 'weight', 'stock', 'price', 'sale_price', 'afiliate_price', 'min_order', 'variant', 'sub_variant', 'user_id', 'security_stock'];
+    protected $fillable = ['name', 'slug', 'warehouse_id', 'category_id', 'digital', 'digital_url', 'description', 'code', 'weight', 'stock', 'price', 'sale_price', 'afiliate_price', 'min_order', 'variant', 'sub_variant', 'user_id', 'security_stock', 'fake_sold_count'];
 
     protected static function boot()
     {
@@ -50,6 +51,10 @@ class Product extends Model implements HasMedia
                     $product->slug = $originalSlug . '-' . $counter;
                     $counter++;
                 }
+            }
+
+            if ($product->isDirty('fake_sold_count')) {
+                ProductStatsService::bustProduct($product->id);
             }
         });
     }
@@ -130,6 +135,21 @@ class Product extends Model implements HasMedia
     public function faqs(): HasMany
     {
         return $this->hasMany(ProductFaq::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    public function adminReviews(): HasMany
+    {
+        return $this->reviews()->where('is_admin', true);
+    }
+
+    public function transactionProducts(): HasMany
+    {
+        return $this->hasMany(TransactionProduct::class);
     }
 
     public function registerAllMediaConversions(?Media $media = null): void

@@ -1,95 +1,108 @@
 <script setup>
-import { onMounted } from 'vue';
-import emblaCarouselVue from 'embla-carousel-vue';
-import Autoplay from 'embla-carousel-autoplay';
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
-import { Link } from '@inertiajs/vue3';
+import Button from "@frontend/components/UI/Button.vue";
+import { computed } from "vue";
+import emblaCarouselVue from "embla-carousel-vue";
+import Autoplay from "embla-carousel-autoplay";
+import { ChevronLeft, ChevronRight } from "lucide-vue-next";
+import { Link } from "@inertiajs/vue3";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps({
-  sliders: {
-    type: Array,
-    required: true
-  }
+    template: { type: Object, default: null },
+    slides: { type: Array, default: () => [] },
 });
 
-const [emblaRef, emblaApi] = emblaCarouselVue({ loop: true }, [Autoplay({ delay: 5000 })]);
+const { t } = useI18n();
+const slides = computed(() => {
+    if (props.slides.length > 0) {
+        return props.slides;
+    }
+
+    return [
+        {
+            id: "preview-modest-wear",
+            eyebrow: t("labels.carousel.preview.modest_wear_eyebrow"),
+            title: t("labels.carousel.preview.modest_wear_title"),
+            description: t("labels.carousel.preview.modest_wear_description"),
+            image_url: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=2400&q=85",
+            href: route("frontend.products"),
+            target_anchor: t("labels.carousel.preview.action"),
+        },
+        {
+            id: "preview-electronics",
+            eyebrow: t("labels.carousel.preview.electronics_eyebrow"),
+            title: t("labels.carousel.preview.electronics_title"),
+            description: t("labels.carousel.preview.electronics_description"),
+            image_url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=2400&q=85",
+            href: route("frontend.products"),
+            target_anchor: t("labels.carousel.preview.action"),
+        },
+        {
+            id: "preview-essentials",
+            eyebrow: t("labels.carousel.preview.essentials_eyebrow"),
+            title: t("labels.carousel.preview.essentials_title"),
+            description: t("labels.carousel.preview.essentials_description"),
+            image_url: "https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=2400&q=85",
+            href: route("frontend.products"),
+            target_anchor: t("labels.carousel.preview.action"),
+        },
+    ];
+});
+const hasSlides = computed(() => slides.value.length > 0);
+const [emblaRef, emblaApi] = emblaCarouselVue({ loop: true }, [Autoplay({ delay: 6000, stopOnInteraction: true })]);
 
 const scrollPrev = () => emblaApi.value?.scrollPrev();
 const scrollNext = () => emblaApi.value?.scrollNext();
 </script>
 
 <template>
-  <section class="relative group overflow-hidden bg-gray-100">
-    <div class="embla" ref="emblaRef">
-      <div class="embla__container flex">
-        <div 
-          v-for="(slider, index) in sliders" 
-          :key="index" 
-          class="embla__slide flex-[0_0_100%] min-w-0 relative aspect-[21/9] md:aspect-[3/1]"
-        >
-          <img 
-            :src="slider.image_url" 
-            class="absolute inset-0 w-full h-full object-cover" 
-            alt="Hero Image" 
-          />
-          <!-- Content Overlay -->
-          <div class="absolute inset-0 bg-black/10 flex flex-col justify-center px-10 md:px-20 lg:px-40">
-            <div class="max-w-xl space-y-6">
-              <p class="text-white text-sm md:text-base font-medium tracking-[0.2em] uppercase animate-fade-in-up">New Collection</p>
-              <h2 class="text-white text-4xl md:text-6xl lg:text-7xl font-bold leading-tight animate-fade-in-up delay-100">
-                {{ slider.description || 'Elevate Your Style' }}
-              </h2>
-              <div class="pt-4 animate-fade-in-up delay-200">
-                <Link 
-                  v-if="slider.target_link" 
-                  :href="slider.target_link"
-                  class="inline-block bg-white text-black px-8 py-3 text-sm font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all duration-300"
+    <section v-if="hasSlides" class="bg-muted relative overflow-hidden">
+        <div class="embla" ref="emblaRef">
+            <div class="embla__container flex">
+                <div
+                    v-for="(slide, index) in slides"
+                    :key="slide.id || slide.slug || index"
+                    class="embla__slide relative aspect-[4/3] min-w-0 flex-[0_0_100%] sm:aspect-[16/8] lg:aspect-[3/1]"
                 >
-                  {{ slider.target_anchor || 'Shop Now' }}
-                </Link>
-              </div>
+                    <img :src="slide.image_url" class="absolute inset-0 h-full w-full object-cover" :alt="slide.title || slide.name || ''" />
+                    <div class="absolute inset-0 flex items-end bg-black/35 px-4 py-6 sm:px-8 sm:py-10 lg:px-16 lg:py-14">
+                        <div class="max-w-2xl">
+                            <p v-if="slide.eyebrow" class="mb-3 text-xs font-semibold tracking-[0.14em] text-white/80 uppercase">
+                                {{ slide.eyebrow }}
+                            </p>
+                            <h2 v-if="slide.title || slide.name" class="font-display text-3xl leading-tight text-white md:text-5xl lg:text-6xl">
+                                {{ slide.title || slide.name }}
+                            </h2>
+                            <p v-if="slide.description" class="mt-3 max-w-xl text-sm leading-relaxed text-white/85 md:text-base">
+                                {{ slide.description }}
+                            </p>
+                            <div v-if="slide.target_link || slide.href" class="mt-5">
+                                <Link
+                                    :href="slide.target_link || slide.href"
+                                    class="text-foreground inline-flex min-h-11 items-center border border-white bg-white px-5 py-3 text-sm font-semibold transition-colors duration-200 hover:bg-transparent hover:text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none motion-reduce:transition-none"
+                                >
+                                    {{ slide.target_anchor }}
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Navigation Buttons -->
-    <button 
-      @click="scrollPrev" 
-      class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/20 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 backdrop-blur-sm"
-    >
-      <ChevronLeft class="w-6 h-6" />
-    </button>
-    <button 
-      @click="scrollNext" 
-      class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/20 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 backdrop-blur-sm"
-    >
-      <ChevronRight class="w-6 h-6" />
-    </button>
-  </section>
+        <Button
+            @click="scrollPrev"
+            :icon="ChevronLeft"
+            size="icon"
+            :aria-label="t('labels.carousel.previous')"
+            class="hover:text-foreground absolute top-1/2 left-4 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md border border-white/30 bg-black/25 text-white transition-colors duration-200 hover:bg-white focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none motion-reduce:transition-none md:left-6"
+        />
+        <Button
+            @click="scrollNext"
+            :icon="ChevronRight"
+            size="icon"
+            :aria-label="t('labels.carousel.next')"
+            class="hover:text-foreground absolute top-1/2 right-4 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md border border-white/30 bg-black/25 text-white transition-colors duration-200 hover:bg-white focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none motion-reduce:transition-none md:right-6"
+        />
+    </section>
 </template>
-
-<style scoped>
-.embla__slide {
-  position: relative;
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.8s ease-out forwards;
-}
-
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-</style>

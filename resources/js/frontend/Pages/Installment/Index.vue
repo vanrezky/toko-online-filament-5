@@ -1,6 +1,12 @@
 <script setup>
 import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
+import { formatCurrency, formatDate } from '../../lib/utils'
+import { getInstallmentStatusColor, getInstallmentStatusLabel } from '../../lib/installment-status'
+
+const dateFormat = { day: 'numeric', month: 'long', year: 'numeric' }
+const { t } = useI18n()
 
 const props = defineProps({
     installments: {
@@ -12,57 +18,6 @@ const props = defineProps({
         default: () => ({ next_month: null, upcoming: [] })
     }
 })
-
-const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        maximumFractionDigits: 0
-    }).format(amount)
-}
-
-const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    })
-}
-
-const getStatusColor = (status) => {
-    const colors = {
-        active: 'bg-yellow-100 text-yellow-800',
-        completed: 'bg-green-100 text-green-800',
-        overdue: 'bg-red-100 text-red-800',
-        defaulted: 'bg-gray-100 text-gray-800',
-        pending: 'bg-yellow-100 text-yellow-800',
-        submitted: 'bg-blue-100 text-blue-800',
-        failed: 'bg-red-100 text-red-800',
-        unpaid: 'bg-yellow-100 text-yellow-800',
-        partial: 'bg-blue-100 text-blue-800',
-        cancelled: 'bg-gray-100 text-gray-800',
-    }
-
-    return colors[status] || 'bg-gray-100 text-gray-800'
-}
-
-const getStatusLabel = (status) => {
-    const labels = {
-        active: 'Aktif',
-        completed: 'Lunas',
-        overdue: 'Terlambat',
-        defaulted: 'Wanprestasi',
-        pending: 'Menunggu Diproses',
-        submitted: 'Diajukan ke Keuangan',
-        failed: 'Gagal Dipotong',
-        unpaid: 'Belum Bayar',
-        partial: 'Sebagian',
-        paid: 'Lunas',
-        cancelled: 'Dibatalkan',
-    }
-
-    return labels[status] || status
-}
 
 const monthlySections = computed(() => {
     const sections = []
@@ -103,7 +58,7 @@ const monthlySections = computed(() => {
                             </div>
                             <div class="text-right">
                                 <p class="text-sm font-semibold text-gray-900">{{ formatCurrency(item.amount) }}</p>
-                                <span :class="['mt-1 inline-flex rounded-full px-2 py-0.5 text-xs', getStatusColor(item.status)]">{{ getStatusLabel(item.status) }}</span>
+                                <span :class="['mt-1 inline-flex rounded-full px-2 py-0.5 text-xs', getInstallmentStatusColor(item.status)]">{{ getInstallmentStatusLabel(item.status, t) }}</span>
                             </div>
                         </li>
                     </ul>
@@ -123,8 +78,8 @@ const monthlySections = computed(() => {
                             <p class="text-sm text-gray-500">Pesanan #{{ installment.transaction?.code }}</p>
                             <p class="text-lg font-semibold">{{ formatCurrency(installment.total_amount) }}</p>
                         </div>
-                        <span :class="['rounded-full px-3 py-1 text-xs font-medium', getStatusColor(installment.status)]">
-                            {{ getStatusLabel(installment.status) }}
+                        <span :class="['rounded-full px-3 py-1 text-xs font-medium', getInstallmentStatusColor(installment.status)]">
+                            {{ getInstallmentStatusLabel(installment.status, t) }}
                         </span>
                     </div>
 
@@ -143,7 +98,7 @@ const monthlySections = computed(() => {
                         </div>
                         <div>
                             <p class="text-gray-500">Mulai</p>
-                            <p class="font-medium">{{ formatDate(installment.start_date) }}</p>
+                            <p class="font-medium">{{ formatDate(installment.start_date, dateFormat) }}</p>
                         </div>
                     </div>
 

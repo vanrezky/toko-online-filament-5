@@ -7,6 +7,7 @@ use App\Enums\TransactionBillingStatus;
 use App\Enums\EmailTemplateCode;
 use App\Services\CodeGeneratorService;
 use App\Services\EmailTemplateService;
+use App\Services\ProductStatsService;
 use App\Settings\GeneralSettings;
 use App\Traits\HasUuidTrait;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -65,6 +66,8 @@ class Transaction extends Model
             if (! $transaction->wasChanged('status')) {
                 return;
             }
+
+            ProductStatsService::bustProducts($transaction->products()->pluck('product_id'));
 
             $transaction->loadMissing('customer', 'shippingDetails');
             $customer = $transaction->customer;

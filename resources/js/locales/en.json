@@ -1,4 +1,21 @@
 {
+    "meta": {
+        "newsletter_manage": {
+            "title": "Manage Newsletter"
+        },
+        "login": {
+            "title": "Login"
+        },
+        "register": {
+            "title": "Register"
+        },
+        "forgot_password": {
+            "title": "Forgot Password"
+        },
+        "reset_password": {
+            "title": "Reset Password"
+        }
+    },
     "actions": {
         "save": "Save",
         "saving": "Saving...",
@@ -22,6 +39,7 @@
         "load_more": "Load More",
         "loading": "Loading...",
         "login": "Login",
+        "login_now": "Login now",
         "logout": "Logout",
         "manage": "Manage",
         "manage_addresses": "Manage Addresses",
@@ -33,6 +51,7 @@
         "register": "Register",
         "register_now": "Register now",
         "reset": "Reset",
+        "reset_password": "Reset Password",
         "reset_filters": "Reset Filters",
         "save_address": "Save Address",
         "search": "Search",
@@ -65,6 +84,7 @@
     },
     "auth": {
         "welcome": "Welcome",
+        "register_heading": "Create Account",
         "login_subtitle": "Login to your account to continue.",
         "create_account": "Create Account",
         "register_subtitle": "Register for the best shopping experience.",
@@ -73,6 +93,11 @@
         "forgot_password_description": "Enter your email and we will send a link to reset your password.",
         "reset_password_heading": "Reset Password",
         "reset_password_description": "Enter a new password for your account.",
+        "private_store_badge": "Private Mode",
+        "registration_closed_title": "Public registration is currently closed",
+        "registration_closed_description": "Customer accounts can only be added by an admin. If you already have an account, please sign in to continue.",
+        "registration_closed_short": "New account registration is currently closed.",
+        "registration_closed_cta": "View registration information",
         "remember_me": "Remember me",
         "no_account": "Don't have an account?",
         "has_account": "Already have an account?",
@@ -123,7 +148,10 @@
         "shipping": "Shipping",
         "product": "Product",
         "all_categories": "All Categories",
-        "active": "Active Filters"
+        "active": "Active Filters",
+        "price_under": "<{amount}",
+        "price_between": "{min}-{max}",
+        "price_over": ">{amount}"
     },
     "footer": {
         "customer_service": "Customer Service",
@@ -143,6 +171,7 @@
         "email": "Email",
         "password": "Password",
         "password_confirmation": "Confirm Password",
+        "confirm_password": "Confirm Password",
         "new_password": "New Password",
         "subject": "Subject",
         "message": "Message",
@@ -232,11 +261,41 @@
         "weight": "Weight",
         "availability": "Availability:",
         "stock_unit": "{stock} units",
+        "stock": "Stock: {stock} remaining",
         "out_of_stock": "Out of Stock",
         "quantity": "Quantity",
         "min_order": "Min. order: {min} units",
         "wholesale_active": "Wholesale Price! Min. {qty} units @ {price}",
-        "wholesale_next": "Buy {qty}+ units for wholesale price {price}"
+        "wholesale_next": "Buy {qty}+ units for wholesale price {price}",
+        "reviews": "reviews",
+        "sold": "Sold",
+        "save": "Save",
+        "saved": "Saved",
+        "save_to_wishlist": "Save to wishlist",
+        "saved_to_wishlist": "Saved to wishlist",
+        "buy_now": "Buy Now",
+        "description": "Product Description",
+        "read_more": "Read More",
+        "show_less": "Show Less",
+        "loading_reviews": "Loading reviews...",
+        "reviews_heading": "Product Reviews",
+        "rated_as": "This product is rated",
+        "good_quality": "good quality",
+        "all": "All",
+        "stars": "{rating} Stars",
+        "no_reviews": "There are no reviews for this product yet.",
+        "load_more_reviews": "Load more reviews"
+    },
+    "header": {
+        "home": "Home",
+        "products": "Products",
+        "cart": "Cart",
+        "contact": "Contact",
+        "wishlist": "Wishlist",
+        "account": "My Account",
+        "login": "Sign In",
+        "search_placeholder": "Search in {site}..",
+        "search_products": "Type the product you are looking for..."
     },
     "shipping": {
         "pick_up": "Pick Up",
@@ -286,8 +345,226 @@
         "type_discount": "DISCOUNT"
     },
     "labels": {
+        "carousel": {
+            "previous": "Previous slide",
+            "next": "Next slide",
+            "preview": {
+                "action": "Explore products",
+                "modest_wear_eyebrow": "Modest wear",
+                "modest_wear_title": "Style for your everyday rhythm",
+                "modest_wear_description": "Discover collections that are comfortable to wear and easy to pair.",
+                "electronics_eyebrow": "Electronics essentials",
+                "electronics_title": "Technology that feels closer",
+                "electronics_description": "Choose devices for work, connection, and the moments you enjoy.",
+                "essentials_eyebrow": "Everyday picks",
+                "essentials_title": "Small things that make the day better",
+                "essentials_description": "Explore practical choices that complete your routine."
+            }
+        },
+        "home_story": {
+            "eyebrow": "For every day",
+            "title": "Find collections that feel right for you",
+            "description": "From pieces that accompany your routine to essentials that help you get things done, explore collections that fit the way you live.",
+            "action": "View collection"
+        },
+        "actions": {
+            "register": "Register",
+            "login_now": "Login now",
+            "logout": "Sign Out",
+            "view_all": "View All",
+            "start_shopping": "Start Shopping",
+            "manage_addresses": "Manage Addresses",
+            "select_options": "Select Options",
+            "add_to_cart": "Add to Cart",
+            "save": "Save",
+            "saving": "Saving...",
+            "cancel": "Cancel"
+        },
+        "auth": {
+            "register_heading": "Create Account",
+            "register_subtitle": "Register for the best shopping experience.",
+            "has_account": "Already have an account?",
+            "show_password": "Show password",
+            "hide_password": "Hide password",
+            "terms_agreement_prefix": "I agree to the",
+            "terms_and_conditions": "Terms & Conditions",
+            "terms_agreement_connector": "and",
+            "privacy_policy": "Privacy Policy"
+        },
+        "form": {
+            "first_name": "First Name",
+            "last_name": "Last Name",
+            "email": "Email",
+            "password": "Password",
+            "confirm_password": "Confirm Password",
+            "phone": "Phone Number"
+        },
+        "filters": {
+            "all": "All",
+            "all_categories": "All Categories",
+            "active": "Active Filters",
+            "price_under": "<{amount}",
+            "price_between": "{min}-{max}",
+            "price_over": ">{amount}"
+        },
+        "product": {
+            "shipped_from": "Shipped From",
+            "default_warehouse": "Main Warehouse",
+            "weight": "Weight",
+            "availability": "Availability:",
+            "stock_unit": "{stock} units",
+            "stock": "Stock: {stock} remaining",
+            "out_of_stock": "Out of Stock",
+            "quantity": "Quantity",
+            "min_order": "Min. order: {min} units",
+            "wholesale_active": "Wholesale Price! Min. {qty} units @ {price}",
+            "wholesale_next": "Buy {qty}+ units for wholesale price {price}",
+            "reviews": "reviews",
+            "sold": "Sold",
+            "save": "Save",
+            "saved": "Saved",
+            "save_to_wishlist": "Save to wishlist",
+            "saved_to_wishlist": "Saved to wishlist",
+            "buy_now": "Buy Now",
+            "description": "Product Description",
+            "read_more": "Read More",
+            "show_less": "Show Less",
+            "loading_reviews": "Loading reviews...",
+            "reviews_load_failed": "Reviews could not be loaded. Please try again.",
+            "reviews_heading": "Product Reviews",
+            "rated_as": "This product is rated",
+            "good_quality": "good quality",
+            "all": "All",
+            "stars": "{rating} Stars",
+            "no_reviews": "There are no reviews for this product yet.",
+            "load_more_reviews": "Load more reviews",
+            "discount_off": "{discount}% OFF",
+            "weight_unit": "{weight} kg",
+            "verified_purchase": "Verified purchase",
+            "new": "New",
+            "best_seller": "Best seller",
+            "no_image": "Image unavailable",
+            "save_amount": "Save {amount}",
+            "select_options_hint": "Select {options} before continuing.",
+            "decrease_quantity": "Decrease quantity",
+            "increase_quantity": "Increase quantity",
+            "view_image": "View image {number}",
+            "review_image_alt": "Review photo {number}",
+            "close_image_viewer": "Close image viewer"
+        },
+        "installment": {
+            "status": {
+                "active": "Active",
+                "completed": "Paid Off",
+                "overdue": "Overdue",
+                "defaulted": "Defaulted",
+                "pending": "Pending Processing",
+                "submitted": "Submitted to Finance",
+                "failed": "Deduction Failed",
+                "unpaid": "Unpaid",
+                "partial": "Partially Paid",
+                "paid": "Paid",
+                "cancelled": "Cancelled"
+            }
+        },
+        "header": {
+            "home": "Home",
+            "products": "Products",
+            "cart": "Cart",
+            "contact": "Contact",
+            "wishlist": "Wishlist",
+            "account": "My Account",
+            "login": "Sign In",
+            "search_placeholder": "Search in {site}..",
+            "search_products": "Type the product you are looking for..."
+        },
+        "newsletter": {
+            "unsubscribed_title": "Successfully Unsubscribed",
+            "unsubscribed_text": "Email {email} has been successfully removed from our newsletter list.",
+            "unsubscribed_note": "You will no longer receive newsletter emails from us.",
+            "already_unsubscribed_title": "Already Unsubscribed",
+            "already_unsubscribed_text": "Email {email} is already unsubscribed from our newsletter.",
+            "resubscribe_note": "If you want to resubscribe, please visit our homepage."
+        },
+        "order": {
+            "review": {
+                "rate": "Rate",
+                "all_submitted": "All reviews have been submitted",
+                "title": "Rate Products",
+                "description": "Rate every product in this order.",
+                "product_rating": "Product Rating",
+                "upload_photo": "Upload Photo",
+                "experience": "Experience or review",
+                "experience_placeholder": "Tell us about your experience (max. 1,000 words)",
+                "anonymous": "Show as anonymous",
+                "submit": "Submit",
+                "close": "Close"
+            }
+        },
+        "faq": {
+            "heading": "Frequently Asked Questions",
+            "subheading": "What you need to know about {name}"
+        },
+        "trust": {
+            "free_shipping": "Free Shipping",
+            "free_shipping_note": "Minimum purchase applies",
+            "secure_payment": "Secure Payment",
+            "secure_payment_note": "100% secure checkout",
+            "easy_returns_note": "30-day return policy"
+        },
+        "breadcrumb": {
+            "home": "Home",
+            "products": "Products"
+        },
+        "dialogs": {
+            "delete_address_title": "Delete Address",
+            "delete_address_message": "Are you sure you want to delete address \"{name}\"?",
+            "cancel": "Cancel",
+            "retry": "Try again",
+            "confirm_delete": "Yes, Delete"
+        },
         "account": {
-            "all_time": "All time"
+            "heading": "My Account",
+            "all_time": "All time",
+            "menu": {
+                "overview": "Overview",
+                "orders": "My Orders",
+                "addresses": "Shipping Addresses",
+                "settings": "Settings"
+            },
+            "quick_links": "Quick Links",
+            "wishlist": "Wishlist",
+            "total_orders": "Total Orders",
+            "default_address": "Default Address",
+            "recent_activity": "Recent Activity",
+            "no_activity": "No recent activity yet",
+            "no_activity_description": "Start shopping to see your activity here",
+            "settings_heading": "Account Settings",
+            "settings_description": "Manage your profile information and account preferences",
+            "profile_photo": "Profile Photo",
+            "photo_requirements": "JPEG, PNG or WEBP. Max 2MB."
+        },
+        "address": {
+            "heading": "Shipping Addresses",
+            "description": "Manage your delivery addresses",
+            "default_badge": "Default",
+            "no_default": "No default address yet",
+            "empty": "No saved addresses yet",
+            "managed_by_admin": "Addresses are managed by an administrator based on the school unit.",
+            "synced_from_school_unit": "Automatically synced from the school unit",
+            "awaiting_school_unit": "An address will appear automatically after an administrator assigns a school unit."
+        },
+        "order": {
+            "order_number": "Order #{id}",
+            "status": {
+                "packed": "Packed",
+                "in_transit": "In Transit",
+                "shipped": "Shipped",
+                "picked_up": "Picked Up",
+                "delivered": "Delivered",
+                "completed": "Completed",
+                "cancelled": "Cancelled"
+            }
         }
     },
     "account": {
@@ -343,8 +620,8 @@
         "empty_description": "There seems to be no active flash sale right now. Please check back later!"
     },
     "hero": {
-        "default_title": "Special Discount Today",
-        "default_subtitle": "Get the best deals for your favorite products. Limited promo, do not miss out!"
+        "default_title": "Considered choices for your everyday life",
+        "default_subtitle": "Explore collections selected for your moments, needs, and the way you move through the day."
     },
     "orders": {
         "heading": "My Orders",
@@ -472,6 +749,7 @@
         "price_min": "Min",
         "price_max": "Max",
         "new_password_confirmation": "Repeat new password",
-        "password_confirmation": "Repeat password"
+        "password_confirmation": "Repeat password",
+        "confirm_password": "Repeat password"
     }
 }
