@@ -296,7 +296,10 @@
             "password_number": "1 angka",
             "password_symbol": "1 simbol",
             "show_password": "Tampilkan kata sandi",
-            "hide_password": "Sembunyikan kata sandi"
+            "hide_password": "Sembunyikan kata sandi",
+            "or_continue_with": "atau lanjutkan dengan",
+            "continue_with_google": "Lanjutkan dengan Google",
+            "continue_with_github": "Lanjutkan dengan GitHub"
         },
         "dialogs": {
             "delete_address_title": "Hapus Alamat",

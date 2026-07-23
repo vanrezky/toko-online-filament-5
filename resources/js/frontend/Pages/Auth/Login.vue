@@ -121,6 +121,42 @@ const submit = () => {
                 </div>
             </form>
 
+            <div class="my-8 flex items-center gap-3" aria-hidden="true">
+                <div class="bg-border h-px flex-1" />
+                <span class="text-muted-foreground text-xs">{{ t("labels.auth.or_continue_with") }}</span>
+                <div class="bg-border h-px flex-1" />
+            </div>
+
+            <div class="flex gap-3">
+                <Button
+                    as="a"
+                    :href="route('frontend.auth.social.redirect', { provider: 'google' })"
+                    variant="outline"
+                    :aria-label="t('labels.auth.continue_with_google')"
+                    class="min-w-0 flex-1 py-3"
+                >
+                    <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="#4285F4" d="M21.35 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.24a4.48 4.48 0 0 1-1.94 2.94v2.51h3.15c1.84-1.7 2.9-4.2 2.9-7.28Z" />
+                        <path fill="#34A853" d="M12 21.75c2.62 0 4.82-.87 6.45-2.35l-3.15-2.51c-.87.58-1.99.93-3.3.93-2.53 0-4.67-1.71-5.44-4.01H3.31v2.59A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.05 1.06 4.4l3.25-2.59Z" />
+                        <path fill="#FBBC05" d="M6.56 13.81A5.86 5.86 0 0 1 6.26 12c0-.63.11-1.24.3-1.81V7.6H3.31A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.05 1.06 4.4l3.25-2.59Z" />
+                        <path fill="#EA4335" d="M12 6.18c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.81 3.26 14.62 2.25 12 2.25A9.75 9.75 0 0 0 3.31 7.6l3.25 2.59c.77-2.3 2.91-4.01 5.44-4.01Z" />
+                    </svg>
+                    <span>Google</span>
+                </Button>
+                <Button
+                    as="a"
+                    :href="route('frontend.auth.social.redirect', { provider: 'github' })"
+                    variant="outline"
+                    :aria-label="t('labels.auth.continue_with_github')"
+                    class="min-w-0 flex-1 py-3"
+                >
+                    <svg class="h-5 w-5 shrink-0 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 2.25a9.75 9.75 0 0 0-3.08 19c.49.09.67-.21.67-.47v-1.72c-2.74.6-3.32-1.17-3.32-1.17-.45-1.14-1.1-1.45-1.1-1.45-.9-.61.07-.6.07-.6 1 .07 1.52 1.02 1.52 1.02.89 1.51 2.32 1.08 2.89.83.09-.64.35-1.08.63-1.33-2.19-.25-4.49-1.09-4.49-4.86 0-1.07.38-1.95 1.01-2.64-.1-.25-.44-1.25.1-2.6 0 0 .83-.26 2.69 1.01A9.4 9.4 0 0 1 12 6.4c.85 0 1.71.12 2.51.34 1.86-1.27 2.69-1.01 2.69-1.01.54 1.35.2 2.35.1 2.6.63.69 1.01 1.57 1.01 2.64 0 3.78-2.3 4.6-4.5 4.85.35.3.67.9.67 1.82v2.7c0 .26.18.57.68.47A9.75 9.75 0 0 0 12 2.25Z" />
+                    </svg>
+                    <span>GitHub</span>
+                </Button>
+            </div>
+
             <div class="border-border mt-8 border-t pt-6 text-center">
                 <template v-if="isPrivateStore">
                     <p class="text-muted-foreground text-sm">

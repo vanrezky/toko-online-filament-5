@@ -51,6 +51,11 @@ class Customer extends Authenticatable implements HasMedia
         return $this->hasMany(CustomerAddress::class);
     }
 
+    public function socialAccounts(): HasMany
+    {
+        return $this->hasMany(CustomerSocialAccount::class);
+    }
+
     public function reseller(): BelongsTo
     {
         return $this->belongsTo(Reseller::class);

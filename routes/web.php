@@ -6,6 +6,7 @@ use App\Http\Controllers\Frontend\Auth\LoginController;
 use App\Http\Controllers\Frontend\Auth\LogoutController;
 use App\Http\Controllers\Frontend\Auth\RegisterController;
 use App\Http\Controllers\Frontend\Auth\ResetPasswordController;
+use App\Http\Controllers\Frontend\Auth\SocialLoginController;
 use App\Http\Controllers\Frontend\BlogController;
 use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\CheckoutController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\FaqController;
 use App\Http\Controllers\Frontend\FlashsaleController;
 use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\InstallmentController;
 use App\Http\Controllers\Frontend\NewsletterController;
 use App\Http\Controllers\Frontend\OrderController;
 use App\Http\Controllers\Frontend\PageController;
@@ -20,9 +22,9 @@ use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\ProductReviewController;
 use App\Http\Controllers\Frontend\VoucherController;
 use App\Http\Controllers\Frontend\WishlistController;
-use App\Http\Controllers\Frontend\InstallmentController;
 use App\Http\Controllers\PaymentWebhookController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,7 +46,7 @@ Route::name('frontend.')->group(function () {
 
     // Guest routes for customers - login only (disabled for fully private)
     Route::middleware('auth.customer.guest')->group(function () {
-        Route::get('/register-closed', fn() => \Inertia\Inertia::render('Auth/RegistrationClosed'))
+        Route::get('/register-closed', fn () => Inertia::render('Auth/RegistrationClosed'))
             ->name('registration-closed');
 
         Route::get('/register', RegisterController::class)->name('signup');
@@ -56,6 +58,8 @@ Route::name('frontend.')->group(function () {
 
         Route::get('/login', LoginController::class)->name('login');
         Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+        Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])->name('auth.social.redirect');
+        Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback'])->name('auth.social.callback');
     });
 
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
