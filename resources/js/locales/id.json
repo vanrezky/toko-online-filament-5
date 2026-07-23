@@ -497,6 +497,7 @@
             "all_rights_reserved": "Hak cipta dilindungi undang-undang.",
             "secure_payment": "Pembayaran Aman:",
             "contact_us": "Hubungi Kami",
+            "blog": "Blog",
             "faq": "Sering Ditanyakan",
             "shipping_info": "Info Pengiriman",
             "track_order": "Lacak Order",
@@ -592,6 +593,7 @@
         "header": {
             "home": "Beranda",
             "products": "Produk",
+            "blog": "Blog",
             "cart": "Keranjang",
             "contact": "Kontak",
             "wishlist": "Wishlist",

@@ -40,7 +40,14 @@ const customerServiceLinks = [
   { name: t('labels.footer.track_order'), href: '#' },
 ];
 
-const companyLinks = computed(() => [...(usePage().props.menu?.footer || [])]);
+const companyLinks = computed(() => {
+  const links = [...(usePage().props.menu?.footer || [])];
+  const blogHref = route('frontend.blog.index');
+
+  return links.some((link) => link.href === blogHref)
+    ? links
+    : [...links, { name: t('labels.footer.blog'), href: blogHref }];
+});
 const footerPromos = computed(() => {
   const promos = usePage().props.promotions;
   return (Array.isArray(promos) ? promos : promos?.data || []).filter(p => p.position === 'footer');

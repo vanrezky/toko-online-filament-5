@@ -165,6 +165,7 @@
         "all_rights_reserved": "All rights reserved.",
         "secure_payment": "Secure Payment:",
         "contact_us": "Contact Us",
+        "blog": "Blog",
         "faq": "FAQ",
         "shipping_info": "Shipping Info",
         "track_order": "Track Order",
@@ -477,6 +478,7 @@
         "header": {
             "home": "Home",
             "products": "Products",
+            "blog": "Blog",
             "cart": "Cart",
             "contact": "Contact",
             "wishlist": "Wishlist",
@@ -484,6 +486,20 @@
             "login": "Sign In",
             "search_placeholder": "Search in {site}..",
             "search_products": "Type the product you are looking for..."
+        },
+        "footer": {
+            "customer_service": "Customer Service",
+            "pages": "Pages",
+            "newsletter": "Newsletter",
+            "newsletter_description": "Subscribe to receive updates, access to exclusive deals, and more.",
+            "all_rights_reserved": "All rights reserved.",
+            "secure_payment": "Secure Payment:",
+            "contact_us": "Contact Us",
+            "blog": "Blog",
+            "faq": "FAQ",
+            "shipping_info": "Shipping Info",
+            "track_order": "Track Order",
+            "returns_exchanges": "Returns & Exchanges"
         },
         "newsletter": {
             "unsubscribed_title": "Successfully Unsubscribed",

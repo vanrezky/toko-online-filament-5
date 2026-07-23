@@ -5,6 +5,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { ArrowLeft, ArrowRight, Calendar, Clock3, User } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
+import PageShell from "@frontend/components/PageShell.vue";
 
 const { t } = useI18n();
 
@@ -86,6 +87,7 @@ onBeforeUnmount(() => {
 
 <template>
     <TemplateWrapper :title="post.meta?.title || post.title" :description="post.meta?.description || post.excerpt" :keywords="post.meta?.keyword">
+    
         <article class="min-h-screen bg-background">
             <div class="fixed inset-x-0 top-0 z-50 h-1 bg-border" aria-hidden="true">
                 <div class="h-full bg-primary transition-[width] duration-150 motion-reduce:transition-none" :style="{ width: `${readProgress}%` }"></div>

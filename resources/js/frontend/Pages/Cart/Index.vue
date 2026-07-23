@@ -61,7 +61,7 @@ const removeItem = (id) => {
 
 <template>
     <TemplateWrapper :shell="false" :title="t('labels.cart.heading')">
-        <PageShell :container="localItems.length > 0" :title="t('labels.cart.heading')">
+        <PageShell container :title="t('labels.cart.heading')">
             <div v-if="localItems.length > 0">
                 <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
                     <!-- Cart Items List -->

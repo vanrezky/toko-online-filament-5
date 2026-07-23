@@ -109,11 +109,11 @@ const clearSearch = () => {
                         {{ t("labels.header.products") }}
                     </Link>
                     <Link
-                        :href="route('frontend.cart')"
+                        :href="route('frontend.blog.index')"
                         class="relative flex h-full items-center px-1 text-sm font-semibold tracking-[0.08em] transition-colors duration-200 after:absolute after:bottom-3 after:left-0 after:h-0.5 after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 after:ease-out focus-visible:ring-primary/30 focus-visible:ring-2 focus-visible:outline-none"
-                        :class="isCurrentRoute('/cart') ? 'text-primary after:scale-x-100' : 'text-muted-foreground after:scale-x-0 hover:text-primary hover:after:scale-x-100'"
+                        :class="isCurrentRoute('/blog') ? 'text-primary after:scale-x-100' : 'text-muted-foreground after:scale-x-0 hover:text-primary hover:after:scale-x-100'"
                     >
-                        {{ t("labels.header.cart") }}
+                        {{ t("labels.header.blog") }}
                     </Link>
                     <Link
                         :href="route('frontend.contact')"

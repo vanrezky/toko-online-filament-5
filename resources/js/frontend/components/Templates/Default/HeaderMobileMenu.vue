@@ -69,13 +69,8 @@ const close = () => emit("close");
                 <Link :href="route('frontend.products')" class="border-border/50 text-foreground border-b py-3 text-sm font-semibold" @click="close">
                     {{ t("labels.header.products") }}
                 </Link>
-                <Link
-                    :href="route('frontend.cart')"
-                    class="border-border/50 text-foreground flex items-center justify-between border-b py-3 text-sm font-semibold"
-                    @click="close"
-                >
-                    <span>{{ t("labels.header.cart") }}</span>
-                    <span v-if="cartItemCount > 0" class="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs">{{ cartItemCount }}</span>
+                <Link :href="route('frontend.blog.index')" class="border-border/50 text-foreground border-b py-3 text-sm font-semibold" @click="close">
+                    {{ t("labels.header.blog") }}
                 </Link>
                 <Link :href="route('frontend.wishlist')" class="border-border/50 text-foreground border-b py-3 text-sm font-semibold" @click="close">
                     {{ t("labels.header.wishlist") }}
