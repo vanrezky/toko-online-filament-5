@@ -108,25 +108,21 @@ const sizeClasses = computed(() => {
     <article>
         <Link
             :href="route('frontend.product-detail', product.slug)"
-            class="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-background transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:transition-none"
+            class="group border-border bg-background hover:border-primary/60 focus-visible:ring-primary relative flex flex-col overflow-hidden rounded-lg border transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_14px_28px_-18px_hsl(var(--foreground)/0.48)] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none motion-reduce:transform-none motion-reduce:transition-none"
             :class="sizeClasses"
         >
             <!-- Image Container -->
-            <div class="relative aspect-square overflow-hidden bg-slate-100">
+            <div class="bg-secondary relative aspect-square overflow-hidden">
                 <!-- Product Image -->
                 <img
                     v-if="product.thumbnail"
                     :src="product.thumbnail"
                     :alt="product.name"
-                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none"
+                    class="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06] motion-reduce:transition-none"
                 />
 
                 <!-- No Image Placeholder -->
-                <div
-                    v-else
-                    class="flex h-full w-full flex-col items-center justify-center gap-2 bg-muted text-muted-foreground"
-                    aria-hidden="true"
-                >
+                <div v-else class="bg-muted text-muted-foreground flex h-full w-full flex-col items-center justify-center gap-2" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
                         <path
                             stroke-linecap="round"
@@ -137,7 +133,7 @@ const sizeClasses = computed(() => {
                     <span class="text-xs font-medium">{{ t("labels.product.no_image") }}</span>
                 </div>
 
-                <div v-if="badge" class="absolute top-3 left-3 px-2 py-1 text-xs font-semibold" :class="badge.class">
+                <div v-if="badge" class="absolute top-3 left-3 px-2.5 py-1 text-xs font-extrabold tracking-wide shadow-sm" :class="badge.class">
                     {{ badge.text }}
                 </div>
 
@@ -147,43 +143,42 @@ const sizeClasses = computed(() => {
                     :icon="Heart"
                     :icon-props="{ fill: isWishlisted ? 'currentColor' : 'none' }"
                     size="icon"
-                    class="absolute top-3 right-3 z-10 h-9 w-9 rounded-full bg-background/95 p-0 shadow-sm transition-colors duration-200 hover:bg-background focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
-                    :class="isWishlisted ? 'text-destructive opacity-100' : 'text-slate-400 opacity-100'"
+                    class="bg-background/95 hover:bg-background focus-visible:ring-primary absolute top-3 right-3 z-10 h-9 w-9 rounded-full p-0 shadow-[0_6px_14px_-8px_hsl(var(--foreground)/0.55)] transition-[background-color,transform] duration-200 hover:scale-105 focus-visible:ring-2 motion-reduce:transform-none motion-reduce:transition-none"
+                    :class="isWishlisted ? 'text-destructive opacity-100' : 'text-muted-foreground opacity-100'"
                     :aria-label="t('labels.product.save_to_wishlist')"
                 />
             </div>
 
             <!-- Content Section -->
             <div class="flex grow flex-col p-3 sm:p-4">
-                <div
-                    v-if="product.category_name"
-                    class="text-primary mb-2 inline-block self-start text-xs font-semibold tracking-wide uppercase"
-                >
+                <!-- <div v-if="product.category_name" class="text-primary mb-2 inline-block self-start text-[11px] font-bold tracking-[0.12em] uppercase">
                     {{ product.category_name }}
-                </div>
+                </div> -->
                 <!-- Product Name -->
-                <h3 class="text-foreground group-hover:text-primary mb-3 line-clamp-2 text-sm font-medium leading-snug transition-colors sm:text-base">
+                <h3
+                    class="text-foreground group-hover:text-primary mb-2 line-clamp-2 min-h-[2.5rem] text-sm font-bold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:min-h-[2.75rem] sm:text-[1.0625rem]"
+                >
                     {{ truncatedProductName }}
                 </h3>
 
                 <!-- Price & Cart Section -->
                 <div class="mt-auto flex items-end justify-between gap-2">
                     <div class="min-w-0 flex-1">
-                        <span class="text-foreground text-sm font-semibold sm:text-base">
+                        <span class="text-foreground text-lg font-extrabold leading-none tracking-[-0.035em] sm:text-xl">
                             {{ formatCurrency(displayPrice) }}
                         </span>
-                        <p v-if="isSale" class="text-primary mt-1 text-xs font-medium">
+                        <p v-if="isSale" class="text-primary mt-2 text-xs font-extrabold tracking-[-0.01em]">
                             {{ t("labels.product.save_amount", { amount: formatCurrency(originalPrice - displayPrice) }) }}
                         </p>
                     </div>
                 </div>
-                <div class="text-muted-foreground mt-3 flex items-center justify-between gap-2 border-t border-border pt-3 text-xs">
-                    <span class="flex items-center gap-1 font-medium text-amber-700">
+                <div class="text-muted-foreground border-border mt-4 flex items-center justify-between gap-2 border-t pt-3 text-xs">
+                    <span class="flex items-center gap-1 font-bold text-amber-700">
                         <Star class="h-3.5 w-3.5 fill-current" />
                         {{ product.rating_average?.toFixed?.(1) || "0.0" }}
                         <span class="text-muted-foreground">({{ formatProductCount(product.review_count) }})</span>
                     </span>
-                    <span>{{ formatProductCount(product.sold_count) }} {{ t("labels.product.sold") }}</span>
+                    <span class="font-semibold">{{ formatProductCount(product.sold_count) }} {{ t("labels.product.sold") }}</span>
                 </div>
             </div>
         </Link>
