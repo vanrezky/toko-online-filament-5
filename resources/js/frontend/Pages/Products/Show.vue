@@ -37,6 +37,9 @@ const selectedImage = ref(props.product.thumbnail);
 const isImageZoomOpen = ref(false);
 const zoomDialog = ref(null);
 const imageZoomTrigger = ref(null);
+const galleryThumbnails = ref(null);
+const thumbnailElements = ref([]);
+const visibleThumbnailIndexes = ref(new Set([0]));
 const quantity = ref(1);
 const selectedAttributes = ref({});
 const activeFaq = ref(null);
@@ -229,6 +232,7 @@ const filterReviews = (rating) => {
 };
 
 let ratingObserver;
+let thumbnailObserver;
 onMounted(() => {
     ratingObserver = new IntersectionObserver(
         ([entry]) => {
@@ -240,9 +244,30 @@ onMounted(() => {
     );
 
     if (ratingSection.value) ratingObserver.observe(ratingSection.value);
+
+    thumbnailObserver = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+
+                visibleThumbnailIndexes.value = new Set([...visibleThumbnailIndexes.value, Number(entry.target.dataset.index)]);
+                thumbnailObserver.unobserve(entry.target);
+            });
+        },
+        { root: galleryThumbnails.value, rootMargin: "0px 120px" },
+    );
+
+    thumbnailElements.value.forEach((element) => thumbnailObserver.observe(element));
 });
 
-onBeforeUnmount(() => ratingObserver?.disconnect());
+const setThumbnailElement = (element, index) => {
+    if (element) thumbnailElements.value[index] = element;
+};
+
+onBeforeUnmount(() => {
+    ratingObserver?.disconnect();
+    thumbnailObserver?.disconnect();
+});
 
 const addToCart = () => {
     router.post(
@@ -279,7 +304,7 @@ const buyNow = () => {
 <template>
     <TemplateWrapper :shell="false" :title="seoTitle" :description="seoDescription" :keywords="seoKeywords" :social-image="product.thumbnail">
         <PageShell container class="pb-24 sm:pb-0">
-                <nav class="text-muted-foreground mb-8 hidden items-center gap-2 text-xs sm:flex">
+                <nav class="text-muted-foreground mb-6 hidden items-center gap-2 text-xs sm:mb-8 sm:flex">
                     <Link :href="route('frontend.home')" class="hover:text-foreground transition-colors">{{ t("labels.breadcrumb.home") }}</Link>
                     <ChevronRight class="h-3 w-3" />
                     <Link :href="route('frontend.products')" class="hover:text-foreground transition-colors">{{
@@ -302,11 +327,13 @@ const buyNow = () => {
                             @click="openImageZoom"
                             :aria-label="t('labels.product.view_image', { number: selectedImageNumber })"
                             aria-haspopup="dialog"
-                            class="group relative block aspect-square w-full overflow-hidden rounded-2xl bg-white p-0 shadow-md transition-shadow hover:shadow-lg focus-visible:ring-offset-4 lg:max-w-[560px]"
+                            class="border-border group relative block aspect-square w-full overflow-hidden rounded-2xl border bg-white p-0 shadow-md transition-shadow hover:shadow-lg focus-visible:ring-offset-4 lg:max-w-[560px]"
                         >
                             <img
                                 :src="selectedImage || 'https://placehold.co/800x1000?text=No+Image'"
                                 :alt="product.name"
+                                fetchpriority="high"
+                                decoding="async"
                                 class="h-full w-full object-cover"
                             />
                             <span
@@ -318,22 +345,33 @@ const buyNow = () => {
                         </Button>
                         <div
                             v-if="product.images && product.images.length > 1"
+                            ref="galleryThumbnails"
                             class="flex [scrollbar-width:none] gap-2 overflow-x-auto pb-1 sm:gap-3 [&::-webkit-scrollbar]:hidden"
                         >
                             <Button
                                 v-for="(image, index) in product.images"
                                 :key="index"
+                                :ref="(element) => setThumbnailElement(element?.$el || element, index)"
+                                :data-index="index"
                                 @click="selectedImage = image"
                                 :aria-label="t('labels.product.view_image', { number: index + 1 })"
                                 :aria-pressed="selectedImage === image"
-                                class="h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-white shadow-sm transition-all hover:shadow-md sm:h-20 sm:w-20 sm:rounded-xl"
+                                class="border-border h-16 w-16 shrink-0 overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow-md sm:h-20 sm:w-20 sm:rounded-xl"
                                 :class="
                                     selectedImage === image
                                         ? 'border-primary shadow-sm'
-                                        : 'hover:border-primary/40 border-transparent opacity-60 hover:opacity-100'
+                                        : 'hover:border-primary/40 opacity-60 hover:opacity-100'
                                 "
                             >
-                                <img :src="image" :alt="`${product.name} ${index + 1}`" class="h-full w-full object-cover" />
+                                <img
+                                    v-if="visibleThumbnailIndexes.has(index)"
+                                    :src="image"
+                                    :alt="`${product.name} ${index + 1}`"
+                                    loading="lazy"
+                                    decoding="async"
+                                    fetchpriority="low"
+                                    class="h-full w-full object-cover"
+                                />
                             </Button>
                         </div>
                     </div>
@@ -559,6 +597,7 @@ const buyNow = () => {
                         <img
                             :src="selectedImage || 'https://placehold.co/800x1000?text=No+Image'"
                             :alt="product.name"
+                            decoding="async"
                             class="max-h-full max-w-full rounded-xl object-contain shadow-2xl"
                         />
                     </div>
@@ -586,7 +625,7 @@ const buyNow = () => {
                     </div>
                 </div>
 
-                <section ref="ratingSection" class="mt-6 rounded-2xl bg-white p-5 sm:mt-16 md:p-8">
+                <section ref="ratingSection" class="mt-12 rounded-2xl bg-white px-4 py-5 md:mt-16 md:px-6 md:py-6">
                     <div v-if="!ratingData" class="flex min-h-40 items-center justify-center text-center" aria-live="polite">
                         <div v-if="reviewsError" class="flex flex-col items-center gap-4">
                             <p class="text-muted-foreground text-sm">{{ t("labels.product.reviews_load_failed") }}</p>
@@ -678,6 +717,8 @@ const buyNow = () => {
                                     :key="image"
                                     :src="image"
                                     :alt="t('labels.product.review_image_alt', { number: imageIndex + 1 })"
+                                    loading="lazy"
+                                    decoding="async"
                                     class="h-16 w-16 rounded-md object-cover"
                                 />
                                 </div>
@@ -702,8 +743,8 @@ const buyNow = () => {
                     </template>
                 </section>
 
-                <div v-if="product.faqs && product.faqs.length > 0" class="mt-12 sm:mt-16">
-                    <div class="mb-8 text-center">
+                <div v-if="product.faqs && product.faqs.length > 0" class="mt-12 md:mt-16">
+                    <div class="mb-6 text-center md:mb-8">
                         <h2 class="text-foreground text-xl font-bold md:text-2xl">{{ t("labels.faq.heading") }}</h2>
                         <p class="text-muted-foreground mt-2 text-sm">{{ t("labels.faq.subheading", { name: product.name }) }}</p>
                     </div>
