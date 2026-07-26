@@ -26,6 +26,7 @@ const timeLeft = ref({
 });
 
 let intervalId = null;
+let scrollFrameId = null;
 
 const calculateTimeLeft = () => {
     if (!props.flashsales?.end_time) return;
@@ -34,17 +35,21 @@ const calculateTimeLeft = () => {
     const now = new Date().getTime();
     const diff = end - now;
 
-    if (diff > 0) {
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-        timeLeft.value = {
-            hours: String(hours).padStart(2, "0"),
-            minutes: String(minutes).padStart(2, "0"),
-            seconds: String(seconds).padStart(2, "0"),
-        };
+    if (diff <= 0) {
+        timeLeft.value = { hours: "00", minutes: "00", seconds: "00" };
+        if (intervalId) clearInterval(intervalId);
+        return;
     }
+
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    timeLeft.value = {
+        hours: String(hours).padStart(2, "0"),
+        minutes: String(minutes).padStart(2, "0"),
+        seconds: String(seconds).padStart(2, "0"),
+    };
 };
 
 onMounted(() => {
@@ -73,6 +78,14 @@ const checkScroll = () => {
     }
 };
 
+const scheduleScrollCheck = () => {
+    if (scrollFrameId) return;
+    scrollFrameId = requestAnimationFrame(() => {
+        checkScroll();
+        scrollFrameId = null;
+    });
+};
+
 const scroll = (direction) => {
     if (scrollContainer.value) {
         const scrollAmount = 280;
@@ -85,58 +98,52 @@ const scroll = (direction) => {
 
 onMounted(() => {
     if (scrollContainer.value) {
-        scrollContainer.value.addEventListener("scroll", checkScroll);
+        scrollContainer.value.addEventListener("scroll", scheduleScrollCheck, { passive: true });
         checkScroll();
     }
 });
 
 onUnmounted(() => {
     if (scrollContainer.value) {
-        scrollContainer.value.removeEventListener("scroll", checkScroll);
+        scrollContainer.value.removeEventListener("scroll", scheduleScrollCheck);
     }
+    if (scrollFrameId) cancelAnimationFrame(scrollFrameId);
 });
 </script>
 
 <template>
-    <section class="from-destructive/5 via-destructive/10 to-destructive/5 relative overflow-hidden bg-gradient-to-r py-8 md:py-12">
-        <!-- Decorative Elements -->
-        <div class="bg-destructive/10 absolute -top-20 -right-20 h-64 w-64 rounded-full blur-3xl"></div>
-        <div class="bg-destructive/10 absolute -bottom-20 -left-20 h-64 w-64 rounded-full blur-3xl"></div>
-
-        <div class="container mx-auto px-4">
+    <section class="border-destructive/15 from-secondary via-background to-background relative overflow-hidden border-y bg-gradient-to-br py-8 md:py-12">
+        <div class="container relative mx-auto px-4">
             <!-- Header -->
-            <div class="mb-6">
+            <div class="mb-6 md:mb-8">
                 <!-- Desktop Header -->
                 <div class="hidden items-center justify-between md:flex">
                     <div class="relative">
-                        <div class="flex items-center gap-2">
-                            <span class="from-destructive inline-flex h-[2px] w-8 items-center justify-center bg-gradient-to-r to-rose-500"></span>
-                            <span class="text-destructive flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase">
+                        <div class="text-destructive flex items-center gap-1.5 text-xs font-bold">
                                 <Zap class="h-3 w-3" /> Promo Terbatas
-                            </span>
                         </div>
                         <h2 class="text-foreground mt-1 text-xl font-bold md:text-2xl">{{ sectionTitle }}</h2>
-                        <p class="text-muted-foreground mt-1 text-sm">{{ subtitle }}</p>
+                        <p class="text-muted-foreground mt-1 max-w-xl text-sm">{{ subtitle }}</p>
                     </div>
 
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-5">
                         <!-- Countdown Timer -->
-                        <div class="text-foreground flex items-center gap-2">
-                            <Clock class="text-destructive h-5 w-5" />
+                        <div class="text-foreground flex items-center gap-2.5" role="timer" aria-live="off" aria-label="Berakhir dalam waktu {{ timeLeft.hours }} jam {{ timeLeft.minutes }} menit {{ timeLeft.seconds }} detik">
+                            <Clock class="text-destructive h-5 w-5" aria-hidden="true" />
                             <span class="text-sm font-semibold">Berakhir dalam:</span>
-                            <div class="flex items-center gap-1 font-bold">
+                            <div class="flex items-center gap-1.5 font-bold" aria-hidden="true">
                                 <span
-                                    class="from-destructive shadow-destructive/30 min-w-[36px] rounded-lg bg-gradient-to-br to-rose-600 px-2 py-1.5 text-center text-sm text-white shadow-lg"
+                                    class="bg-destructive text-destructive-foreground min-w-[38px] rounded-md px-2 py-1.5 text-center text-sm shadow-sm"
                                     >{{ timeLeft.hours }}</span
                                 >
                                 <span class="text-destructive font-bold">:</span>
                                 <span
-                                    class="from-destructive shadow-destructive/30 min-w-[36px] rounded-lg bg-gradient-to-br to-rose-600 px-2 py-1.5 text-center text-sm text-white shadow-lg"
+                                    class="bg-destructive text-destructive-foreground min-w-[38px] rounded-md px-2 py-1.5 text-center text-sm shadow-sm"
                                     >{{ timeLeft.minutes }}</span
                                 >
                                 <span class="text-destructive font-bold">:</span>
                                 <span
-                                    class="from-destructive shadow-destructive/30 min-w-[36px] rounded-lg bg-gradient-to-br to-rose-600 px-2 py-1.5 text-center text-sm text-white shadow-lg"
+                                    class="bg-destructive text-destructive-foreground min-w-[38px] rounded-md px-2 py-1.5 text-center text-sm shadow-sm"
                                     >{{ timeLeft.seconds }}</span
                                 >
                             </div>
@@ -149,16 +156,16 @@ onUnmounted(() => {
                                 :disabled="!canScrollLeft"
                                 :icon="ChevronLeft"
                                 size="icon"
-                                class="text-foreground flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40"
-                                aria-label="Scroll left"
+                                class="border-border bg-background text-foreground hover:bg-secondary focus-visible:ring-primary"
+                                aria-label="Geser produk promo ke kiri"
                             />
                             <Button
                                 @click="scroll('right')"
                                 :disabled="!canScrollRight"
                                 :icon="ChevronRight"
                                 size="icon"
-                                class="from-destructive shadow-destructive/30 hover:shadow-destructive/40 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br to-rose-600 text-white shadow-lg transition-all duration-300 hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-                                aria-label="Scroll right"
+                                class="bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/30"
+                                aria-label="Geser produk promo ke kanan"
                             />
                         </div>
                     </div>
@@ -167,29 +174,26 @@ onUnmounted(() => {
                 <!-- Mobile Header -->
                 <div class="flex items-start justify-between gap-4 md:hidden">
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="from-destructive inline-flex h-[2px] w-6 items-center justify-center bg-gradient-to-r to-rose-500"></span>
-                            <span class="text-destructive flex items-center gap-1 text-xs font-bold tracking-widest uppercase">
+                        <div class="text-destructive flex items-center gap-1 text-xs font-bold">
                                 <Zap class="h-3 w-3" /> Promo
-                            </span>
                         </div>
-                        <h2 class="text-foreground mt-1 text-xl font-bold">{{ flashsales.name }}</h2>
+                        <h2 class="text-foreground mt-1 text-xl font-bold">{{ sectionTitle }}</h2>
                     </div>
 
                     <!-- Mobile Timer & Scroll Buttons -->
                     <div class="flex flex-col items-end gap-2">
-                        <div class="flex items-center gap-2">
-                            <Clock class="text-destructive h-4 w-4" />
-                            <div class="flex items-center gap-1 text-xs font-bold">
-                                <span class="from-destructive rounded bg-gradient-to-br to-rose-600 px-2 py-0.5 text-white shadow">{{
+                        <div class="flex items-center gap-2" role="timer" aria-live="off" aria-label="Berakhir dalam waktu {{ timeLeft.hours }} jam {{ timeLeft.minutes }} menit {{ timeLeft.seconds }} detik">
+                            <Clock class="text-destructive h-4 w-4" aria-hidden="true" />
+                            <div class="flex items-center gap-1 text-xs font-bold" aria-hidden="true">
+                                <span class="bg-destructive text-destructive-foreground rounded px-2 py-0.5 shadow-sm">{{
                                     timeLeft.hours
                                 }}</span>
                                 <span class="text-destructive font-bold">:</span>
-                                <span class="from-destructive rounded bg-gradient-to-br to-rose-600 px-2 py-0.5 text-white shadow">{{
+                                <span class="bg-destructive text-destructive-foreground rounded px-2 py-0.5 shadow-sm">{{
                                     timeLeft.minutes
                                 }}</span>
                                 <span class="text-destructive font-bold">:</span>
-                                <span class="from-destructive rounded bg-gradient-to-br to-rose-600 px-2 py-0.5 text-white shadow">{{
+                                <span class="bg-destructive text-destructive-foreground rounded px-2 py-0.5 shadow-sm">{{
                                     timeLeft.seconds
                                 }}</span>
                             </div>
@@ -200,16 +204,16 @@ onUnmounted(() => {
                                 :disabled="!canScrollLeft"
                                 :icon="ChevronLeft"
                                 size="icon"
-                                class="text-foreground flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow transition-all disabled:cursor-not-allowed disabled:opacity-40"
-                                aria-label="Scroll left"
+                                class="h-11 w-11 border-border bg-background text-foreground hover:bg-secondary focus-visible:ring-primary"
+                                aria-label="Geser produk promo ke kiri"
                             />
                             <Button
                                 @click="scroll('right')"
                                 :disabled="!canScrollRight"
                                 :icon="ChevronRight"
                                 size="icon"
-                                class="from-destructive flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br to-rose-600 text-white shadow-lg transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-                                aria-label="Scroll right"
+                                class="h-11 w-11 bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/30"
+                                aria-label="Geser produk promo ke kanan"
                             />
                         </div>
                     </div>
@@ -220,13 +224,13 @@ onUnmounted(() => {
             <div class="relative">
                 <!-- Left Fade -->
                 <div
-                    class="from-destructive/10 via-destructive/5 pointer-events-none absolute top-0 left-0 z-10 h-full w-8 to-transparent transition-opacity duration-300 md:w-12"
+                    class="from-secondary pointer-events-none absolute top-0 left-0 z-10 h-full w-8 bg-gradient-to-r to-transparent transition-opacity duration-300 md:w-12"
                     :class="canScrollLeft ? 'opacity-100' : 'opacity-0'"
                 ></div>
 
                 <!-- Right Fade -->
                 <div
-                    class="from-destructive/10 via-destructive/5 pointer-events-none absolute top-0 right-0 z-10 h-full w-8 to-transparent transition-opacity duration-300 md:w-12"
+                    class="from-secondary pointer-events-none absolute top-0 right-0 z-10 h-full w-8 bg-gradient-to-l to-transparent transition-opacity duration-300 md:w-12"
                     :class="canScrollRight ? 'opacity-100' : 'opacity-0'"
                 ></div>
 
@@ -242,11 +246,11 @@ onUnmounted(() => {
                     <div class="w-44 shrink-0 snap-start md:w-52 lg:hidden">
                         <Link
                             :href="route('frontend.flashsales')"
-                            class="group border-destructive/30 from-destructive/5 hover:border-destructive relative flex h-full min-h-[320px] flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed bg-gradient-to-br to-white transition-all duration-300 hover:shadow-lg md:min-h-[360px]"
+                            class="border-border bg-background hover:border-primary group relative flex h-full min-h-[320px] flex-col items-center justify-center overflow-hidden border border-dashed transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-1 hover:shadow-lg focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none md:min-h-[360px] motion-reduce:transform-none motion-reduce:transition-none"
                         >
                             <!-- Decorative -->
                             <div
-                                class="bg-destructive/10 absolute -top-4 -right-4 h-20 w-20 rounded-full transition-transform duration-500 group-hover:scale-150"
+                                class="bg-destructive/5 absolute -top-4 -right-4 h-20 w-20 rounded-full transition-transform duration-500 group-hover:scale-150 motion-reduce:transition-none"
                             ></div>
 
                             <div class="mb-3 text-5xl transition-transform duration-300 group-hover:scale-110">🔥</div>
@@ -261,10 +265,10 @@ onUnmounted(() => {
             <div class="mt-8 text-center lg:block">
                 <Link
                     :href="route('frontend.flashsales')"
-                    class="from-destructive shadow-destructive/30 hover:shadow-destructive/40 inline-flex items-center gap-2 rounded-full bg-gradient-to-r to-rose-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl"
+                    class="bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground group inline-flex min-h-11 items-center gap-2 px-8 py-3 text-sm font-semibold transition-[background-color,color,transform] duration-300 hover:-translate-y-0.5 focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none motion-reduce:transform-none motion-reduce:transition-none"
                 >
                     {{ t("flash_sale.page.browse_all") }}
-                    <ChevronRight class="h-4 w-4" />
+                    <ChevronRight class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden="true" />
                 </Link>
             </div>
         </div>
