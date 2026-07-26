@@ -4,25 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ProductResellerPrice extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'reseller_id', 'product_id', 'price'
+        'reseller_id', 'product_id', 'price',
     ];
 
-    public function product(): HasOne
+    public function product(): BelongsTo
     {
-        return $this->hasOne(Product::class);
+        return $this->belongsTo(Product::class);
     }
 
-    public function reseller(): HasOne
+    public function reseller(): BelongsTo
     {
-        return $this->hasOne(Reseller::class);
+        return $this->belongsTo(Reseller::class);
     }
 
     public function wholesales(): HasMany

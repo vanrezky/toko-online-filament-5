@@ -2,58 +2,63 @@
 
 namespace App\Filament\Resources\Products;
 
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Tabs;
-use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Forms\Components\TextInput;
-use Filament\Actions\Action;
-use Filament\Schemas\Components\Utilities\Set;
-use Filament\Forms\Components\Select;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Forms\Components\RichEditor;
-use Filament\Forms\Components\Textarea;
-use Filament\Schemas\Components\Section;
-use Filament\Forms\Components\TagsInput;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Actions\ActionGroup;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use App\Filament\Resources\Products\Pages\ListProducts;
-use App\Filament\Resources\Products\Pages\CreateProduct;
-use App\Filament\Resources\Products\Pages\EditProduct;
-use Filament\Tables\Columns\ToggleColumn;
-use Filament\Tables\Columns\IconColumn;
-use Exception;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use App\Constants\Status;
 use App\Constants\UploadPath;
+use App\Filament\Resources\Products\Pages\CreateProduct;
+use App\Filament\Resources\Products\Pages\EditProduct;
+use App\Filament\Resources\Products\Pages\ListProducts;
+use App\Filament\Resources\Products\Pages\ViewProduct;
 use App\Filament\Resources\Products\RelationManagers\ProductVariantsRelationManager;
 use App\Filament\Resources\Schema\MetaSchema;
 use App\Filament\Resources\Schema\TitleSchema;
 use App\Models\Product;
+use App\Models\Reseller;
 use Carbon\Carbon;
 use Closure;
+use Exception;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\SpatieMediaLibraryImageEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-shopping-bag';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
 
     protected static ?string $slug = 'products';
 
@@ -79,305 +84,290 @@ class ProductResource extends Resource
         return __('admin/product-resource.plural_model_label');
     }
 
-
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Tabs::make('Tabs')
+                Tabs::make('product-form')
                     ->tabs([
-                        Tab::make(__('admin/product-resource.tabs.code_and_category'))
-                            ->schema(
-                                [
-                                    TextInput::make('code')
-                                        ->label(__('admin/product-resource.fields.code'))
-                                        ->helperText(__('admin/product-resource.fields.code_helper'))
-                                        ->required()
-                                        ->maxLength(20)
-                                        ->columnSpanFull()
-                                        ->unique(column: 'code', ignoreRecord: true)
-                                        ->maxLength('20')
-                                        ->suffixAction(
-                                            Action::make('generateCode')
-                                                ->icon('heroicon-m-arrow-path')
-                                                ->tooltip(__('admin/product-resource.notifications.generate_code'))
-                                                ->action(function (Set $set) {
-                                                    $set('code', self::generateProductCode());
-                                                })
-                                        ),
-                                    Select::make('category_id')
-                                        ->label(__('admin/product-resource.fields.category_id'))
-                                        ->helperText(__('admin/product-resource.fields.category_id_helper'))
-                                        ->relationship('category', 'name', fn(Builder $query): Builder => $query->active())
-                                        ->searchable()
-                                        ->preload()
-                                        ->required()
-                                        ->columnSpanFull(),
-                                    Select::make('digital')
-                                        ->default(false)
-                                        ->hidden()
-                                        ->label(__('admin/product-resource.fields.digital'))
-                                        ->helperText(__('admin/product-resource.fields.digital_helper'))
-                                        ->required()
-                                        ->options([
-                                            Status::PHYSICAL_PRODUCT => __('admin/product-resource.fields.physical_product'),
-                                            Status::DIGITAL_PRODUCT => __('admin/product-resource.fields.digital_product'),
-                                        ])
-                                        ->native(false)
-                                        ->default(Status::PHYSICAL_PRODUCT)
-                                        ->live(onBlur: true)
-                                        ->columnSpanFull(),
-                                    TextInput::make('digital_url')
-                                        ->placeholder(__('admin/product-resource.fields.digital_url_placeholder'))
-                                        ->helperText(__('admin/product-resource.fields.digital_url_helper'))
-                                        ->columnSpanFull()
-                                        ->visible(fn(Get $get): bool => $get('digital'))
-                                        ->required(fn(Get $get): bool => $get('digital'))
-                                        ->url()
-                                        ->columnSpanFull(),
-                                ]
-                            )->inlineLabel()->columns(2),
-                        Tab::make(__('admin/product-resource.tabs.name_and_description'))
+                        Tab::make(__('admin/product-resource.tabs.images'))
                             ->schema([
-                                TitleSchema::title('name')
-                                    ->label(__('admin/product-resource.fields.name'))
-                                    ->hiddenLabel()
-                                    ->placeholder(__('admin/product-resource.fields.name'))
-                                    ->helperText(__('admin/product-resource.fields.name_helper'))
-                                    ->minLength(5)
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->columnSpanFull()
-                                    ->id('product-name')
-                                    ->extraInputAttributes(['class' => 'column-title'], true),
-                                RichEditor::make('description')
-                                    ->hiddenLabel()
-                                    ->placeholder(__('admin/product-resource.fields.description'))
-                                    ->helperText(__('admin/product-resource.fields.description_helper'))
-                                    ->required()
-                                    ->disableToolbarButtons([
-                                        'attachFiles',
-                                    ])
-                                    ->columnSpanFull(),
-                            ]),
-
-                        Tab::make(__('admin/product-resource.tabs.price'))
-                            ->schema(
-                                [
-                                    TextInput::make('min_order')
-                                        ->label(__('admin/product-resource.fields.min_order'))
-                                        ->rules('nullable|numeric')
-                                        ->helperText(__('admin/product-resource.fields.min_order_helper'))
-                                        ->required()
-                                        ->default(1)
-                                        ->maxValue(fn(Get $get) => $get('stock')),
-                                    TextInput::make('sale_price')
-                                        ->rules('nullable|numeric')
-                                        ->label(__('admin/product-resource.fields.sale_price'))
-                                        ->helperText(__('admin/product-resource.fields.sale_price_helper'))
-                                        ->rules([
-                                            fn(Get $get, ?Model $record): Closure => function (string $attribute, $value, Closure $fail) use ($get, $record) {
-                                                $price = $get('price');
-                                                if ($value !== null && $price !== null && (float) $value >= (float) $price) {
-                                                    $fail(__('admin/product-resource.notifications.sale_price_error'));
-                                                }
-                                            },
-                                        ]),
-                                    TextInput::make('price')
-                                        ->rules('numeric')
-                                        ->label(__('admin/product-resource.fields.price'))
-                                        ->helperText(__('admin/product-resource.fields.price_helper'))
-                                        ->required()
-                                        ->live(onBlur: true),
-                                    TextInput::make('afiliate_price')
-                                        ->rules('nullable|numeric')
-                                        ->label(__('admin/product-resource.fields.afiliate_price'))
-                                        ->helperText(__('admin/product-resource.fields.afiliate_price_helper'))
-                                        ->hidden(),
-                                ]
-                            )->inlineLabel(),
-                        Tab::make(__('admin/product-resource.tabs.inventory'))
-                            ->schema([
-                                TextInput::make('weight')
-                                    ->rules('nullable|numeric')
-                                    ->label(__('admin/product-resource.fields.weight'))
-                                    ->helperText(__('admin/product-resource.fields.weight_helper'))
-                                    ->visible(fn(Get $get): bool => ! $get('digital'))
-                                    ->required(fn(Get $get): bool => ! $get('digital')),
-                                Select::make('warehouse_id')
-                                    ->label(__('admin/product-resource.fields.warehouse_id'))
-                                    ->helperText(str(__('admin/product-resource.fields.warehouse_id_helper'))->inlineMarkdown()->toHtmlString())
-                                    ->relationship('warehouse', 'name', fn(Builder $query): Builder => $query->active())
-                                    ->searchable()
-                                    ->preload()
-                                    ->visible(fn(Get $get): bool => ! $get('digital'))
-                                    ->required(fn(Get $get): bool => ! $get('digital'))
-                                    ->columnSpanFull(),
-                                TextInput::make('stock')
-                                    ->rules('nullable|numeric')
-                                    ->helperText(__('admin/product-resource.fields.stock_helper'))
-                                    ->required()
-                                    ->default(1)
-                                    ->live(),
-                                TextInput::make('security_stock')
-                                    ->rules('nullable|numeric')
-                                    ->helperText(__('admin/product-resource.fields.security_stock_helper'))
-                                    ->required()
-                                    ->default(0)
-                                    ->maxValue(fn(Get $get) => $get('stock')),
-                            ])->inlineLabel(),
-                        Tab::make(__('admin/product-resource.tabs.faqs'))
-                            ->hidden()
-                            ->schema([
-                                Repeater::make('faqs')
-                                    ->relationship('faqs')
-                                    ->reorderable(true)
-                                    ->hiddenLabel()
-                                    ->defaultItems(0)
+                                Section::make(__('admin/product-resource.sections.images'))
+                                    ->description(__('admin/product-resource.sections.images_description'))
                                     ->schema([
-                                        TextInput::make('question')
-                                            ->label(__('admin/product-resource.fields.question'))
-                                            ->required(),
-                                        Textarea::make('answer')
-                                            ->label(__('admin/product-resource.fields.answer'))
-                                            ->required(),
-                                    ]),
-
-                            ]),
-                        Tab::make('Review & Rating')
-                            ->schema([
-                                TextInput::make('fake_sold_count')
-                                    ->label('Penjualan pemancing')
-                                    ->helperText('Penjualan riil dihitung otomatis dari transaksi completed.')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->default(0),
-                                Repeater::make('adminReviews')
-                                    ->relationship('adminReviews')
-                                    ->label('Review admin')
-                                    ->helperText('Hanya review yang dibuat admin yang ditampilkan di sini.')
-                                    ->defaultItems(0)
-                                    ->schema([
-                                        TextInput::make('reviewer_name')->label('Nama pengulas')->required()->maxLength(255),
-                                        TextInput::make('rating')->label('Rating')->numeric()->minValue(1)->maxValue(5)->required(),
-                                        Textarea::make('review')->label('Ulasan')->rows(3)->maxLength(7000),
-                                        Forms\Components\Hidden::make('is_admin')->default(true),
                                         SpatieMediaLibraryFileUpload::make('images')
-                                            ->collection('images')
                                             ->image()
+                                            ->imageEditor()
+                                            ->required()
+                                            ->hiddenLabel()
                                             ->multiple()
-                                            ->maxFiles(3)
-                                            ->maxSize(5120),
-                                    ])->columns(2),
-                            ])->columns(2),
-                        Tab::make(__('admin/product-resource.tabs.seo'))
-                            ->hidden()
+                                            ->reorderable()
+                                            ->maxFiles(5)
+                                            ->imageCropAspectRatio('1:1')
+                                            ->imageEditorAspectRatios(['1:1'])
+                                            ->downloadable()
+                                            ->panelLayout('grid')
+                                            ->disk(getActiveDisk())
+                                            ->rules(['required', 'mimes:png,jpg,jpeg,webp,gif'])
+                                            ->directory(UploadPath::PRODUCT_UPLOAD_PATH),
+                                    ]),
+                            ]),
+                        Tab::make(__('admin/product-resource.tabs.product_information'))
                             ->schema([
-                                TitleSchema::slug()
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->required()
-                                    ->columnSpanFull(),
-                                TitleSchema::hidden(),
-                                MetaSchema::get(),
+                                Section::make(__('admin/product-resource.sections.product_details'))
+                                    ->schema([
+                                        TitleSchema::title('name')
+                                            ->label(__('admin/product-resource.fields.name'))
+                                            ->placeholder(__('admin/product-resource.fields.name'))
+                                            ->helperText(__('admin/product-resource.fields.name_helper'))
+                                            ->minLength(5)
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->columnSpanFull()
+                                            ->id('product-name')
+                                            ->extraInputAttributes(['class' => 'column-title'], true),
+                                        RichEditor::make('description')
+                                            ->label(__('admin/product-resource.fields.description'))
+                                            ->placeholder(__('admin/product-resource.fields.description'))
+                                            ->helperText(__('admin/product-resource.fields.description_helper'))
+                                            ->required()
+                                            ->disableToolbarButtons(['attachFiles'])
+                                            ->columnSpanFull(),
+                                    ]),
+                                Section::make(__('admin/product-resource.sections.classification'))
+                                    ->schema([
+                                        TextInput::make('code')
+                                            ->label(__('admin/product-resource.fields.code'))
+                                            ->helperText(__('admin/product-resource.fields.code_helper'))
+                                            ->required()
+                                            ->maxLength(20)
+                                            ->unique(column: 'code', ignoreRecord: true)
+                                            ->suffixAction(
+                                                Action::make('generateCode')
+                                                    ->icon('heroicon-m-arrow-path')
+                                                    ->tooltip(__('admin/product-resource.notifications.generate_code'))
+                                                    ->action(function (Set $set) {
+                                                        $set('code', self::generateProductCode());
+                                                    })
+                                            ),
+                                        Select::make('category_id')
+                                            ->label(__('admin/product-resource.fields.category_id'))
+                                            ->helperText(__('admin/product-resource.fields.category_id_helper'))
+                                            ->relationship('category', 'name', fn (Builder $query): Builder => $query->active())
+                                            ->searchable()
+                                            ->preload()
+                                            ->required(),
+                                        Select::make('digital')
+                                            ->label(__('admin/product-resource.fields.digital'))
+                                            ->helperText(__('admin/product-resource.fields.digital_helper'))
+                                            ->required()
+                                            ->options([
+                                                Status::PHYSICAL_PRODUCT => __('admin/product-resource.fields.physical_product'),
+                                                Status::DIGITAL_PRODUCT => __('admin/product-resource.fields.digital_product'),
+                                            ])
+                                            ->native(false)
+                                            ->default(Status::PHYSICAL_PRODUCT)
+                                            ->live(onBlur: true),
+                                        Select::make('is_active')
+                                            ->label(__('admin/product-resource.fields.is_active'))
+                                            ->helperText(__('admin/product-resource.fields.is_active_helper'))
+                                            ->options(self::getStatusOptions())
+                                            ->default(Status::ACTIVE)
+                                            ->native(false)
+                                            ->required(),
+                                        TextInput::make('digital_url')
+                                            ->label(__('admin/product-resource.fields.digital_url'))
+                                            ->placeholder(__('admin/product-resource.fields.digital_url_placeholder'))
+                                            ->helperText(__('admin/product-resource.fields.digital_url_helper'))
+                                            ->columnSpanFull()
+                                            ->visible(fn (Get $get): bool => $get('digital'))
+                                            ->required(fn (Get $get): bool => $get('digital'))
+                                            ->url()
+                                            ->columnSpanFull(),
+                                    ])->columns(2),
+                                Section::make(__('admin/product-resource.sections.tags'))
+                                    ->schema([
+                                        TagsInput::make('tags')
+                                            ->label(__('admin/product-resource.fields.tags'))
+                                            ->placeholder(__('admin/product-resource.fields.tags_placeholder'))
+                                            ->separator(','),
+                                    ]),
+                            ]),
+                        Tab::make(__('admin/product-resource.tabs.pricing_inventory'))
+                            ->schema([
+                                Section::make(__('admin/product-resource.sections.pricing'))
+                                    ->schema([
+                                        TextInput::make('price')
+                                            ->rules('numeric')
+                                            ->label(__('admin/product-resource.fields.price'))
+                                            ->helperText(__('admin/product-resource.fields.price_helper'))
+                                            ->required()
+                                            ->live(onBlur: true),
+                                        TextInput::make('sale_price')
+                                            ->rules('nullable|numeric')
+                                            ->label(__('admin/product-resource.fields.sale_price'))
+                                            ->helperText(__('admin/product-resource.fields.sale_price_helper'))
+                                            ->rules([
+                                                fn (Get $get, ?Model $record): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
+                                                    $price = $get('price');
+                                                    if ($value !== null && $price !== null && (float) $value >= (float) $price) {
+                                                        $fail(__('admin/product-resource.notifications.sale_price_error'));
+                                                    }
+                                                },
+                                            ]),
+                                        TextInput::make('afiliate_price')
+                                            ->rules('nullable|numeric')
+                                            ->label(__('admin/product-resource.fields.afiliate_price'))
+                                            ->helperText(__('admin/product-resource.fields.afiliate_price_helper')),
+                                        TextInput::make('min_order')
+                                            ->label(__('admin/product-resource.fields.min_order'))
+                                            ->rules('nullable|numeric')
+                                            ->helperText(__('admin/product-resource.fields.min_order_helper'))
+                                            ->required()
+                                            ->default(1)
+                                            ->maxValue(fn (Get $get) => $get('stock')),
+                                    ])->columns(2),
+                                Section::make(__('admin/product-resource.sections.inventory'))
+                                    ->schema([
+                                        TextInput::make('stock')
+                                            ->rules('nullable|numeric')
+                                            ->label(__('admin/product-resource.fields.stock'))
+                                            ->helperText(__('admin/product-resource.fields.stock_helper'))
+                                            ->required()
+                                            ->default(1)
+                                            ->live(),
+                                        TextInput::make('security_stock')
+                                            ->rules('nullable|numeric')
+                                            ->label(__('admin/product-resource.fields.security_stock'))
+                                            ->helperText(__('admin/product-resource.fields.security_stock_helper'))
+                                            ->required()
+                                            ->default(0)
+                                            ->maxValue(fn (Get $get) => $get('stock')),
+                                        TextInput::make('weight')
+                                            ->rules('nullable|numeric')
+                                            ->label(__('admin/product-resource.fields.weight'))
+                                            ->helperText(__('admin/product-resource.fields.weight_helper'))
+                                            ->visible(fn (Get $get): bool => ! $get('digital'))
+                                            ->required(fn (Get $get): bool => ! $get('digital')),
+                                        Select::make('warehouse_id')
+                                            ->label(__('admin/product-resource.fields.warehouse_id'))
+                                            ->helperText(str(__('admin/product-resource.fields.warehouse_id_helper'))->inlineMarkdown()->toHtmlString())
+                                            ->relationship('warehouse', 'name', fn (Builder $query): Builder => $query->active())
+                                            ->searchable()
+                                            ->preload()
+                                            ->visible(fn (Get $get): bool => ! $get('digital'))
+                                            ->required(fn (Get $get): bool => ! $get('digital')),
+                                    ])->columns(2),
+                            ]),
+                        Tab::make(__('admin/product-resource.tabs.sales_content'))
+                            ->schema([
+                                Section::make(__('admin/product-resource.sections.reseller_pricing'))
+                                    ->schema([
+                                        Repeater::make('resellerPrices')
+                                            ->relationship('resellerPrices')
+                                            ->hiddenLabel()
+                                            ->reorderable(false)
+                                            ->deleteAction(fn (Action $action) => $action->requiresConfirmation())
+                                            ->defaultItems(0)
+                                            ->schema([
+                                                Select::make('reseller_id')
+                                                    ->label(__('admin/product-resource.fields.reseller_id'))
+                                                    ->options(Reseller::active()->get()->pluck('name_level', 'id')->toArray())
+                                                    ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                                                    ->hintAction(
+                                                        Action::make('wholesale')
+                                                            ->icon('heroicon-m-currency-dollar')
+                                                            ->label(__('admin/product-resource.actions.add_wholesale'))
+                                                            ->form([
+                                                                Repeater::make('wholesales')
+                                                                    ->default(fn ($record): array => $record ? $record->wholesales->toArray() : [])
+                                                                    ->schema(self::getWholesalesSchema())
+                                                                    ->hiddenLabel()
+                                                                    ->grid(['lg' => 2]),
+                                                            ])
+                                                            ->action(fn (array $data, $record) => self::setActionWholesales($data, $record))
+                                                            ->visible(fn ($record): bool => ! empty($record))
+                                                    ),
+                                                TextInput::make('price')
+                                                    ->label(__('admin/product-resource.fields.price'))
+                                                    ->required()
+                                                    ->numeric()
+                                                    ->default(fn (Get $get) => $get('../../price'))
+                                                    ->live(onBlur: true)
+                                                    ->hint(fn (Get $get): string => __('admin/product-resource.fields.normal_price').': Rp '.number_format($get('../../price') ?? 0, 0, ',', '.')),
+                                            ])->grid(['md' => 2]),
+                                    ]),
+                                Section::make(__('admin/product-resource.sections.wholesale_pricing'))
+                                    ->schema([
+                                        Repeater::make('wholesales')
+                                            ->label(__('admin/product-resource.tabs.wholesales_price'))
+                                            ->relationship('wholesales', fn (Builder $query): Builder => $query->whereNull('reseller_id'))
+                                            ->reorderable(false)
+                                            ->hiddenLabel()
+                                            ->deleteAction(fn (Action $action) => $action->requiresConfirmation())
+                                            ->cloneable()
+                                            ->defaultItems(0)
+                                            ->schema(self::getWholesalesSchema())
+                                            ->grid(['xl' => 2]),
+                                    ]),
+                                Section::make(__('admin/product-resource.sections.faqs'))
+                                    ->schema([
+                                        Repeater::make('faqs')
+                                            ->relationship('faqs')
+                                            ->reorderable(true)
+                                            ->hiddenLabel()
+                                            ->defaultItems(0)
+                                            ->schema([
+                                                TextInput::make('question')
+                                                    ->label(__('admin/product-resource.fields.question'))
+                                                    ->required(),
+                                                Textarea::make('answer')
+                                                    ->label(__('admin/product-resource.fields.answer'))
+                                                    ->required(),
+                                            ]),
+                                    ]),
+                                Section::make(__('admin/product-resource.sections.reviews'))
+                                    ->schema([
+                                        TextInput::make('fake_sold_count')
+                                            ->label(__('admin/product-resource.fields.fake_sold_count'))
+                                            ->helperText(__('admin/product-resource.fields.fake_sold_count_helper'))
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->default(0),
+                                        Repeater::make('adminReviews')
+                                            ->relationship('adminReviews')
+                                            ->label(__('admin/product-resource.fields.admin_reviews'))
+                                            ->helperText(__('admin/product-resource.fields.admin_reviews_helper'))
+                                            ->defaultItems(0)
+                                            ->schema([
+                                                TextInput::make('reviewer_name')->label(__('admin/product-resource.fields.reviewer_name'))->required()->maxLength(255),
+                                                TextInput::make('rating')->label(__('admin/product-resource.fields.rating'))->numeric()->minValue(1)->maxValue(5)->required(),
+                                                Textarea::make('review')->label(__('admin/product-resource.fields.review'))->rows(3)->maxLength(7000),
+                                                Forms\Components\Hidden::make('is_admin')->default(true),
+                                                SpatieMediaLibraryFileUpload::make('images')
+                                                    ->collection('images')
+                                                    ->image()
+                                                    ->multiple()
+                                                    ->maxFiles(3)
+                                                    ->maxSize(5120),
+                                            ])->columns(2),
+                                    ])->columns(2),
+                            ]),
+                        Tab::make(__('admin/product-resource.tabs.seo'))
+                            ->schema([
+                                Section::make(__('admin/product-resource.sections.seo'))
+                                    ->schema([
+                                        TitleSchema::slug()
+                                            ->label(__('admin/product-resource.fields.slug'))
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->columnSpanFull(),
+                                        TitleSchema::hidden(),
+                                        MetaSchema::get(),
+                                    ]),
                             ]),
                     ])->columnSpanFull(),
-                Section::make(__('admin/product-resource.tabs.images'))
-                    ->schema([
-                        SpatieMediaLibraryFileUpload::make('images')
-                            ->image()
-                            ->imageEditor()
-                            ->required()
-                            ->hiddenLabel()
-                            ->multiple()
-                            ->reorderable()
-                            ->maxFiles(5)
-                            ->imageCropAspectRatio('1:1')
-                            ->imageEditorAspectRatios([
-                                '1:1',
-                            ])
-                            ->downloadable()
-                            ->panelLayout('grid')
-                            ->disk(getActiveDisk())
-                            ->rules(['required', 'mimes:png,jpg,jpeg,webp,gif'])
-                            ->directory(UploadPath::PRODUCT_UPLOAD_PATH),
-                    ])->columnSpanFull(),
-                Section::make(__('admin/product-resource.fields.other_settings'))
-                    ->hidden()
-                    ->schema([
-                        TagsInput::make('tags')
-                            ->label(__('admin/product-resource.fields.tags'))
-                            ->placeholder(__('admin/product-resource.fields.tags_placeholder'))
-                            ->separator(','),
-                        Select::make('is_active')
-                            ->label(__('admin/product-resource.fields.is_active'))
-                            ->helperText(__('admin/product-resource.fields.is_active_helper'))
-                            ->options(self::getStatusOptions())
-                            ->default(Status::ACTIVE)
-                            ->hidden()
-                            ->native(false)
-                            ->required(),
-                    ])->columnSpanFull(),
-                // Tabs::make('Advanced Settings')
-                //     ->schema([
-                // @feature-toggle: reseller — uncomment to re-enable Reseller Price tab
-                // Tabs\Tab::make('Reseller Price')
-                //     ->schema([
-                //         Forms\Components\Repeater::make('resellerPrices')
-                //             ->relationship('resellerPrices')
-                //             ->hiddenLabel()
-                //             ->reorderable(false)
-                //             ->deleteAction(function (Action $action) {
-                //                 $action->requiresConfirmation();
-                //             })
-                //             ->defaultItems(0)
-                //             ->schema([
-                //                 Forms\Components\Select::make('reseller_id')
-                //                     ->label(__('Reseller Level'))
-                //                     ->options(Reseller::active()->get()->pluck('name_level', 'id')->toArray())
-                //                     ->disableOptionsWhenSelectedInSiblingRepeaterItems()
-                //                     ->hintAction(
-                //                         Action::make('wholesale')
-                //                             ->icon('heroicon-m-currency-dollar')
-                //                             ->label('Add wholesale')
-                //                             ->form([
-                //                                 Forms\Components\Repeater::make('wholesales')
-                //                                     ->default(fn($record): array => $record ? $record->wholesales->toArray() : [])
-                //                                     ->schema(self::getWholesalesSchema())
-                //                                     ->hiddenLabel()
-                //                                     ->grid(['lg' => 2]),
-                //                             ])
-                //                             ->action(fn(array $data, $record) => self::setActionWholesales($data, $record))
-                //                             ->visible(fn($record): bool => ! empty($record))
-                //                     ),
-                //                 Forms\Components\TextInput::make('price')
-                //                     ->required()
-                //                     ->numeric()
-                //                     ->default(fn(Get $get) => $get('../../price'))
-                //                     ->live(onBlur: true)
-                //                     ->hint(fn(Get $get): string => 'Normal Price: Rp ' . number_format($get('../../price') ?? 0, 0, ',', '.'))
-                //             ])->grid(['md' => 2]),
-                //     ]),
-                //     Tab::make(__('admin/product-resource.tabs.wholesales'))
-                //         ->label(__('admin/product-resource.tabs.wholesales'))
-                //         ->hidden()
-                //         ->schema([
-                //             Repeater::make('wholesales')
-                //                 ->label(__('admin/product-resource.tabs.wholesales_price'))
-                //                 ->relationship('wholesales', fn(Builder $query): Builder => $query->whereNull('reseller_id'))
-                //                 ->reorderable(false)
-                //                 ->hiddenLabel()
-                //                 // ->collapsible()
-                //                 ->deleteAction(
-                //                     fn(Action $action) => $action->requiresConfirmation(),
-                //                 )
-                //                 ->cloneable()
-                //                 ->defaultItems(0)
-                //                 ->schema(self::getWholesalesSchema())
-                //                 ->grid(['xl' => 2]),
-                //         ]),
-                // ])->columnSpanFull(),
-            ])->columns(3);
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -420,8 +410,7 @@ class ProductResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('afiliate_price')
                     ->numeric()
-                    ->sortable()
-                    ->hidden(),
+                    ->sortable(),
                 TextColumn::make('min_order')
                     ->numeric()
                     ->sortable()
@@ -457,9 +446,9 @@ class ProductResource extends Resource
                     ->indicateUsing(function (array $data): ?string {
                         $text = null;
                         if ($data['created_from']) {
-                            $text = __('admin/product-resource.fields.created_from') . ' ' . Carbon::parse($data['created_from'])->toFormattedDateString();
+                            $text = __('admin/product-resource.fields.created_from').' '.Carbon::parse($data['created_from'])->toFormattedDateString();
                             if ($data['created_until']) {
-                                $text .= ' - ' . Carbon::parse($data['created_until'])->toFormattedDateString();
+                                $text .= ' - '.Carbon::parse($data['created_until'])->toFormattedDateString();
                             }
                         }
 
@@ -469,17 +458,18 @@ class ProductResource extends Resource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
 
             ])
             ->recordActions([
                 ActionGroup::make([
+                    ViewAction::make()->label(__('admin/product-resource.actions.view')),
                     EditAction::make(),
                     DeleteAction::make(),
                 ]),
@@ -490,6 +480,144 @@ class ProductResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Section::make(__('admin/product-resource.sections.images'))
+                    ->schema([
+                        SpatieMediaLibraryImageEntry::make('images')
+                            ->label(__('admin/product-resource.entries.images'))
+                            ->conversion('thumb')
+                            ->imageSize(120)
+                            ->square()
+                            ->limit(5)
+                            ->limitedRemainingText(),
+                    ]),
+                Section::make(__('admin/product-resource.sections.product_details'))
+                    ->schema([
+                        TextEntry::make('name')->label(__('admin/product-resource.fields.name')),
+                        TextEntry::make('code')->label(__('admin/product-resource.fields.code'))->badge(),
+                        TextEntry::make('category.name')->label(__('admin/product-resource.fields.category_id')),
+                        TextEntry::make('digital')
+                            ->label(__('admin/product-resource.fields.digital'))
+                            ->formatStateUsing(fn (int $state): string => $state === Status::DIGITAL_PRODUCT
+                                ? __('admin/product-resource.fields.digital_product')
+                                : __('admin/product-resource.fields.physical_product')),
+                        TextEntry::make('is_active')
+                            ->label(__('admin/product-resource.fields.is_active'))
+                            ->badge()
+                            ->color(fn (bool $state): string => $state ? 'success' : 'gray')
+                            ->formatStateUsing(fn (bool $state): string => $state
+                                ? __('admin/product-resource.status.published')
+                                : __('admin/product-resource.status.draft')),
+                        TextEntry::make('digital_url')
+                            ->label(__('admin/product-resource.fields.digital_url'))
+                            ->url(fn (?string $state): ?string => $state)
+                            ->visible(fn (Product $record): bool => $record->digital === Status::DIGITAL_PRODUCT)
+                            ->columnSpanFull(),
+                        TextEntry::make('tags')
+                            ->label(__('admin/product-resource.fields.tags'))
+                            ->formatStateUsing(fn ($state): string => collect($state ?? [])->implode(', '))
+                            ->placeholder('-')
+                            ->columnSpanFull(),
+                        TextEntry::make('description')
+                            ->label(__('admin/product-resource.fields.description'))
+                            ->html()
+                            ->columnSpanFull(),
+                    ])->columns(2),
+                Section::make(__('admin/product-resource.sections.pricing_inventory'))
+                    ->schema([
+                        TextEntry::make('price')->label(__('admin/product-resource.fields.price'))->money('IDR'),
+                        TextEntry::make('sale_price')->label(__('admin/product-resource.fields.sale_price'))->money('IDR')->placeholder('-'),
+                        TextEntry::make('afiliate_price')->label(__('admin/product-resource.fields.afiliate_price'))->money('IDR')->placeholder('-'),
+                        TextEntry::make('min_order')->label(__('admin/product-resource.fields.min_order')),
+                        TextEntry::make('stock')->label(__('admin/product-resource.fields.stock')),
+                        TextEntry::make('security_stock')->label(__('admin/product-resource.fields.security_stock')),
+                        TextEntry::make('warehouse.name')
+                            ->label(__('admin/product-resource.fields.warehouse_id'))
+                            ->visible(fn (Product $record): bool => $record->digital !== Status::DIGITAL_PRODUCT),
+                        TextEntry::make('weight')
+                            ->label(__('admin/product-resource.fields.weight'))
+                            ->suffix(' g')
+                            ->visible(fn (Product $record): bool => $record->digital !== Status::DIGITAL_PRODUCT),
+                    ])->columns(3),
+                Section::make(__('admin/product-resource.sections.reseller_pricing'))
+                    ->schema([
+                        RepeatableEntry::make('resellerPrices')
+                            ->label(__('admin/product-resource.sections.reseller_pricing'))
+                            ->schema([
+                                TextEntry::make('reseller.name_level')->label(__('admin/product-resource.fields.reseller_id')),
+                                TextEntry::make('price')->label(__('admin/product-resource.fields.price'))->money('IDR'),
+                                RepeatableEntry::make('wholesales')
+                                    ->label(__('admin/product-resource.sections.wholesale_pricing'))
+                                    ->schema([
+                                        TextEntry::make('min_qty')->label(__('admin/product-resource.fields.min_qty')),
+                                        TextEntry::make('price')->label(__('admin/product-resource.fields.price_per_item'))->money('IDR'),
+                                    ])
+                                    ->columns(2)
+                                    ->contained(false)
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2)
+                            ->contained(false),
+                    ]),
+                Section::make(__('admin/product-resource.sections.wholesale_pricing'))
+                    ->schema([
+                        RepeatableEntry::make('normalWholesales')
+                            ->label(__('admin/product-resource.sections.wholesale_pricing'))
+                            ->getStateUsing(fn (Product $record): array => $record->wholesales
+                                ->whereNull('reseller_id')
+                                ->values()
+                                ->all())
+                            ->schema([
+                                TextEntry::make('min_qty')->label(__('admin/product-resource.fields.min_qty')),
+                                TextEntry::make('price')->label(__('admin/product-resource.fields.price_per_item'))->money('IDR'),
+                            ])
+                            ->columns(2)
+                            ->contained(false),
+                    ]),
+                Section::make(__('admin/product-resource.sections.faqs'))
+                    ->schema([
+                        RepeatableEntry::make('faqs')
+                            ->label(__('admin/product-resource.sections.faqs'))
+                            ->schema([
+                                TextEntry::make('question')->label(__('admin/product-resource.fields.question')),
+                                TextEntry::make('answer')->label(__('admin/product-resource.fields.answer'))->html()->columnSpanFull(),
+                            ])
+                            ->contained(false),
+                    ]),
+                Section::make(__('admin/product-resource.sections.reviews'))
+                    ->schema([
+                        TextEntry::make('fake_sold_count')->label(__('admin/product-resource.fields.fake_sold_count')),
+                        RepeatableEntry::make('adminReviews')
+                            ->label(__('admin/product-resource.fields.admin_reviews'))
+                            ->schema([
+                                TextEntry::make('reviewer_name')->label(__('admin/product-resource.fields.reviewer_name')),
+                                TextEntry::make('rating')->label(__('admin/product-resource.fields.rating'))->badge(),
+                                TextEntry::make('review')->label(__('admin/product-resource.fields.review'))->columnSpanFull(),
+                                SpatieMediaLibraryImageEntry::make('images')
+                                    ->label(__('admin/product-resource.entries.review_images'))
+                                    ->collection('images')
+                                    ->conversion('thumb')
+                                    ->imageSize(80)
+                                    ->square()
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2)
+                            ->contained(false),
+                    ]),
+                Section::make(__('admin/product-resource.sections.seo'))
+                    ->schema([
+                        TextEntry::make('slug')->label(__('admin/product-resource.fields.slug')),
+                        TextEntry::make('meta.title')->label(__('admin/product-resource.entries.meta_title'))->placeholder('-'),
+                        TextEntry::make('meta.description')->label(__('admin/product-resource.entries.meta_description'))->placeholder('-')->columnSpanFull(),
+                        TextEntry::make('meta.keyword')->label(__('admin/product-resource.entries.meta_keywords'))->placeholder('-')->columnSpanFull(),
+                    ])->columns(2),
+            ])
+            ->columns(1);
     }
 
     public static function getRelations(): array
@@ -504,8 +632,8 @@ class ProductResource extends Resource
         return [
             'index' => ListProducts::route('/'),
             'create' => CreateProduct::route('/create'),
+            'view' => ViewProduct::route('/{record}'),
             'edit' => EditProduct::route('/{record}/edit'),
-            // 'view' => '',
         ];
     }
 
@@ -514,7 +642,7 @@ class ProductResource extends Resource
         if (self::shouldCanUpdate()) {
             return ToggleColumn::make('is_active')
                 ->label(__('admin/product-resource.columns.published'))
-                ->afterStateUpdated(fn() => notification(__('admin/product-resource.notifications.published_updated'), 'success'));
+                ->afterStateUpdated(fn () => notification(__('admin/product-resource.notifications.published_updated'), 'success'));
         }
 
         return IconColumn::make('is_active')->boolean()->label(__('admin/product-resource.columns.published'));
@@ -536,9 +664,9 @@ class ProductResource extends Resource
             TextInput::make('price')
                 ->label(__('admin/product-resource.fields.price_per_item'))
                 ->required()
-                ->default(fn(Get $get) => $get('../../price'))
+                ->default(fn (Get $get) => $get('../../price'))
                 ->live(onBlur: true)
-                ->hint(fn(Get $get): string => __('admin/product-resource.fields.price') . ': Rp ' . number_format($get('../../price') ?? 0, 0, ',', '.'))
+                ->hint(fn (Get $get): string => __('admin/product-resource.fields.price').': Rp '.number_format($get('../../price') ?? 0, 0, ',', '.'))
                 ->distinct(),
         ];
     }

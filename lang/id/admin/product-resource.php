@@ -18,6 +18,9 @@ return [
         'edit' => [
             'title' => 'Edit Produk',
         ],
+        'view' => [
+            'title' => 'Detail Produk',
+        ],
     ],
 
     'tabs' => [
@@ -29,7 +32,26 @@ return [
         'faqs' => 'FAQ',
         'seo' => 'SEO',
         'wholesales' => 'Grosir',
-        'wholesales_price' => 'Harga Grosir'
+        'wholesales_price' => 'Harga Grosir',
+        'product_information' => 'Informasi Produk',
+        'pricing_inventory' => 'Harga & Stok',
+        'sales_content' => 'Penjualan & Konten',
+    ],
+
+    'sections' => [
+        'images' => 'Gambar Produk',
+        'images_description' => 'Unggah hingga lima gambar produk. Gambar pertama akan menjadi gambar utama.',
+        'product_details' => 'Detail Produk',
+        'classification' => 'Klasifikasi & Status',
+        'tags' => 'Tag Produk',
+        'pricing' => 'Harga',
+        'inventory' => 'Persediaan & Pengiriman',
+        'reseller_pricing' => 'Harga Reseller',
+        'wholesale_pricing' => 'Harga Grosir',
+        'faqs' => 'Pertanyaan Umum',
+        'reviews' => 'Review & Rating',
+        'seo' => 'Optimasi Mesin Pencari',
+        'pricing_inventory' => 'Harga & Stok',
     ],
 
     'fields' => [
@@ -78,7 +100,29 @@ return [
         'sub_variant' => 'Sub Varian',
         'reseller_id' => 'Level Reseller',
         'wholesale' => 'Grosir',
-        'back' => 'Kembali'
+        'back' => 'Kembali',
+        'normal_price' => 'Harga normal',
+        'slug' => 'Slug',
+        'fake_sold_count' => 'Penjualan pemancing',
+        'fake_sold_count_helper' => 'Penjualan riil dihitung otomatis dari transaksi selesai.',
+        'admin_reviews' => 'Review admin',
+        'admin_reviews_helper' => 'Hanya review yang dibuat admin yang ditampilkan di sini.',
+        'reviewer_name' => 'Nama pengulas',
+        'rating' => 'Rating',
+        'review' => 'Ulasan',
+    ],
+
+    'entries' => [
+        'images' => 'Gambar Produk',
+        'review_images' => 'Gambar Review',
+        'meta_title' => 'Judul Meta',
+        'meta_description' => 'Deskripsi Meta',
+        'meta_keywords' => 'Kata Kunci Meta',
+    ],
+
+    'actions' => [
+        'add_wholesale' => 'Tambah harga grosir',
+        'view' => 'Lihat detail',
     ],
 
     'columns' => [
@@ -143,5 +187,5 @@ return [
             'option_exists' => 'Opsi ini sudah dibuat.',
             'attribute_exists' => 'Atribut ini sudah dibuat.',
         ],
-    ]
+    ],
 ];
