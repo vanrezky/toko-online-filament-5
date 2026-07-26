@@ -122,12 +122,19 @@ const selectedVariant = computed(() => {
     });
 });
 
+const activeFlashsale = computed(() => props.product.pricing?.flashsale ?? null);
+
 const displayPrice = computed(() => {
-    let basePrice = parseFloat(props.product.sale_price) || parseFloat(props.product.price);
+    let basePrice = parseFloat(props.product.pricing?.final_price ?? props.product.sale_price ?? props.product.price);
 
     if (selectedVariant.value) {
         basePrice = parseFloat(selectedVariant.value.price);
+        if (activeFlashsale.value) {
+            basePrice *= 1 - parseFloat(activeFlashsale.value.discount_percentage) / 100;
+        }
     }
+
+    if (activeFlashsale.value) return basePrice;
 
     if (props.product.wholesales && props.product.wholesales.length > 0) {
         const minOrder = props.product.min_order || 1;
@@ -142,7 +149,14 @@ const displayPrice = computed(() => {
     return basePrice;
 });
 
+const displayOriginalPrice = computed(() => {
+    return selectedVariant.value
+        ? parseFloat(selectedVariant.value.price)
+        : parseFloat(props.product.pricing?.original_price ?? props.product.price);
+});
+
 const activeWholesale = computed(() => {
+    if (activeFlashsale.value) return null;
     if (!props.product.wholesales || props.product.wholesales.length === 0) return null;
     const minOrder = props.product.min_order || 1;
     return [...props.product.wholesales]
@@ -152,16 +166,17 @@ const activeWholesale = computed(() => {
 });
 
 const nextWholesale = computed(() => {
+    if (activeFlashsale.value) return null;
     if (!props.product.wholesales || props.product.wholesales.length === 0) return null;
     return [...props.product.wholesales].sort((a, b) => a.min_qty - b.min_qty).find((w) => quantity.value < w.min_qty);
 });
 
 const displayStock = computed(() => {
-    if (selectedVariant.value) return selectedVariant.value.stock;
-    return props.product.stock;
+    const productStock = selectedVariant.value ? selectedVariant.value.stock : props.product.stock;
+    return activeFlashsale.value ? Math.min(productStock, activeFlashsale.value.stock) : productStock;
 });
 
-const isSale = computed(() => !!props.product.sale_price);
+const isSale = computed(() => ['sale', 'flashsale'].includes(props.product.pricing?.source));
 const requiredAttributes = computed(() => Object.keys(attributeGroups.value));
 const hasPositiveRatingSummary = computed(() => ratingData.value?.summary.count > 0 && ratingData.value.summary.average >= 4);
 
@@ -414,9 +429,9 @@ const buyNow = () => {
                             <div class="flex flex-wrap items-center gap-3">
                                 <template v-if="isSale && !activeWholesale">
                                     <span class="text-primary text-3xl font-bold">{{ formatCurrency(displayPrice, localeCode) }}</span>
-                                    <span class="text-muted-foreground text-lg line-through">{{ formatCurrency(product.price, localeCode) }}</span>
-                                    <span v-if="product.discount_percentage" class="rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white">
-                                        {{ t("labels.product.discount_off", { discount: product.discount_percentage }) }}
+                                    <span class="text-muted-foreground text-lg line-through">{{ formatCurrency(displayOriginalPrice, localeCode) }}</span>
+                                    <span v-if="activeFlashsale || product.discount_percentage" class="rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white">
+                                        {{ t("labels.product.discount_off", { discount: activeFlashsale?.discount_percentage ?? product.discount_percentage }) }}
                                     </span>
                                 </template>
                                 <template v-else>

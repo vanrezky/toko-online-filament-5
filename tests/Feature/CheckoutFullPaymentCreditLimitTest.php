@@ -7,11 +7,15 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
+use App\Models\Flashsale;
 use App\Models\Product;
+use App\Models\ProductFlashsale;
 use App\Models\Transaction;
 use App\Models\Warehouse;
+use App\Services\TransactionCancellationService;
 use App\Services\Gateways\DTOs\PaymentResponse;
 use App\Services\PaymentGatewayService;
+use App\Settings\GeneralSettings;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -79,7 +83,7 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
         $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->first();
         $this->assertNotNull($transaction);
         $this->assertSame('full', $transaction->payment_type);
-        $this->assertSame('pending', $transaction->billing_status);
+        $this->assertSame('pending', $transaction->billing_status->value);
 
         $customer->refresh();
         $afterRemaining = $customer->remaining_credit_limit;
@@ -223,6 +227,7 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
             'quantity' => 2,
             'price' => 120_000,
             'discount' => 0,
+            'line_subtotal' => 240_000,
             'description' => null,
         ]);
 
@@ -365,13 +370,205 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
         $this->assertSame('2026-07-05', optional($transaction->billing_due_date)->toDateString());
     }
 
-    private function mockPaymentGateway(): void
+    public function test_checkout_reserves_flashsale_stock_uses_flashsale_price_and_releases_it_when_cancelled(): void
+    {
+        Queue::fake();
+        $this->mockPaymentGateway();
+
+        $customer = $this->createCustomer(500_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $product->update(['sale_price' => 80_000]);
+        $product->wholesales()->create(['min_qty' => 2, 'price' => 70_000]);
+
+        $flashsale = Flashsale::query()->create([
+            'name' => 'Flash sale checkout',
+            'start_time' => now()->subMinute(),
+            'end_time' => now()->addHour(),
+            'is_active' => true,
+        ]);
+        $flashsaleProduct = ProductFlashsale::query()->create([
+            'flashsale_id' => $flashsale->id,
+            'product_id' => $product->id,
+            'discount_percentage' => 30,
+            'stock' => 2,
+        ]);
+
+        $cart = Cart::create([
+            'customer_id' => $customer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            // Deliberately stale: checkout must never trust this value.
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')
+            ->postJson(route('frontend.checkout.store'), [
+                'address_id' => $address->id,
+                'shipping_methods' => [
+                    (string) $warehouse->id => [
+                        'courier_code' => 'KURIR_TOKO',
+                        'courier_name' => 'Kurir Toko',
+                        'price' => 20_000,
+                        'weight' => 1_000,
+                        'estimation' => '1-2 hari',
+                    ],
+                ],
+                'payment_type' => 'full',
+            ]);
+
+        $response->assertOk()->assertJson(['success' => true]);
+
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
+        $transactionProduct = $transaction->products()->firstOrFail();
+        $flashsaleProduct->refresh();
+
+        $this->assertEqualsWithDelta(100_000, (float) $transactionProduct->price, 0.001);
+        $this->assertEqualsWithDelta(30_000, (float) $transactionProduct->discount, 0.001);
+        $this->assertEqualsWithDelta(140_000, (float) $transactionProduct->line_subtotal, 0.001);
+        $this->assertSame(0, $flashsaleProduct->stock);
+        $this->assertDatabaseHas('flashsale_reservations', [
+            'transaction_id' => $transaction->id,
+            'product_flashsale_id' => $flashsaleProduct->id,
+            'quantity' => 2,
+        ]);
+
+        app(TransactionCancellationService::class)->cancel($transaction);
+
+        $this->assertSame('cancelled', $transaction->fresh()->status->value);
+        $this->assertSame(2, $flashsaleProduct->fresh()->stock);
+        $this->assertDatabaseHas('flashsale_reservations', [
+            'transaction_id' => $transaction->id,
+            'product_flashsale_id' => $flashsaleProduct->id,
+        ]);
+        $this->assertNotNull($transaction->flashsaleReservations()->firstOrFail()->fresh()->released_at);
+    }
+
+    public function test_checkout_rejects_flashsale_when_aggregate_cart_quantity_exceeds_quota(): void
+    {
+        Queue::fake();
+        $this->mockPaymentGateway();
+
+        $customer = $this->createCustomer(500_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $flashsale = Flashsale::query()->create([
+            'name' => 'Flash sale kuota terbatas',
+            'start_time' => now()->subMinute(),
+            'end_time' => now()->addHour(),
+            'is_active' => true,
+        ]);
+        $flashsaleProduct = ProductFlashsale::query()->create([
+            'flashsale_id' => $flashsale->id,
+            'product_id' => $product->id,
+            'discount_percentage' => 25,
+            'stock' => 1,
+        ]);
+        $cart = Cart::create(['customer_id' => $customer->id, 'status' => CartStatus::Active->value]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(route('frontend.checkout.store'), [
+            'address_id' => $address->id,
+            'shipping_methods' => $this->shippingMethods($warehouse, 1_000),
+            'payment_type' => 'full',
+        ]);
+
+        $response->assertUnprocessable()->assertJsonValidationErrors('cart');
+        $this->assertDatabaseCount('transactions', 0);
+        $this->assertSame(1, $flashsaleProduct->fresh()->stock);
+        $this->assertSame(CartStatus::Active->value, $cart->fresh()->status);
+    }
+
+    public function test_checkout_rejects_invalid_payload_before_creating_an_order(): void
+    {
+        $customer = $this->createCustomer(500_000);
+
+        $response = $this->actingAs($customer, 'customer')
+            ->postJson(route('frontend.checkout.store'), []);
+
+        $response->assertUnprocessable()->assertJsonValidationErrors(['shipping_methods', 'payment_type']);
+        $this->assertDatabaseCount('transactions', 0);
+    }
+
+    public function test_checkout_rolls_back_flashsale_reservation_when_payment_creation_fails(): void
+    {
+        Queue::fake();
+        $this->mockPaymentGateway(new PaymentResponse(false, null, null, 'Gateway tidak tersedia'));
+
+        $customer = $this->createCustomer(500_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $flashsale = Flashsale::query()->create([
+            'name' => 'Flash sale payment rollback',
+            'start_time' => now()->subMinute(),
+            'end_time' => now()->addHour(),
+            'is_active' => true,
+        ]);
+        $flashsaleProduct = ProductFlashsale::query()->create([
+            'flashsale_id' => $flashsale->id,
+            'product_id' => $product->id,
+            'discount_percentage' => 25,
+            'stock' => 1,
+        ]);
+        $cart = Cart::create(['customer_id' => $customer->id, 'status' => CartStatus::Active->value]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(route('frontend.checkout.store'), [
+            'address_id' => $address->id,
+            'shipping_methods' => $this->shippingMethods($warehouse, 500),
+            'payment_type' => 'full',
+        ]);
+
+        $response->assertUnprocessable()->assertJsonValidationErrors('payment');
+        $this->assertDatabaseCount('transactions', 0);
+        $this->assertDatabaseCount('flashsale_reservations', 0);
+        $this->assertSame(1, $flashsaleProduct->fresh()->stock);
+        $this->assertSame(CartStatus::Active->value, $cart->fresh()->status);
+    }
+
+    private function mockPaymentGateway(?PaymentResponse $response = null): void
     {
         $mock = Mockery::mock(PaymentGatewayService::class);
-        $mock->shouldReceive('createPayment')->andReturn(new PaymentResponse(true, 'trx-123', 'https://pay.test', null));
+        $mock->shouldReceive('createPayment')->andReturn($response ?? new PaymentResponse(true, 'trx-123', 'https://pay.test', null));
         $mock->shouldReceive('getActiveGatewayAlias')->andReturn('xendit');
 
         $this->app->instance(PaymentGatewayService::class, $mock);
+    }
+
+    private function shippingMethods(Warehouse $warehouse, int $weight): array
+    {
+        return [
+            (string) $warehouse->id => [
+                'courier_code' => 'KURIR_TOKO',
+                'courier_name' => 'Kurir Toko',
+                'price' => 20_000,
+                'weight' => $weight,
+                'estimation' => '1-2 hari',
+            ],
+        ];
     }
 
     private function createCustomer(float $creditLimit): Customer
@@ -395,12 +592,15 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
 
     private function setGeneralSetting(string $name, mixed $value): void
     {
-        DB::table('settings')
-            ->where('group', 'general')
-            ->where('name', $name)
-            ->update([
+        DB::table('settings')->updateOrInsert(
+            ['group' => 'general', 'name' => $name],
+            [
                 'payload' => json_encode($value),
-            ]);
+                'updated_at' => now(),
+            ]
+        );
+
+        $this->app->forgetInstance(GeneralSettings::class);
     }
 
     private function createGeo(): array

@@ -143,6 +143,11 @@ class Transaction extends Model
         return $this->hasMany(TransactionVoucher::class);
     }
 
+    public function flashsaleReservations(): HasMany
+    {
+        return $this->hasMany(FlashsaleReservation::class);
+    }
+
     public function returns(): HasMany
     {
         return $this->hasMany(TransactionReturn::class);

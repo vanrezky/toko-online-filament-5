@@ -76,8 +76,8 @@ const badge = { text: `-${discount.value}%`, class: 'bg-black text-white' };
       </Link>
       
       <div class="flex items-center space-x-2">
-        <span class="text-sm font-bold text-red-600">{{ productData.sale_price || productData.price }}</span>
-        <span v-if="productData.sale_price" class="text-xs text-gray-400 line-through">{{ productData.price }}</span>
+        <span class="text-sm font-bold text-red-600">{{ props.product.pricing?.final_price ?? productData.sale_price ?? productData.price }}</span>
+        <span v-if="props.product.pricing?.discount > 0" class="text-xs text-gray-400 line-through">{{ props.product.pricing.original_price }}</span>
       </div>
 
       <!-- Stock Bar -->

@@ -5,6 +5,7 @@ import ProductCard from "./ProductCard.vue";
 import { Link } from "@inertiajs/vue3";
 import { Clock, ChevronRight, ChevronLeft, Zap } from "lucide-vue-next";
 import { getSectionContent } from "../../lib/utils";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps({
     flashsales: {
@@ -13,6 +14,7 @@ const props = defineProps({
     },
     template: { type: Object, default: null },
 });
+const { t } = useI18n();
 
 const sectionTitle = computed(() => getSectionContent(props.template, "flash_sale", "title", props.flashsales?.name || "Flash Sale"));
 const subtitle = computed(() => getSectionContent(props.template, "flash_sale", "subtitle", "Dapatkan harga spesial dengan periode terbatas"));
@@ -261,7 +263,7 @@ onUnmounted(() => {
                     :href="route('frontend.flashsales')"
                     class="from-destructive shadow-destructive/30 hover:shadow-destructive/40 inline-flex items-center gap-2 rounded-full bg-gradient-to-r to-rose-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl"
                 >
-                    Lihat Semua Promo
+                    {{ t("flash_sale.page.browse_all") }}
                     <ChevronRight class="h-4 w-4" />
                 </Link>
             </div>

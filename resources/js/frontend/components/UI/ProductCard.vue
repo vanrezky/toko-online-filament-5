@@ -26,18 +26,17 @@ const isWishlisted = computed(() => {
     return page.props.wishlist_product_ids?.includes(props.product.id);
 });
 
-const isSale = computed(() => !!props.product.sale_price);
+const pricing = computed(() => props.product.pricing ?? null);
+
+const isSale = computed(() => (pricing.value?.discount ?? 0) > 0);
 
 const displayPrice = computed(() => {
-    if (isSale.value) {
-        return props.product.sale_price;
-    }
-    return props.product.price;
+    return pricing.value?.final_price ?? props.product.sale_price ?? props.product.price;
 });
 
 const originalPrice = computed(() => {
     if (isSale.value) {
-        return props.product.price;
+        return pricing.value?.original_price ?? props.product.price;
     }
     return null;
 });
@@ -51,7 +50,8 @@ const discountPercentage = computed(() => {
 
 const badge = computed(() => {
     if (isSale.value) {
-        return { text: `${discountPercentage.value}%`, class: "bg-destructive text-white" };
+        const discount = pricing.value?.flashsale?.discount_percentage ?? discountPercentage.value;
+        return { text: `${discount}%`, class: "bg-destructive text-white" };
     }
     if (props.product.is_new) {
         return { text: t("labels.product.new"), class: "bg-primary text-primary-foreground" };

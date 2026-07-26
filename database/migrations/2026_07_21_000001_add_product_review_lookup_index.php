@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasIndex('product_reviews', 'product_reviews_product_rating_created_index')) {
+            return;
+        }
+
         Schema::table('product_reviews', function (Blueprint $table) {
             $table->index(['product_id', 'rating', 'created_at'], 'product_reviews_product_rating_created_index');
         });
@@ -15,6 +19,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasIndex('product_reviews', 'product_reviews_product_rating_created_index')) {
+            return;
+        }
+
         Schema::table('product_reviews', function (Blueprint $table) {
             $table->dropIndex('product_reviews_product_rating_created_index');
         });

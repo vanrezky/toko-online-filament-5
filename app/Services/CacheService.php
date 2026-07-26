@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use Exception;
+use Throwable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -16,7 +16,7 @@ class CacheService
     {
         try {
             return Redis::ping() ? true : false;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             Log::warning("Redis is not available: " . $e->getMessage());
             return false;
         }
@@ -33,7 +33,7 @@ class CacheService
             if (self::$redisAvailable) {
                 return Cache::store('redis')->remember($cacheKey, $ttl, $callback);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             Log::warning("Redis error: " . $e->getMessage());
         }
 
@@ -51,7 +51,7 @@ class CacheService
             if (self::$redisAvailable) {
                 return Cache::store('redis')->has($cacheKey);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             Log::warning("Redis error: " . $e->getMessage());
         }
 
@@ -69,7 +69,7 @@ class CacheService
             if (self::$redisAvailable) {
                 return Cache::store('redis')->get($cacheKey);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             Log::warning("Redis error: " . $e->getMessage());
         }
 
@@ -86,7 +86,7 @@ class CacheService
             if (self::$redisAvailable) {
                 return Cache::store('redis')->delete($cacheKey);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             Log::warning("Redis error: " . $e->getMessage());
         }
 
@@ -106,7 +106,7 @@ class CacheService
             if (self::$redisAvailable) {
                 return Cache::store('redis')->remember($fullKey, $ttl, $value);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             Log::warning("Redis error: " . $e->getMessage());
         }
 

@@ -1,9 +1,13 @@
 <?php
 
-namespace App\Filament\Resources\FlashsaleResource\RelationManagers;
+namespace App\Filament\Resources\Flashsales\RelationManagers;
 
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -18,6 +22,7 @@ class ProductsRelationManager extends RelationManager
     {
         return $schema->components([
             Select::make('product_id')
+                ->label(__('admin/flashsale-resource.fields.product'))
                 ->relationship(
                     name: 'product',
                     titleAttribute: 'name',
@@ -34,17 +39,21 @@ class ProductsRelationManager extends RelationManager
                 )
                 ->searchable()
                 ->preload()
-                ->required(),
+                ->required()
+                ->columnSpanFull(),
             TextInput::make('discount_percentage')
+                ->label(__('admin/flashsale-resource.fields.discount_percentage'))
                 ->numeric()
-                ->minValue(0)
+                ->minValue(25)
                 ->maxValue(100)
+                ->helperText(__('admin/flashsale-resource.fields.discount_percentage_helper'))
                 ->required(),
             TextInput::make('stock')
+                ->label(__('admin/flashsale-resource.fields.stock'))
                 ->numeric()
                 ->minValue(0)
                 ->required(),
-        ]);
+        ])->columns(2);
     }
 
     public function table(Table $table): Table
@@ -53,22 +62,25 @@ class ProductsRelationManager extends RelationManager
             ->recordTitleAttribute('id')
             ->columns([
                 TextColumn::make('product.name')
+                    ->label(__('admin/flashsale-resource.columns.product'))
                     ->searchable(),
                 TextColumn::make('product.category.name')
-                    ->label('Category'),
+                    ->label(__('admin/flashsale-resource.columns.category')),
                 TextColumn::make('discount_percentage')
+                    ->label(__('admin/flashsale-resource.columns.discount_percentage'))
                     ->suffix('%'),
-                TextColumn::make('stock'),
+                TextColumn::make('stock')
+                    ->label(__('admin/flashsale-resource.columns.stock')),
             ])
             ->headerActions([
-                \Filament\Actions\CreateAction::make(),
+                CreateAction::make(),
             ])
-            ->actions([
-                \Filament\Actions\EditAction::make(),
-                \Filament\Actions\DeleteAction::make(),
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                \Filament\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                DeleteBulkAction::make(),
             ]);
     }
 }

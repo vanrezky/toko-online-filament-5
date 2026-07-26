@@ -9,6 +9,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\FlashsalePricingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -29,6 +30,7 @@ class CartController extends Controller
                 ->first();
 
             if ($cart) {
+                app(FlashsalePricingService::class)->syncCart($cart);
                 $cart = CartResource::make($cart)->resolve();
             }
         }

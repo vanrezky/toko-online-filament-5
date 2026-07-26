@@ -19,6 +19,7 @@ class FlashsaleResource extends JsonResource
             'start_time' => optional($this->start_time)->toIso8601String(),
             'end_time' => optional($this->end_time)->toIso8601String(),
             'is_active' => (bool) $this->is_active,
+            'products_count' => $this->whenCounted('products'),
             'products' => FlashsaleProductResource::collection($this->whenLoaded('products')),
         ];
     }

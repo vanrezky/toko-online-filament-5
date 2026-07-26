@@ -90,7 +90,35 @@
         "ends_in": "Berakhir dalam:",
         "product_count_suffix": "produk promo",
         "empty_title": "Tidak Ada Flash Sale",
-        "empty_description": "Sepertinya tidak ada flash sale yang aktif saat ini. Silakan cek kembali nanti!"
+        "empty_description": "Sepertinya tidak ada flash sale yang aktif saat ini. Silakan cek kembali nanti!",
+        "page": {
+            "title": "Promo Flashsale",
+            "description": "Jelajahi pilihan produk dengan harga spesial selama promo masih berlangsung.",
+            "breadcrumb_label": "Navigasi halaman flashsale",
+            "breadcrumb_current": "Flashsale",
+            "live_label": "Promo sedang berjalan",
+            "products_available": "{count} produk promo tersedia",
+            "browse_products": "Lihat produk",
+            "browse_all": "Lihat semua promo",
+            "ends_in": "Berakhir dalam",
+            "started": "Dimulai",
+            "ending": "Berakhir",
+            "time": {
+                "days": "Hari",
+                "hours": "Jam",
+                "minutes": "Menit",
+                "seconds": "Detik"
+            },
+            "collection_label": "Pilihan terbatas",
+            "collection_title": "Produk promo yang bisa Anda pilih",
+            "collection_description": "Harga spesial berlaku selama promo aktif dan kuota stok masih tersedia.",
+            "products_empty_title": "Produk promo sedang diperbarui",
+            "products_empty_description": "Promo ini masih berjalan, namun produk yang tersedia belum ditampilkan. Silakan cek kembali beberapa saat lagi.",
+            "empty_title": "Belum ada promo aktif",
+            "empty_description": "Saat ini belum ada flashsale yang berjalan. Jelajahi katalog kami untuk menemukan pilihan lainnya.",
+            "explore_products": "Jelajahi semua produk",
+            "pagination_label": "Navigasi halaman produk promo"
+        }
     },
     "hero": {
         "default_title": "Pilihan yang tepat untuk keseharian Anda",

@@ -91,33 +91,47 @@ class MidtransGateway implements PaymentGatewayInterface
 
         try {
             // Ensure products and their related product info are loaded
-            $transaction->loadMissing(['products.product', 'customer']);
+            $transaction->loadMissing(['products.product', 'customer', 'vouchers']);
 
             $itemDetails = [];
             $totalAmount = 0;
+            $remainingProductDiscount = (float) $transaction->vouchers
+                ->where('voucher_type', 'product')
+                ->sum('discount_amount');
 
             foreach ($transaction->products as $item) {
                 $price = (int) $item->price;
                 $discount = (int) $item->discount;
                 $netPrice = $price - $discount;
                 $quantity = (int) $item->quantity;
-                $itemDetails[] = [
-                    'id' => $item->product?->uuid ?? $item->id,
-                    'price' => $netPrice,
-                    'quantity' => $quantity,
-                    'name' => $item->product?->name ?? ('Product #' . $item->product_id),
-                ];
-                $totalAmount += $netPrice * $quantity;
+
+                // Split quantities so a rounded fixed voucher discount stays exact.
+                for ($unit = 1; $unit <= $quantity; $unit++) {
+                    $unitDiscount = min($remainingProductDiscount, $netPrice);
+                    $unitPrice = $netPrice - $unitDiscount;
+                    $remainingProductDiscount -= $unitDiscount;
+                    $itemDetails[] = [
+                        'id' => ($item->product?->uuid ?? $item->id) . '-' . $unit,
+                        'price' => $unitPrice,
+                        'quantity' => 1,
+                        'name' => $item->product?->name ?? ('Product #' . $item->product_id),
+                    ];
+                    $totalAmount += $unitPrice;
+                }
             }
 
             if ($transaction->shipping_cost > 0) {
+                $shippingDiscount = (float) $transaction->vouchers
+                    ->where('voucher_type', 'shipping')
+                    ->sum('discount_amount');
+                $shippingPrice = max(0, (int) $transaction->shipping_cost - (int) $shippingDiscount);
                 $itemDetails[] = [
                     'id' => 'shipping',
-                    'price' => (int) $transaction->shipping_cost,
+                    'price' => $shippingPrice,
                     'quantity' => 1,
                     'name' => 'Shipping Cost',
                 ];
-                $totalAmount += $transaction->shipping_cost;
+                $totalAmount += $shippingPrice;
             }
 
             if ($transaction->cod_fee > 0) {

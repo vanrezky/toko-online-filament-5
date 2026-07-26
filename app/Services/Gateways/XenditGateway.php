@@ -54,10 +54,11 @@ class XenditGateway implements PaymentGatewayInterface
     public function createPayment(Transaction $transaction, array $params = []): PaymentResponse
     {
         try {
-            $transaction->loadMissing(['products', 'customer']);
+            $transaction->loadMissing(['products', 'customer', 'vouchers']);
 
             $subtotal = $transaction->products->sum(fn($p) => ($p->price - $p->discount) * $p->quantity);
-            $totalAmount = $subtotal + $transaction->shipping_cost + $transaction->cod_fee;
+            $voucherDiscount = $transaction->vouchers->sum('discount_amount');
+            $totalAmount = $subtotal + $transaction->shipping_cost + $transaction->cod_fee - $voucherDiscount;
 
             $payload = [
                 'external_id' => $transaction->uuid,

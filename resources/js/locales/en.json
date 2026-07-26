@@ -661,7 +661,35 @@
         "ends_in": "Ends in:",
         "product_count_suffix": "promo products",
         "empty_title": "No Flash Sale",
-        "empty_description": "There seems to be no active flash sale right now. Please check back later!"
+        "empty_description": "There seems to be no active flash sale right now. Please check back later!",
+        "page": {
+            "title": "Flash Sale Offers",
+            "description": "Explore selected products at special prices while this promotion is live.",
+            "breadcrumb_label": "Flash sale page navigation",
+            "breadcrumb_current": "Flash Sale",
+            "live_label": "Promotion in progress",
+            "products_available": "{count} promotional products available",
+            "browse_products": "Browse products",
+            "browse_all": "View all offers",
+            "ends_in": "Ends in",
+            "started": "Started",
+            "ending": "Ending",
+            "time": {
+                "days": "Days",
+                "hours": "Hours",
+                "minutes": "Minutes",
+                "seconds": "Seconds"
+            },
+            "collection_label": "Limited selection",
+            "collection_title": "Promotional products to choose from",
+            "collection_description": "Special pricing applies while the promotion is active and allocation remains available.",
+            "products_empty_title": "Promotional products are being updated",
+            "products_empty_description": "This promotion is live, but its available products have not been published yet. Please check back shortly.",
+            "empty_title": "No active promotion yet",
+            "empty_description": "There is no flash sale running right now. Explore our catalogue to discover other selections.",
+            "explore_products": "Explore all products",
+            "pagination_label": "Promotional products page navigation"
+        }
     },
     "hero": {
         "default_title": "Considered choices for your everyday life",

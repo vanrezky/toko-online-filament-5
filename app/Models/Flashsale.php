@@ -32,6 +32,7 @@ class Flashsale extends Model
     public function scopeCurrent($query)
     {
         return $query
+            ->where('is_active', true)
             ->where('start_time', '<=', now())
             ->where('end_time', '>=', now())
             ->latest('start_time');

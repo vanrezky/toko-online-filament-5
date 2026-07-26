@@ -8,25 +8,29 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('product_reviews', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('transaction_product_id')->nullable()->constrained('transcation_products')->cascadeOnDelete();
-            $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete();
-            $table->unsignedTinyInteger('rating');
-            $table->text('review')->nullable();
-            $table->string('reviewer_name')->nullable();
-            $table->boolean('is_anonymous')->default(false);
-            $table->boolean('is_admin')->default(false);
-            $table->timestamps();
+        if (! Schema::hasTable('product_reviews')) {
+            Schema::create('product_reviews', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+                $table->foreignId('transaction_product_id')->nullable()->constrained('transcation_products')->cascadeOnDelete();
+                $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete();
+                $table->unsignedTinyInteger('rating');
+                $table->text('review')->nullable();
+                $table->string('reviewer_name')->nullable();
+                $table->boolean('is_anonymous')->default(false);
+                $table->boolean('is_admin')->default(false);
+                $table->timestamps();
 
-            $table->unique('transaction_product_id');
-            $table->index(['product_id', 'is_admin']);
-        });
+                $table->unique('transaction_product_id');
+                $table->index(['product_id', 'is_admin']);
+            });
+        }
 
-        Schema::table('products', function (Blueprint $table) {
-            $table->unsignedInteger('fake_sold_count')->default(0)->after('security_stock');
-        });
+        if (! Schema::hasColumn('products', 'fake_sold_count')) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->unsignedInteger('fake_sold_count')->default(0)->after('security_stock');
+            });
+        }
     }
 
     public function down(): void

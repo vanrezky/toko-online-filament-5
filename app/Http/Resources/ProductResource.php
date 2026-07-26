@@ -14,6 +14,7 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $pricing = app(\App\Services\FlashsalePricingService::class)->resolve($this->resource, null, 1);
         $customer = auth('customer')->user();
         $resellerId = $customer?->reseller_id;
 
@@ -26,8 +27,8 @@ class ProductResource extends JsonResource
         }
 
         $discountPercentage = null;
-        if ($this->sale_price && $targetPrice > 0) {
-            $discountPercentage = round((($this->sale_price - $targetPrice) / $this->sale_price) * 100);
+        if ($this->sale_price && $targetPrice > 0 && $this->sale_price < $targetPrice) {
+            $discountPercentage = round((($targetPrice - $this->sale_price) / $targetPrice) * 100);
         }
 
         $wholesales = $this->wholesales->where('reseller_id', $resellerId);
@@ -45,6 +46,17 @@ class ProductResource extends JsonResource
             'raw_sale_price' => $this->sale_price,
             'price' => $targetPrice,
             'discount_percentage' => $discountPercentage,
+            'pricing' => [
+                'original_price' => $pricing['original_price'],
+                'final_price' => $pricing['price'],
+                'discount' => $pricing['discount'],
+                'source' => $pricing['source'],
+                'flashsale' => $pricing['flashsale_product_id'] ? [
+                    'id' => $pricing['flashsale_product_id'],
+                    'discount_percentage' => $pricing['flashsale_discount_percentage'],
+                    'stock' => $pricing['flashsale_stock'],
+                ] : null,
+            ],
             'min_order' => $this->min_order,
             'thumbnail' => $this->getFirstMediaUrl(),
             'category' => CategoryResource::make($this->category),

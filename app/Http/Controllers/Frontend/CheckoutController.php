@@ -21,6 +21,8 @@ use App\Services\ApicoidOngkirService;
 use App\Services\BillingCycleService;
 use App\Services\CacheService;
 use App\Services\CreditLimitService;
+use App\Services\FlashsalePricingService;
+use App\Services\FlashsaleReservationService;
 use App\Services\InstallmentService;
 use App\Services\PaymentGatewayService;
 use App\Services\TransactionProductImageSnapshotService;
@@ -31,6 +33,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class CheckoutController extends Controller
@@ -45,18 +48,26 @@ class CheckoutController extends Controller
 
     protected TransactionProductImageSnapshotService $transactionProductImageSnapshotService;
 
+    protected FlashsalePricingService $flashsalePricingService;
+
+    protected FlashsaleReservationService $flashsaleReservationService;
+
     public function __construct(
         VoucherCookieService $cookieService,
         VoucherService $voucherService,
         InstallmentService $installmentService,
         CreditLimitService $creditLimitService,
-        TransactionProductImageSnapshotService $transactionProductImageSnapshotService
+        TransactionProductImageSnapshotService $transactionProductImageSnapshotService,
+        FlashsalePricingService $flashsalePricingService,
+        FlashsaleReservationService $flashsaleReservationService,
     ) {
         $this->cookieService = $cookieService;
         $this->voucherService = $voucherService;
         $this->installmentService = $installmentService;
         $this->creditLimitService = $creditLimitService;
         $this->transactionProductImageSnapshotService = $transactionProductImageSnapshotService;
+        $this->flashsalePricingService = $flashsalePricingService;
+        $this->flashsaleReservationService = $flashsaleReservationService;
     }
 
     public function __invoke(Request $request, PaymentGatewayService $paymentGatewayService, GeneralSettings $generalSettings)
@@ -71,6 +82,8 @@ class CheckoutController extends Controller
         if (! $cart || $cart->items->isEmpty()) {
             return redirect()->route('frontend.cart')->with('error', __('messages.error.cart_empty'));
         }
+
+        $this->flashsalePricingService->syncCart($cart);
 
         $addresses = CustomerAddress::with(['province', 'district', 'subDistrict', 'village'])
             ->where('customer_id', $customer->id)
@@ -213,6 +226,9 @@ class CheckoutController extends Controller
             return redirect()->route('frontend.cart')->with('error', __('messages.error.cart_empty'));
         }
 
+        // Cart values are only a cache. Refresh them before any total is shown or validated.
+        $this->flashsalePricingService->syncCart($cart);
+
         $hasDeliveryMethod = collect($request->shipping_methods)
             ->contains(fn ($method) => strtoupper((string) ($method['courier_code'] ?? '')) !== CourierCode::PICKUP->value);
 
@@ -314,7 +330,39 @@ class CheckoutController extends Controller
         $billingDueDay = (int) ($generalSettings->billing_due_day ?? 5);
         $billingDueMonthOffset = (int) ($generalSettings->billing_due_month_offset ?? 1);
 
-        return DB::transaction(function () use ($request, $customer, $cart, $totalShippingCost, $totalWeight, $address, $shippingDetails, $validatedVouchers, $paymentGatewayService, $grandTotal, $billingCycleService, $billingCutoffDay, $billingDueDay, $billingDueMonthOffset) {
+        return DB::transaction(function () use ($request, $customer, $cart, $totalShippingCost, $totalWeight, $address, $shippingDetails, $paymentGatewayService, $billingCycleService, $billingCutoffDay, $billingDueDay, $billingDueMonthOffset) {
+            // Recalculate while product_flashsales rows are locked. This is the final authority.
+            $resolvedCartItems = $this->flashsalePricingService->resolveCart($cart, true);
+            foreach ($resolvedCartItems as $entry) {
+                $entry['item']->update([
+                    'price' => $entry['pricing']['price'],
+                    'discount' => $entry['pricing']['discount'],
+                ]);
+            }
+
+            $pendingVouchers = $this->cookieService->get();
+            $validatedVouchers = $this->voucherService->validateFromCookie($pendingVouchers, $cart, $customer);
+            $subtotal = $resolvedCartItems->sum(fn ($entry) => $entry['pricing']['price'] * $entry['item']->quantity);
+            $productDiscount = $validatedVouchers['product']['discount_amount'] ?? 0;
+            $shippingDiscount = $validatedVouchers['shipping']['discount_amount'] ?? 0;
+            $grandTotal = $subtotal + max(0, $totalShippingCost - $shippingDiscount) - $productDiscount;
+
+            $installmentMinOrderAmount = (int) (app(GeneralSettings::class)->installment_min_order_amount ?? 1000000);
+            if ($request->payment_type === 'installment' && $grandTotal < $installmentMinOrderAmount) {
+                abort(422, 'Minimal belanja untuk cicilan belum terpenuhi.');
+            }
+
+            if ($request->payment_type === 'full' && ! $this->creditLimitService->canCreateFullBilling($customer, $grandTotal)) {
+                abort(400, 'Limit kredit tidak mencukupi.');
+            }
+
+            if ($request->payment_type === 'installment' && $request->installment_plan_id) {
+                $plan = InstallmentPlan::findOrFail($request->installment_plan_id);
+                if (! $this->creditLimitService->canCreateInstallment($customer, $plan->calculateTotal($grandTotal))) {
+                    abort(400, 'Limit kredit tidak mencukupi.');
+                }
+            }
+
             $billingDueDate = null;
 
             if ($request->payment_type === 'full') {
@@ -341,12 +389,16 @@ class CheckoutController extends Controller
                 $transaction->shippingDetails()->create($detail);
             }
 
-            foreach ($cart->items as $item) {
+            $this->flashsaleReservationService->reserve($transaction, $resolvedCartItems);
+
+            foreach ($resolvedCartItems as $entry) {
+                $item = $entry['item'];
+                $pricing = $entry['pricing'];
                 $variant = $item->productVariant;
                 $product = $item->product;
-                $finalUnitPrice = (float) $item->price;
-                $discountAmount = (float) ($item->discount ?? 0);
-                $baseUnitPrice = $finalUnitPrice + $discountAmount;
+                $finalUnitPrice = (float) $pricing['price'];
+                $discountAmount = (float) $pricing['discount'];
+                $baseUnitPrice = (float) $pricing['original_price'];
                 $lineSubtotal = $finalUnitPrice * (int) $item->quantity;
                 $imageSnapshot = $this->transactionProductImageSnapshotService->snapshotFeaturedImage($product);
 
@@ -405,6 +457,12 @@ class CheckoutController extends Controller
             }
 
             $paymentResponse = $paymentGatewayService->createPayment($transaction);
+
+            if (! $paymentResponse->success) {
+                throw ValidationException::withMessages([
+                    'payment' => [$paymentResponse->errorMessage ?: 'Gagal membuat pembayaran.'],
+                ]);
+            }
 
             // Send payment request notification
             $orderUrl = route('frontend.orders.show', $transaction->uuid);
