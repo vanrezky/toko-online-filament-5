@@ -20,6 +20,7 @@ class SocialLoginController extends Controller
     public function redirect(string $provider): RedirectResponse
     {
         $this->ensureSupportedProvider($provider);
+        $this->ensureSocialLoginIsAvailable();
 
         return Socialite::driver($provider)->redirect();
     }
@@ -27,6 +28,7 @@ class SocialLoginController extends Controller
     public function callback(string $provider): RedirectResponse
     {
         $this->ensureSupportedProvider($provider);
+        $this->ensureSocialLoginIsAvailable();
 
         try {
             $socialUser = Socialite::driver($provider)->user();
@@ -93,5 +95,10 @@ class SocialLoginController extends Controller
     private function ensureSupportedProvider(string $provider): void
     {
         abort_unless(in_array($provider, self::PROVIDERS, true), 404);
+    }
+
+    private function ensureSocialLoginIsAvailable(): void
+    {
+        abort_if(settings('is_private_store', false), 403);
     }
 }

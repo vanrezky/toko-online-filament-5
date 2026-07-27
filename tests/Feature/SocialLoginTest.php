@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use App\Settings\GeneralSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
@@ -68,6 +69,20 @@ class SocialLoginTest extends TestCase
             'provider' => 'google',
             'provider_id' => 'google-existing',
         ]);
+    }
+
+    #[DataProvider('providers')]
+    public function test_it_blocks_social_login_when_the_store_is_private(string $provider): void
+    {
+        $settings = app(GeneralSettings::class);
+        $settings->is_private_store = true;
+        $settings->save();
+
+        $this->get(route('frontend.auth.social.redirect', ['provider' => $provider]))
+            ->assertForbidden();
+
+        $this->get(route('frontend.auth.social.callback', ['provider' => $provider]))
+            ->assertForbidden();
     }
 
     public static function providers(): array

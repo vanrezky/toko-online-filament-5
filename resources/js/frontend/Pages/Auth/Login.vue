@@ -121,13 +121,13 @@ const submit = () => {
                 </div>
             </form>
 
-            <div class="my-8 flex items-center gap-3" aria-hidden="true">
+            <div v-if="!isPrivateStore" class="my-8 flex items-center gap-3" aria-hidden="true">
                 <div class="bg-border h-px flex-1" />
                 <span class="text-muted-foreground text-xs">{{ t("labels.auth.or_continue_with") }}</span>
                 <div class="bg-border h-px flex-1" />
             </div>
 
-            <div class="flex gap-3">
+            <div v-if="!isPrivateStore" class="flex gap-3">
                 <Button
                     as="a"
                     :href="route('frontend.auth.social.redirect', { provider: 'google' })"
