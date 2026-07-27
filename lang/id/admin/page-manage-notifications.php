@@ -14,6 +14,7 @@ return [
 
     'fields' => [
         'admin_emails' => 'Email Notifikasi Admin',
-        'admin_emails_helper' => 'Pisahkan setiap alamat email dengan koma.',
+        'admin_emails_helper' => 'Tambahkan setiap alamat email sebagai penerima terpisah.',
+        'admin_emails_add' => 'Tambah email',
     ],
 ];

@@ -5,7 +5,8 @@ namespace App\Filament\Pages;
 use App\Filament\Clusters\SettingsCluster;
 use App\Settings\GeneralSettings;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
-use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\TextInput;
 use Filament\Pages\SettingsPage;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -40,6 +41,22 @@ class ManageNotificationSettings extends SettingsPage
             $data['mail_password'],
         );
 
+        $data['admin_emails'] = array_values(array_filter(
+            array_map('trim', explode(',', (string) ($data['admin_emails'] ?? ''))),
+        ));
+
+        return $data;
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $emails = array_filter(array_map(
+            static fn (string $email): string => trim($email),
+            $data['admin_emails'] ?? [],
+        ));
+
+        $data['admin_emails'] = implode(',', array_unique($emails));
+
         return $data;
     }
 
@@ -51,10 +68,17 @@ class ManageNotificationSettings extends SettingsPage
                 ->description(__('admin/page-manage-notifications.descriptions.recipients'))
                 ->columnSpanFull()
                 ->schema([
-                        Textarea::make('admin_emails')
+                        Repeater::make('admin_emails')
                             ->label(__('admin/page-manage-notifications.fields.admin_emails'))
                             ->helperText(__('admin/page-manage-notifications.fields.admin_emails_helper'))
-                            ->rows(3),
+                            ->simple(
+                                TextInput::make('email')
+                                    ->email()
+                                    ->required(),
+                            )
+                            ->defaultItems(0)
+                            ->addActionLabel(__('admin/page-manage-notifications.fields.admin_emails_add'))
+                            ->reorderable(false),
                     ]),
             ]);
     }
