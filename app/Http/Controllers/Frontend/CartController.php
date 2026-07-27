@@ -20,11 +20,22 @@ class CartController extends Controller
     {
         $cart = null;
         if (Auth::guard('customer')->check()) {
+            $resellerId = Auth::guard('customer')->user()?->reseller_id;
+
             $cart = Cart::with([
                 'items.product.media',
+                'items.product.flashsaleProducts' => fn ($query) => $query
+                    ->whereHas('flashsale', fn ($query) => $query->current())
+                    ->select(['id', 'product_id', 'discount_percentage', 'stock']),
+                'items.product.wholesales',
                 'items.productVariant.variantAttributes.productAttribute',
                 'items.productVariant.variantAttributes.productAttributeOption',
             ])
+                ->when($resellerId, fn ($query) => $query->with([
+                    'items.product.resellerPrices' => fn ($query) => $query
+                        ->where('reseller_id', $resellerId)
+                        ->select(['id', 'product_id', 'reseller_id', 'price']),
+                ]))
                 ->active()
                 ->where('customer_id', Auth::guard('customer')->id())
                 ->first();

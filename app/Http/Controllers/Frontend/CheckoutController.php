@@ -74,7 +74,21 @@ class CheckoutController extends Controller
     {
         $customer = Auth::guard('customer')->user();
 
-        $cart = Cart::with(['items.product.media', 'items.product.warehouse', 'items.productVariant.variantAttributes.productAttribute', 'items.productVariant.variantAttributes.productAttributeOption'])
+        $cart = Cart::with([
+            'items.product.media',
+            'items.product.warehouse',
+            'items.product.flashsaleProducts' => fn ($query) => $query
+                ->whereHas('flashsale', fn ($query) => $query->current())
+                ->select(['id', 'product_id', 'discount_percentage', 'stock']),
+            'items.product.wholesales',
+            'items.productVariant.variantAttributes.productAttribute',
+            'items.productVariant.variantAttributes.productAttributeOption',
+        ])
+            ->when($customer->reseller_id, fn ($query) => $query->with([
+                'items.product.resellerPrices' => fn ($query) => $query
+                    ->where('reseller_id', $customer->reseller_id)
+                    ->select(['id', 'product_id', 'reseller_id', 'price']),
+            ]))
             ->active()
             ->where('customer_id', $customer->id)
             ->first();

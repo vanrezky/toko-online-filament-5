@@ -16,8 +16,28 @@ class ProductController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $query = Product::active()
-            ->with(['media', 'category', 'resellerPrices', 'wholesales']);
+        $resellerId = auth('customer')->user()?->reseller_id;
+
+        $query = Product::query()
+            ->select([
+                'id', 'uuid', 'name', 'slug', 'digital', 'code',
+                'stock', 'sale_price', 'price', 'min_order', 'fake_sold_count',
+            ])
+            ->active()
+            ->with([
+                'media',
+                'flashsaleProducts' => fn ($query) => $query
+                    ->whereHas('flashsale', fn ($query) => $query->current())
+                    ->select(['id', 'product_id', 'discount_percentage', 'stock']),
+                'wholesales' => fn ($query) => $query
+                    ->where('min_qty', '<=', 1)
+                    ->select(['id', 'product_id', 'min_qty', 'price']),
+            ])
+            ->when($resellerId, fn ($query) => $query->with([
+                'resellerPrices' => fn ($query) => $query
+                    ->where('reseller_id', $resellerId)
+                    ->select(['id', 'product_id', 'reseller_id', 'price']),
+            ]));
 
         if ($request->filled('category')) {
             $query->whereHas('category', function ($q) use ($request) {

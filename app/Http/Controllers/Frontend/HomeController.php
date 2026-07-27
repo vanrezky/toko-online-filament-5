@@ -38,6 +38,7 @@ class HomeController extends Controller
 
         $template = $this->templateService->getActiveTemplate();
         $isFlashsaleEnabled = $template?->sections->contains('type', TemplateSection::TYPE_FLASH_SALE) ?? false;
+        $resellerId = auth('customer')->user()?->reseller_id;
 
         $flashsale = null;
 
@@ -45,12 +46,26 @@ class HomeController extends Controller
             $flashsale = Flashsale::query()
                 ->current()
                 ->with([
-                    'products' => fn($query) => $query->limit(5),
+                    'products' => fn ($query) => $query
+                        ->select(['id', 'flashsale_id', 'product_id', 'discount_percentage', 'stock'])
+                        ->limit(5),
+                    'products.product' => fn ($query) => $query->select([
+                        'id', 'uuid', 'name', 'slug', 'digital', 'code',
+                        'stock', 'sale_price', 'price', 'min_order', 'fake_sold_count',
+                    ]),
                     'products.product.media',
-                    'products.product.category',
-                    'products.product.resellerPrices',
-                    'products.product.wholesales',
+                    'products.product.flashsaleProducts' => fn ($query) => $query
+                        ->whereHas('flashsale', fn ($query) => $query->current())
+                        ->select(['id', 'product_id', 'discount_percentage', 'stock']),
+                    'products.product.wholesales' => fn ($query) => $query
+                        ->where('min_qty', '<=', 1)
+                        ->select(['id', 'product_id', 'min_qty', 'price']),
                 ])
+                ->when($resellerId, fn ($query) => $query->with([
+                    'products.product.resellerPrices' => fn ($query) => $query
+                        ->where('reseller_id', $resellerId)
+                        ->select(['id', 'product_id', 'reseller_id', 'price']),
+                ]))
                 ->first();
 
             if ($flashsale) {
@@ -58,17 +73,13 @@ class HomeController extends Controller
             }
         }
 
-        $resellerId = auth('customer')->user()?->reseller_id;
-
         $products = Product::query()
             ->select([
                 'id',
                 'uuid',
                 'name',
                 'slug',
-                'category_id',
                 'digital',
-                'description',
                 'code',
                 'stock',
                 'sale_price',
@@ -80,7 +91,12 @@ class HomeController extends Controller
             ->active()
             ->with([
                 'media',
-                'category:id,name',
+                'flashsaleProducts' => fn ($query) => $query
+                    ->whereHas('flashsale', fn ($query) => $query->current())
+                    ->select(['id', 'product_id', 'discount_percentage', 'stock']),
+                'wholesales' => fn ($query) => $query
+                    ->where('min_qty', '<=', 1)
+                    ->select(['id', 'product_id', 'min_qty', 'price']),
             ])
             ->when($resellerId, fn ($query) => $query->with([
                 'resellerPrices' => fn ($query) => $query

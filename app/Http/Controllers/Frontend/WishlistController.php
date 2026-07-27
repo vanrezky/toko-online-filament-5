@@ -18,8 +18,27 @@ class WishlistController extends Controller
         $wishlistItems = [];
 
         if ($customer) {
+            $resellerId = $customer->reseller_id;
+
             $wishlistItems = Wishlist::where('customer_id', $customer->id)
-                ->with(['product.media', 'product.category', 'product.resellerPrices', 'product.wholesales'])
+                ->with([
+                    'product' => fn ($query) => $query->select([
+                        'id', 'uuid', 'name', 'slug', 'digital', 'code',
+                        'stock', 'sale_price', 'price', 'min_order', 'fake_sold_count',
+                    ]),
+                    'product.media',
+                    'product.flashsaleProducts' => fn ($query) => $query
+                        ->whereHas('flashsale', fn ($query) => $query->current())
+                        ->select(['id', 'product_id', 'discount_percentage', 'stock']),
+                    'product.wholesales' => fn ($query) => $query
+                        ->where('min_qty', '<=', 1)
+                        ->select(['id', 'product_id', 'min_qty', 'price']),
+                ])
+                ->when($resellerId, fn ($query) => $query->with([
+                    'product.resellerPrices' => fn ($query) => $query
+                        ->where('reseller_id', $resellerId)
+                        ->select(['id', 'product_id', 'reseller_id', 'price']),
+                ]))
                 ->get()
                 ->pluck('product')
                 ->filter()

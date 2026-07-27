@@ -19,17 +19,24 @@ class FlashsalePricingService
      */
     public function resolve(Product $product, ?ProductVariant $variant, int $quantity, ?ProductFlashsale $flashsaleProduct = null): array
     {
-        $flashsaleProduct ??= $this->activeProduct($product->id);
+        $flashsaleProduct ??= $product->relationLoaded('flashsaleProducts')
+            ? $product->flashsaleProducts->sortByDesc('id')->first()
+            : $this->activeProduct($product->id);
 
         if ($flashsaleProduct && $flashsaleProduct->stock > 0) {
             return $this->resolveFlashsale($product, $variant, $flashsaleProduct);
         }
 
         $originalPrice = (float) ($variant?->price ?? $product->price);
-        $wholesale = $product->wholesales()
-            ->where('min_qty', '<=', $quantity)
-            ->orderByDesc('min_qty')
-            ->first();
+        $wholesale = $product->relationLoaded('wholesales')
+            ? $product->wholesales
+                ->where('min_qty', '<=', $quantity)
+                ->sortByDesc('min_qty')
+                ->first()
+            : $product->wholesales()
+                ->where('min_qty', '<=', $quantity)
+                ->orderByDesc('min_qty')
+                ->first();
 
         if ($wholesale) {
             return $this->result((float) $wholesale->price, (float) $wholesale->price, 'wholesale');
