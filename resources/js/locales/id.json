@@ -428,7 +428,9 @@
             "qris": "QRIS",
             "full": "Bayar Penuh",
             "installment": "Cicilan",
-            "potong_kredit": "(Potong Kredit)"
+            "potong_kredit": "(Potong Kredit)",
+            "balance": "Bayar dengan Saldo",
+            "balance_insufficient": "Saldo Anda belum mencukupi untuk membayar total pesanan."
         },
         "cart": {
             "heading": "Keranjang Belanja",
@@ -673,7 +675,11 @@
             "settings_heading": "Pengaturan Akun",
             "settings_description": "Kelola informasi profil dan preferensi akun Anda",
             "profile_photo": "Foto Profil",
-            "photo_requirements": "JPEG, PNG atau WEBP. Maks 2MB."
+            "photo_requirements": "JPEG, PNG atau WEBP. Maks 2MB.",
+            "balance": "Saldo",
+            "balance_description": "Saldo prepaid yang dapat digunakan untuk membayar penuh.",
+            "balance_history": "Riwayat Saldo",
+            "balance_history_empty": "Belum ada riwayat saldo."
         },
         "address": {
             "heading": "Alamat Pengiriman",

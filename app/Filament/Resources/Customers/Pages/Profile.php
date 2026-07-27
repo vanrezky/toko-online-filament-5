@@ -2,18 +2,18 @@
 
 namespace App\Filament\Resources\Customers\Pages;
 
-use Exception;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use App\Filament\Resources\Customers\CustomerResource;
-use App\Models\Balance;
+use App\Filament\Resources\Balances\BalanceResource;
 use App\Models\Customer;
+use App\Services\BalanceService;
+use App\Settings\GeneralSettings;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\Actions\Action;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
-use Illuminate\Support\Facades\DB;
 use Filament\Actions as Act;
 use Filament\Support\Enums\Width;
 use Livewire\Component;
@@ -22,43 +22,41 @@ class Profile extends ViewRecord
 {
     protected static string $resource = CustomerResource::class;
 
-    public function balance($data, $record, string $trx_type)
+    private function canManageBalance(): bool
     {
-        DB::beginTransaction();
-        try {
-            // Determine the new balance based on the transaction type
-            if ($trx_type === '+') {
-                $record->increment('balance', $data['balance']);
-                $text = __('Balance added successfully');
-            } else {
-                $record->decrement('balance', $data['balance']);
-                $text = __('Balance reduced successfully');
-            }
-
-            // Use the updateBalance function to generate the transaction data
-            $data = (new Balance)->updateBalance(
-                customer_id: $record->id,
-                amount: $data['balance'],
-                charge: 0,
-                post_balance: $record->balance,
-                trx_type: $trx_type,
-                notes: $data['notes'] ?? null
-            );
-
-            // Create the balance record
-            $record->balances()->create($data);
-
-            DB::commit();
-            return notification($text);
-        } catch (Exception $e) {
-            DB::rollBack();
-            return notification(__('Balance update failed'), 'danger');
-        }
+        return app(GeneralSettings::class)->balance_enabled
+            && BalanceResource::canCreate();
     }
 
     protected function getHeaderActions(): array
     {
         return [
+            Act\Action::make('top_up_balance')
+                ->label(__('admin/customer-resource.actions.top_up_balance'))
+                ->icon('heroicon-o-plus-circle')
+                ->color('success')
+                ->visible(fn (): bool => $this->canManageBalance())
+                ->schema([
+                    TextInput::make('amount')->numeric()->minValue(0.01)->required(),
+                    TextInput::make('notes')->minLength(3)->maxLength(255)->required(),
+                ])
+                ->action(function (Customer $record, array $data): void {
+                    app(BalanceService::class)->topUp($record, (float) $data['amount'], $data['notes'], auth()->user());
+                    notification(__('admin/customer-resource.notifications.balance_added'));
+                }),
+            Act\Action::make('reduce_balance')
+                ->label(__('admin/customer-resource.actions.reduce_balance'))
+                ->icon('heroicon-o-minus-circle')
+                ->color('danger')
+                ->visible(fn (): bool => $this->canManageBalance())
+                ->schema([
+                    TextInput::make('amount')->numeric()->minValue(0.01)->required(),
+                    TextInput::make('notes')->minLength(3)->maxLength(255)->required(),
+                ])
+                ->action(function (Customer $record, array $data): void {
+                    app(BalanceService::class)->reduce($record, (float) $data['amount'], $data['notes'], auth()->user());
+                    notification(__('admin/customer-resource.notifications.balance_reduced'));
+                }),
             Act\Action::make('change_password')
                 ->label(__('admin/customer-resource.actions.change_password'))
                 ->icon('heroicon-o-lock-closed')
@@ -160,22 +158,32 @@ class Profile extends ViewRecord
                             ->formatStateUsing(fn($state): string => $state ? __('admin/customer-resource.profile.active') : __('admin/customer-resource.profile.inactive')),
                     ])->inlineLabel()->columnSpan(2),
 
-                Section::make(__('admin/customer-resource.sections.credit_settings'))
-                    ->icon('heroicon-o-star')
+                Section::make(__('admin/customer-resource.sections.credit_and_balance'))
+                    ->icon('heroicon-o-wallet')
                     ->schema([
                         TextEntry::make('effective_credit_limit')
                             ->label(__('admin/customer-resource.profile.credit_limit'))
-                            ->money('IDR'),
+                            ->money('IDR')
+                            ->visible(fn (): bool => CustomerResource::shouldShowCreditInformation()),
                         TextEntry::make('outstanding_balance')
                             ->label(__('admin/customer-resource.profile.outstanding'))
-                            ->money('IDR'),
+                            ->money('IDR')
+                            ->visible(fn (): bool => CustomerResource::shouldShowCreditInformation()),
                         TextEntry::make('remaining_credit_limit')
                             ->label(__('admin/customer-resource.profile.remaining_credit'))
-                            ->money('IDR'),
+                            ->money('IDR')
+                            ->visible(fn (): bool => CustomerResource::shouldShowCreditInformation()),
+                        TextEntry::make('balance')
+                            ->label(__('admin/customer-resource.profile.balance'))
+                            ->money('IDR')
+                            ->icon('heroicon-o-wallet')
+                            ->iconColor('success')
+                            ->weight('bold')
+                            ->visible(fn (): bool => CustomerResource::shouldShowBalanceInformation()),
                     ])
                     ->inlineLabel()
                     ->columnSpanFull()
-                    ->visible(fn (): bool => CustomerResource::shouldShowCreditInformation()),
+                    ->visible(fn (): bool => CustomerResource::shouldShowCreditInformation() || CustomerResource::shouldShowBalanceInformation()),
             ])->columns(3);
     }
 

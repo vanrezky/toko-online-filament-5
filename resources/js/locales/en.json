@@ -258,7 +258,9 @@
         "qris": "QRIS",
         "full": "Pay Full",
         "installment": "Installment",
-        "potong_kredit": "(Credit Installment)"
+        "potong_kredit": "(Credit Installment)",
+        "balance": "Pay with Balance",
+        "balance_insufficient": "Your balance is not enough to pay for this order."
     },
     "product": {
         "shipped_from": "Shipped From",
@@ -586,7 +588,11 @@
             "settings_heading": "Account Settings",
             "settings_description": "Manage your profile information and account preferences",
             "profile_photo": "Profile Photo",
-            "photo_requirements": "JPEG, PNG or WEBP. Max 2MB."
+            "photo_requirements": "JPEG, PNG or WEBP. Max 2MB.",
+            "balance": "Balance",
+            "balance_description": "Prepaid balance available for full payments.",
+            "balance_history": "Balance History",
+            "balance_history_empty": "No balance history yet."
         },
         "address": {
             "heading": "Shipping Addresses",

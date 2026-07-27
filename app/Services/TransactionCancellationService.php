@@ -9,7 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class TransactionCancellationService
 {
-    public function __construct(private FlashsaleReservationService $flashsaleReservationService)
+    public function __construct(
+        private FlashsaleReservationService $flashsaleReservationService,
+        private BalanceService $balanceService,
+    )
     {
     }
 
@@ -29,6 +32,10 @@ class TransactionCancellationService
             ]);
 
             $this->flashsaleReservationService->release($transaction);
+
+            if ($transaction->payment_type === 'balance') {
+                $this->balanceService->refund($transaction);
+            }
         });
     }
 }

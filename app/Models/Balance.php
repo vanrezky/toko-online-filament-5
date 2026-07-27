@@ -10,11 +10,36 @@ class Balance extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['customer_id', 'amount', 'charge', 'post_balance', 'trx_type', 'notes', 'remark'];
+    public const TYPE_TOP_UP = 'top_up';
+    public const TYPE_ADJUSTMENT_DEBIT = 'adjustment_debit';
+    public const TYPE_PURCHASE = 'purchase';
+    public const TYPE_REFUND = 'refund';
+
+    protected $fillable = [
+        'customer_id', 'performed_by_id', 'transaction_id', 'amount', 'charge', 'balance_before',
+        'post_balance', 'trx_type', 'type', 'notes', 'remark',
+    ];
+
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'charge' => 'decimal:2',
+        'balance_before' => 'decimal:2',
+        'post_balance' => 'decimal:2',
+    ];
 
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function performedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'performed_by_id');
+    }
+
+    public function transaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class);
     }
 
     public function updateBalance(int $customer_id, float|int $amount, float|int $charge, float|int $post_balance, string $trx_type = '+', ?string $notes = null, ?string $remark = null)

@@ -76,6 +76,8 @@ class GeneralSettings extends Settings
 
     public bool $enforce_credit_limit = true;
 
+    public bool $balance_enabled = true;
+
     public ?int $installment_min_order_amount = 1000000;
 
     public ?int $billing_cutoff_day = 25;

@@ -9,13 +9,13 @@ use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\TextColumn;
 use App\Filament\Resources\Balances\Pages\ListBalances;
 use App\Filament\Resources\Balances\Pages\CreateBalance;
-use App\Filament\Resources\Balances\Pages\EditBalance;
 use App\Models\Balance;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use App\Settings\GeneralSettings;
 
 
 class BalanceResource extends Resource
@@ -28,12 +28,11 @@ class BalanceResource extends Resource
     protected static ?string $slug = 'balances';
     protected static ?int $navigationSort = 3;
 
-    // @feature-toggle: balance — set to true & remove canAccess() to re-enable
-    static bool $shouldRegisterNavigation = false;
+    static bool $shouldRegisterNavigation = true;
 
     public static function canAccess(): bool
     {
-        return false; // @feature-toggle: balance — change to parent::canAccess() to re-enable
+        return app(GeneralSettings::class)->balance_enabled && parent::canAccess();
     }
 
     protected static array $trxTypeOptions = [
@@ -58,15 +57,13 @@ class BalanceResource extends Resource
                             ->preload()
                             ->optionsLimit(20)
                             ->required(),
-                        Select::make('trx_type')
-                            ->options(fn(): array => self::$trxTypeOptions)
-                            ->required()
-                            ->searchable(),
                         TextInput::make('amount')
+                            ->label(__('admin/balance-resource.fields.amount'))
                             ->required()
                             ->numeric()
-                            ->default(0.00),
+                            ->minValue(0.01),
                         TextInput::make('notes')
+                            ->label(__('admin/balance-resource.fields.notes'))
                             ->required()
                             ->minLength(3)
                             ->maxLength(255),
@@ -79,15 +76,18 @@ class BalanceResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('customer.full_name')
+                    ->label(__('admin/balance-resource.columns.customer'))
                     ->numeric()
                     ->sortable(false),
                 TextColumn::make('amount')
+                    ->label(__('admin/balance-resource.columns.amount'))
                     ->money('IDR')
                     ->sortable(),
                 TextColumn::make('charge')
                     ->money('IDR')
                     ->sortable(),
                 TextColumn::make('post_balance')
+                    ->label(__('admin/balance-resource.columns.post_balance'))
                     ->money('IDR')
                     ->sortable(),
                 TextColumn::make('trx_type')
@@ -95,6 +95,9 @@ class BalanceResource extends Resource
                     ->badge()
                     ->sortable()
                     ->color(fn(string $state): string => self::getTrxTypeColor($state)),
+                TextColumn::make('type')
+                    ->label(__('admin/balance-resource.columns.type'))
+                    ->badge(),
                 TextColumn::make('notes')
                     ->searchable(),
                 TextColumn::make('remark')
@@ -133,7 +136,6 @@ class BalanceResource extends Resource
         return [
             'index' => ListBalances::route('/'),
             'create' => CreateBalance::route('/create'),
-            'edit' => EditBalance::route('/{record}/edit'),
         ];
     }
 

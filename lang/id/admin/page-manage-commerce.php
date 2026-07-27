@@ -6,16 +6,20 @@ return [
     'navigation_group' => 'Sistem',
 
     'sections' => [
+        'customer_balance' => 'Saldo Pelanggan',
         'credit_checkout' => 'Kredit & Checkout',
         'billing_cycle' => 'Siklus Penagihan',
     ],
 
     'descriptions' => [
+        'customer_balance' => 'Aktifkan wallet prepaid pelanggan untuk pembayaran penuh di checkout.',
         'credit_checkout' => 'Atur kelayakan kredit dan batas minimum pesanan cicilan.',
         'billing_cycle' => 'Perubahan tanggal jatuh tempo akan menyinkronkan tagihan berjalan yang relevan.',
     ],
 
     'fields' => [
+        'balance_enabled' => 'Aktifkan Saldo Pelanggan',
+        'balance_enabled_helper' => 'Menonaktifkan fitur akan mengunci akses saldo di admin dan storefront.',
         'enforce_credit_limit' => 'Gunakan Limit Kredit',
         'enforce_credit_limit_helper' => 'Batasi checkout pelanggan berdasarkan sisa limit kreditnya.',
         'installment_min_order_amount' => 'Minimum Pesanan Cicilan',

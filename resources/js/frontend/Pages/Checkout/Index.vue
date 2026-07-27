@@ -24,6 +24,7 @@ const props = defineProps({
     installmentPlans: Array,
     creditLimit: Object,
     installmentMinOrderAmount: Number,
+    balance: Object,
 });
 
 const { t } = useI18n();
@@ -49,6 +50,9 @@ const selectedInstallmentPlan = ref(null);
 const installmentCalculations = ref(null);
 const isLoadingInstallment = ref(false);
 const creditLimitRemaining = ref(props.creditLimit?.remaining || 0);
+const balanceAvailable = computed(() => Number(props.balance?.available || 0));
+const isBalanceEnabled = computed(() => props.balance?.enabled === true);
+const isBalanceSufficient = computed(() => balanceAvailable.value >= grandTotal.value);
 const isCreditLimitEnforced = computed(() => props.creditLimit?.enforced !== false);
 const installmentMinOrderAmount = computed(() => Number(props.installmentMinOrderAmount || 1000000));
 
@@ -239,6 +243,9 @@ const isOverLimit = computed(() => {
     if (selectedPaymentType.value === "full") {
         return grandTotal.value > creditLimitRemaining.value;
     }
+    if (selectedPaymentType.value === "balance") {
+        return false;
+    }
 
     return false;
 });
@@ -251,6 +258,9 @@ const canSubmitOrder = computed(() => {
         return false;
     }
     if (isOverLimit.value) {
+        return false;
+    }
+    if (selectedPaymentType.value === "balance" && !isBalanceSufficient.value) {
         return false;
     }
     return (
@@ -565,13 +575,31 @@ const applyVoucher = async () => {
                     </section>
 
                     <!-- Payment Method Section -->
-                    <section v-if="activeGateway !== 'midtrans'" class="order-3 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
+                    <section v-if="activeGateway !== 'midtrans' || isBalanceEnabled" class="order-3 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                         <div class="mb-6 flex items-center gap-3">
                             <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">3</div>
                             <h2 class="text-base font-bold text-[#2d1b0e]">{{ t("labels.checkout.payment_method") }}</h2>
                         </div>
 
                         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <label
+                                v-if="isBalanceEnabled"
+                                class="flex items-center rounded-xl border p-4 transition-all"
+                                :class="[
+                                    selectedPaymentType === 'balance' ? 'border-[#fa8456] bg-[#fff5f0]' : 'border-[#e8e6ef]',
+                                    !isBalanceSufficient ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-[#fafafa]',
+                                ]"
+                            >
+                                <FormRadio
+                                    type="radio"
+                                    value="balance"
+                                    v-model="selectedPaymentType"
+                                    :disabled="!isBalanceSufficient"
+                                    class="h-5 w-5 border-[#e8e6ef] text-[#fa8456] accent-[#fa8456]"
+                                />
+                                <span class="ml-3 text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.balance") }}</span>
+                                <span class="ml-auto text-xs text-[#6b5a4d]">{{ formatCurrency(balanceAvailable) }}</span>
+                            </label>
                             <label
                                 class="flex cursor-pointer items-center rounded-xl border p-4 transition-all hover:bg-[#fafafa]"
                                 :class="selectedPaymentType === 'full' ? 'border-[#fa8456] bg-[#fff5f0]' : 'border-[#e8e6ef]'"
@@ -604,6 +632,10 @@ const applyVoucher = async () => {
                                 <span class="ml-3 text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.installment") }}</span>
                             </label>
                         </div>
+
+                        <p v-if="isBalanceEnabled && !isBalanceSufficient" class="mt-3 text-xs text-amber-700">
+                            {{ t("labels.payment.balance_insufficient") }}
+                        </p>
 
                         <p v-if="!isInstallmentEligible" class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
                             Cicilan tersedia untuk total belanja minimal {{ formatCurrency(installmentMinOrderAmount) }}. Pesanan di bawah nominal

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\CartStatus;
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Balance;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\Flashsale;
@@ -547,6 +548,50 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
         $this->assertDatabaseCount('flashsale_reservations', 0);
         $this->assertSame(1, $flashsaleProduct->fresh()->stock);
         $this->assertSame(CartStatus::Active->value, $cart->fresh()->status);
+    }
+
+    public function test_balance_checkout_debits_wallet_and_cancellation_refunds_it_once(): void
+    {
+        Queue::fake();
+        $this->setGeneralSetting('balance_enabled', true);
+
+        $customer = $this->createCustomer(0);
+        $customer->update(['balance' => 250_000]);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $cart = Cart::create(['customer_id' => $customer->id, 'status' => CartStatus::Active->value]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(route('frontend.checkout.store'), [
+            'address_id' => $address->id,
+            'shipping_methods' => $this->shippingMethods($warehouse, 500),
+            'payment_type' => 'balance',
+        ]);
+
+        $response->assertOk()->assertJsonPath('payment.provider', 'balance');
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
+        $this->assertSame('balance', $transaction->payment_type);
+        $this->assertSame('paid', $transaction->billing_status->value);
+        $this->assertSame(130_000.0, (float) $customer->fresh()->balance);
+        $this->assertDatabaseHas('balances', [
+            'transaction_id' => $transaction->id,
+            'type' => Balance::TYPE_PURCHASE,
+            'post_balance' => 130000,
+        ]);
+
+        app(TransactionCancellationService::class)->cancel($transaction);
+        app(TransactionCancellationService::class)->cancel($transaction->fresh());
+
+        $this->assertSame(250_000.0, (float) $customer->fresh()->balance);
+        $this->assertSame(1, Balance::query()->where('transaction_id', $transaction->id)->where('type', Balance::TYPE_REFUND)->count());
     }
 
     private function mockPaymentGateway(?PaymentResponse $response = null): void

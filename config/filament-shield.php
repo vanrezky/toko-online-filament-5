@@ -75,9 +75,7 @@ return [
             ],
         ],
         'exclude' => [
-            // @feature-toggle: uncomment to re-generate permissions when re-enabling
             NewsletterSubscriberResource::class,
-            BalanceResource::class,
             ResellerResource::class,
         ],
     ],

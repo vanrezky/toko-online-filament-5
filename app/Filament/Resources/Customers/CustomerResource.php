@@ -68,6 +68,11 @@ class CustomerResource extends Resource
         return app(GeneralSettings::class)->enforce_credit_limit;
     }
 
+    public static function shouldShowBalanceInformation(): bool
+    {
+        return app(GeneralSettings::class)->balance_enabled;
+    }
+
     // protected static ?string $navigationLabel = 'Customer';
     // protected static ?string $recordTitleAttribute = 'first_name';
     // protected static int $globalSearchResultsLimit = 10;
@@ -255,12 +260,23 @@ class CustomerResource extends Resource
                     ->badge()
                     ->color('primary')
                     ->placeholder('-'),
-                TextColumn::make('remaining_credit_limit')
-                    ->label(__('admin/customer-resource.columns.remaining_credit_limit'))
+                TextColumn::make('balance')
+                    ->label(fn (): string => static::shouldShowBalanceInformation() && static::shouldShowCreditInformation()
+                        ? __('admin/customer-resource.columns.balance_and_credit')
+                        : (static::shouldShowBalanceInformation()
+                            ? __('admin/customer-resource.columns.balance')
+                            : __('admin/customer-resource.columns.remaining_credit_limit')))
+                    ->getStateUsing(fn (Customer $record): float => static::shouldShowBalanceInformation()
+                        ? (float) $record->balance
+                        : (float) $record->remaining_credit_limit)
                     ->money('IDR')
-                    ->sortable()
-                    ->color(fn (Customer $record): string => $record->remaining_credit_limit > 0 ? 'success' : 'danger')
-                    ->visible(fn (): bool => static::shouldShowCreditInformation()),
+                    ->description(fn (Customer $record): ?string => static::shouldShowBalanceInformation() && static::shouldShowCreditInformation()
+                        ? __('admin/customer-resource.columns.remaining_credit_limit') . ': Rp ' . number_format($record->remaining_credit_limit, 0, ',', '.')
+                        : null)
+                    ->color(fn (Customer $record): string => static::shouldShowBalanceInformation()
+                        ? ((float) $record->balance > 0 ? 'success' : 'gray')
+                        : ($record->remaining_credit_limit > 0 ? 'success' : 'danger'))
+                    ->visible(fn (): bool => static::shouldShowBalanceInformation() || static::shouldShowCreditInformation()),
                 TextColumn::make('effective_credit_limit')
                     ->label(__('admin/customer-resource.columns.credit_limit'))
                     ->money('IDR')
@@ -314,10 +330,9 @@ class CustomerResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            CustomerAddressRelationManager::class,
-            // BalancesRelationManager::class
-        ];
+        return static::shouldShowBalanceInformation()
+            ? [CustomerAddressRelationManager::class, BalancesRelationManager::class]
+            : [CustomerAddressRelationManager::class];
     }
 
     public static function getPages(): array

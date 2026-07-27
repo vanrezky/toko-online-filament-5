@@ -43,6 +43,8 @@ return [
         'general_information' => 'Informasi Umum',
         'password' => 'Kata Sandi',
         'credit_settings' => 'Pengaturan Kredit',
+        'balance' => 'Saldo',
+        'credit_and_balance' => 'Kredit & Saldo',
     ],
 
     'columns' => [
@@ -51,6 +53,7 @@ return [
         'email' => 'Email',
         'phone' => 'Telepon',
         'balance' => 'Saldo',
+        'balance_and_credit' => 'Saldo & Kredit',
         'level' => 'Level',
         'school_unit' => 'Unit Sekolah',
         'credit_limit' => 'Credit Limit',
@@ -82,6 +85,8 @@ return [
         'edit' => 'Edit',
         'delete' => 'Hapus',
         'change_password' => 'Ubah Kata Sandi',
+        'top_up_balance' => 'Tambah Saldo',
+        'reduce_balance' => 'Kurangi Saldo',
         'new_password' => 'Kata Sandi Baru',
         'confirm_password' => 'Konfirmasi Kata Sandi',
     ],
@@ -96,6 +101,7 @@ return [
         'credit_limit' => 'Batas Kredit',
         'outstanding' => 'Outstanding',
         'remaining_credit' => 'Sisa Kredit',
+        'balance' => 'Saldo Tersedia',
         'active' => 'Aktif',
         'inactive' => 'Tidak Aktif',
         'yes' => 'Ya',

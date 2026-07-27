@@ -25,6 +25,7 @@ import {
     Edit3,
     Heart,
     Clock,
+    Wallet,
 } from "lucide-vue-next";
 import axios from "axios";
 import { useI18n } from "vue-i18n";
@@ -39,6 +40,8 @@ const props = defineProps({
     provinces: Array,
     totalOrders: Number,
     recentOrders: Array,
+    balanceEnabled: Boolean,
+    balanceHistory: Array,
 });
 
 const page = usePage();
@@ -351,6 +354,16 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                         <div v-if="activeSection === 'overview'" class="space-y-6">
                             <!-- Stats Grid -->
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div v-if="balanceEnabled" class="group overflow-hidden rounded-2xl bg-white p-5 shadow-lg ring-1 ring-black/5">
+                                    <div class="mb-2 flex items-center gap-2">
+                                        <div class="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-xl">
+                                            <Wallet class="text-primary h-5 w-5" />
+                                        </div>
+                                        <span class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">{{ t("labels.account.balance") }}</span>
+                                    </div>
+                                    <h3 class="text-foreground text-3xl font-bold">{{ formatCurrency(user.balance || 0, localeCode) }}</h3>
+                                    <p class="text-muted-foreground mt-2 text-xs">{{ t("labels.account.balance_description") }}</p>
+                                </div>
                                 <div
                                     class="group overflow-hidden rounded-2xl bg-white p-5 shadow-lg ring-1 ring-black/5 transition-all hover:shadow-xl"
                                 >
@@ -413,6 +426,25 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                         {{ t("labels.actions.manage_addresses") }}
                                     </Button>
                                 </div>
+                            </div>
+
+                            <div v-if="balanceEnabled" class="overflow-hidden rounded-2xl bg-white p-6 shadow-lg">
+                                <h3 class="text-foreground mb-4 flex items-center gap-2 text-lg font-bold">
+                                    <Wallet class="text-primary h-5 w-5" />
+                                    {{ t("labels.account.balance_history") }}
+                                </h3>
+                                <div v-if="balanceHistory?.length" class="space-y-3">
+                                    <div v-for="entry in balanceHistory" :key="entry.id" class="border-border flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+                                        <div>
+                                            <p class="text-foreground text-sm font-medium">{{ entry.notes }}</p>
+                                            <p class="text-muted-foreground text-xs">{{ formatDate(entry.created_at, dateFormat, localeCode) }}</p>
+                                        </div>
+                                        <span :class="entry.trx_type === '+' ? 'text-emerald-600' : 'text-red-600'" class="text-sm font-semibold">
+                                            {{ entry.trx_type === '+' ? '+' : '-' }}{{ formatCurrency(entry.amount, localeCode) }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <p v-else class="text-muted-foreground text-sm">{{ t("labels.account.balance_history_empty") }}</p>
                             </div>
 
                             <!-- Recent Activity -->

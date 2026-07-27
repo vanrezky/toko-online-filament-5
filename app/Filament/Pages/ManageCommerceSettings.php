@@ -98,8 +98,16 @@ class ManageCommerceSettings extends SettingsPage
 
     public function form(Schema $schema): Schema
     {
-        return $schema
+            return $schema
             ->components([
+            Section::make(__('admin/page-manage-commerce.sections.customer_balance'))
+                ->description(__('admin/page-manage-commerce.descriptions.customer_balance'))
+                ->columnSpanFull()
+                ->schema([
+                        Toggle::make('balance_enabled')
+                            ->label(__('admin/page-manage-commerce.fields.balance_enabled'))
+                            ->helperText(__('admin/page-manage-commerce.fields.balance_enabled_helper')),
+                    ]),
             Section::make(__('admin/page-manage-commerce.sections.credit_checkout'))
                 ->description(__('admin/page-manage-commerce.descriptions.credit_checkout'))
                 ->columnSpanFull()

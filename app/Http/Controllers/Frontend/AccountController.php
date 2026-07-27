@@ -11,6 +11,7 @@ use App\Models\Province;
 use App\Models\District;
 use App\Models\SubDistrict;
 use App\Models\Transaction;
+use App\Settings\GeneralSettings;
 use App\Services\RegionalService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -29,6 +30,7 @@ class AccountController extends Controller
     {
         $customer = Auth::guard('customer')->user();
         $customer->load(['address.province', 'address.district', 'address.subDistrict', 'address.village']);
+        $balanceEnabled = app(GeneralSettings::class)->balance_enabled;
 
         $ordersQuery = Transaction::query()
             ->with([
@@ -54,6 +56,10 @@ class AccountController extends Controller
             'provinces' => $this->regionalService->getProvinces()->map(fn($p) => ['id' => $p->id, 'name' => $p->name]),
             'totalOrders' => $totalOrders,
             'recentOrders' => OrderResource::collection($recentOrders),
+            'balanceEnabled' => $balanceEnabled,
+            'balanceHistory' => $balanceEnabled
+                ? $customer->balances()->latest()->limit(5)->get(['id', 'amount', 'post_balance', 'trx_type', 'type', 'notes', 'created_at'])
+                : [],
         ]);
     }
 

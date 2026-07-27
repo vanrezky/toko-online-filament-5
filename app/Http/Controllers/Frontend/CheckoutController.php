@@ -19,6 +19,7 @@ use App\Models\Transaction;
 use App\Models\Warehouse;
 use App\Services\ApicoidOngkirService;
 use App\Services\BillingCycleService;
+use App\Services\BalanceService;
 use App\Services\CacheService;
 use App\Services\CreditLimitService;
 use App\Services\FlashsalePricingService;
@@ -52,6 +53,8 @@ class CheckoutController extends Controller
 
     protected FlashsaleReservationService $flashsaleReservationService;
 
+    protected BalanceService $balanceService;
+
     public function __construct(
         VoucherCookieService $cookieService,
         VoucherService $voucherService,
@@ -60,6 +63,7 @@ class CheckoutController extends Controller
         TransactionProductImageSnapshotService $transactionProductImageSnapshotService,
         FlashsalePricingService $flashsalePricingService,
         FlashsaleReservationService $flashsaleReservationService,
+        BalanceService $balanceService,
     ) {
         $this->cookieService = $cookieService;
         $this->voucherService = $voucherService;
@@ -68,6 +72,7 @@ class CheckoutController extends Controller
         $this->transactionProductImageSnapshotService = $transactionProductImageSnapshotService;
         $this->flashsalePricingService = $flashsalePricingService;
         $this->flashsaleReservationService = $flashsaleReservationService;
+        $this->balanceService = $balanceService;
     }
 
     public function __invoke(Request $request, PaymentGatewayService $paymentGatewayService, GeneralSettings $generalSettings)
@@ -120,6 +125,10 @@ class CheckoutController extends Controller
                 'enforced' => $this->creditLimitService->shouldEnforceLimit(),
             ],
             'installmentMinOrderAmount' => (int) ($generalSettings->installment_min_order_amount ?? 1000000),
+            'balance' => [
+                'enabled' => $generalSettings->balance_enabled,
+                'available' => (float) $customer->balance,
+            ],
         ]);
     }
 
@@ -221,12 +230,16 @@ class CheckoutController extends Controller
         $request->validate([
             'address_id' => 'nullable|exists:customer_addresses,id',
             'shipping_methods' => 'required|array',
-            'payment_type' => 'required|in:full,installment',
+            'payment_type' => 'required|in:full,installment,balance',
             'installment_plan_id' => 'nullable|exists:installment_plans,id',
             'notes' => 'nullable|string',
         ]);
 
         $customer = Auth::guard('customer')->user();
+
+        if ($request->payment_type === 'balance' && ! $generalSettings->balance_enabled) {
+            return response()->json(['error' => 'Fitur saldo sedang tidak aktif.'], 403);
+        }
         $cart = Cart::with(['items.product.warehouse', 'items.productVariant.variantAttributes.productAttributeOption'])
             ->active()
             ->where('customer_id', $customer->id)
@@ -317,6 +330,15 @@ class CheckoutController extends Controller
             ], 422);
         }
 
+        if ($request->payment_type === 'balance' && (float) $customer->balance < $grandTotal) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Saldo tidak mencukupi',
+                'available_balance' => (float) $customer->balance,
+                'required' => $grandTotal,
+            ], 400);
+        }
+
         if ($request->payment_type === 'full' && ! $this->creditLimitService->canCreateFullBilling($customer, $grandTotal)) {
             return response()->json([
                 'success' => false,
@@ -366,6 +388,10 @@ class CheckoutController extends Controller
                 abort(422, 'Minimal belanja untuk cicilan belum terpenuhi.');
             }
 
+            if ($request->payment_type === 'balance' && ! app(GeneralSettings::class)->balance_enabled) {
+                abort(403, 'Fitur saldo sedang tidak aktif.');
+            }
+
             if ($request->payment_type === 'full' && ! $this->creditLimitService->canCreateFullBilling($customer, $grandTotal)) {
                 abort(400, 'Limit kredit tidak mencukupi.');
             }
@@ -389,10 +415,18 @@ class CheckoutController extends Controller
                 'customer_address_id' => $address?->id,
                 'weight' => $totalWeight,
                 'shipping_cost' => $totalShippingCost,
-                'payment_method' => $request->payment_type === 'installment' ? 'cicilan' : 'bayar_penuh',
+                'payment_method' => match ($request->payment_type) {
+                    'installment' => 'cicilan',
+                    'balance' => 'saldo',
+                    default => 'bayar_penuh',
+                },
                 'payment_type' => $request->payment_type,
                 'billing_due_date' => $billingDueDate,
-                'billing_status' => $request->payment_type === 'full' ? 'pending' : 'not_applicable',
+                'billing_status' => match ($request->payment_type) {
+                    'full' => 'pending',
+                    'balance' => 'paid',
+                    default => 'not_applicable',
+                },
                 'installment_plan_id' => $request->payment_type === 'installment' ? $request->installment_plan_id : null,
                 'status' => TransactionStatus::packed,
                 'notes' => $request->notes,
@@ -470,12 +504,17 @@ class CheckoutController extends Controller
                 $this->installmentService->createInstallment($transaction, $plan);
             }
 
-            $paymentResponse = $paymentGatewayService->createPayment($transaction);
+            $paymentResponse = null;
+            if ($request->payment_type === 'balance') {
+                $this->balanceService->pay($transaction);
+            } else {
+                $paymentResponse = $paymentGatewayService->createPayment($transaction);
 
-            if (! $paymentResponse->success) {
-                throw ValidationException::withMessages([
-                    'payment' => [$paymentResponse->errorMessage ?: 'Gagal membuat pembayaran.'],
-                ]);
+                if (! $paymentResponse->success) {
+                    throw ValidationException::withMessages([
+                        'payment' => [$paymentResponse->errorMessage ?: 'Gagal membuat pembayaran.'],
+                    ]);
+                }
             }
 
             // Send payment request notification
@@ -488,10 +527,10 @@ class CheckoutController extends Controller
                     'success' => true,
                     'transaction_uuid' => $transaction->uuid,
                     'payment' => [
-                        'provider' => $paymentGatewayService->getActiveGatewayAlias(),
-                        'payment_url' => $paymentResponse->paymentUrl,
-                        'snap_token' => $paymentResponse->metadata['snap_token'] ?? null,
-                        'client_key' => $paymentResponse->metadata['client_key'] ?? null,
+                        'provider' => $paymentResponse ? $paymentGatewayService->getActiveGatewayAlias() : 'balance',
+                        'payment_url' => $paymentResponse?->paymentUrl,
+                        'snap_token' => $paymentResponse?->metadata['snap_token'] ?? null,
+                        'client_key' => $paymentResponse?->metadata['client_key'] ?? null,
                     ],
                 ]);
             }
