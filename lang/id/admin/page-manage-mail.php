@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'title' => 'SMTP Email',
     'navigation_label' => 'SMTP Email',
     'navigation_group' => 'Sistem',
 

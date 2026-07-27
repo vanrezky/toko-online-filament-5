@@ -30,6 +30,13 @@ class ManageNotificationSettings extends SettingsPage
         return __('admin/page-manage-notifications.navigation_label');
     }
 
+    public function getTitle(): string
+    {
+        return __('admin/page-manage-notifications.title');
+    }
+
+    
+
     protected function mutateFormDataBeforeFill(array $data): array
     {
         unset(
@@ -51,7 +58,7 @@ class ManageNotificationSettings extends SettingsPage
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $emails = array_filter(array_map(
-            static fn (string $email): string => trim($email),
+            static fn(string $email): string => trim($email),
             $data['admin_emails'] ?? [],
         ));
 
@@ -64,10 +71,10 @@ class ManageNotificationSettings extends SettingsPage
     {
         return $schema
             ->components([
-            Section::make(__('admin/page-manage-notifications.sections.recipients'))
-                ->description(__('admin/page-manage-notifications.descriptions.recipients'))
-                ->columnSpanFull()
-                ->schema([
+                Section::make(__('admin/page-manage-notifications.sections.recipients'))
+                    ->description(__('admin/page-manage-notifications.descriptions.recipients'))
+                    ->columnSpanFull()
+                    ->schema([
                         Repeater::make('admin_emails')
                             ->label(__('admin/page-manage-notifications.fields.admin_emails'))
                             ->helperText(__('admin/page-manage-notifications.fields.admin_emails_helper'))

@@ -35,6 +35,11 @@ class ManageCommerceSettings extends SettingsPage
         return __('admin/page-manage-commerce.navigation_label');
     }
 
+    public function getTitle(): string
+    {
+        return __('admin/page-manage-commerce.title');
+    }
+
     protected function mutateFormDataBeforeFill(array $data): array
     {
         unset(

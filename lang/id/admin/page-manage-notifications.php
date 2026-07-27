@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'title' => 'Notifikasi',
     'navigation_label' => 'Notifikasi',
     'navigation_group' => 'Sistem',
 

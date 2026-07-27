@@ -34,6 +34,11 @@ class ManageMailSettings extends SettingsPage
         return __('admin/page-manage-mail.navigation_label');
     }
 
+    public function getTitle(): string
+    {
+        return __('admin/page-manage-mail.title');
+    }
+
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $data['mail_password'] = null;

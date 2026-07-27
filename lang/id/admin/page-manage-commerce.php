@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'title' => 'Operasional Pembayaran',
     'navigation_label' => 'Operasional Pembayaran',
     'navigation_group' => 'Sistem',
 

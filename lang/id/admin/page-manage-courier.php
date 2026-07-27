@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'title' => 'Kelola Kurir',
     'navigation_label' => 'Kelola Kurir',
     'navigation_group' => 'Sistem',
 

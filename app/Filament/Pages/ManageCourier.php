@@ -43,6 +43,11 @@ class ManageCourier extends Page
         return __('admin/page-manage-courier.navigation_label');
     }
 
+    public function getTitle(): string
+    {
+        return __('admin/page-manage-courier.title');
+    }
+
     public function form(Schema $schema): Schema
     {
         return $schema

@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'title' => 'Website',
     'navigation_label' => 'Website',
     'navigation_group' => 'Sistem',
 

@@ -36,6 +36,11 @@ class ManageWebsite extends SettingsPage
         return __('admin/page-manage-website.navigation_label');
     }
 
+    public function getTitle(): string
+    {
+        return __('admin/page-manage-website.title');
+    }
+
     protected function mutateFormDataBeforeFill(array $data): array
     {
         unset(
