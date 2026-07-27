@@ -3,7 +3,7 @@
 return [
 
     'navigation_label' => 'Kategori Produk',
-    'navigation_group' => 'Produk',
+    'navigation_group' => 'Katalog',
 
     'model_label' => 'Kategori',
     'plural_model_label' => 'Kategori',

@@ -3,7 +3,7 @@
 return [
 
     'navigation_label' => 'Pembayaran Cicilan',
-    'navigation_group' => 'Transaksi',
+    'navigation_group' => 'Operasional',
     'model_label' => 'Pembayaran Cicilan',
     'plural_model_label' => 'Pembayaran Cicilan',
 

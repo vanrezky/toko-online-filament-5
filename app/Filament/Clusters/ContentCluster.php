@@ -19,6 +19,6 @@ class ContentCluster extends Cluster
 
     public static function getNavigationGroup(): ?string
     {
-        return null;
+        return __('admin/cluster-content.navigation_group');
     }
 }

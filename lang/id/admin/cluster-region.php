@@ -2,5 +2,5 @@
 
 return [
     'navigation_label' => 'Wilayah',
-    'navigation_group' => 'Master',
+    'navigation_group' => 'Katalog',
 ];

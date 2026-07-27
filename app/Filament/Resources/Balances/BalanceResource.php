@@ -24,7 +24,7 @@ class BalanceResource extends Resource
 
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static string | \UnitEnum | null $navigationGroup = 'Customer';
+    protected static string | \UnitEnum | null $navigationGroup = 'Operasional';
     protected static ?string $slug = 'balances';
     protected static ?int $navigationSort = 3;
 

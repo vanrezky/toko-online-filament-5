@@ -3,7 +3,7 @@
 return [
 
     'navigation_label' => 'Transaksi',
-    'navigation_group' => 'Transaksi',
+    'navigation_group' => 'Operasional',
 
     'model_label' => 'Transaksi',
     'plural_model_label' => 'Transaksi',

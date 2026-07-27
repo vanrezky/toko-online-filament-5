@@ -19,6 +19,6 @@ class MonitoringCluster extends Cluster
 
     public static function getNavigationGroup(): ?string
     {
-        return null;
+        return __('admin/cluster-monitoring.navigation_group');
     }
 }

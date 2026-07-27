@@ -26,7 +26,7 @@ class ResellerResource extends Resource
     protected static ?string $model = Reseller::class;
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-tag';
     protected static ?string $navigationLabel = 'Reseller Level';
-    protected static string | \UnitEnum | null $navigationGroup = 'Customer';
+    protected static string | \UnitEnum | null $navigationGroup = 'Operasional';
     protected static ?string $slug = 'reseller-level';
     protected static ?int $navigationSort = 5;
 

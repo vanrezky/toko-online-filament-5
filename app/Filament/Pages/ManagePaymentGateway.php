@@ -23,7 +23,7 @@ class ManagePaymentGateway extends Page
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-banknotes';
     protected static bool $shouldRegisterNavigation = false;
-    protected static string | \UnitEnum | null $navigationGroup = 'Pengaturan';
+    protected static string | \UnitEnum | null $navigationGroup = 'Sistem';
     protected static ?int $navigationSort = 5;
     protected static ?string $slug = 'setting/payment-gateway-settings';
     protected static ?string $navigationLabel = 'Payment Gateways';

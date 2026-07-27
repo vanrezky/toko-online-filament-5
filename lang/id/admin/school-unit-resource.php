@@ -2,7 +2,7 @@
 
 return [
     'navigation_label' => 'Unit Sekolah',
-    'navigation_group' => 'Master',
+    'navigation_group' => 'Katalog',
 
     'model_label' => 'Unit Sekolah',
     'plural_model_label' => 'Unit Sekolah',

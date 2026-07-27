@@ -19,26 +19,36 @@ class Dashboard extends \Filament\Pages\Dashboard
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?string $title = 'Dashboard';
-
     protected static string $routePath = 'dashboard';
+
+    public function getTitle(): string
+    {
+        return __('admin/page-dashboard.title');
+    }
 
     public function filtersForm(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Section::make()
+                Section::make(__('admin/page-dashboard.filters.title'))
+                    ->description(__('admin/page-dashboard.filters.description'))
+                    ->extraAttributes(['class' => 'dashboard-filter-panel'])
                     ->schema([
                         DatePicker::make('startDate')
-                            ->placeholder('Start Date')
+                            ->label(__('admin/page-dashboard.filters.start_date'))
+                            ->placeholder(__('admin/page-dashboard.filters.select_date'))
                             ->default(now()->subDays(6)->toDateString())
                             ->displayFormat('d M Y'),
                         DatePicker::make('endDate')
-                            ->placeholder('End Date')
+                            ->label(__('admin/page-dashboard.filters.end_date'))
+                            ->placeholder(__('admin/page-dashboard.filters.select_date'))
                             ->default(now()->toDateString())
                             ->displayFormat('d M Y'),
                     ])
-                    ->columns(2)
+                    ->columns([
+                        'default' => 1,
+                        'md' => 2,
+                    ])
                     ->columnSpanFull(),
             ])->columns(1);
     }

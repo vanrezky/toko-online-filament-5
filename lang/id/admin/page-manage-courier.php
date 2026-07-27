@@ -2,7 +2,7 @@
 
 return [
     'navigation_label' => 'Kelola Kurir',
-    'navigation_group' => 'Pengaturan',
+    'navigation_group' => 'Sistem',
 
     'tabs' => [
         'rajaongkir' => 'RajaOngkir',

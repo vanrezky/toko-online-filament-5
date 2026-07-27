@@ -2,7 +2,7 @@
 
 return [
     'navigation_label' => 'Notifikasi',
-    'navigation_group' => 'Pengaturan',
+    'navigation_group' => 'Sistem',
 
     'sections' => [
         'recipients' => 'Penerima Notifikasi Admin',

@@ -35,7 +35,7 @@ class TemplateResource extends Resource
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-paint-brush';
     protected static ?string $navigationLabel = 'Templates';
-    protected static string | \UnitEnum | null $navigationGroup = 'Pengaturan';
+    protected static string | \UnitEnum | null $navigationGroup = 'Sistem';
     protected static ?string $slug = 'templates';
     protected static ?int $navigationSort = 99;
 

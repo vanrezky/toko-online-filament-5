@@ -19,6 +19,6 @@ class PromotionCluster extends Cluster
 
     public static function getNavigationGroup(): ?string
     {
-        return null;
+        return __('admin/cluster-promotion.navigation_group');
     }
 }

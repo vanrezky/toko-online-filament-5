@@ -2,7 +2,7 @@
 
 return [
     'navigation_label' => 'SMTP Email',
-    'navigation_group' => 'Pengaturan',
+    'navigation_group' => 'Sistem',
 
     'sections' => [
         'connection' => 'Koneksi SMTP',

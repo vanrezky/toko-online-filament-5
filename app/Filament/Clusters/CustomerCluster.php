@@ -19,6 +19,6 @@ class CustomerCluster extends Cluster
 
     public static function getNavigationGroup(): ?string
     {
-        return null;
+        return __('admin/cluster-customer.navigation_group');
     }
 }

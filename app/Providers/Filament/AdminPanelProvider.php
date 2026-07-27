@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Filament\Enums\UserMenuPosition;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -41,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Orange,
             ])
             ->font('Karla')
-            ->navigationGroups(['Master', 'Produk', 'Promo', 'Customer', 'Pelanggan', 'Report', 'Laporan', 'Transaction', 'Transaksi', 'Settings', 'Pengaturan', 'Blog', 'Logs', 'Wilayah'])
+            ->navigationGroups(['Operasional', 'Katalog', 'Pemasaran', 'Sistem'])
             ->favicon(settings('favicon'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverClusters(in: app_path('Filament/Clusters'), for: 'App\\Filament\\Clusters')
@@ -93,6 +94,8 @@ class AdminPanelProvider extends PanelProvider
             ->assets([
                 Css::make('admin-custom-hooks', resource_path('css/filament/admin/custom-theme.css')),
             ])
-            ->sidebarCollapsibleOnDesktop();
+            ->topNavigation(true);
+        // ->sidebarCollapsibleOnDesktop(false)
+        // ->userMenu(false, UserMenuPosition::Topbar);
     }
 }

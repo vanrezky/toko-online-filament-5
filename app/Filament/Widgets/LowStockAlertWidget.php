@@ -20,12 +20,15 @@ class LowStockAlertWidget extends BaseWidget
         
         $lowStockCount = $stats->getLowStockCount();
 
-        $description = $lowStockCount > 0 
-            ? "{$lowStockCount} products need restock"
-            : "All products sufficiently stocked";
+        $description = $lowStockCount > 0
+            ? trans_choice('admin/page-dashboard.low_stock.needs_restock', $lowStockCount, ['count' => $lowStockCount])
+            : __('admin/page-dashboard.low_stock.sufficient');
 
         return [
-            Stat::make('Low Stock Items', $lowStockCount)
+            Stat::make(__('admin/page-dashboard.low_stock.title'), $lowStockCount)
+                ->extraAttributes([
+                    'class' => 'dashboard-stat ' . ($lowStockCount > 0 ? 'dashboard-stat--stock' : 'dashboard-stat--healthy'),
+                ])
                 ->description($description)
                 ->descriptionIcon($lowStockCount > 0 ? 'heroicon-m-exclamation-triangle' : 'heroicon-m-check-circle')
                 ->color($lowStockCount > 0 ? 'warning' : 'success'),

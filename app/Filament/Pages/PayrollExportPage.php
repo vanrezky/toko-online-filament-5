@@ -18,7 +18,7 @@ class PayrollExportPage extends Page
     use HasPageShield;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-arrow-down';
-    protected static string | \UnitEnum | null $navigationGroup = 'Transaksi';
+    protected static string | \UnitEnum | null $navigationGroup = 'Operasional';
     protected static ?int $navigationSort = 5;
 
     protected string $view = 'filament.pages.payroll-export';

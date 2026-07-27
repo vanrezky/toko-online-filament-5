@@ -3,7 +3,7 @@
 return [
 
     'navigation_label' => 'Produk',
-    'navigation_group' => 'Produk',
+    'navigation_group' => 'Katalog',
 
     'model_label' => 'Produk',
     'plural_model_label' => 'Produk',

@@ -3,7 +3,7 @@
 return [
 
     'navigation_label' => 'Lokasi Gudang',
-    'navigation_group' => 'Master',
+    'navigation_group' => 'Katalog',
 
     'model_label' => 'Gudang',
     'plural_model_label' => 'Gudang',

@@ -2,7 +2,7 @@
 
 return [
     'navigation_label' => 'Operasional Pembayaran',
-    'navigation_group' => 'Pengaturan',
+    'navigation_group' => 'Sistem',
 
     'sections' => [
         'credit_checkout' => 'Kredit & Checkout',

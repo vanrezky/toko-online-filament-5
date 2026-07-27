@@ -27,7 +27,7 @@ class NewsletterSubscriberResource extends Resource
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-newspaper';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Customer';
+    protected static string | \UnitEnum | null $navigationGroup = 'Operasional';
 
     protected static ?string $navigationLabel = 'Newsletter Subscribers';
 

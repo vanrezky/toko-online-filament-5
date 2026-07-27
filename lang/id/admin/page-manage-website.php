@@ -2,7 +2,7 @@
 
 return [
     'navigation_label' => 'Website',
-    'navigation_group' => 'Pengaturan',
+    'navigation_group' => 'Sistem',
 
     'tabs' => [
         'storefront' => 'Storefront',

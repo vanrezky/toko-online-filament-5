@@ -13,7 +13,19 @@ class OrdersByStatusChart extends ChartWidget
 
     protected int $cacheSeconds = 300;
 
-    protected ?string $heading = 'Orders by Status';
+    private const STATUS_COLORS = [
+        'warning' => '#f59e0b',
+        'primary' => '#4B49AC',
+        'info' => '#3490DC',
+        'success' => '#22c55e',
+        'danger' => '#F3797E',
+        'default' => '#9ca3af',
+    ];
+
+    public function getHeading(): string
+    {
+        return __('admin/page-dashboard.orders_by_status.title');
+    }
 
     protected function getData(): array
     {
@@ -25,21 +37,14 @@ class OrdersByStatusChart extends ChartWidget
         $colors = [];
         foreach (TransactionStatus::cases() as $status) {
             $labels[$status->value] = (string) $status->getLabel();
-            $colors[$status->value] = match ($status->getColor()) {
-                'warning' => '#f59e0b',
-                'primary' => '#3b82f6',
-                'info' => '#06b6d4',
-                'success' => '#22c55e',
-                'danger' => '#ef4444',
-                default => '#9ca3af',
-            };
+            $colors[$status->value] = self::STATUS_COLORS[$status->getColor()] ?? self::STATUS_COLORS['default'];
         }
 
         return [
             'datasets' => [
                 [
                     'data' => array_values($data),
-                    'backgroundColor' => array_map(fn ($status) => $colors[$status] ?? '#9ca3af', array_keys($data)),
+                    'backgroundColor' => array_map(fn ($status) => $colors[$status] ?? self::STATUS_COLORS['default'], array_keys($data)),
                     'borderWidth' => 0,
                 ],
             ],
@@ -60,10 +65,11 @@ class OrdersByStatusChart extends ChartWidget
             'cutout' => '65%',
             'plugins' => [
                 'legend' => [
-                    'position' => 'right',
+                    'position' => 'bottom',
                     'labels' => [
                         'usePointStyle' => true,
-                        'padding' => 15,
+                        'boxWidth' => 10,
+                        'padding' => 12,
                     ],
                 ],
                 'tooltip' => [],

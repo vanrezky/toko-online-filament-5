@@ -15,7 +15,10 @@ class RecentOrdersTable extends BaseWidget
 
     protected int $pageSize = 5;
 
-    protected static ?string $heading = 'Recent Orders';
+    protected function getTableHeading(): string
+    {
+        return __('admin/page-dashboard.recent_orders.title');
+    }
 
     protected function getTableQuery(): Builder
     {
@@ -35,22 +38,22 @@ class RecentOrdersTable extends BaseWidget
     {
         return [
             TextColumn::make('uuid')
-                ->label('Order ID')
+                ->label(__('admin/page-dashboard.recent_orders.columns.order_id'))
                 ->formatStateUsing(fn (string $state): string => strtoupper(substr($state, 0, 8)))
                 ->url(fn (Transaction $record): string => route('filament.admin.resources.transactions.view', $record->uuid))
                 ->searchable(),
 
             TextColumn::make('customer.full_name')
-                ->label('Customer')
+                ->label(__('admin/page-dashboard.recent_orders.columns.customer'))
                 ->searchable(),
 
             TextColumn::make('total_amount')
-                ->label('Amount')
+                ->label(__('admin/page-dashboard.recent_orders.columns.amount'))
                 ->money('IDR')
                 ->sortable(),
 
             TextColumn::make('status')
-                ->label('Status')
+                ->label(__('admin/page-dashboard.recent_orders.columns.status'))
                 ->badge()
                 ->formatStateUsing(function (TransactionStatus|string|null $state): string {
                     if ($state instanceof TransactionStatus) {
@@ -63,7 +66,7 @@ class RecentOrdersTable extends BaseWidget
                 }),
 
             TextColumn::make('created_at')
-                ->label('Date')
+                ->label(__('admin/page-dashboard.recent_orders.columns.date'))
                 ->dateTime('d M Y, H:i')
                 ->sortable(),
         ];
