@@ -5,8 +5,8 @@ import FormCheckbox from "../../components/UI/FormCheckbox.vue";
 import FormInput from "../../components/UI/FormInput.vue";
 import Card from "../../components/UI/Card.vue";
 import { useI18n } from "vue-i18n";
-import { ArrowRight, Eye, EyeOff, Lock, Mail, User } from "lucide-vue-next";
-import { ref } from "vue";
+import { ArrowRight, CheckCircle2, Circle, Eye, EyeOff, Lock, Mail, User } from "lucide-vue-next";
+import { computed, ref } from "vue";
 import PageShellAuth from "@frontend/components/PageShellAuth.vue";
 
 const { t } = useI18n();
@@ -18,6 +18,9 @@ const emailInput = ref(null);
 const passwordInput = ref(null);
 const passwordConfirmationInput = ref(null);
 const settings = usePage().props.settings ?? {};
+const props = defineProps({
+    secure_password: Boolean,
+});
 
 const form = useForm({
     first_name: "",
@@ -27,6 +30,13 @@ const form = useForm({
     password_confirmation: "",
     terms_accepted: false,
 });
+
+const passwordRequirements = computed(() => [
+    { key: "minimum", passed: form.password.length >= 8 },
+    { key: "letter", passed: /\p{L}/u.test(form.password) },
+    { key: "number", passed: /\p{N}/u.test(form.password) },
+    { key: "symbol", passed: /\p{Z}|\p{S}|\p{P}/u.test(form.password) },
+]);
 
 const submit = () => {
     form.post(route("frontend.signup.post"), {
@@ -144,6 +154,33 @@ const submit = () => {
                         <p v-if="form.errors.password" id="password-error" class="text-destructive text-xs" role="alert">
                             {{ form.errors.password }}
                         </p>
+                        <div
+                            v-if="props.secure_password"
+                            class="border-border bg-secondary/40 space-y-2 rounded-lg border p-3"
+                            role="group"
+                            :aria-label="t('labels.auth.secure_password_requirements')"
+                        >
+                            <p class="text-foreground text-xs font-semibold">{{ t("labels.auth.secure_password_requirements") }}</p>
+                            <ul class="grid gap-1.5 text-xs sm:grid-cols-2">
+                                <li
+                                    v-for="requirement in passwordRequirements"
+                                    :key="requirement.key"
+                                    class="flex items-center gap-2"
+                                    :class="requirement.passed ? 'text-primary' : 'text-muted-foreground'"
+                                >
+                                    <CheckCircle2 v-if="requirement.passed" class="h-4 w-4 shrink-0" aria-hidden="true" />
+                                    <Circle v-else class="h-4 w-4 shrink-0" aria-hidden="true" />
+                                    <span>{{ t(`labels.auth.secure_password_${requirement.key}`) }}</span>
+                                    <span class="sr-only">
+                                        {{
+                                            requirement.passed
+                                                ? t("labels.auth.secure_password_requirement_met")
+                                                : t("labels.auth.secure_password_requirement_pending")
+                                        }}
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
                     <div class="space-y-2">
