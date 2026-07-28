@@ -415,6 +415,7 @@
             "shipping_address": "Alamat Pengiriman",
             "new_address": "Alamat Baru",
             "shipping_method": "Metode Pengiriman",
+            "shipping_method_changed": "Metode pengiriman sebelumnya tidak tersedia untuk alamat ini.",
             "pickup_no_address_required": "Anda memilih metode Ambil di Toko (Pickup). Alamat pengiriman tidak diperlukan untuk pesanan ini.",
             "shipped_from": "Dikirim dari {warehouse}",
             "estimation": "Estimasi: {estimation}",

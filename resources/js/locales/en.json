@@ -133,6 +133,7 @@
         "shipping_address": "Shipping Address",
         "new_address": "New Address",
         "shipping_method": "Shipping Method",
+        "shipping_method_changed": "Your previous shipping method is unavailable for this address.",
         "shipped_from": "Shipped from {warehouse}",
         "estimation": "Estimation: {estimation}",
         "payment_method": "Payment Method",
