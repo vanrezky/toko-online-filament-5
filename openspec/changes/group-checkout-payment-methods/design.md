@@ -20,6 +20,7 @@ Issue #14 (`https://github.com/vanrezky/toko-online-filament3/issues/14`) is lim
 - Render gateway options from static presentation data as disabled controls with a localized not-yet-available label. Disabled controls cannot invoke selection or alter the payload.
 - Keep conditional installment configuration adjacent to the active payment choices; future gateway options follow it so they do not interrupt the customer's tenor decision.
 - Keep tenor choices in a compact two-column grid at every viewport. Stack each card's tenor, fee, and monthly payment vertically so monthly-payment amounts do not collide across cards.
+- Increase tenor density at wider breakpoints while retaining the same `gap-3` rhythm as the active payment choices. Surface remaining credit limit directly below the payment prompt, while retaining over-limit feedback next to the selected payment flow.
 - Add semantic locale keys in Indonesian and English; do not hardcode new customer-facing text.
 
 ## Risks / Trade-offs

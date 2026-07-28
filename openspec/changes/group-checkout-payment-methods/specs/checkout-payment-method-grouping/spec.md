@@ -19,6 +19,17 @@ The checkout SHALL ask the customer to choose how they want to pay and MUST desc
 - **WHEN** a customer views the installment tenor choices on a narrow screen
 - **THEN** tenor choices remain in a compact two-column grid and each monthly payment fits within its own card without overlapping another card
 
+#### Scenario: Customer views tenor choices on a wide screen
+- **WHEN** a customer views the installment tenor choices on a wide screen
+- **THEN** the tenor grid uses the available space compactly with spacing consistent with the active payment choices
+
+### Requirement: Checkout shows credit limit before the payment decision
+The checkout SHALL show a customer's remaining credit limit as compact context before the customer chooses a credit-limit payment option. Any over-limit warning MUST remain adjacent to the active payment decision.
+
+#### Scenario: Customer views payment choices with credit limit enabled
+- **WHEN** a customer opens checkout and credit-limit enforcement is enabled
+- **THEN** the remaining credit limit is visible before the active payment choices
+
 ### Requirement: Checkout presents gateway options as unavailable
 The checkout SHALL display BCA, BRI, Credit Card, and ShopeePay in a separate future-methods section. Each gateway option MUST be disabled and visibly state that it is not yet available.
 

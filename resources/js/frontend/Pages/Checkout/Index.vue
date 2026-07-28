@@ -597,6 +597,13 @@ const applyVoucher = async () => {
                             </div>
                         </div>
 
+                        <div v-if="isCreditLimitEnforced" class="mb-5 flex items-center justify-between gap-4 rounded-lg border border-[#e8e6ef] bg-[#f8f7fc] px-4 py-3">
+                            <span class="text-sm text-[#6b5a4d]">Sisa Limit Kredit</span>
+                            <span class="text-sm font-semibold" :class="isOverLimit ? 'text-red-500' : 'text-green-600'">
+                                {{ formatCurrency(creditLimitRemaining) }}
+                            </span>
+                        </div>
+
                         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                             <label
                                 v-if="isBalanceEnabled"
@@ -669,6 +676,12 @@ const applyVoucher = async () => {
                             </label>
                         </div>
 
+                        <p v-if="isOverLimit" class="mt-3 text-xs text-red-500">
+                            ⚠️ Total {{ selectedPaymentType === "installment" ? "cicilan" : "pembelian" }} ({{
+                                formatCurrency(selectedPaymentType === "installment" ? selectedInstallmentPlan?.total_amount : grandTotal)
+                            }}) melebihi sisa limit kredit
+                        </p>
+
                         <!-- Installment Calculator -->
                         <div v-if="selectedPaymentType === 'installment'" class="mt-4 space-y-4">
                             <!-- Loading State -->
@@ -680,12 +693,12 @@ const applyVoucher = async () => {
                             <!-- Tenor Selection -->
                             <div v-else-if="installmentCalculations" class="space-y-2">
                                 <label class="text-sm font-semibold">{{ t("labels.checkout.select_tenor") }}</label>
-                                <div class="grid grid-cols-2 gap-2">
+                                <div class="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
                                     <Button
                                         v-for="plan in installmentCalculations.plans"
                                         :key="plan.id"
                                         @click="selectedInstallmentPlan = plan"
-                                        class="min-h-20 w-full flex-col items-start justify-center rounded-lg border p-3 text-left transition-all"
+                                        class="min-h-20 w-full flex-col items-start justify-center rounded-lg border p-3 text-left transition-all lg:min-h-0 lg:p-2.5"
                                         :class="
                                             selectedInstallmentPlan?.id === plan.id
                                                 ? 'border-[#fa8456] bg-[#fff5f0]'
@@ -746,21 +759,6 @@ const applyVoucher = async () => {
                                     <span class="text-xs text-[#6b5a4d]">{{ t("labels.payment.maintenance") }}</span>
                                 </button>
                             </div>
-                        </div>
-
-                        <!-- Credit Limit Info - Show for both payment types -->
-                        <div v-if="isCreditLimitEnforced" class="mt-4 rounded-lg border border-[#e8e6ef] p-4">
-                            <div class="flex justify-between text-sm">
-                                <span>Sisa Limit Kredit</span>
-                                <span class="font-semibold" :class="isOverLimit ? 'text-red-500' : 'text-green-600'">
-                                    {{ formatCurrency(creditLimitRemaining) }}
-                                </span>
-                            </div>
-                            <p v-if="isOverLimit" class="mt-2 text-xs text-red-500">
-                                ⚠️ Total {{ selectedPaymentType === "installment" ? "cicilan" : "pembelian" }} ({{
-                                    formatCurrency(selectedPaymentType === "installment" ? selectedInstallmentPlan?.total_amount : grandTotal)
-                                }}) melebihi sisa limit kredit
-                            </p>
                         </div>
 
                         <p v-if="paymentError" class="mt-3 text-xs text-red-500">{{ paymentError }}</p>

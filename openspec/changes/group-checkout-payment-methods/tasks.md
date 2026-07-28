@@ -6,6 +6,7 @@
 - [x] 1.4 Keep the conditional installment tenor flow before the secondary future-methods section.
 - [x] 1.5 Make the installment tenor cards responsive on narrow screens.
 - [x] 1.6 Keep tenor choices compact in two columns without reintroducing overlapping content.
+- [x] 1.7 Compact the desktop tenor grid and surface credit-limit context before payment selection.
 
 ## 2. Verification
 
@@ -15,3 +16,4 @@
 - [x] 2.4 Re-run frontend validation after the payment-flow ordering refinement.
 - [x] 2.5 Re-run frontend validation after the tenor responsive-layout refinement.
 - [x] 2.6 Re-run frontend validation after the compact-tenor refinement.
+- [x] 2.7 Re-run frontend validation after the payment-context layout refinement.
