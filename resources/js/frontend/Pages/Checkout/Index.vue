@@ -56,8 +56,10 @@ const creditLimitRemaining = ref(props.creditLimit?.remaining || 0);
 const balanceAvailable = computed(() => Number(props.balance?.available || 0));
 const isBalanceEnabled = computed(() => props.balance?.enabled === true);
 const isBalanceSufficient = computed(() => balanceAvailable.value >= grandTotal.value);
+const balanceShortfall = computed(() => Math.max(0, grandTotal.value - balanceAvailable.value));
 const isCreditLimitEnforced = computed(() => props.creditLimit?.enforced !== false);
 const installmentMinOrderAmount = computed(() => Number(props.installmentMinOrderAmount || 1000000));
+const unavailablePaymentGateways = ["BCA", "BRI", "Credit Card", "ShopeePay"];
 
 watch(
     () => props.validatedVouchers,
@@ -589,7 +591,17 @@ const applyVoucher = async () => {
                     <section v-if="activeGateway !== 'midtrans' || isBalanceEnabled" class="order-3 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                         <div class="mb-6 flex items-center gap-3">
                             <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">3</div>
-                            <h2 class="text-base font-bold text-[#2d1b0e]">{{ t("labels.checkout.payment_method") }}</h2>
+                            <div>
+                                <h2 class="text-base font-bold text-[#2d1b0e]">{{ t("labels.payment.question") }}</h2>
+                                <p class="mt-1 text-sm text-[#6b5a4d]">{{ t("labels.payment.helper") }}</p>
+                            </div>
+                        </div>
+
+                        <div v-if="isCreditLimitEnforced" class="mb-5 flex items-center justify-between gap-4 rounded-lg border border-[#e8e6ef] bg-[#f8f7fc] px-4 py-3">
+                            <span class="text-sm text-[#6b5a4d]">Sisa Limit Kredit</span>
+                            <span class="text-sm font-semibold" :class="isOverLimit ? 'text-red-500' : 'text-green-600'">
+                                {{ formatCurrency(creditLimitRemaining) }}
+                            </span>
                         </div>
 
                         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -608,8 +620,16 @@ const applyVoucher = async () => {
                                     :disabled="!isBalanceSufficient"
                                     class="h-5 w-5 border-[#e8e6ef] text-[#fa8456] accent-[#fa8456]"
                                 />
-                                <span class="ml-3 text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.balance") }}</span>
-                                <span class="ml-auto text-xs text-[#6b5a4d]">{{ formatCurrency(balanceAvailable) }}</span>
+                                <div class="ml-3 min-w-0">
+                                    <span class="block text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.balance") }}</span>
+                                    <span class="mt-1 block text-xs text-[#6b5a4d]">
+                                        {{
+                                            isBalanceSufficient
+                                                ? t("labels.payment.balance_available", { amount: formatCurrency(balanceAvailable) })
+                                                : t("labels.payment.balance_short", { amount: formatCurrency(balanceShortfall) })
+                                        }}
+                                    </span>
+                                </div>
                             </label>
                             <label
                                 class="flex cursor-pointer items-center rounded-xl border p-4 transition-all hover:bg-[#fafafa]"
@@ -622,7 +642,10 @@ const applyVoucher = async () => {
                                     @change="selectPaymentType('full')"
                                     class="h-5 w-5 border-[#e8e6ef] text-[#fa8456] accent-[#fa8456]"
                                 />
-                                <span class="ml-3 text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.full") }}</span>
+                                <div class="ml-3">
+                                    <span class="block text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.full") }}</span>
+                                    <span class="mt-1 block text-xs text-[#6b5a4d]">{{ t("labels.payment.full_description", { amount: formatCurrency(grandTotal) }) }}</span>
+                                </div>
                             </label>
 
                             <label
@@ -640,17 +663,23 @@ const applyVoucher = async () => {
                                     :disabled="!isInstallmentEligible"
                                     class="h-5 w-5 border-[#e8e6ef] text-[#fa8456] accent-[#fa8456]"
                                 />
-                                <span class="ml-3 text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.installment") }}</span>
+                                <div class="ml-3">
+                                    <span class="block text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.installment") }}</span>
+                                    <span class="mt-1 block text-xs text-[#6b5a4d]">
+                                        {{
+                                            isInstallmentEligible
+                                                ? t("labels.payment.installment_description")
+                                                : t("labels.payment.installment_minimum", { amount: formatCurrency(installmentMinOrderAmount) })
+                                        }}
+                                    </span>
+                                </div>
                             </label>
                         </div>
 
-                        <p v-if="isBalanceEnabled && !isBalanceSufficient" class="mt-3 text-xs text-amber-700">
-                            {{ t("labels.payment.balance_insufficient") }}
-                        </p>
-
-                        <p v-if="!isInstallmentEligible" class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
-                            Cicilan tersedia untuk total belanja minimal {{ formatCurrency(installmentMinOrderAmount) }}. Pesanan di bawah nominal
-                            tersebut wajib bayar penuh melalui potongan payroll.
+                        <p v-if="isOverLimit" class="mt-3 text-xs text-red-500">
+                            ⚠️ Total {{ selectedPaymentType === "installment" ? "cicilan" : "pembelian" }} ({{
+                                formatCurrency(selectedPaymentType === "installment" ? selectedInstallmentPlan?.total_amount : grandTotal)
+                            }}) melebihi sisa limit kredit
                         </p>
 
                         <!-- Installment Calculator -->
@@ -664,12 +693,12 @@ const applyVoucher = async () => {
                             <!-- Tenor Selection -->
                             <div v-else-if="installmentCalculations" class="space-y-2">
                                 <label class="text-sm font-semibold">{{ t("labels.checkout.select_tenor") }}</label>
-                                <div class="grid grid-cols-2 gap-2">
+                                <div class="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
                                     <Button
                                         v-for="plan in installmentCalculations.plans"
                                         :key="plan.id"
                                         @click="selectedInstallmentPlan = plan"
-                                        class="rounded-lg border p-3 text-center transition-all"
+                                        class="min-h-20 w-full flex-col items-start justify-center rounded-lg border p-3 text-left transition-all lg:min-h-0 lg:p-2.5"
                                         :class="
                                             selectedInstallmentPlan?.id === plan.id
                                                 ? 'border-[#fa8456] bg-[#fff5f0]'
@@ -678,7 +707,7 @@ const applyVoucher = async () => {
                                     >
                                         <span class="block text-lg font-bold">{{ plan.tenor }}x</span>
                                         <span class="text-xs text-[#6b5a4d]">{{ plan.fee_percentage }}% fee</span>
-                                        <span class="mt-1 block text-sm font-semibold text-[#fa8456]">
+                                        <span class="mt-1 block text-xs font-semibold text-[#fa8456] sm:text-sm">
                                             {{ formatCurrency(plan.monthly_amount) }}/bulan
                                         </span>
                                     </Button>
@@ -711,19 +740,25 @@ const applyVoucher = async () => {
                             </div>
                         </div>
 
-                        <!-- Credit Limit Info - Show for both payment types -->
-                        <div v-if="isCreditLimitEnforced" class="mt-4 rounded-lg border border-[#e8e6ef] p-4">
-                            <div class="flex justify-between text-sm">
-                                <span>Sisa Limit Kredit</span>
-                                <span class="font-semibold" :class="isOverLimit ? 'text-red-500' : 'text-green-600'">
-                                    {{ formatCurrency(creditLimitRemaining) }}
+                        <div class="mt-7 border-t border-[#e8e6ef] pt-6">
+                            <div class="mb-3 flex items-center justify-between gap-3">
+                                <h3 class="text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.gateway") }}</h3>
+                                <span class="rounded-full bg-[#f8f7fc] px-2.5 py-1 text-xs font-medium text-[#6b5a4d]">
+                                    {{ t("labels.payment.maintenance") }}
                                 </span>
                             </div>
-                            <p v-if="isOverLimit" class="mt-2 text-xs text-red-500">
-                                ⚠️ Total {{ selectedPaymentType === "installment" ? "cicilan" : "pembelian" }} ({{
-                                    formatCurrency(selectedPaymentType === "installment" ? selectedInstallmentPlan?.total_amount : grandTotal)
-                                }}) melebihi sisa limit kredit
-                            </p>
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <button
+                                    v-for="gateway in unavailablePaymentGateways"
+                                    :key="gateway"
+                                    type="button"
+                                    disabled
+                                    class="flex cursor-not-allowed items-center justify-between rounded-xl border border-[#e8e6ef] bg-[#f8f7fc] p-4 text-left opacity-70"
+                                >
+                                    <span class="text-sm font-semibold text-[#6b5a4d]">{{ gateway }}</span>
+                                    <span class="text-xs text-[#6b5a4d]">{{ t("labels.payment.maintenance") }}</span>
+                                </button>
+                            </div>
                         </div>
 
                         <p v-if="paymentError" class="mt-3 text-xs text-red-500">{{ paymentError }}</p>
