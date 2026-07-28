@@ -438,6 +438,9 @@
             "installment": "Cicilan",
             "potong_kredit": "(Potong Kredit)",
             "balance": "Bayar dengan Saldo",
+            "available_methods": "Metode tersedia",
+            "gateway": "Payment Gateway",
+            "maintenance": "Dalam pemeliharaan",
             "balance_insufficient": "Saldo Anda belum mencukupi untuk membayar total pesanan."
         },
         "cart": {

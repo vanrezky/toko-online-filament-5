@@ -58,6 +58,7 @@ const isBalanceEnabled = computed(() => props.balance?.enabled === true);
 const isBalanceSufficient = computed(() => balanceAvailable.value >= grandTotal.value);
 const isCreditLimitEnforced = computed(() => props.creditLimit?.enforced !== false);
 const installmentMinOrderAmount = computed(() => Number(props.installmentMinOrderAmount || 1000000));
+const unavailablePaymentGateways = ["BCA", "BRI", "Credit Card", "ShopeePay"];
 
 watch(
     () => props.validatedVouchers,
@@ -592,6 +593,7 @@ const applyVoucher = async () => {
                             <h2 class="text-base font-bold text-[#2d1b0e]">{{ t("labels.checkout.payment_method") }}</h2>
                         </div>
 
+                        <h3 class="mb-3 text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.available_methods") }}</h3>
                         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                             <label
                                 v-if="isBalanceEnabled"
@@ -642,6 +644,27 @@ const applyVoucher = async () => {
                                 />
                                 <span class="ml-3 text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.installment") }}</span>
                             </label>
+                        </div>
+
+                        <div class="mt-7 border-t border-[#e8e6ef] pt-6">
+                            <div class="mb-3 flex items-center justify-between gap-3">
+                                <h3 class="text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.gateway") }}</h3>
+                                <span class="rounded-full bg-[#f8f7fc] px-2.5 py-1 text-xs font-medium text-[#6b5a4d]">
+                                    {{ t("labels.payment.maintenance") }}
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <button
+                                    v-for="gateway in unavailablePaymentGateways"
+                                    :key="gateway"
+                                    type="button"
+                                    disabled
+                                    class="flex cursor-not-allowed items-center justify-between rounded-xl border border-[#e8e6ef] bg-[#f8f7fc] p-4 text-left opacity-70"
+                                >
+                                    <span class="text-sm font-semibold text-[#6b5a4d]">{{ gateway }}</span>
+                                    <span class="text-xs text-[#6b5a4d]">{{ t("labels.payment.maintenance") }}</span>
+                                </button>
+                            </div>
                         </div>
 
                         <p v-if="isBalanceEnabled && !isBalanceSufficient" class="mt-3 text-xs text-amber-700">

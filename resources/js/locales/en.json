@@ -261,6 +261,9 @@
         "installment": "Installment",
         "potong_kredit": "(Credit Installment)",
         "balance": "Pay with Balance",
+        "available_methods": "Available methods",
+        "gateway": "Payment Gateway",
+        "maintenance": "Under maintenance",
         "balance_insufficient": "Your balance is not enough to pay for this order."
     },
     "product": {
