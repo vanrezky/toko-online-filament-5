@@ -694,13 +694,31 @@
             "default_badge": "Default",
             "no_default": "Belum ada alamat default",
             "empty": "Belum ada alamat tersimpan",
+            "add": "Tambah Alamat",
+            "edit": "Edit alamat",
+            "delete": "Hapus alamat",
+            "set_default": "Jadikan default",
             "new_heading": "Alamat Pengiriman Baru",
             "edit_heading": "Edit Alamat",
             "new_description": "Tambahkan alamat baru untuk pengiriman",
             "edit_description": "Perbarui informasi alamat Anda",
-            "managed_by_admin": "Alamat dikelola admin berdasarkan unit sekolah.",
+            "public_store_note": "Anda dapat mengelola alamat yang Anda tambahkan sendiri. Alamat dari admin tetap dapat digunakan, tetapi tidak dapat diubah di sini.",
+            "private_store_note": "Alamat pengiriman dikelola oleh admin untuk toko ini.",
+            "managed_by_admin": "Alamat ini dikelola oleh admin.",
             "synced_from_school_unit": "Sinkron otomatis dari unit sekolah",
-            "awaiting_school_unit": "Alamat akan muncul otomatis setelah admin menetapkan unit sekolah."
+            "customer_created": "Alamat Anda",
+            "public_store_empty": "Tambahkan alamat pertama Anda untuk pengiriman.",
+            "awaiting_school_unit": "Alamat akan muncul otomatis setelah admin menetapkan unit sekolah.",
+            "fields": {
+                "name": "Nama penerima",
+                "phone": "Nomor telepon",
+                "address": "Alamat lengkap",
+                "province": "Provinsi",
+                "district": "Kota/Kabupaten",
+                "sub_district": "Kecamatan",
+                "village": "Kelurahan/Desa",
+                "postal_code": "Kode pos"
+            }
         },
         "newsletter": {
             "unsubscribed_title": "Berhasil Berhenti Berlangganan",

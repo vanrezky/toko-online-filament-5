@@ -46,6 +46,8 @@ const props = defineProps({
 
 const page = usePage();
 const { proxy } = getCurrentInstance();
+const isPrivateStore = computed(() => Boolean(page.props.settings?.is_private_store));
+const canManageAddress = (address) => !isPrivateStore.value && address.can_customer_manage;
 
 const getSectionFromUrl = () => {
     const params = new URLSearchParams(window.location.search);
@@ -179,7 +181,7 @@ const fetchVillages = async (subDistrictId, selectId = null) => {
 };
 
 const onVillageChange = () => {
-    const village = villages.value.find((v) => v.id === addressForm.village_id);
+    const village = villages.value.find((v) => String(v.id) === String(addressForm.village_id));
     if (village && village.postal_code) {
         addressForm.postal_code = village.postal_code;
     }
@@ -592,10 +594,14 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                     <h2 class="text-foreground text-xl font-bold">{{ t("labels.address.heading") }}</h2>
                                     <p class="text-muted-foreground mt-1 text-sm">{{ t("labels.address.description") }}</p>
                                 </div>
-                                <p class="bg-secondary/60 text-muted-foreground rounded-xl px-4 py-2 text-xs font-semibold">
-                                    {{ t("labels.address.managed_by_admin") }}
-                                </p>
+                                <Button v-if="!isPrivateStore" variant="primary" :icon="Plus" @click="openAddressForm()">
+                                    {{ t("labels.address.add") }}
+                                </Button>
                             </div>
+
+                            <p class="bg-secondary/60 text-muted-foreground rounded-xl px-4 py-3 text-xs font-semibold">
+                                {{ t(isPrivateStore ? "labels.address.private_store_note" : "labels.address.public_store_note") }}
+                            </p>
 
                             <div class="grid gap-4">
                                 <div
@@ -622,8 +628,37 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                             </p>
                                         </div>
 
-                                        <div class="bg-secondary/40 text-muted-foreground rounded-xl px-3 py-2 text-xs font-semibold">
-                                            {{ t("labels.address.synced_from_school_unit") }}
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="bg-secondary/40 text-muted-foreground rounded-xl px-3 py-2 text-xs font-semibold">
+                                                {{
+                                                    address.source_type === "school_unit"
+                                                        ? t("labels.address.synced_from_school_unit")
+                                                        : address.can_customer_manage
+                                                          ? t("labels.address.customer_created")
+                                                          : t("labels.address.managed_by_admin")
+                                                }}
+                                            </span>
+                                            <template v-if="canManageAddress(address)">
+                                                <Button
+                                                    v-if="!address.is_featured"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    @click="setFeaturedAddress(address)"
+                                                >
+                                                    {{ t("labels.address.set_default") }}
+                                                </Button>
+                                                <Button variant="outline" size="icon" :aria-label="t('labels.address.edit')" @click="openAddressForm(address)">
+                                                    <Edit3 class="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="icon"
+                                                    :aria-label="t('labels.address.delete')"
+                                                    @click="deleteAddress(address.id, address.name)"
+                                                >
+                                                    <Trash2 class="h-4 w-4" />
+                                                </Button>
+                                            </template>
                                         </div>
                                     </div>
                                 </div>
@@ -640,10 +675,100 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                             <MapPin class="text-muted-foreground h-10 w-10" />
                                         </div>
                                         <p class="text-muted-foreground mb-6 text-sm font-medium">{{ t("labels.address.empty") }}</p>
-                                        <p class="text-muted-foreground text-sm font-medium">{{ t("labels.address.awaiting_school_unit") }}</p>
+                                        <p class="text-muted-foreground text-sm font-medium">
+                                            {{ t(isPrivateStore ? "labels.address.awaiting_school_unit" : "labels.address.public_store_empty") }}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div v-if="activeSection === 'address_form' && !isPrivateStore" class="space-y-6">
+                            <div>
+                                <h2 class="text-foreground text-xl font-bold">
+                                    {{ editingAddress ? t("labels.address.edit_heading") : t("labels.address.new_heading") }}
+                                </h2>
+                                <p class="text-muted-foreground mt-1 text-sm">
+                                    {{ editingAddress ? t("labels.address.edit_description") : t("labels.address.new_description") }}
+                                </p>
+                            </div>
+
+                            <form class="space-y-5 rounded-2xl bg-white p-6 shadow-lg" @submit.prevent="submitAddress">
+                                <div class="grid gap-4 md:grid-cols-2">
+                                    <label class="space-y-2 text-sm font-semibold text-foreground">
+                                        {{ t("labels.address.fields.name") }}
+                                        <FormInput v-model="addressForm.name" :invalid="Boolean(addressForm.errors.name)" />
+                                        <span v-if="addressForm.errors.name" class="text-xs font-medium text-destructive">{{ addressForm.errors.name }}</span>
+                                    </label>
+                                    <label class="space-y-2 text-sm font-semibold text-foreground">
+                                        {{ t("labels.address.fields.phone") }}
+                                        <FormInput v-model="addressForm.phone" :invalid="Boolean(addressForm.errors.phone)" />
+                                        <span v-if="addressForm.errors.phone" class="text-xs font-medium text-destructive">{{ addressForm.errors.phone }}</span>
+                                    </label>
+                                </div>
+
+                                <label class="block space-y-2 text-sm font-semibold text-foreground">
+                                    {{ t("labels.address.fields.address") }}
+                                    <textarea
+                                        v-model="addressForm.address"
+                                        rows="3"
+                                        class="border-border focus:border-primary focus:ring-primary/25 w-full rounded-xl border bg-secondary px-4 py-3 text-sm outline-none focus:ring-2"
+                                        :aria-invalid="Boolean(addressForm.errors.address)"
+                                    />
+                                    <span v-if="addressForm.errors.address" class="text-xs font-medium text-destructive">{{ addressForm.errors.address }}</span>
+                                </label>
+
+                                <div class="grid gap-4 md:grid-cols-2">
+                                    <label class="space-y-2 text-sm font-semibold text-foreground">
+                                        {{ t("labels.address.fields.province") }}
+                                        <select v-model="addressForm.province_id" class="border-border w-full rounded-xl border bg-secondary px-4 py-3 text-sm" @change="fetchDistricts(addressForm.province_id)">
+                                            <option value="">{{ t("placeholders.select_province") }}</option>
+                                            <option v-for="province in provinces" :key="province.id" :value="province.id">{{ province.name }}</option>
+                                        </select>
+                                        <span v-if="addressForm.errors.province_id" class="text-xs font-medium text-destructive">{{ addressForm.errors.province_id }}</span>
+                                    </label>
+                                    <label class="space-y-2 text-sm font-semibold text-foreground">
+                                        {{ t("labels.address.fields.district") }}
+                                        <select v-model="addressForm.district_id" class="border-border w-full rounded-xl border bg-secondary px-4 py-3 text-sm" @change="fetchSubDistricts(addressForm.district_id)">
+                                            <option value="">{{ t("placeholders.select_district") }}</option>
+                                            <option v-for="district in districts" :key="district.id" :value="district.id">{{ district.name }}</option>
+                                        </select>
+                                        <span v-if="addressForm.errors.district_id" class="text-xs font-medium text-destructive">{{ addressForm.errors.district_id }}</span>
+                                    </label>
+                                    <label class="space-y-2 text-sm font-semibold text-foreground">
+                                        {{ t("labels.address.fields.sub_district") }}
+                                        <select v-model="addressForm.sub_district_id" class="border-border w-full rounded-xl border bg-secondary px-4 py-3 text-sm" @change="fetchVillages(addressForm.sub_district_id)">
+                                            <option value="">{{ t("placeholders.select_sub_district") }}</option>
+                                            <option v-for="subDistrict in subDistricts" :key="subDistrict.id" :value="subDistrict.id">{{ subDistrict.name }}</option>
+                                        </select>
+                                        <span v-if="addressForm.errors.sub_district_id" class="text-xs font-medium text-destructive">{{ addressForm.errors.sub_district_id }}</span>
+                                    </label>
+                                    <label class="space-y-2 text-sm font-semibold text-foreground">
+                                        {{ t("labels.address.fields.village") }}
+                                        <select v-model="addressForm.village_id" class="border-border w-full rounded-xl border bg-secondary px-4 py-3 text-sm" @change="onVillageChange">
+                                            <option value="">{{ t("placeholders.select_village") }}</option>
+                                            <option v-for="village in villages" :key="village.id" :value="village.id">{{ village.name }}</option>
+                                        </select>
+                                        <span v-if="addressForm.errors.village_id" class="text-xs font-medium text-destructive">{{ addressForm.errors.village_id }}</span>
+                                    </label>
+                                </div>
+
+                                <label class="block space-y-2 text-sm font-semibold text-foreground">
+                                    {{ t("labels.address.fields.postal_code") }}
+                                    <FormInput v-model="addressForm.postal_code" :invalid="Boolean(addressForm.errors.postal_code)" />
+                                    <span v-if="addressForm.errors.postal_code" class="text-xs font-medium text-destructive">{{ addressForm.errors.postal_code }}</span>
+                                </label>
+
+                                <label class="flex items-center gap-3 text-sm font-semibold text-foreground">
+                                    <input v-model="addressForm.is_featured" type="checkbox" class="h-4 w-4 rounded border-border text-primary focus:ring-primary" />
+                                    {{ t("labels.address.set_default") }}
+                                </label>
+
+                                <div class="flex flex-wrap justify-end gap-3">
+                                    <Button variant="outline" @click="activeSection = 'addresses'">{{ t("labels.actions.cancel") }}</Button>
+                                    <Button type="submit" variant="primary" :loading="addressForm.processing">{{ t("labels.actions.save") }}</Button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

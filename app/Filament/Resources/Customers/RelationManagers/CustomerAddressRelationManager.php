@@ -9,6 +9,9 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use App\Models\District;
 use App\Models\Province;
 use App\Models\SubDistrict;
@@ -116,8 +119,13 @@ class CustomerAddressRelationManager extends RelationManager
             ->filters([
                 //
             ])
-            ->headerActions([])
-            ->recordActions([])
+            ->headerActions([
+                CreateAction::make(),
+            ])
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
             ->toolbarActions([]);
     }
 }

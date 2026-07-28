@@ -607,9 +607,31 @@
             "default_badge": "Default",
             "no_default": "No default address yet",
             "empty": "No saved addresses yet",
-            "managed_by_admin": "Addresses are managed by an administrator based on the school unit.",
+            "add": "Add Address",
+            "edit": "Edit address",
+            "delete": "Delete address",
+            "set_default": "Set as default",
+            "new_heading": "New Shipping Address",
+            "edit_heading": "Edit Address",
+            "new_description": "Add a new address for delivery",
+            "edit_description": "Update your address details",
+            "public_store_note": "You can manage addresses you add yourself. Admin-provided addresses remain available but cannot be changed here.",
+            "private_store_note": "Shipping addresses are managed by an administrator for this store.",
+            "managed_by_admin": "This address is managed by an administrator.",
             "synced_from_school_unit": "Automatically synced from the school unit",
-            "awaiting_school_unit": "An address will appear automatically after an administrator assigns a school unit."
+            "customer_created": "Your address",
+            "public_store_empty": "Add your first address for delivery.",
+            "awaiting_school_unit": "An address will appear automatically after an administrator assigns a school unit.",
+            "fields": {
+                "name": "Recipient name",
+                "phone": "Phone number",
+                "address": "Full address",
+                "province": "Province",
+                "district": "City/District",
+                "sub_district": "Sub-district",
+                "village": "Village",
+                "postal_code": "Postal code"
+            }
         },
         "order": {
             "order_number": "Order #{id}",
