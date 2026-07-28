@@ -97,17 +97,84 @@ class AccountController extends Controller
 
     public function storeAddress(Request $request)
     {
-        abort(403);
+        $this->ensurePublicStore();
+
+        $customer = Auth::guard('customer')->user();
+        $validated = $this->validatedAddress($request);
+        $isFeatured = (bool) ($validated['is_featured'] ?? false);
+
+        if ($isFeatured) {
+            $customer->address()->update(['is_featured' => false]);
+        }
+
+        $customer->address()->create([
+            ...$validated,
+            'is_featured' => $isFeatured,
+            'source_type' => 'customer',
+        ]);
+
+        return back()->with('success', __('messages.success.address_added'));
     }
 
     public function updateAddress(Request $request, CustomerAddress $address)
     {
-        abort(403);
+        $this->ensureCustomerCanManageAddress($address);
+
+        $validated = $this->validatedAddress($request);
+        $isFeatured = (bool) ($validated['is_featured'] ?? false);
+
+        if ($isFeatured) {
+            CustomerAddress::where('customer_id', $address->customer_id)->update(['is_featured' => false]);
+        } else {
+            unset($validated['is_featured']);
+        }
+
+        $address->update([
+            ...$validated,
+            ...($isFeatured ? ['is_featured' => true] : []),
+        ]);
+
+        return back()->with('success', __('messages.success.address_updated'));
     }
 
     public function deleteAddress(CustomerAddress $address)
     {
-        abort(403);
+        $this->ensureCustomerCanManageAddress($address);
+
+        $address->delete();
+
+        return back()->with('success', __('messages.success.address_deleted'));
+    }
+
+    private function ensurePublicStore(): void
+    {
+        abort_if(app(GeneralSettings::class)->is_private_store, 403);
+    }
+
+    private function ensureCustomerCanManageAddress(CustomerAddress $address): void
+    {
+        $this->ensurePublicStore();
+
+        abort_unless(
+            $address->customer_id === Auth::guard('customer')->id()
+                && $address->source_type === 'customer',
+            403,
+        );
+    }
+
+    private function validatedAddress(Request $request): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:255'],
+            'province_id' => ['required', 'exists:provinces,id'],
+            'district_id' => ['required', 'exists:districts,id'],
+            'sub_district_id' => ['required', 'exists:sub_districts,id'],
+            'village_id' => ['required', 'exists:villages,id'],
+            'address' => ['required', 'string', 'max:255'],
+            'postal_code' => ['required', 'string', 'max:255'],
+            'is_featured' => ['nullable', 'boolean'],
+        ]);
     }
 
     public function getDistricts(Province $province)

@@ -20,6 +20,8 @@ class AddressResource extends JsonResource
             'phone' => $this->phone,
             'address' => $this->address,
             'postal_code' => $this->postal_code,
+            'source_type' => $this->source_type,
+            'can_customer_manage' => $this->source_type === 'customer',
             'is_active' => $this->is_active,
             'is_featured' => $this->is_featured,
             'province_id' => $this->province_id,
