@@ -11,6 +11,10 @@ The checkout SHALL ask the customer to choose how they want to pay and MUST desc
 - **WHEN** the order does not meet the installment minimum
 - **THEN** the installment option remains unavailable and explains the minimum order amount in the option itself
 
+#### Scenario: Customer selects installment
+- **WHEN** a customer selects the installment option
+- **THEN** the tenor selection appears directly after the active payment choices and before the future-methods section
+
 ### Requirement: Checkout presents gateway options as unavailable
 The checkout SHALL display BCA, BRI, Credit Card, and ShopeePay in a separate future-methods section. Each gateway option MUST be disabled and visibly state that it is not yet available.
 
