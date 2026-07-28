@@ -24,7 +24,7 @@ class RegisterController extends Controller
         }
 
         return Inertia::render('Auth/Register', [
-            'secure_password' => settings('secure_password'),
+            'secure_password' => (bool) settings('secure_password'),
         ]);
     }
 

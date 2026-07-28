@@ -350,6 +350,13 @@
             "password_symbol": "1 simbol",
             "show_password": "Tampilkan kata sandi",
             "hide_password": "Sembunyikan kata sandi",
+            "secure_password_requirements": "Kata sandi harus memenuhi:",
+            "secure_password_minimum": "Minimal 8 karakter",
+            "secure_password_letter": "Huruf",
+            "secure_password_number": "Angka",
+            "secure_password_symbol": "Simbol",
+            "secure_password_requirement_met": "terpenuhi",
+            "secure_password_requirement_pending": "belum terpenuhi",
             "or_continue_with": "atau lanjutkan dengan",
             "continue_with_google": "Lanjutkan dengan Google",
             "continue_with_github": "Lanjutkan dengan GitHub"
