@@ -2,34 +2,32 @@
 
 namespace App\Filament\Resources\Users;
 
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Section;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
+use App\Filament\Resources\Users\Pages\CreateUser;
+use App\Filament\Resources\Users\Pages\EditUser;
+use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Filament\Resources\Users\Pages\ViewUser;
+use App\Models\User;
 use Filament\Actions\ActionGroup;
-use Filament\Actions\ViewAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use App\Filament\Resources\Users\Pages\ListUsers;
-use App\Filament\Resources\Users\Pages\CreateUser;
-use App\Filament\Resources\Users\Pages\ViewUser;
-use App\Filament\Resources\Users\Pages\EditUser;
-use App\Models\User;
-use Filament\Forms;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-users';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
+
     protected static ?string $slug = 'setting/users';
 
     public static function getNavigationLabel(): string
@@ -71,7 +69,7 @@ class UserResource extends Resource
                             ->unique(ignoreRecord: true),
                         Select::make('roles')
                             ->label(__('admin/user-resource.fields.roles'))
-                            ->relationship('roles', titleAttribute: 'name', modifyQueryUsing: fn($query) => $query->whereNot('name', 'super_admin')),
+                            ->relationship('roles', titleAttribute: 'name', modifyQueryUsing: fn ($query) => $query->whereNot('name', 'super_admin')),
                         TextInput::make('password')
                             ->label(__('admin/user-resource.fields.password'))
                             ->password()
@@ -80,7 +78,7 @@ class UserResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->minLength(8)
-                            ->hiddenOn('view'),
+                            ->hiddenOn(['view', 'edit']),
                         TextInput::make('confirm_password')
                             ->label(__('admin/user-resource.fields.confirm_password'))
                             ->same('password')
@@ -89,16 +87,16 @@ class UserResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->minLength(8)
-                            ->hiddenOn('view')
+                            ->hiddenOn(['view', 'edit']),
                     ])
-                    ->columns(2)
+                    ->columns(2),
             ])->columns(1);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn(Builder $query): Builder => $query->superUser(false))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->superUser(false))
             ->columns([
                 TextColumn::make('name')
                     ->label(__('admin/user-resource.columns.name'))
@@ -124,14 +122,14 @@ class UserResource extends Resource
             ->filters([
                 Filter::make('verified')
                     ->label(__('admin/user-resource.filters.verified'))
-                    ->query(fn(Builder $query): Builder => $query->whereNotNull('email_verified_at'))
+                    ->query(fn (Builder $query): Builder => $query->whereNotNull('email_verified_at')),
             ])
             ->recordActions([
                 ActionGroup::make([
                     ViewAction::make(),
                     EditAction::make(),
                     DeleteAction::make(),
-                ])
+                ]),
             ])
             ->toolbarActions([
                 DeleteBulkAction::make(),
