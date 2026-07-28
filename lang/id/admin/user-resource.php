@@ -30,7 +30,16 @@ return [
         'email' => 'Email',
         'roles' => 'Peran',
         'password' => 'Password',
+        'new_password' => 'Password Baru',
         'confirm_password' => 'Konfirmasi Password',
+    ],
+
+    'actions' => [
+        'change_password' => 'Ubah Password',
+    ],
+
+    'notifications' => [
+        'password_changed' => 'Password berhasil diubah.',
     ],
 
     'columns' => [
