@@ -5,6 +5,7 @@ import { useForm, Link, router } from "@inertiajs/vue3";
 import axios from "axios";
 import { Loader2, Ticket, X, Truck, Tag, AlertCircle } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 import { installmentService } from "../../services/installmentService";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import PageShell from "../../components/PageShell.vue";
@@ -13,6 +14,7 @@ import FormRadio from "../../components/UI/FormRadio.vue";
 import FormTextarea from "../../components/UI/FormTextarea.vue";
 import Card from "../../components/UI/Card.vue";
 import { formatCurrency } from "../../lib/utils";
+import { createLatestRequestGate, reconcileShippingMethods } from "../../lib/shippingMethods";
 
 const props = defineProps({
     cart: Object,
@@ -44,6 +46,7 @@ const voucherCode = ref("");
 const isApplyingVoucher = ref(false);
 const voucherError = ref(null);
 const isProcessingOrder = ref(false);
+const shippingRequestGate = createLatestRequestGate();
 
 const selectedPaymentType = ref("full");
 const selectedInstallmentPlan = ref(null);
@@ -67,27 +70,35 @@ watch(
 const fetchShippingCosts = async () => {
     if (!form.address_id) return;
 
+    const requestId = shippingRequestGate.start();
     isLoadingShipping.value = true;
     try {
         const response = await axios.get(route("frontend.checkout.shipping-costs"), {
             params: { address_id: form.address_id },
         });
+
+        if (!shippingRequestGate.isLatest(requestId)) {
+            return;
+        }
+
         shippingResults.value = response.data;
 
-        const methods = { ...form.shipping_methods };
-        response.data.forEach((item) => {
-            if (item.options && item.options.length > 0) {
-                methods[item.warehouse_id] = {
-                    ...item.options[0],
-                    weight: item.weight,
-                };
-            }
-        });
+        const { methods, hasFallback } = reconcileShippingMethods(form.shipping_methods, response.data);
         form.shipping_methods = methods;
+
+        if (hasFallback) {
+            toast.warning(t("labels.checkout.shipping_method_changed"));
+        }
     } catch (error) {
+        if (!shippingRequestGate.isLatest(requestId)) {
+            return;
+        }
+
         console.error("Failed to fetch shipping costs", error);
     } finally {
-        isLoadingShipping.value = false;
+        if (shippingRequestGate.isLatest(requestId)) {
+            isLoadingShipping.value = false;
+        }
     }
 };
 
