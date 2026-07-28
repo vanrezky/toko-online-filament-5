@@ -2,39 +2,34 @@
 
 namespace App\Filament\Resources\Customers\RelationManagers;
 
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Schemas\Components\Utilities\Set;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Forms\Components\Textarea;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
 use App\Models\District;
 use App\Models\Province;
 use App\Models\SubDistrict;
-use Filament\Forms;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 use Override;
 
 class CustomerAddressRelationManager extends RelationManager
 {
     protected static string $relationship = 'address';
+
     #[Override]
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('admin/customer-resource.address.title');
     }
-
-
 
     public function form(Schema $schema): Schema
     {
@@ -43,7 +38,7 @@ class CustomerAddressRelationManager extends RelationManager
                 TextInput::make('name')
                     ->label(__('admin/customer-resource.address.fields.name'))
                     ->placeholder(__('admin/customer-resource.address.placeholders.name'))
-                    ->default(fn() => $this->getOwnerRecord()?->schoolUnit?->name ?? $this->getOwnerRecord()?->full_name)
+                    ->default(fn () => $this->getOwnerRecord()?->schoolUnit?->name ?? $this->getOwnerRecord()?->full_name)
                     ->required()
                     ->disabled()
                     ->dehydrated()
@@ -92,7 +87,7 @@ class CustomerAddressRelationManager extends RelationManager
                     ->numeric()
                     ->required()
                     ->minLength(5)
-                    ->maxLength(5)
+                    ->maxLength(5),
 
             ]);
     }

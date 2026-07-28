@@ -7,15 +7,15 @@ use App\Http\Resources\AddressResource;
 use App\Http\Resources\CustomerResource;
 use App\Http\Resources\OrderResource;
 use App\Models\CustomerAddress;
-use App\Models\Province;
 use App\Models\District;
+use App\Models\Province;
 use App\Models\SubDistrict;
 use App\Models\Transaction;
-use App\Settings\GeneralSettings;
 use App\Services\RegionalService;
+use App\Settings\GeneralSettings;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class AccountController extends Controller
 {
@@ -53,7 +53,7 @@ class AccountController extends Controller
         return Inertia::render('Account/Profile', [
             'user' => CustomerResource::make($customer),
             'addresses' => AddressResource::collection($customer->address),
-            'provinces' => $this->regionalService->getProvinces()->map(fn($p) => ['id' => $p->id, 'name' => $p->name]),
+            'provinces' => $this->regionalService->getProvinces()->map(fn ($p) => ['id' => $p->id, 'name' => $p->name]),
             'totalOrders' => $totalOrders,
             'recentOrders' => OrderResource::collection($recentOrders),
             'balanceEnabled' => $balanceEnabled,
@@ -70,7 +70,7 @@ class AccountController extends Controller
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:customers,email,' . $customer->id,
+            'email' => 'required|string|email|max:255|unique:customers,email,'.$customer->id,
             'phone' => 'nullable|string|max:20',
             'image' => 'nullable|image|max:2048', // 2MB max
         ]);
@@ -88,7 +88,7 @@ class AccountController extends Controller
                 ->toMediaCollection('profile_photos');
 
             $customer->update([
-                'image' => $media->getUrl('thumb')
+                'image' => $media->getUrl('thumb'),
             ]);
         }
 
@@ -179,17 +179,17 @@ class AccountController extends Controller
 
     public function getDistricts(Province $province)
     {
-        return response()->json($this->regionalService->getDistricts($province->id)->map(fn($d) => ['id' => $d->id, 'name' => $d->name]));
+        return response()->json($this->regionalService->getDistricts($province->id)->map(fn ($d) => ['id' => $d->id, 'name' => $d->name]));
     }
 
     public function getSubDistricts(District $district)
     {
-        return response()->json($this->regionalService->getSubdistricts($district->id)->map(fn($s) => ['id' => $s->id, 'name' => $s->name]));
+        return response()->json($this->regionalService->getSubdistricts($district->id)->map(fn ($s) => ['id' => $s->id, 'name' => $s->name]));
     }
 
     public function getVillages(SubDistrict $subDistrict)
     {
-        return response()->json($this->regionalService->getVillages($subDistrict->id)->map(fn($v) => [
+        return response()->json($this->regionalService->getVillages($subDistrict->id)->map(fn ($v) => [
             'id' => $v->id,
             'name' => $v->name,
             'postal_code' => $v->postal_code,

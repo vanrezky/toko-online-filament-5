@@ -13,4 +13,4 @@
 
 - [x] 3.1 Enable admin customer-address create, edit, and delete actions in the existing Filament relation manager.
 - [x] 3.2 Add feature coverage for public/private behavior, ownership, address sources, default selection, and admin-managed protection.
-- [ ] 3.3 Run focused tests, frontend build, formatting/syntax checks, and strict OpenSpec validation.
+- [x] 3.3 Run focused tests, frontend build, formatting/syntax checks, and strict OpenSpec validation.
