@@ -680,7 +680,7 @@ const applyVoucher = async () => {
                             <!-- Tenor Selection -->
                             <div v-else-if="installmentCalculations" class="space-y-2">
                                 <label class="text-sm font-semibold">{{ t("labels.checkout.select_tenor") }}</label>
-                                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                <div class="grid grid-cols-2 gap-2">
                                     <Button
                                         v-for="plan in installmentCalculations.plans"
                                         :key="plan.id"
@@ -694,7 +694,7 @@ const applyVoucher = async () => {
                                     >
                                         <span class="block text-lg font-bold">{{ plan.tenor }}x</span>
                                         <span class="text-xs text-[#6b5a4d]">{{ plan.fee_percentage }}% fee</span>
-                                        <span class="mt-1 block text-sm font-semibold text-[#fa8456]">
+                                        <span class="mt-1 block text-xs font-semibold text-[#fa8456] sm:text-sm">
                                             {{ formatCurrency(plan.monthly_amount) }}/bulan
                                         </span>
                                     </Button>

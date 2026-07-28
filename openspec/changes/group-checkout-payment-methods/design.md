@@ -19,7 +19,7 @@ Issue #14 (`https://github.com/vanrezky/toko-online-filament3/issues/14`) is lim
 - Render active methods in their existing selectable controls under a customer-oriented question. Each card states the funding source and the amount or commitment relevant to the choice; this preserves current selection handlers and validation rather than introducing a second payment model.
 - Render gateway options from static presentation data as disabled controls with a localized not-yet-available label. Disabled controls cannot invoke selection or alter the payload.
 - Keep conditional installment configuration adjacent to the active payment choices; future gateway options follow it so they do not interrupt the customer's tenor decision.
-- Use a single-column tenor list on narrow screens and a two-column layout from the small breakpoint upward, so monthly-payment amounts do not collide across cards.
+- Keep tenor choices in a compact two-column grid at every viewport. Stack each card's tenor, fee, and monthly payment vertically so monthly-payment amounts do not collide across cards.
 - Add semantic locale keys in Indonesian and English; do not hardcode new customer-facing text.
 
 ## Risks / Trade-offs

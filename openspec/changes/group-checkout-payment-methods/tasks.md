@@ -5,6 +5,7 @@
 - [x] 1.3 Replace internal payment labels with customer-oriented funding-source and commitment explanations.
 - [x] 1.4 Keep the conditional installment tenor flow before the secondary future-methods section.
 - [x] 1.5 Make the installment tenor cards responsive on narrow screens.
+- [x] 1.6 Keep tenor choices compact in two columns without reintroducing overlapping content.
 
 ## 2. Verification
 
@@ -13,3 +14,4 @@
 - [x] 2.3 Re-run frontend validation after the payment-language refinement.
 - [x] 2.4 Re-run frontend validation after the payment-flow ordering refinement.
 - [x] 2.5 Re-run frontend validation after the tenor responsive-layout refinement.
+- [x] 2.6 Re-run frontend validation after the compact-tenor refinement.
