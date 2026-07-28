@@ -680,12 +680,12 @@ const applyVoucher = async () => {
                             <!-- Tenor Selection -->
                             <div v-else-if="installmentCalculations" class="space-y-2">
                                 <label class="text-sm font-semibold">{{ t("labels.checkout.select_tenor") }}</label>
-                                <div class="grid grid-cols-2 gap-2">
+                                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                     <Button
                                         v-for="plan in installmentCalculations.plans"
                                         :key="plan.id"
                                         @click="selectedInstallmentPlan = plan"
-                                        class="rounded-lg border p-3 text-center transition-all"
+                                        class="min-h-20 w-full flex-col items-start justify-center rounded-lg border p-3 text-left transition-all"
                                         :class="
                                             selectedInstallmentPlan?.id === plan.id
                                                 ? 'border-[#fa8456] bg-[#fff5f0]'

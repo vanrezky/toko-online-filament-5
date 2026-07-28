@@ -15,6 +15,10 @@ The checkout SHALL ask the customer to choose how they want to pay and MUST desc
 - **WHEN** a customer selects the installment option
 - **THEN** the tenor selection appears directly after the active payment choices and before the future-methods section
 
+#### Scenario: Customer views tenor choices on a narrow screen
+- **WHEN** a customer views the installment tenor choices on a narrow screen
+- **THEN** each tenor card has enough horizontal space for its monthly payment without overlapping another card
+
 ### Requirement: Checkout presents gateway options as unavailable
 The checkout SHALL display BCA, BRI, Credit Card, and ShopeePay in a separate future-methods section. Each gateway option MUST be disabled and visibly state that it is not yet available.
 
