@@ -16,8 +16,8 @@ Issue #14 (`https://github.com/vanrezky/toko-online-filament3/issues/14`) is lim
 
 ## Decisions
 
-- Render active methods in their existing selectable controls under an available-method heading. This preserves current selection handlers and validation rather than introducing a second payment model.
-- Render gateway options from static presentation data as disabled controls with a localized maintenance label. Disabled controls cannot invoke selection or alter the payload.
+- Render active methods in their existing selectable controls under a customer-oriented question. Each card states the funding source and the amount or commitment relevant to the choice; this preserves current selection handlers and validation rather than introducing a second payment model.
+- Render gateway options from static presentation data as disabled controls with a localized not-yet-available label. Disabled controls cannot invoke selection or alter the payload.
 - Add semantic locale keys in Indonesian and English; do not hardcode new customer-facing text.
 
 ## Risks / Trade-offs

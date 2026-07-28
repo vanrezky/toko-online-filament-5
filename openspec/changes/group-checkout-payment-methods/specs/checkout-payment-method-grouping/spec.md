@@ -1,18 +1,22 @@
 ## ADDED Requirements
 
-### Requirement: Checkout separates active and unavailable payment methods
-The checkout SHALL group its active payment methods separately from future payment gateways. The active group MUST retain Cicilan, Bayar dengan Saldo when enabled, and Bayar Penuh using their existing behavior.
+### Requirement: Checkout explains active payment choices in customer language
+The checkout SHALL ask the customer to choose how they want to pay and MUST describe each active option by its funding source and commitment, while retaining its existing payment behavior. The balance option MUST communicate the available balance and whether it is sufficient. The full-payment option MUST explain that the order total is deducted from the credit limit. The installment option MUST explain that the customer will choose a term and pay monthly from the credit limit.
 
 #### Scenario: Customer views available payment methods
 - **WHEN** a customer opens checkout
-- **THEN** the active payment methods are presented in a clearly labeled available-methods section
+- **THEN** each active payment option explains the source of funds and its customer-facing payment commitment before the customer selects it
+
+#### Scenario: Customer cannot use installment for the current order
+- **WHEN** the order does not meet the installment minimum
+- **THEN** the installment option remains unavailable and explains the minimum order amount in the option itself
 
 ### Requirement: Checkout presents gateway options as unavailable
-The checkout SHALL display BCA, BRI, Credit Card, and ShopeePay in a separate Payment Gateway section. Each gateway option MUST be disabled and visibly state that it is under maintenance.
+The checkout SHALL display BCA, BRI, Credit Card, and ShopeePay in a separate future-methods section. Each gateway option MUST be disabled and visibly state that it is not yet available.
 
 #### Scenario: Customer views payment gateways
 - **WHEN** a customer opens checkout
-- **THEN** BCA, BRI, Credit Card, and ShopeePay appear as disabled gateway options with a maintenance notice
+- **THEN** BCA, BRI, Credit Card, and ShopeePay appear as disabled gateway options with a not-yet-available notice
 
 #### Scenario: Customer interacts with an unavailable gateway
 - **WHEN** a customer clicks or focuses an unavailable gateway option
