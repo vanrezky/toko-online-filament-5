@@ -299,19 +299,20 @@ const addToCart = () => {
     );
 };
 
-const buyNow = () => {
-    router.post(
-        route("frontend.cart.store"),
-        {
+const buyNow = async () => {
+    try {
+        const response = await axios.post(route("frontend.cart.store"), {
             product_id: props.product.id,
             product_variant_id: selectedVariant.value?.id,
             quantity: quantity.value,
-        },
-        {
-            preserveScroll: true,
-            onSuccess: () => router.visit(route("frontend.checkout")),
-        },
-    );
+        });
+
+        router.visit(route("frontend.checkout", {
+            cart_item_ids: [response.data.cart_item_id],
+        }));
+    } catch (error) {
+        console.error("Failed to add Buy Now item to cart", error);
+    }
 };
 
 </script>

@@ -27,6 +27,7 @@ const props = defineProps({
     creditLimit: Object,
     installmentMinOrderAmount: Number,
     balance: Object,
+    cartItemIds: Array,
 });
 
 const { t } = useI18n();
@@ -36,6 +37,7 @@ const form = useForm({
     shipping_methods: {},
     payment_method: props.activeGateway === "midtrans" ? "midtrans" : "bank_transfer",
     notes: "",
+    cart_item_ids: props.cartItemIds || null,
 });
 
 const shippingResults = ref([]);
@@ -76,7 +78,10 @@ const fetchShippingCosts = async () => {
     isLoadingShipping.value = true;
     try {
         const response = await axios.get(route("frontend.checkout.shipping-costs"), {
-            params: { address_id: form.address_id },
+            params: {
+                address_id: form.address_id,
+                cart_item_ids: form.cart_item_ids,
+            },
         });
 
         if (!shippingRequestGate.isLatest(requestId)) {
