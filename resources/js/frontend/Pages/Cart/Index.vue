@@ -17,18 +17,38 @@ const props = defineProps({
 });
 
 const localItems = ref([...(props.cart?.items || [])]);
+const selectedItemIds = ref(localItems.value.map((item) => item.id));
 
 watch(
     () => props.cart?.items,
     (newItems) => {
         localItems.value = [...(newItems || [])];
+        selectedItemIds.value = selectedItemIds.value.filter((id) => localItems.value.some((item) => item.id === id));
     },
     { deep: true },
 );
 
 const subtotal = computed(() => {
-    return localItems.value.reduce((total, item) => total + item.price * item.quantity, 0);
+    return selectedItems.value.reduce((total, item) => total + item.price * item.quantity, 0);
 });
+const selectedItems = computed(() => localItems.value.filter((item) => selectedItemIds.value.includes(item.id)));
+const isAllSelected = computed(() => localItems.value.length > 0 && selectedItemIds.value.length === localItems.value.length);
+
+const toggleItemSelection = (itemId) => {
+    selectedItemIds.value = selectedItemIds.value.includes(itemId)
+        ? selectedItemIds.value.filter((id) => id !== itemId)
+        : [...selectedItemIds.value, itemId];
+};
+
+const toggleAllSelection = () => {
+    selectedItemIds.value = isAllSelected.value ? [] : localItems.value.map((item) => item.id);
+};
+
+const checkoutSelected = () => {
+    if (selectedItemIds.value.length === 0) return;
+
+    router.visit(route("frontend.checkout", { cart_item_ids: selectedItemIds.value }));
+};
 
 const updateQuantity = debounce((itemId, newQty) => {
     if (newQty < 1) return;
@@ -66,7 +86,25 @@ const removeItem = (id) => {
                 <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
                     <!-- Cart Items List -->
                     <div class="space-y-4">
+                        <label class="text-muted-foreground flex cursor-pointer items-center gap-2 px-1 text-sm font-semibold">
+                            <input
+                                type="checkbox"
+                                :checked="isAllSelected"
+                                @change="toggleAllSelection"
+                                class="text-primary h-4 w-4 rounded border-border"
+                            />
+                            {{ t("labels.cart.select_all") }}
+                        </label>
                         <Card v-for="item in localItems" :key="item.id" class="overflow-hidden rounded-2xl border-0 p-3 sm:p-4">
+                            <label class="text-muted-foreground mb-3 flex cursor-pointer items-center gap-2 text-xs font-semibold">
+                                <input
+                                    type="checkbox"
+                                    :checked="selectedItemIds.includes(item.id)"
+                                    @change="toggleItemSelection(item.id)"
+                                    class="text-primary h-4 w-4 rounded border-border"
+                                />
+                                {{ t("labels.cart.select_item") }}
+                            </label>
                             <div class="grid grid-cols-[5rem_1fr] gap-3 sm:flex sm:gap-4">
                                 <div class="bg-secondary h-20 w-20 shrink-0 overflow-hidden rounded-xl sm:h-32 sm:w-32">
                                     <Link :href="route('frontend.product-detail', item.product?.slug)">
@@ -146,7 +184,7 @@ const removeItem = (id) => {
                                 <div class="border-border space-y-4 border-b pb-4">
                                     <div class="flex justify-between text-sm">
                                         <span class="text-muted-foreground">{{
-                                            t("labels.cart.subtotal_with_count", { count: localItems.length })
+                                            t("labels.cart.subtotal_with_count", { count: selectedItems.length })
                                         }}</span>
                                         <span class="text-foreground font-medium">{{ formatCurrency(subtotal) }}</span>
                                     </div>
@@ -163,12 +201,19 @@ const removeItem = (id) => {
                                     </div>
                                 </div>
 
+                                <Button
+                                    @click="checkoutSelected"
+                                    :disabled="selectedItems.length === 0"
+                                    class="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-4 text-sm font-bold shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <span>{{ t("labels.cart.checkout_selected") }}</span>
+                                    <ArrowRight class="h-4 w-4" />
+                                </Button>
                                 <Link
                                     :href="route('frontend.checkout')"
-                                    class="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-4 text-sm font-bold shadow-md transition-all hover:shadow-lg"
+                                    class="text-muted-foreground hover:text-foreground flex w-full items-center justify-center gap-2 py-2 text-sm font-semibold transition-colors"
                                 >
-                                    <span>{{ t("labels.actions.checkout") }}</span>
-                                    <ArrowRight class="h-4 w-4" />
+                                    {{ t("labels.cart.checkout_all") }}
                                 </Link>
                             </Card>
                         </div>

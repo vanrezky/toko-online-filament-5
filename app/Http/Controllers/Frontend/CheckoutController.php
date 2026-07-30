@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Http\Resources\AddressResource;
-use App\Settings\CourierSettings;
-use App\Models\Courier;
-use Illuminate\Support\Carbon;
 use App\Enums\CartStatus;
 use App\Enums\CourierCode;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\AddressResource;
 use App\Http\Resources\CartResource;
 use App\Jobs\SendPaymentRequestNotification;
 use App\Models\Cart;
+use App\Models\CartItem;
+use App\Models\Courier;
 use App\Models\CustomerAddress;
 use App\Models\InstallmentPlan;
 use App\Models\Transaction;
 use App\Models\Warehouse;
 use App\Services\ApicoidOngkirService;
-use App\Services\BillingCycleService;
 use App\Services\BalanceService;
+use App\Services\BillingCycleService;
 use App\Services\CacheService;
 use App\Services\CreditLimitService;
 use App\Services\FlashsalePricingService;
@@ -29,8 +28,10 @@ use App\Services\PaymentGatewayService;
 use App\Services\TransactionProductImageSnapshotService;
 use App\Services\VoucherCookieService;
 use App\Services\VoucherService;
+use App\Settings\CourierSettings;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -75,9 +76,41 @@ class CheckoutController extends Controller
         $this->balanceService = $balanceService;
     }
 
+    private function selectedCartItemUuids(Request $request): ?array
+    {
+        if (! $request->has('cart_item_ids') || $request->input('cart_item_ids') === null) {
+            return null;
+        }
+
+        $validated = $request->validate([
+            'cart_item_ids' => ['required', 'array', 'min:1'],
+            'cart_item_ids.*' => ['required', 'uuid', 'distinct'],
+        ]);
+
+        return $validated['cart_item_ids'];
+    }
+
+    private function scopeCartItems(Cart $cart, ?array $cartItemUuids): Cart
+    {
+        if ($cartItemUuids === null) {
+            return $cart;
+        }
+
+        $items = $cart->items->whereIn('uuid', $cartItemUuids)->values();
+
+        if ($items->count() !== count($cartItemUuids)) {
+            throw ValidationException::withMessages([
+                'cart_item_ids' => [__('messages.error.cart_empty')],
+            ]);
+        }
+
+        return $cart->setRelation('items', $items);
+    }
+
     public function __invoke(Request $request, PaymentGatewayService $paymentGatewayService, GeneralSettings $generalSettings)
     {
         $customer = Auth::guard('customer')->user();
+        $cartItemUuids = $this->selectedCartItemUuids($request);
 
         $cart = Cart::with([
             'items.product.media',
@@ -98,6 +131,10 @@ class CheckoutController extends Controller
             ->where('customer_id', $customer->id)
             ->first();
 
+        if ($cart) {
+            $this->scopeCartItems($cart, $cartItemUuids);
+        }
+
         if (! $cart || $cart->items->isEmpty()) {
             return redirect()->route('frontend.cart')->with('error', __('messages.error.cart_empty'));
         }
@@ -114,6 +151,7 @@ class CheckoutController extends Controller
 
         return Inertia::render('Checkout/Index', [
             'cart' => CartResource::make($cart),
+            'cartItemIds' => $cartItemUuids,
             'addresses' => AddressResource::collection($addresses),
             'pendingVouchers' => $pendingVouchers,
             'validatedVouchers' => $validatedVouchers,
@@ -139,10 +177,12 @@ class CheckoutController extends Controller
         ]);
 
         $customer = Auth::guard('customer')->user();
+        $cartItemUuids = $this->selectedCartItemUuids($request);
         $cart = Cart::with(['items.product.warehouse', 'items.productVariant'])
             ->active()
             ->where('customer_id', $customer->id)
             ->firstOrFail();
+        $this->scopeCartItems($cart, $cartItemUuids);
 
         $address = CustomerAddress::with('village')->findOrFail($request->address_id);
 
@@ -151,7 +191,7 @@ class CheckoutController extends Controller
         }
 
         $cartHash = md5($cart->items->sortBy('id')->map(function ($item) {
-            return $item->product_id . '-' . ($item->product_variant_id ?? '0') . '-' . $item->quantity . '-' . $item->price;
+            return $item->product_id.'-'.($item->product_variant_id ?? '0').'-'.$item->quantity.'-'.$item->price;
         })->implode('|'));
 
         $shippingCostsVersion = (int) Cache::get('shipping_costs_version', 1);
@@ -187,7 +227,7 @@ class CheckoutController extends Controller
                     continue;
                 }
 
-                $totalWeight = $items->sum(fn($item) => ($item->productVariant?->weight ?: $item->product->weight) * $item->quantity);
+                $totalWeight = $items->sum(fn ($item) => ($item->productVariant?->weight ?: $item->product->weight) * $item->quantity);
 
                 $costs = $ongkirService->getShippingCost(
                     $warehouse->village->apicoid_code,
@@ -218,7 +258,6 @@ class CheckoutController extends Controller
                 }
             }
 
-
             return $results;
         });
 
@@ -236,6 +275,7 @@ class CheckoutController extends Controller
         ]);
 
         $customer = Auth::guard('customer')->user();
+        $cartItemUuids = $this->selectedCartItemUuids($request);
 
         if ($request->payment_type === 'balance' && ! $generalSettings->balance_enabled) {
             return response()->json(['error' => 'Fitur saldo sedang tidak aktif.'], 403);
@@ -244,6 +284,7 @@ class CheckoutController extends Controller
             ->active()
             ->where('customer_id', $customer->id)
             ->firstOrFail();
+        $this->scopeCartItems($cart, $cartItemUuids);
 
         if ($cart->items->isEmpty()) {
             if ($request->wantsJson()) {
@@ -255,6 +296,26 @@ class CheckoutController extends Controller
 
         // Cart values are only a cache. Refresh them before any total is shown or validated.
         $this->flashsalePricingService->syncCart($cart);
+
+        $cartWarehouseIds = $cart->items
+            ->map(fn ($item) => (string) ($item->product->warehouse_id ?: 0))
+            ->unique()
+            ->sort()
+            ->values();
+        $shippingWarehouseIds = collect(array_keys($request->shipping_methods))
+            ->map(fn ($warehouseId) => (string) $warehouseId)
+            ->unique()
+            ->sort()
+            ->values();
+
+        if ($cartWarehouseIds->all() !== $shippingWarehouseIds->all()) {
+            return response()->json([
+                'success' => false,
+                'errors' => [
+                    'shipping_methods' => [__('messages.error.checkout_failed')],
+                ],
+            ], 422);
+        }
 
         $hasDeliveryMethod = collect($request->shipping_methods)
             ->contains(fn ($method) => strtoupper((string) ($method['courier_code'] ?? '')) !== CourierCode::PICKUP->value);
@@ -314,7 +375,7 @@ class CheckoutController extends Controller
         $pendingVouchers = $this->cookieService->get();
         $validatedVouchers = $this->voucherService->validateFromCookie($pendingVouchers, $cart, $customer);
 
-        $subtotal = $cart->items->sum(fn($item) => $item->price * $item->quantity);
+        $subtotal = $cart->items->sum(fn ($item) => $item->price * $item->quantity);
         $productDiscount = $validatedVouchers['product']['discount_amount'] ?? 0;
         $shippingDiscount = $validatedVouchers['shipping']['discount_amount'] ?? 0;
         $discountedShippingFee = max(0, $totalShippingCost - $shippingDiscount);
@@ -325,7 +386,7 @@ class CheckoutController extends Controller
             return response()->json([
                 'success' => false,
                 'errors' => [
-                    'payment_type' => ["Minimal belanja untuk cicilan adalah " . number_format($installmentMinOrderAmount, 0, ',', '.')],
+                    'payment_type' => ['Minimal belanja untuk cicilan adalah '.number_format($installmentMinOrderAmount, 0, ',', '.')],
                 ],
             ], 422);
         }
@@ -352,7 +413,7 @@ class CheckoutController extends Controller
             $plan = InstallmentPlan::find($request->installment_plan_id);
             $totalWithFee = $plan->calculateTotal($grandTotal);
 
-            if (!$this->creditLimitService->canCreateInstallment($customer, $totalWithFee)) {
+            if (! $this->creditLimitService->canCreateInstallment($customer, $totalWithFee)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Limit kredit tidak mencukupi',
@@ -366,9 +427,21 @@ class CheckoutController extends Controller
         $billingDueDay = (int) ($generalSettings->billing_due_day ?? 5);
         $billingDueMonthOffset = (int) ($generalSettings->billing_due_month_offset ?? 1);
 
-        return DB::transaction(function () use ($request, $customer, $cart, $totalShippingCost, $totalWeight, $address, $shippingDetails, $paymentGatewayService, $billingCycleService, $billingCutoffDay, $billingDueDay, $billingDueMonthOffset) {
+        return DB::transaction(function () use ($request, $customer, $cartItemUuids, $totalShippingCost, $totalWeight, $address, $shippingDetails, $paymentGatewayService, $billingCycleService, $billingCutoffDay, $billingDueDay, $billingDueMonthOffset) {
+            $lockedCart = Cart::with([
+                'items.product.media',
+                'items.product.warehouse',
+                'items.product.wholesales',
+                'items.productVariant.variantAttributes.productAttributeOption',
+            ])
+                ->active()
+                ->where('customer_id', $customer->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $this->scopeCartItems($lockedCart, $cartItemUuids);
+
             // Recalculate while product_flashsales rows are locked. This is the final authority.
-            $resolvedCartItems = $this->flashsalePricingService->resolveCart($cart, true);
+            $resolvedCartItems = $this->flashsalePricingService->resolveCart($lockedCart, true);
             foreach ($resolvedCartItems as $entry) {
                 $entry['item']->update([
                     'price' => $entry['pricing']['price'],
@@ -377,7 +450,7 @@ class CheckoutController extends Controller
             }
 
             $pendingVouchers = $this->cookieService->get();
-            $validatedVouchers = $this->voucherService->validateFromCookie($pendingVouchers, $cart, $customer);
+            $validatedVouchers = $this->voucherService->validateFromCookie($pendingVouchers, $lockedCart, $customer);
             $subtotal = $resolvedCartItems->sum(fn ($entry) => $entry['pricing']['price'] * $entry['item']->quantity);
             $productDiscount = $validatedVouchers['product']['discount_amount'] ?? 0;
             $shippingDiscount = $validatedVouchers['shipping']['discount_amount'] ?? 0;
@@ -497,7 +570,11 @@ class CheckoutController extends Controller
             }
 
             $this->cookieService->clear();
-            $cart->update(['status' => CartStatus::Checked_out]);
+            CartItem::query()->whereKey($resolvedCartItems->pluck('item.id'))->delete();
+
+            if (! $lockedCart->items()->exists()) {
+                $lockedCart->update(['status' => CartStatus::Checked_out]);
+            }
 
             if ($request->payment_type === 'installment' && $request->installment_plan_id) {
                 $plan = InstallmentPlan::find($request->installment_plan_id);

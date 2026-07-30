@@ -119,6 +119,10 @@
     "cart": {
         "heading": "Shopping Cart",
         "your_cart": "Your Cart",
+        "select_all": "Select all items",
+        "select_item": "Select this item",
+        "checkout_selected": "Checkout selected items",
+        "checkout_all": "Checkout all items",
         "summary_title": "Order Summary",
         "subtotal": "Subtotal",
         "subtotal_with_count": "Subtotal ({count} items)",

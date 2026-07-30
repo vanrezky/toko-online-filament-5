@@ -124,6 +124,10 @@ class CartController extends Controller
                 'success' => true,
                 'message' => __('messages.success.item_added_to_cart'),
                 'cart_count' => $cart->items()->sum('quantity'),
+                'cart_item_id' => $cart->items()
+                    ->where('product_id', $product->id)
+                    ->where('product_variant_id', $variant?->id)
+                    ->value('uuid'),
             ]);
         }
 

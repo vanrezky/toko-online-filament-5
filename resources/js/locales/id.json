@@ -454,6 +454,10 @@
         "cart": {
             "heading": "Keranjang Belanja",
             "your_cart": "Keranjang Anda",
+            "select_all": "Pilih semua produk",
+            "select_item": "Pilih produk ini",
+            "checkout_selected": "Checkout produk terpilih",
+            "checkout_all": "Checkout semua produk",
             "summary_title": "Ringkasan Belanja",
             "subtotal": "Subtotal",
             "subtotal_with_count": "Subtotal ({count} item)",

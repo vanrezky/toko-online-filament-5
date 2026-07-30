@@ -3,9 +3,9 @@
 namespace Tests\Feature;
 
 use App\Enums\CartStatus;
+use App\Models\Balance;
 use App\Models\Cart;
 use App\Models\CartItem;
-use App\Models\Balance;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\Flashsale;
@@ -13,9 +13,9 @@ use App\Models\Product;
 use App\Models\ProductFlashsale;
 use App\Models\Transaction;
 use App\Models\Warehouse;
-use App\Services\TransactionCancellationService;
 use App\Services\Gateways\DTOs\PaymentResponse;
 use App\Services\PaymentGatewayService;
+use App\Services\TransactionCancellationService;
 use App\Settings\GeneralSettings;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -484,6 +484,7 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
         ]);
 
         $response = $this->actingAs($customer, 'customer')->postJson(route('frontend.checkout.store'), [
+            'cart_item_ids' => null,
             'address_id' => $address->id,
             'shipping_methods' => $this->shippingMethods($warehouse, 1_000),
             'payment_type' => 'full',
@@ -592,6 +593,121 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
 
         $this->assertSame(250_000.0, (float) $customer->fresh()->balance);
         $this->assertSame(1, Balance::query()->where('transaction_id', $transaction->id)->where('type', Balance::TYPE_REFUND)->count());
+    }
+
+    public function test_checkout_only_creates_transaction_products_for_selected_cart_items(): void
+    {
+        Queue::fake();
+        $this->mockPaymentGateway();
+        $customer = $this->createCustomer(1_000_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $selectedProduct = $this->createProduct((int) $warehouse->id, 100_000);
+        $remainingProduct = $this->createProduct((int) $warehouse->id, 300_000);
+        $cart = Cart::create(['customer_id' => $customer->id, 'status' => CartStatus::Active->value]);
+        $selectedItem = CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $selectedProduct->id,
+            'quantity' => 1,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+        $remainingItem = CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $remainingProduct->id,
+            'quantity' => 1,
+            'price' => 300_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(route('frontend.checkout.store'), [
+            'cart_item_ids' => [$selectedItem->uuid],
+            'address_id' => $address->id,
+            'shipping_methods' => $this->shippingMethods($warehouse, 500),
+            'payment_type' => 'full',
+        ]);
+
+        $response->assertOk()->assertJson(['success' => true]);
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
+        $this->assertSame([$selectedProduct->id], $transaction->products()->pluck('product_id')->all());
+        $this->assertDatabaseMissing('cart_items', ['id' => $selectedItem->id]);
+        $this->assertDatabaseHas('cart_items', ['id' => $remainingItem->id]);
+        $this->assertSame(CartStatus::Active->value, $cart->fresh()->status);
+    }
+
+    public function test_checkout_rejects_cart_items_outside_the_customers_active_cart(): void
+    {
+        $customer = $this->createCustomer(1_000_000);
+        $otherCustomer = $this->createCustomer(1_000_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $customerCart = Cart::create(['customer_id' => $customer->id, 'status' => CartStatus::Active->value]);
+        CartItem::create([
+            'cart_id' => $customerCart->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+        $otherCart = Cart::create(['customer_id' => $otherCustomer->id, 'status' => CartStatus::Active->value]);
+        $otherItem = CartItem::create([
+            'cart_id' => $otherCart->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(route('frontend.checkout.store'), [
+            'cart_item_ids' => [$otherItem->uuid],
+            'address_id' => $address->id,
+            'shipping_methods' => $this->shippingMethods($warehouse, 500),
+            'payment_type' => 'full',
+        ]);
+
+        $response->assertUnprocessable()->assertJsonValidationErrors('cart_item_ids');
+        $this->assertDatabaseCount('transactions', 0);
+    }
+
+    public function test_checkout_without_a_selection_still_purchases_every_active_cart_item(): void
+    {
+        Queue::fake();
+        $this->mockPaymentGateway();
+        $customer = $this->createCustomer(1_000_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $firstProduct = $this->createProduct((int) $warehouse->id, 100_000);
+        $secondProduct = $this->createProduct((int) $warehouse->id, 200_000);
+        $cart = Cart::create(['customer_id' => $customer->id, 'status' => CartStatus::Active->value]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $firstProduct->id,
+            'quantity' => 1,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $secondProduct->id,
+            'quantity' => 1,
+            'price' => 200_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(route('frontend.checkout.store'), [
+            'address_id' => $address->id,
+            'shipping_methods' => $this->shippingMethods($warehouse, 1_000),
+            'payment_type' => 'full',
+        ]);
+
+        $response->assertOk()->assertJson(['success' => true]);
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
+        $this->assertSame(2, $transaction->products()->count());
+        $this->assertSame(CartStatus::Checked_out->value, $cart->fresh()->status);
     }
 
     private function mockPaymentGateway(?PaymentResponse $response = null): void
