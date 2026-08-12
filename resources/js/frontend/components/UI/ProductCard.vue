@@ -64,7 +64,7 @@ const badge = computed(() => {
 
 const truncatedProductName = computed(() => {
     const name = props.product.name || "";
-    return name.length > 22 ? `${name.slice(0, 22)} ...` : name;
+    return name.length > 60 ? `${name.slice(0, 60).trimEnd()}…` : name;
 });
 
 const toggleWishlist = (e) => {
@@ -130,10 +130,10 @@ const sizeClasses = computed(() => {
                             d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
                         />
                     </svg>
-                    <span class="text-xs font-medium">{{ t("labels.product.no_image") }}</span>
+                    <span class="text-[11px] font-medium">{{ t("labels.product.no_image") }}</span>
                 </div>
 
-                <div v-if="badge" class="absolute top-3 left-3 px-2.5 py-1 text-xs font-extrabold tracking-wide shadow-sm" :class="badge.class">
+                <div v-if="badge" class="absolute top-3 left-3 px-2.5 py-1 text-[10px] font-normal tracking-wide shadow-sm" :class="badge.class">
                     {{ badge.text }}
                 </div>
 
@@ -156,29 +156,29 @@ const sizeClasses = computed(() => {
                 </div> -->
                 <!-- Product Name -->
                 <h3
-                    class="text-foreground group-hover:text-primary mb-2 line-clamp-2 min-h-[2.5rem] text-sm font-bold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:min-h-[2.75rem] sm:text-[1.0625rem]"
+                    class="text-foreground group-hover:text-primary mb-2 line-clamp-2 min-h-[2rem] text-xs leading-snug font-normal tracking-[-0.02em] transition-colors duration-200 sm:min-h-[2.25rem] sm:text-sm"
                 >
                     {{ truncatedProductName }}
                 </h3>
 
                 <!-- Price & Cart Section -->
-                <div class="mt-auto flex items-end justify-between gap-2">
+                <div class="flex items-end justify-between gap-2">
                     <div class="min-w-0 flex-1">
-                        <span class="text-foreground text-lg font-extrabold leading-none tracking-[-0.035em] sm:text-xl">
+                        <span class="text-foreground text-base leading-none font-normal tracking-[-0.035em] sm:text-lg">
                             {{ formatCurrency(displayPrice) }}
                         </span>
-                        <p v-if="isSale" class="text-primary mt-2 text-xs font-extrabold tracking-[-0.01em]">
+                        <p v-if="isSale" class="text-primary mt-2 text-[11px] font-normal tracking-[-0.01em]">
                             {{ t("labels.product.save_amount", { amount: formatCurrency(originalPrice - displayPrice) }) }}
                         </p>
                     </div>
                 </div>
-                <div class="text-muted-foreground border-border mt-4 flex items-center justify-between gap-2 border-t pt-3 text-xs">
-                    <span class="flex items-center gap-1 font-bold text-amber-700">
+                <div class="text-muted-foreground border-border mt-4 flex items-center justify-between gap-2 border-t pt-3 text-[11px]">
+                    <span class="flex items-center gap-1 font-normal text-amber-700">
                         <Star class="h-3.5 w-3.5 fill-current" />
                         {{ product.rating_average?.toFixed?.(1) || "0.0" }}
                         <span class="text-muted-foreground">({{ formatProductCount(product.review_count) }})</span>
                     </span>
-                    <span class="font-semibold">{{ formatProductCount(product.sold_count) }} {{ t("labels.product.sold") }}</span>
+                    <span class="font-normal">{{ formatProductCount(product.sold_count) }} {{ t("labels.product.sold") }}</span>
                 </div>
             </div>
         </Link>

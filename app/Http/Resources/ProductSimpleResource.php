@@ -34,7 +34,7 @@ class ProductSimpleResource extends JsonResource
 
         return [
             'id' => $this->uuid,
-            'name' => Str::limit($this->name, 35, ''),
+            'name' => $this->name,
             'slug' => $this->slug,
             'digital' => $this->digital,
             'code' => $this->code,

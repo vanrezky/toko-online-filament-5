@@ -101,13 +101,13 @@ onUnmounted(() => {
                     :class="canScrollRight ? 'opacity-100' : 'opacity-0'"
                 ></div>
 
-                <div ref="scrollContainer" class="scrollbar-hidden -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4">
-                    <div v-for="product in featuredProducts" :key="product.uuid || product.id" class="w-44 flex-shrink-0 snap-start md:w-52">
+                <div ref="scrollContainer" class="scrollbar-hidden -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 sm:gap-4 md:gap-5">
+                    <div v-for="product in featuredProducts" :key="product.uuid || product.id" class="w-44 flex-shrink-0 snap-start md:w-64">
                         <ProductCard :product="product" />
                     </div>
 
                     <!-- View All Card (if enabled) -->
-                    <div v-if="showViewAll" class="w-44 flex-shrink-0 snap-start md:w-52">
+                    <div v-if="showViewAll" class="w-44 flex-shrink-0 snap-start md:w-64">
                         <Link
                             :href="route('frontend.products')"
                             class="group relative flex h-full min-h-[320px] flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-gradient-to-br from-slate-50 to-white transition-all duration-300 hover:border-primary hover:shadow-lg md:min-h-[360px]"

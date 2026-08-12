@@ -236,7 +236,7 @@ onUnmounted(() => {
 
                 <div
                     ref="scrollContainer"
-                    class="scrollbar-hidden -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 lg:grid lg:snap-none lg:grid-cols-5 lg:gap-4 lg:overflow-visible"
+                    class="scrollbar-hidden -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 sm:gap-4 md:gap-5 lg:grid lg:snap-none lg:grid-cols-5 lg:gap-5 lg:overflow-visible"
                 >
                     <div v-for="product in flashSaleProducts" :key="product.uuid || product.id" class="w-44 shrink-0 snap-start md:w-64 lg:shrink-0">
                         <ProductCard :product="product" />
