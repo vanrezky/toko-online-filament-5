@@ -12,6 +12,7 @@ use App\Enums\CourierCode;
 use App\Enums\TransactionBillingStatus;
 use App\Enums\TransactionStatus;
 use App\Filament\Resources\Transactions\TransactionResource;
+use App\Filament\Resources\Installments\InstallmentResource;
 use App\Models\Transaction;
 use Filament\Actions;
 use Filament\Infolists\Components\IconEntry;
@@ -519,6 +520,28 @@ class ViewTransaction extends ViewRecord
                             ->dateTime('d M Y, H:i')
                             ->placeholder(__('admin/transaction-resource.entries.not_completed_yet')),
                     ])->columns(2),
+
+                Section::make('Informasi Cicilan')
+                    ->icon('heroicon-o-credit-card')
+                    ->visible(fn (Transaction $record): bool => $record->payment_type === 'installment' && $record->installment()->exists())
+                    ->schema([
+                        TextEntry::make('installment.monthly_amount')->label('Angsuran per Bulan')->money('IDR'),
+                        TextEntry::make('installment.tenor')->label('Tenor')->suffix(' bulan'),
+                        TextEntry::make('installment.total_amount')->label('Total Cicilan')->money('IDR'),
+                        TextEntry::make('installment.paid_installments')
+                            ->label('Angsuran Terbayar')
+                            ->formatStateUsing(fn (Transaction $record): string => sprintf('%d / %d', $record->installment?->paid_installments ?? 0, $record->installment?->tenor ?? 0)),
+                        TextEntry::make('installment.status')
+                            ->label('Status Cicilan')->badge()
+                            ->color(fn (?string $state): string => match ($state) { 'completed' => 'success', 'overdue' => 'danger', 'defaulted' => 'gray', default => 'warning' })
+                            ->formatStateUsing(fn (?string $state): string => $state ? __('admin/installment-resource.status_options.'.$state) : '-'),
+                        TextEntry::make('installment.start_date')->label('Mulai Cicilan')->date('d M Y'),
+                        TextEntry::make('installment.expected_end_date')->label('Estimasi Selesai')->date('d M Y'),
+                        TextEntry::make('installment.code')
+                            ->label('Detail Jadwal Cicilan')
+                            ->url(fn (Transaction $record): ?string => $record->installment ? InstallmentResource::getUrl('view', ['record' => $record->installment]) : null)
+                            ->color('primary')->icon('heroicon-o-arrow-top-right-on-square'),
+                    ])->columns(4),
             ])->columns(1);
     }
 
@@ -533,6 +556,7 @@ class ViewTransaction extends ViewRecord
             'products',
             'vouchers',
             'shippingDetails.warehouse',
+            'installment',
         ]);
 
         return $data;
