@@ -9,6 +9,8 @@ use App\Models\CartItem;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\Flashsale;
+use App\Models\Installment;
+use App\Models\InstallmentPlan;
 use App\Models\Product;
 use App\Models\ProductFlashsale;
 use App\Models\Transaction;
@@ -17,6 +19,7 @@ use App\Services\Gateways\DTOs\PaymentResponse;
 use App\Services\PaymentGatewayService;
 use App\Services\TransactionCancellationService;
 use App\Settings\GeneralSettings;
+use App\Settings\PaymentGatewaySettings;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +43,8 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
     {
         Queue::fake();
 
-        $this->mockPaymentGateway();
+        $this->setPaymentGatewaySetting('active_gateway', null);
+        $this->forbidPaymentGateway();
 
         $customer = $this->createCustomer(500_000);
         $geo = $this->createGeo();
@@ -79,12 +83,16 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
                 'notes' => 'test',
             ]);
 
-        $response->assertOk()->assertJson(['success' => true]);
+        $response->assertOk()
+            ->assertJson(['success' => true])
+            ->assertJsonPath('payment.provider', 'full');
 
         $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->first();
         $this->assertNotNull($transaction);
         $this->assertSame('full', $transaction->payment_type);
         $this->assertSame('pending', $transaction->billing_status->value);
+        $this->assertNotNull($transaction->billing_due_date);
+        $this->assertSame(CartStatus::Checked_out->value, $cart->fresh()->status);
 
         $customer->refresh();
         $afterRemaining = $customer->remaining_credit_limit;
@@ -507,10 +515,11 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
         $this->assertDatabaseCount('transactions', 0);
     }
 
-    public function test_checkout_rolls_back_flashsale_reservation_when_payment_creation_fails(): void
+    public function test_checkout_keeps_flashsale_reservation_when_credit_checkout_completes_without_gateway(): void
     {
         Queue::fake();
-        $this->mockPaymentGateway(new PaymentResponse(false, null, null, 'Gateway tidak tersedia'));
+        $this->setPaymentGatewaySetting('active_gateway', null);
+        $this->forbidPaymentGateway();
 
         $customer = $this->createCustomer(500_000);
         $geo = $this->createGeo();
@@ -518,7 +527,7 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
         $address = $this->createAddress($customer->id, $geo);
         $product = $this->createProduct((int) $warehouse->id, 100_000);
         $flashsale = Flashsale::query()->create([
-            'name' => 'Flash sale payment rollback',
+            'name' => 'Flash sale checkout kredit internal',
             'start_time' => now()->subMinute(),
             'end_time' => now()->addHour(),
             'is_active' => true,
@@ -544,17 +553,26 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
             'payment_type' => 'full',
         ]);
 
-        $response->assertUnprocessable()->assertJsonValidationErrors('payment');
-        $this->assertDatabaseCount('transactions', 0);
-        $this->assertDatabaseCount('flashsale_reservations', 0);
-        $this->assertSame(1, $flashsaleProduct->fresh()->stock);
-        $this->assertSame(CartStatus::Active->value, $cart->fresh()->status);
+        $response->assertOk()
+            ->assertJson(['success' => true])
+            ->assertJsonPath('payment.provider', 'full');
+
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
+        $this->assertDatabaseHas('flashsale_reservations', [
+            'transaction_id' => $transaction->id,
+            'product_flashsale_id' => $flashsaleProduct->id,
+            'quantity' => 1,
+        ]);
+        $this->assertSame(0, $flashsaleProduct->fresh()->stock);
+        $this->assertSame(CartStatus::Checked_out->value, $cart->fresh()->status);
     }
 
     public function test_balance_checkout_debits_wallet_and_cancellation_refunds_it_once(): void
     {
         Queue::fake();
         $this->setGeneralSetting('balance_enabled', true);
+        $this->setPaymentGatewaySetting('active_gateway', null);
+        $this->forbidPaymentGateway();
 
         $customer = $this->createCustomer(0);
         $customer->update(['balance' => 250_000]);
@@ -593,6 +611,54 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
 
         $this->assertSame(250_000.0, (float) $customer->fresh()->balance);
         $this->assertSame(1, Balance::query()->where('transaction_id', $transaction->id)->where('type', Balance::TYPE_REFUND)->count());
+    }
+
+    public function test_installment_checkout_completes_without_an_active_payment_gateway(): void
+    {
+        Queue::fake();
+        $this->setPaymentGatewaySetting('active_gateway', null);
+        $this->forbidPaymentGateway();
+
+        $customer = $this->createCustomer(2_000_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 1_000_000);
+        $plan = InstallmentPlan::query()->create([
+            'name' => 'Plan 6 Bulan',
+            'tenor' => 6,
+            'fee_percentage' => 10,
+            'is_active' => true,
+        ]);
+        $cart = Cart::create(['customer_id' => $customer->id, 'status' => CartStatus::Active->value]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 1_000_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(route('frontend.checkout.store'), [
+            'address_id' => $address->id,
+            'shipping_methods' => $this->shippingMethods($warehouse, 1_000),
+            'payment_type' => 'installment',
+            'installment_plan_id' => $plan->id,
+        ]);
+
+        $response->assertOk()
+            ->assertJson(['success' => true])
+            ->assertJsonPath('payment.provider', 'installment');
+
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
+        $installment = Installment::query()->where('transaction_id', $transaction->id)->firstOrFail();
+
+        $this->assertSame('installment', $transaction->payment_type);
+        $this->assertSame('not_applicable', $transaction->billing_status->value);
+        $this->assertSame($plan->id, $transaction->installment_plan_id);
+        $this->assertSame($plan->id, $installment->installment_plan_id);
+        $this->assertSame(6, $installment->tenor);
+        $this->assertSame(CartStatus::Checked_out->value, $cart->fresh()->status);
     }
 
     public function test_checkout_only_creates_transaction_products_for_selected_cart_items(): void
@@ -719,6 +785,14 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
         $this->app->instance(PaymentGatewayService::class, $mock);
     }
 
+    private function forbidPaymentGateway(): void
+    {
+        $mock = Mockery::mock(PaymentGatewayService::class);
+        $mock->shouldNotReceive('createPayment');
+
+        $this->app->instance(PaymentGatewayService::class, $mock);
+    }
+
     private function shippingMethods(Warehouse $warehouse, int $weight): array
     {
         return [
@@ -762,6 +836,19 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
         );
 
         $this->app->forgetInstance(GeneralSettings::class);
+    }
+
+    private function setPaymentGatewaySetting(string $name, mixed $value): void
+    {
+        DB::table('settings')->updateOrInsert(
+            ['group' => 'payment', 'name' => $name],
+            [
+                'payload' => json_encode($value),
+                'updated_at' => now(),
+            ]
+        );
+
+        $this->app->forgetInstance(PaymentGatewaySettings::class);
     }
 
     private function createGeo(): array

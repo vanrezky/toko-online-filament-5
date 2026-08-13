@@ -264,7 +264,7 @@ class CheckoutController extends Controller
         return response()->json($shippingResults);
     }
 
-    public function store(Request $request, PaymentGatewayService $paymentGatewayService, GeneralSettings $generalSettings, BillingCycleService $billingCycleService)
+    public function store(Request $request, GeneralSettings $generalSettings, BillingCycleService $billingCycleService)
     {
         $request->validate([
             'address_id' => 'nullable|exists:customer_addresses,id',
@@ -427,7 +427,7 @@ class CheckoutController extends Controller
         $billingDueDay = (int) ($generalSettings->billing_due_day ?? 5);
         $billingDueMonthOffset = (int) ($generalSettings->billing_due_month_offset ?? 1);
 
-        return DB::transaction(function () use ($request, $customer, $cartItemUuids, $totalShippingCost, $totalWeight, $address, $shippingDetails, $paymentGatewayService, $billingCycleService, $billingCutoffDay, $billingDueDay, $billingDueMonthOffset) {
+        return DB::transaction(function () use ($request, $customer, $cartItemUuids, $totalShippingCost, $totalWeight, $address, $shippingDetails, $billingCycleService, $billingCutoffDay, $billingDueDay, $billingDueMonthOffset) {
             $lockedCart = Cart::with([
                 'items.product.media',
                 'items.product.warehouse',
@@ -581,17 +581,8 @@ class CheckoutController extends Controller
                 $this->installmentService->createInstallment($transaction, $plan);
             }
 
-            $paymentResponse = null;
             if ($request->payment_type === 'balance') {
                 $this->balanceService->pay($transaction);
-            } else {
-                $paymentResponse = $paymentGatewayService->createPayment($transaction);
-
-                if (! $paymentResponse->success) {
-                    throw ValidationException::withMessages([
-                        'payment' => [$paymentResponse->errorMessage ?: 'Gagal membuat pembayaran.'],
-                    ]);
-                }
             }
 
             // Send payment request notification
@@ -604,10 +595,10 @@ class CheckoutController extends Controller
                     'success' => true,
                     'transaction_uuid' => $transaction->uuid,
                     'payment' => [
-                        'provider' => $paymentResponse ? $paymentGatewayService->getActiveGatewayAlias() : 'balance',
-                        'payment_url' => $paymentResponse?->paymentUrl,
-                        'snap_token' => $paymentResponse?->metadata['snap_token'] ?? null,
-                        'client_key' => $paymentResponse?->metadata['client_key'] ?? null,
+                        'provider' => $request->payment_type,
+                        'payment_url' => null,
+                        'snap_token' => null,
+                        'client_key' => null,
                     ],
                 ]);
             }
