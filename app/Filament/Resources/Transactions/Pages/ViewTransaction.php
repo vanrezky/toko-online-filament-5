@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Transactions\Pages;
 
 use Filament\Actions\Action;
+use Filament\Actions\EditAction;
 use Exception;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
@@ -32,6 +33,7 @@ class ViewTransaction extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            EditAction::make(),
             ...$this->getStatusActions(),
             ...$this->getBillingActions(),
         ];
