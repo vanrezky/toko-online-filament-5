@@ -445,6 +445,8 @@
             "full": "Bayar sekaligus dari limit kredit",
             "full_description": "{amount} akan dipotong dari limit kredit Anda.",
             "installment": "Cicil dari limit kredit",
+            "installment_tenor": "Cicilan {tenor}x",
+            "store_balance": "Saldo Toko",
             "installment_description": "Pilih tenor dan bayar per bulan dari limit kredit Anda.",
             "installment_minimum": "Tersedia untuk pesanan minimal {amount}.",
             "gateway": "Metode lain",

@@ -24,6 +24,7 @@ return [
         'order_information' => 'Informasi Pesanan',
         'order_id' => 'ID Pesanan',
         'status' => 'Status',
+        'payment_type' => 'Jenis Pembayaran',
         'receipt_code' => 'Kode Resi',
         'timelimit' => 'Batas Waktu',
         'delivery_date' => 'Tanggal Kirim',
@@ -61,6 +62,12 @@ return [
         'paid' => 'Lunas',
         'failed' => 'Gagal',
         'cancelled' => 'Dibatalkan',
+    ],
+
+    'payment_types' => [
+        'full' => 'Bayar Penuh dari Limit Kredit',
+        'installment' => 'Cicilan',
+        'balance' => 'Saldo Toko',
     ],
 
     'filters' => [
