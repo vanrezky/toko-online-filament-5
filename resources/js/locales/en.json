@@ -266,6 +266,8 @@
         "full": "Pay in full from credit limit",
         "full_description": "{amount} will be deducted from your credit limit.",
         "installment": "Pay in installments from credit limit",
+        "installment_tenor": "Installment {tenor}x",
+        "store_balance": "Store Balance",
         "installment_description": "Choose a term and pay monthly from your credit limit.",
         "installment_minimum": "Available for orders from {amount}.",
         "potong_kredit": "(Credit Installment)",

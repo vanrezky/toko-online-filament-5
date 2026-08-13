@@ -74,6 +74,11 @@ class TransactionResource extends Resource
                         TextInput::make('uuid')
                             ->label(__('admin/transaction-resource.fields.order_id'))
                             ->disabled(),
+                        TextInput::make('payment_type')
+                            ->label(__('admin/transaction-resource.fields.payment_type'))
+                            ->formatStateUsing(fn (?string $state): string => self::getPaymentTypeLabel($state))
+                            ->disabled()
+                            ->dehydrated(false),
                         Select::make('status')
                             ->label(__('admin/transaction-resource.fields.status'))
                             ->options(TransactionStatus::class)
@@ -651,5 +656,14 @@ class TransactionResource extends Resource
                 $billingDueMonthOffset,
             ),
         ];
+    }
+
+    public static function getPaymentTypeLabel(?string $paymentType): string
+    {
+        return match ($paymentType) {
+            'balance' => __('admin/transaction-resource.payment_types.balance'),
+            'installment' => __('admin/transaction-resource.payment_types.installment'),
+            default => __('admin/transaction-resource.payment_types.full'),
+        };
     }
 }

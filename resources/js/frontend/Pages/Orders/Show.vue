@@ -10,6 +10,7 @@ import FormTextarea from "../../components/UI/FormTextarea.vue";
 import Card from "../../components/UI/Card.vue";
 import { formatCurrency, formatDate, formatPhone } from "../../lib/utils";
 import { getOrderStatusColor, getOrderStatusLabel } from "../../lib/order-status";
+import { getOrderPaymentLabel } from "../../lib/order-payment";
 import { useI18n } from "vue-i18n";
 import { Package, ChevronLeft, MapPin, Truck, CreditCard, CheckCircle2, Store, Star, X } from "lucide-vue-next";
 
@@ -109,10 +110,7 @@ const deliveryCouriers = computed(() => {
 });
 
 const getPaymentLabel = () => {
-    if (props.order.payment_type === 'installment' && props.order.installment_plan) {
-        return `Cicilan ${props.order.installment_plan.tenor}x`;
-    }
-    return t('labels.payment.full');
+    return getOrderPaymentLabel(props.order, t);
 };
 
 const getGroupedProducts = () => {

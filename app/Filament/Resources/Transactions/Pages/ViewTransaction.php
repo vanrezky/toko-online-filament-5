@@ -461,9 +461,9 @@ class ViewTransaction extends ViewRecord
                     ->icon('heroicon-o-information-circle')
                     ->schema([
                         TextEntry::make('payment_type')
-                            ->label('Jenis Pembayaran')
+                            ->label(__('admin/transaction-resource.fields.payment_type'))
                             ->badge()
-                            ->formatStateUsing(fn(?string $state): string => $state === 'installment' ? 'Cicilan' : 'Penuh'),
+                            ->formatStateUsing(fn (?string $state): string => TransactionResource::getPaymentTypeLabel($state)),
                         TextEntry::make('billing_status')
                             ->label('Status Tagihan')
                             ->badge()
