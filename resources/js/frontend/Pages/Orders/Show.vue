@@ -13,7 +13,7 @@ import { formatCurrency, formatDate, formatPhone } from "../../lib/utils";
 import { getOrderStatusColor, getOrderStatusLabel } from "../../lib/order-status";
 import { getOrderPaymentLabel } from "../../lib/order-payment";
 import { useI18n } from "vue-i18n";
-import { Package, ChevronLeft, MapPin, Truck, CreditCard, Store, Star, X, CircleAlert, ArrowRight } from "lucide-vue-next";
+import { Package, ChevronLeft, MapPin, Truck, CreditCard, Store, Star, X, ArrowRight } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -381,7 +381,7 @@ const statusDates = computed(() => {
                                             <span>{{ group.warehouse_name }}</span>
                                         </div>
                                         <!-- Products -->
-                                        <div v-for="item in group.products" :key="item.id" class="flex gap-5">
+                                        <div v-for="item in group.products" :key="item.id" class="flex gap-4 sm:gap-5">
                                             <div class="h-24 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-secondary">
                                                 <img
                                                     :src="item.product_thumbnail || item.product?.thumbnail"
@@ -389,15 +389,15 @@ const statusDates = computed(() => {
                                                     class="h-full w-full object-cover"
                                                 />
                                             </div>
-                                            <div class="flex flex-grow flex-col py-1">
-                                                <div class="flex justify-between">
-                                                    <div>
+                                            <div class="min-w-0 flex flex-1 flex-col py-1">
+                                                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                                    <div class="min-w-0 flex-1">
                                                         <h4 class="text-sm font-bold text-foreground">{{ item.product_name || item.product?.name }}</h4>
                                                         <p v-if="item.variant_name || item.description" class="mt-1 text-xs text-muted-foreground">
                                                             {{ item.variant_name || item.description }}
                                                         </p>
                                                     </div>
-                                                    <div class="flex items-center gap-2">
+                                                    <div class="flex shrink-0 items-center gap-2 sm:pl-4">
                                                         <p class="text-sm font-bold text-primary">{{ formatCurrency(item.final_price || item.price) }}</p>
                                                         <p v-if="item.price > (item.final_price || item.price)" class="text-xs text-muted-foreground line-through">
                                                             {{ formatCurrency(item.price) }}
@@ -447,29 +447,19 @@ const statusDates = computed(() => {
                                     </div>
                                 </div>
                                 <div v-if="order.status === 'packed'" class="space-y-5 border-t border-border pt-5">
-                                    <div v-if="canResumeMidtransPayment" class="space-y-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
-                                        <div class="flex gap-3">
-                                            <CircleAlert class="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                                            <div class="min-w-0">
-                                                <p class="text-sm font-bold text-foreground">{{ t('labels.order.payment_actions.pending_title') }}</p>
-                                                <p class="mt-1 text-xs leading-relaxed text-muted-foreground">
-                                                    {{ t('labels.order.payment_actions.resume_help') }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            variant="primary"
-                                            size="lg"
-                                            block
-                                            :icon="ArrowRight"
-                                            icon-position="right"
-                                            :loading="isStartingPayment"
-                                            @click="resumeMidtransPayment"
-                                        >
-                                            {{ t('labels.order.payment_actions.resume') }}
-                                        </Button>
-                                    </div>
+                                    <Button
+                                        v-if="canResumeMidtransPayment"
+                                        type="button"
+                                        variant="primary"
+                                        size="lg"
+                                        block
+                                        :icon="ArrowRight"
+                                        icon-position="right"
+                                        :loading="isStartingPayment"
+                                        @click="resumeMidtransPayment"
+                                    >
+                                        {{ t('labels.order.payment_actions.resume') }}
+                                    </Button>
                                     <Button
                                         @click="cancelOrder"
                                         class="w-full rounded-xl border border-destructive/30 bg-destructive/10 py-3 text-sm font-semibold text-destructive transition-all hover:bg-destructive/15 hover:text-destructive active:scale-[0.98]"

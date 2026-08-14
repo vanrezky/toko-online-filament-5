@@ -9,12 +9,14 @@ return [
         'customer_balance' => 'Saldo Pelanggan',
         'credit_checkout' => 'Kredit & Checkout',
         'billing_cycle' => 'Siklus Penagihan',
+        'transaction_time_limit' => 'Batas Waktu Transaksi',
     ],
 
     'descriptions' => [
         'customer_balance' => 'Aktifkan wallet prepaid pelanggan untuk pembayaran penuh di checkout.',
         'credit_checkout' => 'Atur kelayakan kredit dan batas minimum pesanan cicilan.',
         'billing_cycle' => 'Perubahan tanggal jatuh tempo akan menyinkronkan tagihan berjalan yang relevan.',
+        'transaction_time_limit' => 'Tetapkan batas waktu pembayaran untuk setiap transaksi baru.',
     ],
 
     'fields' => [
