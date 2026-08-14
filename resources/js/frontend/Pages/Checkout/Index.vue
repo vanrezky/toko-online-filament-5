@@ -3,7 +3,7 @@ import Button from "@frontend/components/UI/Button.vue";
 import { ref, computed, watch, onMounted } from "vue";
 import { useForm, Link, router } from "@inertiajs/vue3";
 import axios from "axios";
-import { Loader2, Ticket, X, Truck, Tag, AlertCircle } from "lucide-vue-next";
+import { Loader2, Ticket, X, Truck, Tag, AlertCircle, Plus } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { installmentService } from "../../services/installmentService";
@@ -13,12 +13,14 @@ import FormInput from "../../components/UI/FormInput.vue";
 import FormRadio from "../../components/UI/FormRadio.vue";
 import FormTextarea from "../../components/UI/FormTextarea.vue";
 import Card from "../../components/UI/Card.vue";
+import AddressForm from "../../components/AddressForm.vue";
 import { formatCurrency } from "../../lib/utils";
 import { createLatestRequestGate, reconcileShippingMethods } from "../../lib/shippingMethods";
 
 const props = defineProps({
     cart: Object,
     addresses: Array,
+    provinces: Array,
     shippingMethods: Array,
     pendingVouchers: Object,
     validatedVouchers: Object,
@@ -50,6 +52,14 @@ const isApplyingVoucher = ref(false);
 const voucherError = ref(null);
 const isProcessingOrder = ref(false);
 const shippingRequestGate = createLatestRequestGate();
+const isAddressModalOpen = ref(false);
+const showAllAddresses = ref(false);
+const displayedAddresses = computed(() => {
+    const addresses = props.addresses || [];
+    const selected = addresses.find((address) => address.id === form.address_id);
+    const ordered = selected ? [selected, ...addresses.filter((address) => address.id !== selected.id)] : addresses;
+    return showAllAddresses.value ? ordered : ordered.slice(0, 2);
+});
 
 const selectedPaymentType = ref("full");
 const selectedInstallmentPlan = ref(null);
@@ -139,6 +149,17 @@ onMounted(() => {
     }
     validateVouchers();
 });
+
+const addressSaved = (draft) => {
+    isAddressModalOpen.value = false;
+    router.reload({
+        only: ["addresses"],
+        onSuccess: (page) => {
+            const address = (page.props.addresses || []).find((item) => item.name === draft.name && item.phone === draft.phone && item.address === draft.address);
+            if (address) form.address_id = address.id;
+        },
+    });
+};
 
 const items = computed(() => props.cart?.items || []);
 const roundIdr = (amount) => Math.round(Number(amount || 0));
@@ -452,17 +473,13 @@ const applyVoucher = async () => {
                 <!-- Left Side: Forms -->
                 <div class="flex flex-col gap-6 lg:col-span-7">
                     <!-- Shipping Address Section -->
-                    <Card as="section" class="order-2 rounded-xl p-6 md:p-8">
+                    <Card as="section" class="order-1 rounded-xl p-6 md:p-8">
                         <div class="mb-6 flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">2</div>
+                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">1</div>
                                 <h2 class="text-base font-bold text-[#2d1b0e]">{{ t("labels.checkout.shipping_address") }}</h2>
                             </div>
-                            <Link
-                                :href="route('frontend.account', { section: 'addresses' })"
-                                class="text-xs font-semibold text-[#fa8456] transition-colors hover:text-[#e56f3f]"
-                                >{{ t("labels.actions.manage") }}</Link
-                            >
+                            <Button type="button" variant="outline" size="sm" :icon="Plus" @click="isAddressModalOpen = true">{{ t("labels.address.add") }}</Button>
                         </div>
 
                         <div
@@ -472,9 +489,9 @@ const applyVoucher = async () => {
                             {{ t("labels.checkout.pickup_no_address_required") }}
                         </div>
 
-                        <div v-else class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div v-else class="space-y-3">
                             <div
-                                v-for="address in addresses"
+                                v-for="address in displayedAddresses"
                                 :key="address.id"
                                 @click="form.address_id = address.id"
                                 class="relative cursor-pointer rounded-xl border p-5 transition-all"
@@ -506,8 +523,7 @@ const applyVoucher = async () => {
                                 </div>
                                 <p class="mt-3 text-xs leading-relaxed text-[#6b5a4d]">
                                     {{ address.address }}<br />
-                                    {{ address.sub_district_name }}, {{ address.district_name }}<br />
-                                    {{ address.province_name }} {{ address.postal_code }}
+                                    {{ address.village_name }}, {{ address.sub_district_name }}, {{ address.district_name }}, {{ address.province_name }}, {{ address.postal_code }}
                                 </p>
                                 <div v-if="form.address_id === address.id" class="absolute -top-1.5 -right-1.5">
                                     <svg class="h-5 w-5 text-[#fa8456] drop-shadow-sm" fill="currentColor" viewBox="0 0 20 20">
@@ -520,14 +536,17 @@ const applyVoucher = async () => {
                                 </div>
                             </div>
                         </div>
+                        <Button v-if="addresses?.length > 1 && !isPickupOnlySelection" type="button" variant="ghost" block class="mt-4" @click="showAllAddresses = !showAllAddresses">
+                            {{ showAllAddresses ? t('labels.actions.show_less') : t('labels.checkout.show_other_addresses', { count: addresses.length - displayedAddresses.length }) }}
+                        </Button>
                         <p v-if="form.errors.address_id && !isPickupOnlySelection" class="mt-3 text-xs text-red-500">{{ form.errors.address_id }}</p>
                     </Card>
 
                     <!-- Shipping Method Section -->
-                    <section class="order-1 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
+                    <section class="order-2 rounded-xl border border-[#e8e6ef] bg-white p-6 shadow-sm md:p-8">
                         <div class="mb-6 flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">1</div>
+                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fa8456] text-sm font-bold text-white">2</div>
                                 <h2 class="text-base font-bold text-[#2d1b0e]">{{ t("labels.checkout.shipping_method") }}</h2>
                             </div>
                             <div v-if="isLoadingShipping" class="flex items-center gap-2">
@@ -1010,6 +1029,12 @@ const applyVoucher = async () => {
                         </div>
                     </div>
                 </div>
+            </div>
+            <div v-if="isAddressModalOpen" class="fixed inset-0 z-50 flex items-end bg-foreground/50 sm:items-center sm:justify-center sm:p-6" role="presentation" @click.self="isAddressModalOpen = false">
+                <section class="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-background p-6 shadow-2xl sm:max-w-2xl sm:rounded-2xl md:p-8" role="dialog" aria-modal="true" :aria-label="t('labels.address.new_heading')">
+                    <div class="mb-6 flex items-start justify-between gap-4 border-b border-border pb-4"><div><h2 class="text-lg font-bold text-foreground">{{ t('labels.address.new_heading') }}</h2><p class="mt-1 text-sm text-muted-foreground">{{ t('labels.address.new_description') }}</p></div><Button type="button" variant="ghost" size="icon" :aria-label="t('labels.dialogs.cancel')" @click="isAddressModalOpen = false"><X class="h-5 w-5" /></Button></div>
+                    <AddressForm :provinces="provinces" @saved="addressSaved" @cancel="isAddressModalOpen = false" />
+                </section>
             </div>
         </PageShell>
     </TemplateWrapper>

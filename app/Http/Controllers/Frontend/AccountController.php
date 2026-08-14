@@ -166,7 +166,7 @@ class AccountController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:15', 'regex:/^[0-9]+$/'],
             'province_id' => ['required', 'exists:provinces,id'],
             'district_id' => ['required', 'exists:districts,id'],
             'sub_district_id' => ['required', 'exists:sub_districts,id'],
