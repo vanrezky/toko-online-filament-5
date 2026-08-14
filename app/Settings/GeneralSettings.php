@@ -80,6 +80,8 @@ class GeneralSettings extends Settings
 
     public ?int $installment_min_order_amount = 1000000;
 
+    public int $transaction_time_limit_minutes = 1440;
+
     public ?int $billing_cutoff_day = 25;
 
     public ?int $billing_due_day = 5;

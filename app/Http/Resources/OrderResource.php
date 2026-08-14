@@ -48,7 +48,8 @@ class OrderResource extends JsonResource
         return [
             'id' => $this->uuid,
             'code' => $this->code,
-            'timelimit' => $this->timelimit,
+            'timelimit' => $this->timelimit?->utc()->toISOString(),
+            'customer_timezone' => $this->customer_timezone,
             'weight' => $this->weight,
             'shipping_cost' => $this->shipping_cost,
             'cod_fee' => $this->cod_fee,

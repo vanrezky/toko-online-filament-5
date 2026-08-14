@@ -41,6 +41,7 @@ class Transaction extends Model
         'uuid',
         'code',
         'timelimit',
+        'customer_timezone',
         'complete_date',
         'request_cancellation',
     ];

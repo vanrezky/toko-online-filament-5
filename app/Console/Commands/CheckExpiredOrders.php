@@ -2,71 +2,27 @@
 
 namespace App\Console\Commands;
 
-use Exception;
 use App\Enums\TransactionBillingStatus;
 use App\Enums\TransactionStatus;
-use App\Jobs\SendOrderExpiryNotification;
-use App\Jobs\SendOrderExpiryReminder;
+use App\Jobs\ExpireTransaction;
 use App\Models\Transaction;
-use App\Enums\EmailTemplateCode;
-use App\Services\TransactionCancellationService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 
 class CheckExpiredOrders extends Command
 {
     protected $signature = 'orders:check-expiry';
 
-    protected $description = 'Check for expired orders and send expiry reminders';
+    protected $description = 'Queue cancellation for expired unpaid orders';
 
     public function handle(): int
     {
         $this->info('Checking for expired orders...');
 
-        // Process orders that are about to expire (30 minutes before)
-        $this->processExpiryReminders();
-
-        // Process orders that have expired
         $this->processExpiredOrders();
 
         $this->info('Expired orders check completed.');
 
         return Command::SUCCESS;
-    }
-
-    protected function processExpiryReminders(): void
-    {
-        // Find unpaid orders expiring in the next 30 minutes
-        // But NOT already sent reminder
-        $reminderThreshold = now()->addMinutes(30);
-
-        $transactions = Transaction::where('status', TransactionStatus::packed->value)
-            ->where('billing_status', TransactionBillingStatus::pending->value)
-            ->whereNotNull('timelimit')
-            ->where('timelimit', '<=', $reminderThreshold)
-            ->where('timelimit', '>', now())
-            ->whereDoesntHave('emailLogs', function ($query) {
-                $query->where('template_code', EmailTemplateCode::ORDER_EXPIRY_REMINDER->value)
-                    ->where('created_at', '>=', now()->subHours(2));
-            })
-            ->with('customer')
-            ->get();
-
-        $this->info("Found {$transactions->count()} orders for expiry reminder.");
-
-        foreach ($transactions as $transaction) {
-            if (! $transaction->customer) {
-                continue;
-            }
-
-            try {
-                SendOrderExpiryReminder::dispatch($transaction);
-                $this->info("Sent expiry reminder for order: {$transaction->uuid}");
-            } catch (Exception $e) {
-                Log::error("Failed to send expiry reminder for order {$transaction->uuid}: ".$e->getMessage());
-                $this->error("Failed to send expiry reminder for order: {$transaction->uuid}");
-            }
-        }
     }
 
     protected function processExpiredOrders(): void
@@ -75,28 +31,14 @@ class CheckExpiredOrders extends Command
         $transactions = Transaction::where('status', TransactionStatus::packed->value)
             ->where('billing_status', TransactionBillingStatus::pending->value)
             ->whereNotNull('timelimit')
-            ->where('timelimit', '<', now())
-            ->with('customer')
+            ->where('timelimit', '<=', now('UTC'))
             ->get();
 
         $this->info("Found {$transactions->count()} expired orders.");
 
         foreach ($transactions as $transaction) {
-            if (! $transaction->customer) {
-                continue;
-            }
-
-            try {
-                app(TransactionCancellationService::class)->cancel($transaction);
-
-                // Send expiry notification
-                SendOrderExpiryNotification::dispatch($transaction);
-
-                $this->info("Marked order as expired: {$transaction->uuid}");
-            } catch (Exception $e) {
-                Log::error("Failed to process expired order {$transaction->uuid}: ".$e->getMessage());
-                $this->error("Failed to process expired order: {$transaction->uuid}");
-            }
+            ExpireTransaction::dispatch($transaction->uuid);
+            $this->info("Queued expiry check for order: {$transaction->uuid}");
         }
     }
 }

@@ -9,12 +9,14 @@ return [
         'customer_balance' => 'Saldo Pelanggan',
         'credit_checkout' => 'Kredit & Checkout',
         'billing_cycle' => 'Siklus Penagihan',
+        'transaction_time_limit' => 'Batas Waktu Transaksi',
     ],
 
     'descriptions' => [
         'customer_balance' => 'Aktifkan wallet prepaid pelanggan untuk pembayaran penuh di checkout.',
         'credit_checkout' => 'Atur kelayakan kredit dan batas minimum pesanan cicilan.',
         'billing_cycle' => 'Perubahan tanggal jatuh tempo akan menyinkronkan tagihan berjalan yang relevan.',
+        'transaction_time_limit' => 'Tetapkan batas waktu pembayaran untuk setiap transaksi baru.',
     ],
 
     'fields' => [
@@ -23,6 +25,8 @@ return [
         'enforce_credit_limit' => 'Gunakan Limit Kredit',
         'enforce_credit_limit_helper' => 'Batasi checkout pelanggan berdasarkan sisa limit kreditnya.',
         'installment_min_order_amount' => 'Minimum Pesanan Cicilan',
+        'transaction_time_limit_minutes' => 'Batas Waktu Transaksi (menit)',
+        'transaction_time_limit_minutes_helper' => 'Berlaku untuk semua pesanan baru; pesanan yang sudah dibuat tidak diubah.',
         'billing_cutoff_day' => 'Hari Cutoff',
         'billing_due_day' => 'Hari Jatuh Tempo',
         'billing_due_month_offset' => 'Offset Bulan Jatuh Tempo',

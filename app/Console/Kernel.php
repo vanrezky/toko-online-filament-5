@@ -9,9 +9,9 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        // Check for expired orders every 15 minutes
+        // Check expired unpaid orders every minute.
         $schedule->command('orders:check-expiry')
-            ->everyFifteenMinutes()
+            ->everyMinute()
             ->onOneServer();
 
         // Mark overdue installment payments daily at 00:01
