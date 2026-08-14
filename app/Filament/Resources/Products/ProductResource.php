@@ -98,7 +98,7 @@ class ProductResource extends Resource
                                         SpatieMediaLibraryFileUpload::make('images')
                                             ->image()
                                             ->imageEditor()
-                                            ->required()
+                                            ->required(fn (Get $get): bool => empty($get('image_urls')))
                                             ->hiddenLabel()
                                             ->multiple()
                                             ->reorderable()
@@ -108,8 +108,41 @@ class ProductResource extends Resource
                                             ->downloadable()
                                             ->panelLayout('grid')
                                             ->disk(getActiveDisk())
-                                            ->rules(['required', 'mimes:png,jpg,jpeg,webp,gif'])
+                                            ->rules(['mimes:png,jpg,jpeg,webp,gif'])
                                             ->directory(UploadPath::PRODUCT_UPLOAD_PATH),
+                                    ]),
+                                Section::make(__('admin/product-resource.sections.image_urls'))
+                                    ->description(__('admin/product-resource.fields.image_urls_helper'))
+                                    ->collapsible()
+                                    ->collapsed()
+                                    ->schema([
+                                        Repeater::make('image_urls')
+                                            ->hiddenLabel()
+                                            ->schema([
+                                                TextInput::make('url')
+                                                    ->label(__('admin/product-resource.fields.image_url'))
+                                                    ->required()
+                                                    ->url()
+                                                    ->rules(['regex:/^https?:\/\//i'])
+                                                    ->maxLength(2048)
+                                                    ->live(onBlur: true),
+                                            ])
+                                            ->defaultItems(0)
+                                            ->maxItems(5)
+                                            ->addActionLabel(__('admin/product-resource.actions.add_image_url'))
+                                            ->rules([
+                                                fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                                                    $uploadedImageCount = count(array_filter($get('images') ?? []));
+                                                    $linkedImageCount = collect($get('image_urls') ?? [])
+                                                        ->filter(fn (array $image): bool => filled($image['url'] ?? null))
+                                                        ->count();
+
+                                                    if ($uploadedImageCount + $linkedImageCount > 5) {
+                                                        $fail(__('admin/product-resource.notifications.image_limit_exceeded'));
+                                                    }
+                                                },
+                                            ])
+                                            ->columnSpanFull(),
                                     ]),
                             ]),
                         Tab::make(__('admin/product-resource.tabs.product_information'))

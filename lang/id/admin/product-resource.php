@@ -41,6 +41,7 @@ return [
     'sections' => [
         'images' => 'Gambar Produk',
         'images_description' => 'Unggah hingga lima gambar produk. Gambar pertama akan menjadi gambar utama.',
+        'image_urls' => 'Tambahkan gambar dari link',
         'product_details' => 'Detail Produk',
         'classification' => 'Klasifikasi & Status',
         'tags' => 'Tag Produk',
@@ -110,6 +111,9 @@ return [
         'reviewer_name' => 'Nama pengulas',
         'rating' => 'Rating',
         'review' => 'Ulasan',
+        'image_urls' => 'Gambar dari Link',
+        'image_url' => 'Link Gambar',
+        'image_urls_helper' => 'Tambahkan hingga lima link gambar publik (HTTP atau HTTPS). Link akan diunduh dan disimpan bersama gambar produk.',
     ],
 
     'entries' => [
@@ -122,6 +126,7 @@ return [
 
     'actions' => [
         'add_wholesale' => 'Tambah harga grosir',
+        'add_image_url' => 'Tambah link gambar',
         'view' => 'Lihat detail',
     ],
 
@@ -152,6 +157,9 @@ return [
         'wholesale_failed' => 'Gagal membuat harga grosir',
         'sale_price_error' => 'Harga diskon harus lebih kecil dari harga normal.',
         'generate_code' => 'Generate Kode',
+        'invalid_image_url' => 'Link gambar harus menggunakan URL HTTP atau HTTPS yang dapat diakses secara publik.',
+        'image_import_failed' => 'Gagal mengunduh gambar dari link. Pastikan link mengarah ke gambar PNG, JPG, WEBP, atau GIF yang dapat diakses.',
+        'image_limit_exceeded' => 'Produk dapat memiliki maksimal lima gambar.',
     ],
 
     'back' => 'Kembali',
