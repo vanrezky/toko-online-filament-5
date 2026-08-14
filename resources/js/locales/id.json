@@ -411,6 +411,7 @@
             "tip": "Tips: Kamu bisa menggunakan 1 voucher ongkir dan 1 voucher produk dalam 1 transaksi."
         },
         "checkout": {
+            "show_other_addresses": "Lihat {count} alamat lainnya",
             "heading": "Checkout",
             "shipping_address": "Alamat Pengiriman",
             "new_address": "Alamat Baru",
@@ -490,6 +491,7 @@
             "filter": "Filter",
             "home": "Beranda",
             "load_more": "Lihat Lebih Banyak",
+            "show_less": "Tampilkan Lebih Sedikit",
             "loading": "Memuat...",
             "retry": "Coba lagi",
         "login": "Masuk",
