@@ -57,7 +57,8 @@
             "overview": "Ringkasan",
             "orders": "Pesanan Saya",
             "addresses": "Alamat Pengiriman",
-            "settings": "Pengaturan"
+            "settings": "Pengaturan",
+            "password": "Ganti Kata Sandi"
         },
         "quick_links": "Akses Cepat",
   "wishlist": "Daftar Keinginan",
@@ -67,8 +68,11 @@
   "recent_activity": "Aktivitas Terbaru",
   "no_activity": "Belum ada aktivitas terbaru",
   "no_activity_description": "Mulai belanja untuk melihat aktivitas Anda di sini",
-  "settings_heading": "Pengaturan Akun",
+        "settings_heading": "Pengaturan Akun",
         "settings_description": "Kelola informasi profil dan preferensi akun Anda",
+        "password_heading": "Ganti Kata Sandi",
+        "password_description": "Gunakan kata sandi yang kuat untuk menjaga keamanan akun Anda.",
+        "current_password": "Kata Sandi Saat Ini",
         "profile_photo": "Foto Profil",
         "photo_requirements": "JPEG, PNG atau WEBP. Maks 2MB."
     },
@@ -691,7 +695,8 @@
                 "overview": "Ringkasan",
                 "orders": "Pesanan Saya",
                 "addresses": "Alamat Pengiriman",
-                "settings": "Pengaturan"
+                "settings": "Pengaturan",
+                "password": "Ganti Kata Sandi"
             },
             "quick_links": "Akses Cepat",
             "wishlist": "Daftar Keinginan",
@@ -704,6 +709,9 @@
             "no_activity_description": "Mulai belanja untuk melihat aktivitas Anda di sini",
             "settings_heading": "Pengaturan Akun",
             "settings_description": "Kelola informasi profil dan preferensi akun Anda",
+            "password_heading": "Ganti Kata Sandi",
+            "password_description": "Gunakan kata sandi yang kuat untuk menjaga keamanan akun Anda.",
+            "current_password": "Kata Sandi Saat Ini",
             "profile_photo": "Foto Profil",
             "photo_requirements": "JPEG, PNG atau WEBP. Maks 2MB.",
             "balance": "Saldo",
@@ -728,7 +736,7 @@
             "public_store_note": "Anda dapat mengelola alamat yang Anda tambahkan sendiri. Alamat dari admin tetap dapat digunakan, tetapi tidak dapat diubah di sini.",
             "private_store_note": "Alamat pengiriman dikelola oleh admin untuk toko ini.",
             "managed_by_admin": "Alamat ini dikelola oleh admin.",
-            "synced_from_school_unit": "Sinkron otomatis dari unit sekolah",
+            "synced_from_admin": "Sinkron otomatis dari admin",
             "customer_created": "Alamat Anda",
             "public_store_empty": "Tambahkan alamat pertama Anda untuk pengiriman.",
             "awaiting_school_unit": "Alamat akan muncul otomatis setelah admin menetapkan unit sekolah.",

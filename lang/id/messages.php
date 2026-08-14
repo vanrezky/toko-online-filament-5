@@ -28,6 +28,7 @@ return [
         'voucher_removed' => 'Voucher berhasil dihapus.',
         'voucher_cleared' => 'Voucher telah dihapus.',
         'profile_updated' => 'Profil berhasil diperbarui.',
+        'password_updated' => 'Kata sandi berhasil diperbarui.',
         'address_added' => 'Alamat berhasil ditambahkan.',
         'address_updated' => 'Alamat berhasil diperbarui.',
         'address_deleted' => 'Alamat berhasil dihapus.',

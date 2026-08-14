@@ -77,6 +77,7 @@ Route::name('frontend.')->group(function () {
     Route::middleware('auth.customer')->group(function () {
         Route::get('/account', AccountController::class)->name('account');
         Route::post('/account/update', [AccountController::class, 'updateProfile'])->name('account.update');
+        Route::patch('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
 
         Route::post('/account/address', [AccountController::class, 'storeAddress'])->name('account.address.store');
         Route::patch('/account/address/{address}', [AccountController::class, 'updateAddress'])->name('account.address.update');
