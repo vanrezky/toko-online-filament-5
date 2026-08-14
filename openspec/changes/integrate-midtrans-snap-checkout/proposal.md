@@ -10,6 +10,7 @@ Issue #30 identifies that the application contains Midtrans SDK, admin settings,
 - Establish checkout-time whole-IDR rounding as the persisted financial source of truth for orders and gateway payments.
 - Let customers resume an existing pending Midtrans payment from order detail, including choosing another available Midtrans channel, without creating a duplicate local order or reusing an invalid Midtrans order ID.
 - Publish the existing credential form under the Filament Settings cluster and protect it with a dedicated Shield page permission plus the `is_super_user` override.
+- Expose the public Midtrans notification and redirect URLs in the protected gateway settings page so administrators can configure the Midtrans dashboard without reconstructing application routes.
 - Replace the currently-disabled Midtrans-related checkout gateway presentation with an available Midtrans option only when it is active and configured.
 
 ## Capabilities

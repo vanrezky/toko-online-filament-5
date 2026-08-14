@@ -5,6 +5,7 @@
 - [ ] 1.3 Publish the credential form in the Settings cluster and protect it with its Shield page permission plus the `is_super_user` override.
 - [ ] 1.4 Harden the Midtrans gateway configuration path and add an explicit active-and-configured availability contract without exposing Server Key data.
 - [ ] 1.5 Build and validate canonical Snap payloads from persisted transaction snapshots with exact IDR integer totals, unique item IDs, configured channels, and browser-safe response metadata.
+- [x] 1.6 Expose copyable Midtrans notification and redirect URLs in protected gateway settings, with public HTTPS deployment guidance.
 
 ## 2. Checkout and payment initiation
 

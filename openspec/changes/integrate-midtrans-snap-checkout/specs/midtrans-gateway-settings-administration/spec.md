@@ -14,3 +14,10 @@ The system SHALL register the Midtrans payment-gateway configuration page in the
 #### Scenario: Unauthorized administrator requests the page
 - **WHEN** an administrator has neither the Midtrans page permission nor `is_super_user = true`
 - **THEN** the page is absent from navigation and direct access is denied
+
+### Requirement: Authorized administrators can copy Midtrans operational endpoints
+The protected Midtrans settings page SHALL display copyable, read-only values for the application's Payment Notification URL and the Finish, Unfinish, and Error Redirect URLs. The page MUST state that the application URL needs to be a publicly reachable HTTPS URL before production activation. These operational URLs MUST NOT be persisted as gateway credentials.
+
+#### Scenario: Administrator configures the Midtrans dashboard
+- **WHEN** an authorized administrator opens the Midtrans settings tab
+- **THEN** the administrator can copy the current notification and redirect URLs for the Midtrans dashboard without viewing or changing sensitive credentials

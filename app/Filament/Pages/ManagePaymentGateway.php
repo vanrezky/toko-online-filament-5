@@ -51,6 +51,11 @@ class ManagePaymentGateway extends Page
             $data["{$alias}_is_active"] = ($settings->active_gateway === $alias);
         }
 
+        $data['midtrans_notification_url'] = route('frontend.webhooks.payment', ['gateway' => 'midtrans']);
+        $data['midtrans_finish_redirect_url'] = route('frontend.orders');
+        $data['midtrans_unfinish_redirect_url'] = route('frontend.orders');
+        $data['midtrans_error_redirect_url'] = route('frontend.orders');
+
         $this->form->fill($data);
     }
 
@@ -118,6 +123,38 @@ class ManagePaymentGateway extends Page
                                                     ->options($currencies)
                                                     ->multiple()
                                                     ->preload(),
+                                            ]),
+                                    ]),
+
+                                Section::make(__('admin/page-manage-payment-gateway.sections.integration_endpoints'))
+                                    ->description(__('admin/page-manage-payment-gateway.sections.integration_endpoints_helper'))
+                                    ->schema([
+                                        TextInput::make('midtrans_notification_url')
+                                            ->label(__('admin/page-manage-payment-gateway.fields.notification_url'))
+                                            ->readOnly()
+                                            ->dehydrated(false)
+                                            ->copyable()
+                                            ->helperText(__('admin/page-manage-payment-gateway.fields.notification_url_helper')),
+
+                                        Grid::make(1)
+                                            ->schema([
+                                                TextInput::make('midtrans_finish_redirect_url')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.finish_redirect_url'))
+                                                    ->readOnly()
+                                                    ->dehydrated(false)
+                                                    ->copyable(),
+
+                                                TextInput::make('midtrans_unfinish_redirect_url')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.unfinish_redirect_url'))
+                                                    ->readOnly()
+                                                    ->dehydrated(false)
+                                                    ->copyable(),
+
+                                                TextInput::make('midtrans_error_redirect_url')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.error_redirect_url'))
+                                                    ->readOnly()
+                                                    ->dehydrated(false)
+                                                    ->copyable(),
                                             ]),
                                     ]),
                             ]),
