@@ -234,6 +234,14 @@
             "cancelled": "Cancelled at"
         },
         "payment": "Payment",
+        "payment_method": "Payment Method",
+            "cancel": "Cancel Order",
+            "payment_actions": {
+                "pending_title": "Payment pending",
+                "resume": "Continue payment",
+                "resume_help": "Your payment is not complete. Select Continue payment to open Midtrans; you can choose another payment method there.",
+                "initiation_failed": "Midtrans payment could not be started. Please try again."
+            },
         "payment_status_label": "Status:",
         "summary_title": "Order Summary",
         "subtotal": "Subtotal",
@@ -277,6 +285,7 @@
         "balance_short": "You need {amount} more for this order.",
         "gateway": "Other methods",
         "maintenance": "Not available yet",
+        "midtrans_description": "Pay securely using the methods available through Midtrans.",
         "balance_insufficient": "Your balance is not enough to pay for this order."
     },
     "product": {

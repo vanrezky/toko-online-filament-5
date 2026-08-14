@@ -132,6 +132,11 @@ class PaymentGatewayService
         return $this->settings->isConfigured($alias);
     }
 
+    public function isGatewayAvailable(string $alias): bool
+    {
+        return $this->settings->isActiveAndConfigured($alias);
+    }
+
     public function getSettings(): PaymentGatewaySettings
     {
         return $this->settings;

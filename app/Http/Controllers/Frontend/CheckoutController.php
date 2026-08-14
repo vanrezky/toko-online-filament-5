@@ -36,6 +36,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -111,6 +112,46 @@ class CheckoutController extends Controller
         return $cart->setRelation('items', $items);
     }
 
+    private function roundIdr(float|int|string $amount): int
+    {
+        return (int) round((float) $amount, 0, PHP_ROUND_HALF_UP);
+    }
+
+    private function calculateRoundedAmounts(Collection $items, float|int $shippingCost, array $validatedVouchers, callable $pricing): array
+    {
+        $lines = [];
+        $productSubtotal = 0;
+        $productTotal = 0;
+
+        foreach ($items as $item) {
+            $amounts = $pricing($item);
+            $quantity = (int) $amounts['quantity'];
+            $originalUnitPrice = $this->roundIdr($amounts['original_price']);
+            $finalUnitPrice = $this->roundIdr($amounts['final_price']);
+            $lineSubtotal = $finalUnitPrice * $quantity;
+
+            $lines[$amounts['key']] = [
+                'price' => $originalUnitPrice,
+                'discount' => max(0, $originalUnitPrice - $finalUnitPrice),
+                'line_subtotal' => $lineSubtotal,
+            ];
+            $productSubtotal += $originalUnitPrice * $quantity;
+            $productTotal += $lineSubtotal;
+        }
+
+        $roundedShippingCost = $this->roundIdr($shippingCost);
+        $productVoucherDiscount = min($productTotal, $this->roundIdr($validatedVouchers['product']['discount_amount'] ?? 0));
+        $shippingVoucherDiscount = min($roundedShippingCost, $this->roundIdr($validatedVouchers['shipping']['discount_amount'] ?? 0));
+
+        return [
+            'lines' => $lines,
+            'shipping_cost' => $roundedShippingCost,
+            'product_voucher_discount' => $productVoucherDiscount,
+            'shipping_voucher_discount' => $shippingVoucherDiscount,
+            'total' => $productTotal - $productVoucherDiscount + $roundedShippingCost - $shippingVoucherDiscount,
+        ];
+    }
+
     public function __invoke(Request $request, PaymentGatewayService $paymentGatewayService, GeneralSettings $generalSettings)
     {
         $customer = Auth::guard('customer')->user();
@@ -161,6 +202,7 @@ class CheckoutController extends Controller
             'pendingVouchers' => $pendingVouchers,
             'validatedVouchers' => $validatedVouchers,
             'activeGateway' => $paymentGatewayService->getActiveGatewayAlias(),
+            'midtransAvailable' => $paymentGatewayService->isGatewayAvailable('midtrans'),
             'installmentPlans' => InstallmentPlan::active()->get(),
             'creditLimit' => [
                 'remaining' => $customer->remaining_credit_limit,
@@ -269,17 +311,27 @@ class CheckoutController extends Controller
         return response()->json($shippingResults);
     }
 
-    public function store(Request $request, GeneralSettings $generalSettings, BillingCycleService $billingCycleService)
+    public function store(Request $request, GeneralSettings $generalSettings, BillingCycleService $billingCycleService, PaymentGatewayService $paymentGatewayService)
     {
         $request->validate([
             'address_id' => 'nullable|exists:customer_addresses,id',
             'shipping_methods' => 'required|array',
             'payment_type' => 'required|in:full,installment,balance',
+            'payment_method' => 'nullable|in:midtrans',
             'installment_plan_id' => 'nullable|exists:installment_plans,id',
             'notes' => 'nullable|string',
         ]);
 
         $customer = Auth::guard('customer')->user();
+        $isMidtransPayment = $request->input('payment_method') === 'midtrans';
+
+        if ($isMidtransPayment && ! $paymentGatewayService->isGatewayAvailable('midtrans')) {
+            return response()->json(['error' => 'Midtrans tidak tersedia saat ini.'], 422);
+        }
+
+        if ($isMidtransPayment && $request->payment_type !== 'full') {
+            return response()->json(['error' => 'Midtrans hanya tersedia untuk pembayaran penuh.'], 422);
+        }
         $cartItemUuids = $this->selectedCartItemUuids($request);
 
         if ($request->payment_type === 'balance' && ! $generalSettings->balance_enabled) {
@@ -365,13 +417,14 @@ class CheckoutController extends Controller
         $shippingDetails = [];
 
         foreach ($request->shipping_methods as $warehouseId => $method) {
-            $totalShippingCost += $method['price'];
+            $roundedShippingPrice = $this->roundIdr($method['price']);
+            $totalShippingCost += $roundedShippingPrice;
             $totalWeight += $method['weight'];
             $shippingDetails[] = [
                 'warehouse_id' => $warehouseId,
                 'courier_code' => $method['courier_code'],
                 'courier_name' => $method['courier_name'],
-                'price' => $method['price'],
+                'price' => $roundedShippingPrice,
                 'weight' => $method['weight'],
                 'estimation' => $method['estimation'] ?? null,
             ];
@@ -380,11 +433,18 @@ class CheckoutController extends Controller
         $pendingVouchers = $this->cookieService->get();
         $validatedVouchers = $this->voucherService->validateFromCookie($pendingVouchers, $cart, $customer);
 
-        $subtotal = $cart->items->sum(fn ($item) => $item->price * $item->quantity);
-        $productDiscount = $validatedVouchers['product']['discount_amount'] ?? 0;
-        $shippingDiscount = $validatedVouchers['shipping']['discount_amount'] ?? 0;
-        $discountedShippingFee = max(0, $totalShippingCost - $shippingDiscount);
-        $grandTotal = $subtotal + $discountedShippingFee - $productDiscount;
+        $roundedAmounts = $this->calculateRoundedAmounts(
+            $cart->items,
+            $totalShippingCost,
+            $validatedVouchers,
+            fn (CartItem $item) => [
+                'key' => $item->id,
+                'quantity' => $item->quantity,
+                'original_price' => (float) $item->price + (float) $item->discount,
+                'final_price' => $item->price,
+            ],
+        );
+        $grandTotal = $roundedAmounts['total'];
         $installmentMinOrderAmount = (int) ($generalSettings->installment_min_order_amount ?? 1000000);
 
         if ($request->payment_type === 'installment' && $grandTotal < $installmentMinOrderAmount) {
@@ -405,7 +465,7 @@ class CheckoutController extends Controller
             ], 400);
         }
 
-        if ($request->payment_type === 'full' && ! $this->creditLimitService->canCreateFullBilling($customer, $grandTotal)) {
+        if (! $isMidtransPayment && $request->payment_type === 'full' && ! $this->creditLimitService->canCreateFullBilling($customer, $grandTotal)) {
             return response()->json([
                 'success' => false,
                 'error' => 'Limit kredit tidak mencukupi',
@@ -432,7 +492,7 @@ class CheckoutController extends Controller
         $billingDueDay = (int) ($generalSettings->billing_due_day ?? 5);
         $billingDueMonthOffset = (int) ($generalSettings->billing_due_month_offset ?? 1);
 
-        return DB::transaction(function () use ($request, $customer, $cartItemUuids, $totalShippingCost, $totalWeight, $address, $shippingDetails, $billingCycleService, $billingCutoffDay, $billingDueDay, $billingDueMonthOffset) {
+        $transaction = DB::transaction(function () use ($request, $customer, $cartItemUuids, $totalShippingCost, $totalWeight, $address, $shippingDetails, $billingCycleService, $billingCutoffDay, $billingDueDay, $billingDueMonthOffset, $isMidtransPayment) {
             $lockedCart = Cart::with([
                 'items.product.media',
                 'items.product.warehouse',
@@ -456,10 +516,18 @@ class CheckoutController extends Controller
 
             $pendingVouchers = $this->cookieService->get();
             $validatedVouchers = $this->voucherService->validateFromCookie($pendingVouchers, $lockedCart, $customer);
-            $subtotal = $resolvedCartItems->sum(fn ($entry) => $entry['pricing']['price'] * $entry['item']->quantity);
-            $productDiscount = $validatedVouchers['product']['discount_amount'] ?? 0;
-            $shippingDiscount = $validatedVouchers['shipping']['discount_amount'] ?? 0;
-            $grandTotal = $subtotal + max(0, $totalShippingCost - $shippingDiscount) - $productDiscount;
+            $roundedAmounts = $this->calculateRoundedAmounts(
+                $resolvedCartItems,
+                $totalShippingCost,
+                $validatedVouchers,
+                fn (array $entry) => [
+                    'key' => $entry['item']->id,
+                    'quantity' => $entry['item']->quantity,
+                    'original_price' => $entry['pricing']['original_price'],
+                    'final_price' => $entry['pricing']['price'],
+                ],
+            );
+            $grandTotal = $roundedAmounts['total'];
 
             $installmentMinOrderAmount = (int) (app(GeneralSettings::class)->installment_min_order_amount ?? 1000000);
             if ($request->payment_type === 'installment' && $grandTotal < $installmentMinOrderAmount) {
@@ -470,7 +538,7 @@ class CheckoutController extends Controller
                 abort(403, 'Fitur saldo sedang tidak aktif.');
             }
 
-            if ($request->payment_type === 'full' && ! $this->creditLimitService->canCreateFullBilling($customer, $grandTotal)) {
+            if (! $isMidtransPayment && $request->payment_type === 'full' && ! $this->creditLimitService->canCreateFullBilling($customer, $grandTotal)) {
                 abort(400, 'Limit kredit tidak mencukupi.');
             }
 
@@ -483,7 +551,7 @@ class CheckoutController extends Controller
 
             $billingDueDate = null;
 
-            if ($request->payment_type === 'full') {
+            if ($request->payment_type === 'full' && ! $isMidtransPayment) {
                 $cycleMonthKey = $billingCycleService->resolveCycleMonthKey(now(), $billingCutoffDay);
                 $billingDueDate = $billingCycleService->resolveDueDate($cycleMonthKey, $billingDueDay, $billingDueMonthOffset);
             }
@@ -492,11 +560,11 @@ class CheckoutController extends Controller
                 'customer_id' => $customer->id,
                 'customer_address_id' => $address?->id,
                 'weight' => $totalWeight,
-                'shipping_cost' => $totalShippingCost,
+                'shipping_cost' => $roundedAmounts['shipping_cost'],
                 'payment_method' => match ($request->payment_type) {
                     'installment' => 'cicilan',
                     'balance' => 'saldo',
-                    default => 'bayar_penuh',
+                    default => $isMidtransPayment ? 'midtrans' : 'bayar_penuh',
                 },
                 'payment_type' => $request->payment_type,
                 'billing_due_date' => $billingDueDate,
@@ -520,12 +588,9 @@ class CheckoutController extends Controller
             foreach ($resolvedCartItems as $entry) {
                 $item = $entry['item'];
                 $pricing = $entry['pricing'];
+                $roundedLine = $roundedAmounts['lines'][$item->id];
                 $variant = $item->productVariant;
                 $product = $item->product;
-                $finalUnitPrice = (float) $pricing['price'];
-                $discountAmount = (float) $pricing['discount'];
-                $baseUnitPrice = (float) $pricing['original_price'];
-                $lineSubtotal = $finalUnitPrice * (int) $item->quantity;
                 $imageSnapshot = $this->transactionProductImageSnapshotService->snapshotFeaturedImage($product);
 
                 $transaction->products()->create([
@@ -539,9 +604,9 @@ class CheckoutController extends Controller
                     'weight_snapshot' => $variant?->weight ?: $product->weight,
                     'warehouse_id' => $item->product->warehouse_id ?: 1,
                     'quantity' => $item->quantity,
-                    'price' => $baseUnitPrice,
-                    'discount' => $discountAmount,
-                    'line_subtotal' => $lineSubtotal,
+                    'price' => $roundedLine['price'],
+                    'discount' => $roundedLine['discount'],
+                    'line_subtotal' => $roundedLine['line_subtotal'],
                     'description' => $variant?->variant_name,
                     'product_snapshot' => [
                         'product_name' => $product->name,
@@ -567,7 +632,9 @@ class CheckoutController extends Controller
                             'voucher_type' => $type,
                             'discount_type' => $voucherData['discount_type'],
                             'discount_value' => $voucherData['discount_value'],
-                            'discount_amount' => $voucherData['discount_amount'],
+                            'discount_amount' => $type === 'product'
+                                ? $roundedAmounts['product_voucher_discount']
+                                : $roundedAmounts['shipping_voucher_discount'],
                         ]);
                         $this->voucherService->trackUsage($voucher);
                     }
@@ -595,20 +662,40 @@ class CheckoutController extends Controller
             SendPaymentRequestNotification::dispatch($transaction, $orderUrl)
                 ->onQueue('default');
 
-            if ($request->wantsJson()) {
+            return $transaction;
+        });
+
+        $payment = [
+            'provider' => $request->payment_type,
+            'payment_url' => null,
+            'snap_token' => null,
+            'client_key' => null,
+            'mode' => null,
+        ];
+
+        if ($isMidtransPayment) {
+            $paymentResponse = $paymentGatewayService->createPayment($transaction);
+            if (! $paymentResponse->success) {
                 return response()->json([
-                    'success' => true,
+                    'success' => false,
                     'transaction_uuid' => $transaction->uuid,
-                    'payment' => [
-                        'provider' => $request->payment_type,
-                        'payment_url' => null,
-                        'snap_token' => null,
-                        'client_key' => null,
-                    ],
-                ]);
+                    'error' => __('messages.error.payment_initiation_failed', ['message' => $paymentResponse->errorMessage]),
+                ], 422);
             }
 
-            return redirect()->route('frontend.orders.show', $transaction->uuid)->with('success', __('messages.success.order_placed'));
-        });
+            $payment = [
+                'provider' => 'midtrans',
+                'payment_url' => $paymentResponse->paymentUrl,
+                'snap_token' => $paymentResponse->metadata['snap_token'] ?? null,
+                'client_key' => $paymentResponse->metadata['client_key'] ?? null,
+                'mode' => $paymentResponse->metadata['mode'] ?? null,
+            ];
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'transaction_uuid' => $transaction->uuid, 'payment' => $payment]);
+        }
+
+        return redirect()->route('frontend.orders.show', $transaction->uuid)->with('success', __('messages.success.order_placed'));
     }
 }

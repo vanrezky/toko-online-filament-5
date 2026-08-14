@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Clusters\SettingsCluster;
+use Filament\Facades\Filament;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -22,16 +24,23 @@ class ManagePaymentGateway extends Page
     use HasPageShield;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-banknotes';
-    protected static bool $shouldRegisterNavigation = false;
-    protected static string | \UnitEnum | null $navigationGroup = 'Sistem';
-    protected static ?int $navigationSort = 5;
-    protected static ?string $slug = 'setting/payment-gateway-settings';
-    protected static ?string $navigationLabel = 'Payment Gateways';
-
+    protected static ?string $cluster = SettingsCluster::class;
+    protected static ?int $navigationSort = 6;
+    protected static ?string $slug = 'payment-gateway';
     protected string $view = 'filament.pages.manage-payment-gateway';
 
 
     public ?array $data = [];
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin/page-manage-payment-gateway.navigation_label');
+    }
+
+    public function getTitle(): string
+    {
+        return __('admin/page-manage-payment-gateway.title');
+    }
 
     public function mount(PaymentGatewaySettings $settings): void
     {
@@ -41,6 +50,11 @@ class ManagePaymentGateway extends Page
         foreach ($gatewayAliases as $alias) {
             $data["{$alias}_is_active"] = ($settings->active_gateway === $alias);
         }
+
+        $data['midtrans_notification_url'] = route('frontend.webhooks.payment', ['gateway' => 'midtrans']);
+        $data['midtrans_finish_redirect_url'] = route('frontend.orders');
+        $data['midtrans_unfinish_redirect_url'] = route('frontend.orders');
+        $data['midtrans_error_redirect_url'] = route('frontend.orders');
 
         $this->form->fill($data);
     }
@@ -55,12 +69,12 @@ class ManagePaymentGateway extends Page
                 Tabs::make('Payment Gateways')
                     ->tabs([
                         Tab::make('midtrans')
-                            ->label('Midtrans')
+                            ->label(__('admin/page-manage-payment-gateway.tabs.midtrans'))
                             ->icon('heroicon-o-shield-check')
                             ->schema([
                                 Toggle::make('midtrans_is_active')
-                                    ->label('Set as Active Gateway')
-                                    ->helperText('Only one gateway can be active at a time')
+                                    ->label(__('admin/page-manage-payment-gateway.fields.set_active'))
+                                    ->helperText(__('admin/page-manage-payment-gateway.fields.set_active_helper'))
                                     ->afterStateUpdated(function ($state, callable $set) use ($gatewayAliases) {
                                         if ($state) {
                                             foreach ($gatewayAliases as $alias) {
@@ -71,55 +85,87 @@ class ManagePaymentGateway extends Page
                                         }
                                     }),
 
-                                Section::make('Credentials')
+                                Section::make(__('admin/page-manage-payment-gateway.sections.credentials'))
                                     ->schema([
                                         Grid::make(2)
                                             ->schema([
                                                 TextInput::make('midtrans_server_key')
-                                                    ->label('Server Key')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.server_key'))
                                                     ->password()
                                                     ->revealable(filament()->arePasswordsRevealable())
-                                                    ->helperText(new HtmlString('Get your Server Key from <a href="https://dashboard.midtrans.com/" target="_blank" class="text-primary-600 underline">Midtrans Dashboard</a>')),
+                                                    ->helperText(new HtmlString(__('admin/page-manage-payment-gateway.fields.server_key_helper'))),
 
                                                 TextInput::make('midtrans_client_key')
-                                                    ->label('Client Key')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.client_key'))
                                                     ->password()
                                                     ->revealable(filament()->arePasswordsRevealable()),
                                             ]),
 
                                         TextInput::make('midtrans_merchant_id')
-                                            ->label('Merchant ID')
+                                            ->label(__('admin/page-manage-payment-gateway.fields.merchant_id'))
                                             ->placeholder('MCH-XXXXXX'),
                                     ]),
 
-                                Section::make('Configuration')
+                                Section::make(__('admin/page-manage-payment-gateway.sections.configuration'))
                                     ->schema([
                                         Grid::make(2)
                                             ->schema([
                                                 Select::make('midtrans_mode')
-                                                    ->label('Mode')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.mode'))
                                                     ->options([
-                                                        'sandbox' => 'Sandbox (Testing)',
-                                                        'production' => 'Production (Live)',
+                                                        'sandbox' => __('admin/page-manage-payment-gateway.fields.sandbox'),
+                                                        'production' => __('admin/page-manage-payment-gateway.fields.production'),
                                                     ])
                                                     ->default('sandbox'),
 
                                                 Select::make('midtrans_supported_currencies')
-                                                    ->label('Supported Currencies')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.supported_currencies'))
                                                     ->options($currencies)
                                                     ->multiple()
                                                     ->preload(),
                                             ]),
                                     ]),
+
+                                Section::make(__('admin/page-manage-payment-gateway.sections.integration_endpoints'))
+                                    ->description(__('admin/page-manage-payment-gateway.sections.integration_endpoints_helper'))
+                                    ->schema([
+                                        TextInput::make('midtrans_notification_url')
+                                            ->label(__('admin/page-manage-payment-gateway.fields.notification_url'))
+                                            ->readOnly()
+                                            ->dehydrated(false)
+                                            ->copyable()
+                                            ->helperText(__('admin/page-manage-payment-gateway.fields.notification_url_helper')),
+
+                                        Grid::make(1)
+                                            ->schema([
+                                                TextInput::make('midtrans_finish_redirect_url')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.finish_redirect_url'))
+                                                    ->readOnly()
+                                                    ->dehydrated(false)
+                                                    ->copyable(),
+
+                                                TextInput::make('midtrans_unfinish_redirect_url')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.unfinish_redirect_url'))
+                                                    ->readOnly()
+                                                    ->dehydrated(false)
+                                                    ->copyable(),
+
+                                                TextInput::make('midtrans_error_redirect_url')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.error_redirect_url'))
+                                                    ->readOnly()
+                                                    ->dehydrated(false)
+                                                    ->copyable(),
+                                            ]),
+                                    ]),
                             ]),
 
                         Tab::make('stripe')
-                            ->label('Stripe')
+                            ->label(__('admin/page-manage-payment-gateway.tabs.stripe'))
                             ->icon('heroicon-o-credit-card')
                             ->schema([
                                 Toggle::make('stripe_is_active')
-                                    ->label('Set as Active Gateway')
-                                    ->helperText('Only one gateway can be active at a time')
+                                    ->label(__('admin/page-manage-payment-gateway.fields.set_active'))
+                                    ->helperText(__('admin/page-manage-payment-gateway.fields.set_active_helper'))
                                     ->afterStateUpdated(function ($state, callable $set) use ($gatewayAliases) {
                                         if ($state) {
                                             foreach ($gatewayAliases as $alias) {
@@ -130,38 +176,38 @@ class ManagePaymentGateway extends Page
                                         }
                                     }),
 
-                                Section::make('Credentials')
+                                Section::make(__('admin/page-manage-payment-gateway.sections.credentials'))
                                     ->schema([
                                         Grid::make(2)
                                             ->schema([
                                                 TextInput::make('stripe_api_key')
-                                                    ->label('API Key')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.api_key'))
                                                     ->password()
                                                     ->revealable(filament()->arePasswordsRevealable())
-                                                    ->helperText(new HtmlString('Get your API Key from <a href="https://dashboard.stripe.com/apikeys" target="_blank" class="text-primary-600 underline">Stripe Dashboard</a>')),
+                                                    ->helperText(new HtmlString(__('admin/page-manage-payment-gateway.fields.api_key_helper'))),
 
                                                 TextInput::make('stripe_webhook_secret')
-                                                    ->label('Webhook Secret')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.webhook_secret'))
                                                     ->password()
                                                     ->revealable(filament()->arePasswordsRevealable())
-                                                    ->helperText('Used for verifying webhook signatures'),
+                                                    ->helperText(__('admin/page-manage-payment-gateway.fields.webhook_secret_helper')),
                                             ]),
                                     ]),
 
-                                Section::make('Configuration')
+                                Section::make(__('admin/page-manage-payment-gateway.sections.configuration'))
                                     ->schema([
                                         Grid::make(2)
                                             ->schema([
                                                 Select::make('stripe_mode')
-                                                    ->label('Mode')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.mode'))
                                                     ->options([
-                                                        'test' => 'Test Mode',
-                                                        'live' => 'Live Mode',
+                                                        'test' => __('admin/page-manage-payment-gateway.fields.test'),
+                                                        'live' => __('admin/page-manage-payment-gateway.fields.live'),
                                                     ])
                                                     ->default('test'),
 
                                                 Select::make('stripe_supported_currencies')
-                                                    ->label('Supported Currencies')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.supported_currencies'))
                                                     ->options($currencies)
                                                     ->multiple()
                                                     ->preload(),
@@ -170,12 +216,12 @@ class ManagePaymentGateway extends Page
                             ]),
 
                         Tab::make('xendit')
-                            ->label('Xendit')
+                            ->label(__('admin/page-manage-payment-gateway.tabs.xendit'))
                             ->icon('heroicon-o-currency-dollar')
                             ->schema([
                                 Toggle::make('xendit_is_active')
-                                    ->label('Set as Active Gateway')
-                                    ->helperText('Only one gateway can be active at a time')
+                                    ->label(__('admin/page-manage-payment-gateway.fields.set_active'))
+                                    ->helperText(__('admin/page-manage-payment-gateway.fields.set_active_helper'))
                                     ->afterStateUpdated(function ($state, callable $set) use ($gatewayAliases) {
                                         if ($state) {
                                             foreach ($gatewayAliases as $alias) {
@@ -186,37 +232,37 @@ class ManagePaymentGateway extends Page
                                         }
                                     }),
 
-                                Section::make('Credentials')
+                                Section::make(__('admin/page-manage-payment-gateway.sections.credentials'))
                                     ->schema([
                                         Grid::make(2)
                                             ->schema([
                                                 TextInput::make('xendit_api_key')
-                                                    ->label('API Key')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.api_key'))
                                                     ->password()
                                                     ->revealable(filament()->arePasswordsRevealable())
-                                                    ->helperText(new HtmlString('Get your API Key from <a href="https://dashboard.xendit.co/settings/developers" target="_blank" class="text-primary-600 underline">Xendit Dashboard</a>')),
+                                                    ->helperText(new HtmlString(__('admin/page-manage-payment-gateway.fields.xendit_api_key_helper'))),
 
                                                 TextInput::make('xendit_secret_key')
-                                                    ->label('Secret Key')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.secret_key'))
                                                     ->password()
                                                     ->revealable(filament()->arePasswordsRevealable()),
                                             ]),
                                     ]),
 
-                                Section::make('Configuration')
+                                Section::make(__('admin/page-manage-payment-gateway.sections.configuration'))
                                     ->schema([
                                         Grid::make(2)
                                             ->schema([
                                                 Select::make('xendit_mode')
-                                                    ->label('Mode')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.mode'))
                                                     ->options([
-                                                        'test' => 'Test Mode',
-                                                        'live' => 'Live Mode',
+                                                        'test' => __('admin/page-manage-payment-gateway.fields.test'),
+                                                        'live' => __('admin/page-manage-payment-gateway.fields.live'),
                                                     ])
                                                     ->default('test'),
 
                                                 Select::make('xendit_supported_currencies')
-                                                    ->label('Supported Currencies')
+                                                    ->label(__('admin/page-manage-payment-gateway.fields.supported_currencies'))
                                                     ->options($currencies)
                                                     ->multiple()
                                                     ->preload(),
@@ -225,10 +271,10 @@ class ManagePaymentGateway extends Page
                             ]),
                     ])->columnSpanFull(),
 
-                Section::make('Default Settings')
+                Section::make(__('admin/page-manage-payment-gateway.sections.default_settings'))
                     ->schema([
                         Select::make('default_currency')
-                            ->label('Default Currency')
+                            ->label(__('admin/page-manage-payment-gateway.fields.default_currency'))
                             ->options($currencies)
                             ->searchable()
                             ->preload(),
@@ -276,13 +322,15 @@ class ManagePaymentGateway extends Page
         $settings->save();
 
         Notification::make()
-            ->title('Payment gateway settings saved')
+            ->title(__('admin/page-manage-payment-gateway.notifications.saved'))
             ->success()
             ->send();
     }
 
     public static function canAccess(): bool
     {
-        return false;
+        $user = Filament::auth()?->user();
+
+        return (bool) $user?->is_super_user || (bool) $user?->can('View:ManagePaymentGateway');
     }
 }

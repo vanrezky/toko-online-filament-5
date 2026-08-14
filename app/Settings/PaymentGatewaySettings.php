@@ -93,5 +93,9 @@ class PaymentGatewaySettings extends Settings
             default => false,
         };
     }
-}
 
+    public function isActiveAndConfigured(string $alias): bool
+    {
+        return $this->isGatewayActive($alias) && $this->isConfigured($alias);
+    }
+}

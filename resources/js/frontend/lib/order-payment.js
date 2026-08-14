@@ -1,4 +1,7 @@
 export const getOrderPaymentLabel = (order, t) => {
+    if (order.payment_method === 'midtrans') {
+        return 'Midtrans';
+    }
     if (order.payment_type === 'balance') {
         return t('labels.payment.store_balance');
     }

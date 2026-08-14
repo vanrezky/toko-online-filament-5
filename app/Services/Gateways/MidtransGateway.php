@@ -8,8 +8,8 @@ use App\Services\Gateways\DTOs\PaymentResponse;
 use App\Services\Gateways\DTOs\PaymentStatus;
 use App\Services\Gateways\DTOs\WebhookResult;
 use App\Settings\PaymentGatewaySettings;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Midtrans\Config;
 use Midtrans\Snap;
 use Midtrans\CoreApi;
@@ -108,13 +108,17 @@ class MidtransGateway implements PaymentGatewayInterface
                 // Split quantities so a rounded fixed voucher discount stays exact.
                 for ($unit = 1; $unit <= $quantity; $unit++) {
                     $unitDiscount = min($remainingProductDiscount, $netPrice);
-                    $unitPrice = $netPrice - $unitDiscount;
+                    $unitPrice = (int) round($netPrice - $unitDiscount, 0, PHP_ROUND_HALF_UP);
                     $remainingProductDiscount -= $unitDiscount;
                     $itemDetails[] = [
                         'id' => ($item->product?->uuid ?? $item->id) . '-' . $unit,
                         'price' => $unitPrice,
                         'quantity' => 1,
-                        'name' => $item->product?->name ?? ('Product #' . $item->product_id),
+                        'name' => Str::substr(
+                            $item->product_name ?? $item->product?->name ?? ('Product #' . $item->product_id),
+                            0,
+                            50,
+                        ),
                     ];
                     $totalAmount += $unitPrice;
                 }
@@ -144,9 +148,10 @@ class MidtransGateway implements PaymentGatewayInterface
                 $totalAmount += $transaction->cod_fee;
             }
 
+            $grossAmount = (int) $totalAmount;
             $transactionDetails = [
                 'order_id' => $transaction->uuid,
-                'gross_amount' => (int) $totalAmount,
+                'gross_amount' => $grossAmount,
             ];
 
             $customerDetails = [];
@@ -165,6 +170,15 @@ class MidtransGateway implements PaymentGatewayInterface
                 'customer_details' => $customerDetails,
             ];
 
+            $expectedTotal = (int) round($transaction->total_amount);
+            if ($grossAmount !== $expectedTotal || $grossAmount <= 0) {
+                throw new \RuntimeException('Midtrans payment total does not match the transaction total.');
+            }
+
+            if (!empty($this->config['channels'])) {
+                $payload['enabled_payments'] = array_values($this->config['channels']);
+            }
+
             if (isset($params['callback_url'])) {
                 $payload['gopay'] = [
                     'callback_url' => $params['callback_url'],
@@ -173,7 +187,7 @@ class MidtransGateway implements PaymentGatewayInterface
 
             Log::info('Midtrans: Creating Snap token', [
                 'order_id' => $transaction->uuid,
-                'gross_amount' => $totalAmount,
+                'gross_amount' => $grossAmount,
                 'mode' => Config::$isProduction ? 'production' : 'sandbox',
                 'has_server_key' => !empty(Config::$serverKey),
             ]);
@@ -201,7 +215,6 @@ class MidtransGateway implements PaymentGatewayInterface
                 'error' => $e->getMessage(),
                 'mode' => Config::$isProduction ? 'production' : 'sandbox',
                 'has_server_key' => !empty(Config::$serverKey),
-                'server_key_prefix' => Config::$serverKey ? substr(Config::$serverKey, 0, 8) . '...' : 'EMPTY',
             ]);
 
             return new PaymentResponse(
@@ -264,7 +277,7 @@ class MidtransGateway implements PaymentGatewayInterface
             // Midtrans signature: SHA512(order_id + status_code + gross_amount + server_key)
             $signature = hash('sha512', $transactionId . $statusCode . $grossAmount . $serverKey);
 
-            if ($signature !== $signatureKey) {
+            if (!$signatureKey || !hash_equals($signature, (string) $signatureKey)) {
                 Log::warning('Midtrans webhook signature mismatch', [
                     'transaction_id' => $transactionId,
                 ]);
@@ -281,7 +294,12 @@ class MidtransGateway implements PaymentGatewayInterface
                 action: WebhookResult::ACTION_PROCESS,
                 message: 'Webhook processed successfully',
                 transactionId: $transactionId,
-                status: $this->mapStatus($status)
+                status: $this->mapStatus($status),
+                metadata: [
+                    'gross_amount' => (int) round((float) $grossAmount),
+                    'status_code' => (string) $statusCode,
+                    'fraud_status' => strtolower((string) ($payload['fraud_status'] ?? 'accept')),
+                ]
             );
         } catch (\Exception $e) {
             Log::error('Midtrans webhook handling failed', [

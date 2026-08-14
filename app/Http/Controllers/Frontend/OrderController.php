@@ -125,7 +125,10 @@ class OrderController extends Controller
             abort(403);
         }
 
-        if ($transaction->status !== TransactionStatus::packed || $transaction->payment_type !== 'full') {
+        if ($transaction->status !== TransactionStatus::packed
+            || $transaction->payment_type !== 'full'
+            || $transaction->payment_method !== 'midtrans'
+            || ($transaction->billing_status?->value ?? (string) $transaction->billing_status) !== 'pending') {
             return response()->json(['error' => __('messages.error.order_already_paid')], 400);
         }
 
@@ -143,6 +146,7 @@ class OrderController extends Controller
                     'payment_url' => $paymentResponse->paymentUrl,
                     'snap_token' => $paymentResponse->metadata['snap_token'] ?? null,
                     'client_key' => $paymentResponse->metadata['client_key'] ?? null,
+                    'mode' => $paymentResponse->metadata['mode'] ?? null,
                 ]
             ]);
         } catch (Exception $e) {

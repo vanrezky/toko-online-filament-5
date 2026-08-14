@@ -2,6 +2,7 @@
 import Button from "@frontend/components/UI/Button.vue";
 import { computed, getCurrentInstance, reactive, ref } from "vue";
 import { Link, router } from "@inertiajs/vue3";
+import axios from "axios";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import PageShell from "../../components/PageShell.vue";
 import FormCheckbox from "../../components/UI/FormCheckbox.vue";
@@ -12,7 +13,8 @@ import { formatCurrency, formatDate, formatPhone } from "../../lib/utils";
 import { getOrderStatusColor, getOrderStatusLabel } from "../../lib/order-status";
 import { getOrderPaymentLabel } from "../../lib/order-payment";
 import { useI18n } from "vue-i18n";
-import { Package, ChevronLeft, MapPin, Truck, CreditCard, CheckCircle2, Store, Star, X } from "lucide-vue-next";
+import { Package, ChevronLeft, MapPin, Truck, CreditCard, CheckCircle2, Store, Star, X, CircleAlert, ArrowRight } from "lucide-vue-next";
+import { toast } from "vue-sonner";
 
 const props = defineProps({
     order: Object,
@@ -21,6 +23,7 @@ const { t } = useI18n();
 const { proxy } = getCurrentInstance();
 const reviewForms = reactive({});
 const reviewDialogOpen = ref(false);
+const isStartingPayment = ref(false);
 
 const reviewForm = (item) => {
     if (!reviewForms[item.id]) {
@@ -111,6 +114,61 @@ const deliveryCouriers = computed(() => {
 
 const getPaymentLabel = () => {
     return getOrderPaymentLabel(props.order, t);
+};
+
+const canResumeMidtransPayment = computed(() => (
+    props.order.status === "packed"
+    && props.order.payment_type === "full"
+    && props.order.payment_method === "midtrans"
+    && props.order.billing_status === "pending"
+));
+
+const loadMidtransSnap = (payment) => new Promise((resolve, reject) => {
+    if (window.snap) {
+        resolve();
+        return;
+    }
+
+    const isProduction = payment.mode === "production";
+    const script = document.createElement("script");
+    script.id = "midtrans-script";
+    script.src = isProduction ? "https://app.midtrans.com/snap/snap.js" : "https://app.sandbox.midtrans.com/snap/snap.js";
+    script.setAttribute("data-client-key", payment.client_key);
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+});
+
+const resumeMidtransPayment = async () => {
+    if (isStartingPayment.value) return;
+
+    isStartingPayment.value = true;
+
+    try {
+        const response = await axios.post(route("frontend.orders.pay", props.order.id));
+        const payment = response.data?.payment;
+
+        if (payment?.provider !== "midtrans" || !payment.snap_token || !payment.client_key) {
+            throw new Error("Missing Midtrans payment metadata.");
+        }
+
+        await loadMidtransSnap(payment);
+
+        if (!window.snap) {
+            throw new Error("Midtrans Snap is unavailable.");
+        }
+
+        window.snap.pay(payment.snap_token, {
+            onSuccess: () => window.location.reload(),
+            onPending: () => window.location.reload(),
+            onError: () => window.location.reload(),
+            onClose: () => window.location.reload(),
+        });
+    } catch (error) {
+        toast.error(error.response?.data?.error || t("labels.order.payment_actions.initiation_failed"));
+    } finally {
+        isStartingPayment.value = false;
+    }
 };
 
 const getGroupedProducts = () => {
@@ -354,12 +412,35 @@ const statusDates = computed(() => {
                                         <span class="font-semibold text-foreground">{{ formatCurrency(order.installment_plan.monthly_amount) }}</span>
                                     </div>
                                 </div>
-                                <div v-if="order.status === 'packed'" class="mt-4 pt-4 border-t border-border">
+                                <div v-if="order.status === 'packed'" class="space-y-5 border-t border-border pt-5">
+                                    <div v-if="canResumeMidtransPayment" class="space-y-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
+                                        <div class="flex gap-3">
+                                            <CircleAlert class="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                                            <div class="min-w-0">
+                                                <p class="text-sm font-bold text-foreground">{{ t('labels.order.payment_actions.pending_title') }}</p>
+                                                <p class="mt-1 text-xs leading-relaxed text-muted-foreground">
+                                                    {{ t('labels.order.payment_actions.resume_help') }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="primary"
+                                            size="lg"
+                                            block
+                                            :icon="ArrowRight"
+                                            icon-position="right"
+                                            :loading="isStartingPayment"
+                                            @click="resumeMidtransPayment"
+                                        >
+                                            {{ t('labels.order.payment_actions.resume') }}
+                                        </Button>
+                                    </div>
                                     <Button
                                         @click="cancelOrder"
                                         class="w-full rounded-xl border border-destructive/30 bg-destructive/10 py-3 text-sm font-semibold text-destructive transition-all hover:bg-destructive/15 hover:text-destructive active:scale-[0.98]"
                                     >
-                                        Batalkan Pesanan
+                                        {{ t('labels.order.cancel') }}
                                     </Button>
                                 </div>
                             </section>

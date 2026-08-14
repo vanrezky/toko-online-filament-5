@@ -1,0 +1,47 @@
+<?php
+
+return [
+    'navigation_label' => 'Gateway Pembayaran',
+    'title' => 'Gateway Pembayaran',
+    'tabs' => [
+        'midtrans' => 'Midtrans',
+        'stripe' => 'Stripe',
+        'xendit' => 'Xendit',
+    ],
+    'sections' => [
+        'credentials' => 'Kredensial',
+        'configuration' => 'Konfigurasi',
+        'integration_endpoints' => 'Endpoint Integrasi Midtrans',
+        'integration_endpoints_helper' => 'Salin URL ini ke pengaturan Snap di Dashboard Midtrans. Sebelum produksi, pastikan APP_URL menggunakan domain HTTPS publik yang dapat dijangkau Midtrans.',
+        'default_settings' => 'Pengaturan Default',
+    ],
+    'fields' => [
+        'set_active' => 'Jadikan gateway aktif',
+        'set_active_helper' => 'Hanya satu gateway yang dapat aktif dalam satu waktu.',
+        'server_key' => 'Server Key',
+        'server_key_helper' => 'Dapatkan Server Key dari <a href="https://dashboard.midtrans.com/" target="_blank" class="text-primary-600 underline">Dashboard Midtrans</a>.',
+        'client_key' => 'Client Key',
+        'merchant_id' => 'ID Merchant',
+        'mode' => 'Mode',
+        'sandbox' => 'Sandbox (Pengujian)',
+        'production' => 'Produksi (Live)',
+        'test' => 'Mode Pengujian',
+        'live' => 'Mode Live',
+        'supported_currencies' => 'Mata Uang yang Didukung',
+        'notification_url' => 'Payment Notification URL (Webhook)',
+        'notification_url_helper' => 'Wajib diatur sebagai Payment Notification URL di Dashboard Midtrans. Endpoint ini memverifikasi signature dan memperbarui status pembayaran.',
+        'finish_redirect_url' => 'Finish Redirect URL',
+        'unfinish_redirect_url' => 'Unfinish Redirect URL',
+        'error_redirect_url' => 'Error Redirect URL',
+        'api_key' => 'API Key',
+        'api_key_helper' => 'Dapatkan API Key dari <a href="https://dashboard.stripe.com/apikeys" target="_blank" class="text-primary-600 underline">Dashboard Stripe</a>.',
+        'xendit_api_key_helper' => 'Dapatkan API Key dari <a href="https://dashboard.xendit.co/settings/developers" target="_blank" class="text-primary-600 underline">Dashboard Xendit</a>.',
+        'webhook_secret' => 'Webhook Secret',
+        'webhook_secret_helper' => 'Digunakan untuk memverifikasi signature webhook.',
+        'secret_key' => 'Secret Key',
+        'default_currency' => 'Mata Uang Default',
+    ],
+    'notifications' => [
+        'saved' => 'Pengaturan gateway pembayaran berhasil disimpan.',
+    ],
+];

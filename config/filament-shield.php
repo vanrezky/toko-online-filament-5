@@ -85,7 +85,6 @@ return [
         'prefix' => 'view',
         'exclude' => [
             Dashboard::class,
-            \App\Filament\Pages\ManagePaymentGateway::class,
         ],
     ],
 

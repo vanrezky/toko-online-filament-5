@@ -25,6 +25,7 @@ const props = defineProps({
     pendingVouchers: Object,
     validatedVouchers: Object,
     activeGateway: String,
+    midtransAvailable: Boolean,
     installmentPlans: Array,
     creditLimit: Object,
     installmentMinOrderAmount: Number,
@@ -37,7 +38,7 @@ const { t } = useI18n();
 const form = useForm({
     address_id: props.addresses?.find((a) => a.is_featured)?.id || props.addresses?.[0]?.id || null,
     shipping_methods: {},
-    payment_method: props.activeGateway === "midtrans" ? "midtrans" : "bank_transfer",
+    payment_method: null,
     notes: "",
     cart_item_ids: props.cartItemIds || null,
 });
@@ -161,20 +162,28 @@ const addressSaved = (draft) => {
 };
 
 const items = computed(() => props.cart?.items || []);
+const roundIdr = (amount) => Math.round(Number(amount || 0));
 const subtotal = computed(() => {
-    return items.value.reduce((total, item) => total + (item.original_price || item.price) * item.quantity, 0);
+    return items.value.reduce((total, item) => total + roundIdr(item.original_price || item.price) * item.quantity, 0);
 });
 
 const saleProductDiscount = computed(() => {
-    return items.value.reduce((total, item) => total + (item.discount || 0) * item.quantity, 0);
+    return items.value.reduce((total, item) => {
+        const original = roundIdr(item.original_price || item.price);
+        const final = roundIdr(item.price);
+
+        return total + Math.max(0, original - final) * item.quantity;
+    }, 0);
 });
 
 const shippingDiscount = computed(() => {
-    return localValidatedVouchers.value?.shipping?.discount_amount || 0;
+    return Math.min(shippingFee.value, roundIdr(localValidatedVouchers.value?.shipping?.discount_amount));
 });
 
 const voucherProductDiscount = computed(() => {
-    return localValidatedVouchers.value?.product?.discount_amount || 0;
+    const productTotal = subtotal.value - saleProductDiscount.value;
+
+    return Math.min(productTotal, roundIdr(localValidatedVouchers.value?.product?.discount_amount));
 });
 
 const totalVoucherDiscount = computed(() => {
@@ -192,7 +201,7 @@ const hasInvalidVoucher = computed(() => {
 });
 
 const shippingFee = computed(() => {
-    return Object.values(form.shipping_methods).reduce((sum, method) => sum + (method.price || 0), 0);
+    return Object.values(form.shipping_methods).reduce((sum, method) => sum + roundIdr(method.price), 0);
 });
 
 const hasShippingMethodsSelected = computed(() => {
@@ -229,9 +238,16 @@ const isInstallmentEligible = computed(() => {
 
 const selectPaymentType = (type) => {
     selectedPaymentType.value = type;
+    form.payment_method = null;
     if (type === "full") {
         selectedInstallmentPlan.value = null;
     }
+};
+
+const selectMidtrans = () => {
+    selectedPaymentType.value = "full";
+    selectedInstallmentPlan.value = null;
+    form.payment_method = "midtrans";
 };
 
 const calculateInstallments = async () => {
@@ -279,7 +295,7 @@ const isOverLimit = computed(() => {
     }
 
     // For full payment, check if grandTotal exceeds limit
-    if (selectedPaymentType.value === "full") {
+    if (selectedPaymentType.value === "full" && form.payment_method !== "midtrans") {
         return grandTotal.value > creditLimitRemaining.value;
     }
     if (selectedPaymentType.value === "balance") {
@@ -349,7 +365,7 @@ const submitOrder = async () => {
             const payment = response.data.payment;
 
             if (payment && payment.provider === "midtrans" && payment.snap_token) {
-                const isProduction = payment.payment_url && payment.payment_url.includes("app.midtrans.com");
+                const isProduction = payment.mode === "production";
                 const scriptUrl = isProduction ? "https://app.midtrans.com/snap/snap.js" : "https://app.sandbox.midtrans.com/snap/snap.js";
 
                 const loadSnapScript = new Promise((resolve) => {
@@ -767,10 +783,17 @@ const applyVoucher = async () => {
                         <div class="mt-7 border-t border-[#e8e6ef] pt-6">
                             <div class="mb-3 flex items-center justify-between gap-3">
                                 <h3 class="text-sm font-semibold text-[#2d1b0e]">{{ t("labels.payment.gateway") }}</h3>
-                                <span class="rounded-full bg-[#f8f7fc] px-2.5 py-1 text-xs font-medium text-[#6b5a4d]">
+                                <span v-if="!midtransAvailable" class="rounded-full bg-[#f8f7fc] px-2.5 py-1 text-xs font-medium text-[#6b5a4d]">
                                     {{ t("labels.payment.maintenance") }}
                                 </span>
                             </div>
+                            <label v-if="midtransAvailable" class="mb-3 flex cursor-pointer items-center rounded-xl border p-4 transition-all hover:bg-[#fafafa]" :class="form.payment_method === 'midtrans' ? 'border-[#fa8456] bg-[#fff5f0]' : 'border-[#e8e6ef]'">
+                                <FormRadio type="radio" value="midtrans" :model-value="form.payment_method" @change="selectMidtrans" class="h-5 w-5 border-[#e8e6ef] text-[#fa8456] accent-[#fa8456]" />
+                                <div class="ml-3">
+                                    <span class="block text-sm font-semibold text-[#2d1b0e]">Midtrans</span>
+                                    <span class="block text-xs text-[#6b5a4d]">{{ t("labels.payment.midtrans_description") }}</span>
+                                </div>
+                            </label>
                             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 <button
                                     v-for="gateway in unavailablePaymentGateways"
