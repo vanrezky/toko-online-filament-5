@@ -22,5 +22,5 @@
 ## 4. State preservation and validation
 
 - [x] 3.1 Preserve existing profile, address, private-store, empty, and validation-error behavior.
-- [ ] 4.2 Add or update frontend coverage for navigation state and responsive/account UI behavior.
+- [x] 4.2 Add or update frontend coverage for navigation state and responsive/account UI behavior.
 - [x] 4.3 Run frontend tests, production build, Impeccable detector, strict OpenSpec validation, and scoped diff checks.
