@@ -133,6 +133,7 @@
         "empty_description": "Start shopping and find your favorite products!"
     },
     "checkout": {
+        "show_other_addresses": "View {count} other addresses",
         "heading": "Checkout",
         "shipping_address": "Shipping Address",
         "new_address": "New Address",
@@ -401,6 +402,7 @@
             "add_to_cart": "Add to Cart",
             "save": "Save",
             "saving": "Saving...",
+            "show_less": "Show Less",
             "cancel": "Cancel"
         },
         "auth": {

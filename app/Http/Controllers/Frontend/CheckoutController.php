@@ -25,6 +25,7 @@ use App\Services\FlashsalePricingService;
 use App\Services\FlashsaleReservationService;
 use App\Services\InstallmentService;
 use App\Services\PaymentGatewayService;
+use App\Services\RegionalService;
 use App\Services\TransactionProductImageSnapshotService;
 use App\Services\VoucherCookieService;
 use App\Services\VoucherService;
@@ -55,6 +56,7 @@ class CheckoutController extends Controller
     protected FlashsaleReservationService $flashsaleReservationService;
 
     protected BalanceService $balanceService;
+    protected RegionalService $regionalService;
 
     public function __construct(
         VoucherCookieService $cookieService,
@@ -65,6 +67,7 @@ class CheckoutController extends Controller
         FlashsalePricingService $flashsalePricingService,
         FlashsaleReservationService $flashsaleReservationService,
         BalanceService $balanceService,
+        RegionalService $regionalService,
     ) {
         $this->cookieService = $cookieService;
         $this->voucherService = $voucherService;
@@ -74,6 +77,7 @@ class CheckoutController extends Controller
         $this->flashsalePricingService = $flashsalePricingService;
         $this->flashsaleReservationService = $flashsaleReservationService;
         $this->balanceService = $balanceService;
+        $this->regionalService = $regionalService;
     }
 
     private function selectedCartItemUuids(Request $request): ?array
@@ -153,6 +157,7 @@ class CheckoutController extends Controller
             'cart' => CartResource::make($cart),
             'cartItemIds' => $cartItemUuids,
             'addresses' => AddressResource::collection($addresses),
+            'provinces' => $this->regionalService->getProvinces()->map(fn ($province) => ['id' => $province->id, 'name' => $province->name]),
             'pendingVouchers' => $pendingVouchers,
             'validatedVouchers' => $validatedVouchers,
             'activeGateway' => $paymentGatewayService->getActiveGatewayAlias(),
@@ -240,12 +245,12 @@ class CheckoutController extends Controller
                     $options = $costs['result'];
                 }
 
-                if ($pickupOption) {
-                    $options[] = $pickupOption;
-                }
-
                 if ($kurirTokoOption) {
                     $options[] = $kurirTokoOption;
+                }
+
+                if ($pickupOption) {
+                    $options[] = $pickupOption;
                 }
 
                 if (! empty($options)) {
