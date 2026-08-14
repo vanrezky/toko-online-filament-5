@@ -22,6 +22,7 @@ return [
         'voucher_removed' => 'Voucher removed successfully.',
         'voucher_cleared' => 'Voucher has been cleared.',
         'profile_updated' => 'Profile updated successfully.',
+        'password_updated' => 'Password updated successfully.',
         'address_added' => 'Address added successfully.',
         'address_updated' => 'Address updated successfully.',
         'address_deleted' => 'Address deleted successfully.',

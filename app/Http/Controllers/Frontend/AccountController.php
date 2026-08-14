@@ -95,6 +95,22 @@ class AccountController extends Controller
         return back()->with('success', __('messages.success.profile_updated'));
     }
 
+    public function updatePassword(Request $request)
+    {
+        $customer = Auth::guard('customer')->user();
+
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password:customer'],
+            'password' => ['required', 'confirmed', securePassword(8)],
+        ]);
+
+        $customer->update([
+            'password' => $validated['password'],
+        ]);
+
+        return back()->with('success', __('messages.success.password_updated'));
+    }
+
     public function storeAddress(Request $request)
     {
         $this->ensurePublicStore();

@@ -614,7 +614,8 @@
                 "overview": "Overview",
                 "orders": "My Orders",
                 "addresses": "Shipping Addresses",
-                "settings": "Settings"
+                "settings": "Settings",
+                "password": "Change Password"
             },
             "quick_links": "Quick Links",
             "wishlist": "Wishlist",
@@ -625,6 +626,9 @@
             "no_activity_description": "Start shopping to see your activity here",
             "settings_heading": "Account Settings",
             "settings_description": "Manage your profile information and account preferences",
+            "password_heading": "Change Password",
+            "password_description": "Use a strong password to keep your account secure.",
+            "current_password": "Current Password",
             "profile_photo": "Profile Photo",
             "photo_requirements": "JPEG, PNG or WEBP. Max 2MB.",
             "balance": "Balance",
@@ -649,7 +653,7 @@
             "public_store_note": "You can manage addresses you add yourself. Admin-provided addresses remain available but cannot be changed here.",
             "private_store_note": "Shipping addresses are managed by an administrator for this store.",
             "managed_by_admin": "This address is managed by an administrator.",
-            "synced_from_school_unit": "Automatically synced from the school unit",
+            "synced_from_admin": "Automatically synced from admin",
             "customer_created": "Your address",
             "public_store_empty": "Add your first address for delivery.",
             "awaiting_school_unit": "An address will appear automatically after an administrator assigns a school unit.",
@@ -683,7 +687,8 @@
             "overview": "Overview",
             "orders": "My Orders",
             "addresses": "Shipping Addresses",
-            "settings": "Settings"
+            "settings": "Settings",
+            "password": "Change Password"
         },
         "quick_links": "Quick Links",
         "wishlist": "Wishlist",
@@ -695,6 +700,9 @@
         "no_activity_description": "Start shopping to see your activity here",
         "settings_heading": "Account Settings",
         "settings_description": "Manage your profile information and account preferences",
+        "password_heading": "Change Password",
+        "password_description": "Use a strong password to keep your account secure.",
+        "current_password": "Current Password",
         "profile_photo": "Profile Photo",
         "photo_requirements": "JPEG, PNG or WEBP. Max 2MB."
     },
