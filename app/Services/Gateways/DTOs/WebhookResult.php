@@ -9,7 +9,8 @@ class WebhookResult
         public readonly string $action,
         public readonly ?string $message = null,
         public readonly ?string $transactionId = null,
-        public readonly ?string $status = null
+        public readonly ?string $status = null,
+        public readonly array $metadata = []
     ) {}
 
     public const ACTION_PROCESS = 'process';
@@ -22,6 +23,7 @@ class WebhookResult
             'success' => $this->success,
             'action' => $this->action,
             'message' => $this->message,
+            'metadata' => $this->metadata,
         ];
     }
 }

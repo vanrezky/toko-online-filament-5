@@ -451,6 +451,7 @@
             "installment_minimum": "Tersedia untuk pesanan minimal {amount}.",
             "gateway": "Metode lain",
             "maintenance": "Belum tersedia",
+            "midtrans_description": "Bayar aman dengan metode yang tersedia di Midtrans.",
             "balance_insufficient": "Saldo Anda belum mencukupi untuk membayar total pesanan."
         },
         "cart": {
@@ -805,6 +806,13 @@
                 "cancelled": "Dibatalkan"
             },
             "payment_method": "Metode Pembayaran",
+            "cancel": "Batalkan Pesanan",
+            "payment_actions": {
+                "pending_title": "Pembayaran menunggu",
+                "resume": "Lanjut Bayar",
+                "resume_help": "Pembayaran belum selesai. Klik Lanjut Bayar untuk membuka Midtrans; Anda dapat memilih metode pembayaran lain di sana.",
+                "initiation_failed": "Pembayaran Midtrans belum dapat dimulai. Silakan coba lagi."
+            },
             "review": {
                 "rate": "Nilai",
                 "all_submitted": "Semua penilaian telah dikirimkan",

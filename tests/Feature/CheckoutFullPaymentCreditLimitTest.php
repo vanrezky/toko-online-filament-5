@@ -105,6 +105,53 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
         );
     }
 
+    public function test_checkout_persists_whole_idr_amounts_for_decimal_pricing(): void
+    {
+        Queue::fake();
+
+        $this->setPaymentGatewaySetting('active_gateway', null);
+        $this->forbidPaymentGateway();
+
+        $customer = $this->createCustomer(500_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000.51);
+        $cart = Cart::create(['customer_id' => $customer->id, 'status' => CartStatus::Active->value]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 100_000.51,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(route('frontend.checkout.store'), [
+            'address_id' => $address->id,
+            'shipping_methods' => [
+                (string) $warehouse->id => [
+                    'courier_code' => 'KURIR_TOKO',
+                    'courier_name' => 'Kurir Toko',
+                    'price' => 20_000.51,
+                    'weight' => 500,
+                    'estimation' => '1-2 hari',
+                ],
+            ],
+            'payment_type' => 'full',
+        ]);
+
+        $response->assertOk()->assertJson(['success' => true]);
+
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
+        $transactionProduct = $transaction->products()->firstOrFail();
+
+        $this->assertSame(100_001.0, (float) $transactionProduct->price);
+        $this->assertSame(0.0, (float) $transactionProduct->discount);
+        $this->assertSame(100_001.0, (float) $transactionProduct->line_subtotal);
+        $this->assertSame(20_001.0, (float) $transaction->shipping_cost);
+        $this->assertSame(120_002.0, (float) $transaction->total_amount);
+    }
+
     public function test_full_checkout_is_rejected_when_credit_limit_is_insufficient(): void
     {
         Queue::fake();
