@@ -142,6 +142,8 @@
         "shipped_from": "Shipped from {warehouse}",
         "estimation": "Estimation: {estimation}",
         "payment_method": "Payment Method",
+        "payment_deadline": "Payment deadline",
+        "payment_countdown": "Time remaining: {time}",
         "order_notes": "Order Notes (Optional)",
         "order_summary": "Order Summary",
         "subtotal": "Subtotal",
@@ -234,6 +236,8 @@
             "cancelled": "Cancelled at"
         },
         "payment": "Payment",
+        "payment_deadline": "Payment deadline",
+        "payment_countdown": "Time remaining: {time}",
         "payment_method": "Payment Method",
             "cancel": "Cancel Order",
             "payment_actions": {
@@ -885,5 +889,11 @@
         "new_password_confirmation": "Repeat new password",
         "password_confirmation": "Repeat password",
         "confirm_password": "Repeat password"
+    },
+    "labels": {
+        "order": {
+            "payment_deadline": "Payment deadline",
+            "payment_countdown": "Time remaining: {time}"
+        }
     }
 }

@@ -8,6 +8,7 @@ use App\Services\Gateways\DTOs\PaymentResponse;
 use App\Services\Gateways\DTOs\PaymentStatus;
 use App\Services\Gateways\DTOs\WebhookResult;
 use App\Settings\PaymentGatewaySettings;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Midtrans\Config;
@@ -168,6 +169,25 @@ class MidtransGateway implements PaymentGatewayInterface
                 'transaction_details' => $transactionDetails,
                 'item_details' => $itemDetails,
                 'customer_details' => $customerDetails,
+            ];
+
+            $timelimit = $transaction->timelimit?->utc();
+            $remainingMinutes = $timelimit
+                ? (int) ceil(max(0, Carbon::now('UTC')->diffInSeconds($timelimit, false)) / 60)
+                : 0;
+
+            if ($remainingMinutes < 5) {
+                throw new \RuntimeException('Midtrans payment cannot be started because the transaction time limit is less than five minutes away.');
+            }
+
+            $payload['expiry'] = [
+                'start_time' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
+                'unit' => 'minute',
+                'duration' => $remainingMinutes,
+            ];
+            $payload['page_expiry'] = [
+                'unit' => 'minute',
+                'duration' => $remainingMinutes,
             ];
 
             $expectedTotal = (int) round($transaction->total_amount);

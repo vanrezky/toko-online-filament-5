@@ -1,6 +1,6 @@
 <script setup>
 import Button from "@frontend/components/UI/Button.vue";
-import { computed, getCurrentInstance, reactive, ref } from "vue";
+import { computed, getCurrentInstance, onMounted, onUnmounted, reactive, ref } from "vue";
 import { Link, router } from "@inertiajs/vue3";
 import axios from "axios";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
@@ -13,7 +13,7 @@ import { formatCurrency, formatDate, formatPhone } from "../../lib/utils";
 import { getOrderStatusColor, getOrderStatusLabel } from "../../lib/order-status";
 import { getOrderPaymentLabel } from "../../lib/order-payment";
 import { useI18n } from "vue-i18n";
-import { Package, ChevronLeft, MapPin, Truck, CreditCard, CheckCircle2, Store, Star, X, CircleAlert, ArrowRight } from "lucide-vue-next";
+import { Package, ChevronLeft, MapPin, Truck, CreditCard, Store, Star, X, CircleAlert, ArrowRight } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -24,6 +24,8 @@ const { proxy } = getCurrentInstance();
 const reviewForms = reactive({});
 const reviewDialogOpen = ref(false);
 const isStartingPayment = ref(false);
+const now = ref(Date.now());
+let countdownTimer;
 
 const reviewForm = (item) => {
     if (!reviewForms[item.id]) {
@@ -116,12 +118,36 @@ const getPaymentLabel = () => {
     return getOrderPaymentLabel(props.order, t);
 };
 
+const isPaymentExpired = computed(() => props.order.timelimit && new Date(props.order.timelimit).getTime() <= now.value);
 const canResumeMidtransPayment = computed(() => (
     props.order.status === "packed"
     && props.order.payment_type === "full"
     && props.order.payment_method === "midtrans"
     && props.order.billing_status === "pending"
+    && !isPaymentExpired.value
 ));
+
+const paymentDeadline = computed(() => {
+    if (!props.order.timelimit) return null;
+    return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short", timeZone: props.order.customer_timezone || undefined }).format(new Date(props.order.timelimit));
+});
+const paymentCountdown = computed(() => {
+    const remaining = Math.max(0, new Date(props.order.timelimit || 0).getTime() - now.value);
+    const minutes = Math.floor(remaining / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
+    return `${minutes}:${String(seconds).padStart(2, "0")}`;
+});
+
+onMounted(() => {
+    countdownTimer = window.setInterval(() => {
+        now.value = Date.now();
+        if (isPaymentExpired.value) {
+            window.clearInterval(countdownTimer);
+            router.reload({ preserveScroll: true });
+        }
+    }, 1000);
+});
+onUnmounted(() => window.clearInterval(countdownTimer));
 
 const loadMidtransSnap = (payment) => new Promise((resolve, reject) => {
     if (window.snap) {
@@ -216,6 +242,14 @@ const statusDates = computed(() => {
                             </Link>
                             <h1 class="text-2xl font-bold text-foreground">{{ t("labels.order.order_number", { id: order.code }) }}</h1>
                             <p class="text-sm text-muted-foreground">{{ formatDate(order.created_at, dateTimeFormat) }}</p>
+                            <div
+                                v-if="order.billing_status === 'pending' && paymentDeadline"
+                                class="flex flex-wrap items-baseline gap-x-1 text-sm font-semibold"
+                                :class="isPaymentExpired ? 'text-destructive' : 'text-amber-700 dark:text-amber-300'"
+                            >
+                                <span>{{ t('labels.order.payment_deadline') }}:</span>
+                                <span>{{ paymentDeadline }} · {{ t('labels.order.payment_countdown', { time: paymentCountdown }) }}</span>
+                            </div>
                         </div>
                         <div class="flex items-center gap-4">
                             <span class="rounded-full border px-6 py-2 text-sm font-semibold" :class="getOrderStatusColor(order.status)">

@@ -14,6 +14,7 @@ use App\Http\Resources\OrderResource;
 use App\Enums\CourierCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 
 class OrderController extends Controller
@@ -129,6 +130,10 @@ class OrderController extends Controller
             || $transaction->payment_type !== 'full'
             || $transaction->payment_method !== 'midtrans'
             || ($transaction->billing_status?->value ?? (string) $transaction->billing_status) !== 'pending') {
+            return response()->json(['error' => __('messages.error.order_already_paid')], 400);
+        }
+
+        if (! $transaction->timelimit || $transaction->timelimit->utc()->lte(Carbon::now('UTC')->addMinutes(5))) {
             return response()->json(['error' => __('messages.error.order_already_paid')], 400);
         }
 

@@ -41,6 +41,7 @@ const form = useForm({
     payment_method: null,
     notes: "",
     cart_item_ids: props.cartItemIds || null,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
 });
 
 const shippingResults = ref([]);

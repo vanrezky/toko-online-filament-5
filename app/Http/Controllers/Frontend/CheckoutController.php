@@ -318,12 +318,22 @@ class CheckoutController extends Controller
             'shipping_methods' => 'required|array',
             'payment_type' => 'required|in:full,installment,balance',
             'payment_method' => 'nullable|in:midtrans',
+            'timezone' => 'nullable|string|max:64',
             'installment_plan_id' => 'nullable|exists:installment_plans,id',
             'notes' => 'nullable|string',
         ]);
 
         $customer = Auth::guard('customer')->user();
         $isMidtransPayment = $request->input('payment_method') === 'midtrans';
+        $customerTimezone = $customer->timezone ?: config('app.timezone', 'UTC');
+
+        if ($request->filled('timezone')) {
+            $customerTimezone = $request->string('timezone')->toString();
+        }
+
+        if (! in_array($customerTimezone, timezone_identifiers_list(), true)) {
+            throw ValidationException::withMessages(['timezone' => ['Zona waktu tidak valid.']]);
+        }
 
         if ($isMidtransPayment && ! $paymentGatewayService->isGatewayAvailable('midtrans')) {
             return response()->json(['error' => 'Midtrans tidak tersedia saat ini.'], 422);
@@ -492,7 +502,7 @@ class CheckoutController extends Controller
         $billingDueDay = (int) ($generalSettings->billing_due_day ?? 5);
         $billingDueMonthOffset = (int) ($generalSettings->billing_due_month_offset ?? 1);
 
-        $transaction = DB::transaction(function () use ($request, $customer, $cartItemUuids, $totalShippingCost, $totalWeight, $address, $shippingDetails, $billingCycleService, $billingCutoffDay, $billingDueDay, $billingDueMonthOffset, $isMidtransPayment) {
+        $transaction = DB::transaction(function () use ($request, $customer, $customerTimezone, $cartItemUuids, $totalShippingCost, $totalWeight, $address, $shippingDetails, $billingCycleService, $billingCutoffDay, $billingDueDay, $billingDueMonthOffset, $isMidtransPayment) {
             $lockedCart = Cart::with([
                 'items.product.media',
                 'items.product.warehouse',
@@ -576,8 +586,13 @@ class CheckoutController extends Controller
                 'installment_plan_id' => $request->payment_type === 'installment' ? $request->installment_plan_id : null,
                 'status' => TransactionStatus::packed,
                 'notes' => $request->notes,
-                'timelimit' => Carbon::now()->addDay(),
+                'timelimit' => Carbon::now('UTC')->addMinutes((int) (app(GeneralSettings::class)->transaction_time_limit_minutes ?? 1440)),
+                'customer_timezone' => $customerTimezone,
             ]);
+
+            if ($customer->timezone !== $customerTimezone) {
+                $customer->update(['timezone' => $customerTimezone]);
+            }
 
             foreach ($shippingDetails as $detail) {
                 $transaction->shippingDetails()->create($detail);

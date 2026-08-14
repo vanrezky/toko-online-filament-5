@@ -123,6 +123,10 @@ class ManageCommerceSettings extends SettingsPage
                             ->minValue(0)
                             ->default(1000000)
                             ->required(),
+                        TextInput::make('transaction_time_limit_minutes')
+                            ->label(__('admin/page-manage-commerce.fields.transaction_time_limit_minutes'))
+                            ->helperText(__('admin/page-manage-commerce.fields.transaction_time_limit_minutes_helper'))
+                            ->numeric()->minValue(5)->maxValue(10080)->default(1440)->required(),
                     ])
                     ->columns(2),
             Section::make(__('admin/page-manage-commerce.sections.billing_cycle'))
