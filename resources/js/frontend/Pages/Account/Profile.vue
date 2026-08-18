@@ -220,7 +220,7 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                 </div>
 
                 <AccountShell :user="user" :active-destination="activeSection">
-                        <header class="space-y-1">
+                        <header class="space-y-2">
                             <h1 class="text-2xl font-bold text-foreground">{{ t("labels.account.heading") }}</h1>
                             <p class="text-sm text-muted-foreground">{{ t("labels.account.settings_description") }}</p>
                         </header>
@@ -371,10 +371,10 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                         <AccountPasswordForm v-if="activeSection === 'password'" />
 
                         <div v-if="activeSection === 'addresses'" class="space-y-6">
-                            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div>
-                                    <h2 class="text-foreground text-xl font-bold">{{ t("labels.address.heading") }}</h2>
-                                    <p class="text-muted-foreground mt-1 text-sm">{{ t("labels.address.description") }}</p>
+                            <div class="border-border flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">
+                            <div class="space-y-2">
+                                <h2 class="text-foreground text-xl font-bold">{{ t("labels.address.heading") }}</h2>
+                                <p class="text-muted-foreground text-sm">{{ t("labels.address.description") }}</p>
                                 </div>
                                 <Button v-if="!isPrivateStore" variant="primary" :icon="Plus" @click="openAddressForm()">
                                     {{ t("labels.address.add") }}

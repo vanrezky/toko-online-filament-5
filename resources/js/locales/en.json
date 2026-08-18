@@ -771,6 +771,7 @@
     },
     "orders": {
         "heading": "My Orders",
+        "description": "Track the status and details of every order.",
         "none": "no orders",
         "empty_title": "No Orders Yet",
         "empty_description": "You have not made any transactions yet."
@@ -899,6 +900,19 @@
         "confirm_password": "Repeat password"
     },
     "labels": {
+        "actions": {
+            "loading": "Loading..."
+        },
+        "orders": {
+            "heading": "My Orders",
+            "description": "Track the status and details of every order.",
+            "none": "No orders",
+            "empty_title": "No Orders Yet",
+            "empty_description": "You have not made any transactions yet."
+        },
+        "product": {
+            "no_image": "Image unavailable"
+        },
         "order": {
             "payment_deadline": "Payment deadline",
             "payment_countdown": "Time remaining: {time}"

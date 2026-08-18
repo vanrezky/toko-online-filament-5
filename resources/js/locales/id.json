@@ -130,6 +130,7 @@
     },
     "orders": {
         "heading": "Pesanan Saya",
+        "description": "Lacak status dan detail setiap pesanan Anda.",
         "empty_title": "Belum Ada Pesanan",
         "empty_description": "Anda belum melakukan transaksi apapun."
     },
@@ -761,6 +762,7 @@
         },
         "orders": {
             "heading": "Pesanan Saya",
+            "description": "Lacak status dan detail setiap pesanan Anda.",
             "none": "tidak ada pesanan",
             "empty_title": "Belum Ada Pesanan",
             "empty_description": "Anda belum melakukan transaksi apapun.",

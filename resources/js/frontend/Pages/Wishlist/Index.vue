@@ -23,13 +23,12 @@ const items = computed(() => {
 
 <template>
     <TemplateWrapper :title="t('meta.wishlist.title')">
-        <div class="py-12">
-            <div class="container mx-auto px-4 md:px-6">
-                <AccountShell active-destination="wishlist">
-                    <div class="space-y-12">
-                        <header class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div class="container mx-auto px-4 md:px-6">
+            <AccountShell active-destination="wishlist">
+                    <div class="mx-auto space-y-8">
+                        <header class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                             <div class="space-y-2">
-                                <h1 class="text-foreground text-3xl font-bold tracking-tight md:text-4xl">{{ t('labels.wishlist.heading') }}</h1>
+                                <h1 class="text-2xl font-bold text-[#2d1b0e]">{{ t('labels.wishlist.heading') }}</h1>
                                 <p class="text-muted-foreground text-sm">{{ t('labels.wishlist.description') }}</p>
                             </div>
                             <span v-if="items.length > 0" class="text-muted-foreground text-xs font-bold uppercase tracking-widest">{{ t('labels.wishlist.item_count', { count: items.length }) }}</span>
@@ -43,8 +42,7 @@ const items = computed(() => {
                             <Link :href="route('frontend.products')" class="bg-primary text-primary-foreground inline-flex rounded-xl px-6 py-3 text-sm font-semibold transition-colors hover:bg-primary/90">{{ t('labels.actions.explore_products') }}</Link>
                         </div>
                     </div>
-                </AccountShell>
-            </div>
+            </AccountShell>
         </div>
     </TemplateWrapper>
 </template>

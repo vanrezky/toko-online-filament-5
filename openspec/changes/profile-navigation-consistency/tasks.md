@@ -6,6 +6,8 @@
 - [x] 1.4 Add Change Password to the shared URL-backed desktop and mobile destination model.
 - [x] 1.5 Extract shared account navigation and shell, then render it on the dedicated Wishlist route.
 
+- [x] 1.6 Render shared account navigation shell dedicated Orders route URL-backed active state.
+
 ## 2. Account layout refinement
 
 - [x] 2.1 Add consistent account-page and section headers for overview, profile settings, and addresses.
