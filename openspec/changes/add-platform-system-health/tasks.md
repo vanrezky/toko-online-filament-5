@@ -1,21 +1,21 @@
-## 1. Package and Health Engine Setup
+## 1. Package Health Engine Setup
 
-- [ ] 1.1 Add the Laravel-11-compatible `spatie/laravel-health` dependency, inspect its resolved APIs, and publish/register only required configuration, provider, and package-owned persistence assets.
-- [ ] 1.2 Configure the package's official application, database, Redis/cache, queue-processing, and used-disk-space checks with safe disk thresholds and environment overrides.
-- [ ] 1.3 Configure package-supported result persistence and schedule the official health execution command through the existing Laravel scheduler at the appropriate cadence.
+- [x] 1.1 Add Laravel-11-compatible `spatie/laravel-health` dependency, inspect its resolved APIs, publish/register only required configuration, provider, package-owned persistence assets.
+- [x] 1.2 Configure package's official application, database, Redis/cache, queue-processing, used-disk-space checks safe disk thresholds environment overrides.
+- [x] 1.3 Configure package-supported result persistence schedule official health execution command through existing Laravel scheduler appropriate cadence.
 
 ## 2. Platform Health Boundary
 
-- [ ] 2.1 Create `app/Modules/Platform/Health` and implement HealthMonitorService with a normalized, safe overall summary backed by the installed Spatie Health APIs.
-- [ ] 2.2 Add safe application informational metadata and exception/no-result fallbacks without exposing credentials, secrets, or stack traces.
+- [x] 2.1 Create `app/Modules/Platform/Health` implement HealthMonitorService normalized, safe overall summary backed by installed Spatie Health APIs.
+- [x] 2.2 Add safe application informational metadata exception/no-result fallbacks without exposing credentials, secrets, stack traces.
 
 ## 3. Filament System Health
 
-- [ ] 3.1 Add the native `Platform` / `System Health` Filament page that consumes HealthMonitorService and renders overall state, required summaries/details, and a single Refresh Health action.
-- [ ] 3.2 Reuse the superuser/Shield authorization convention, seed `View:SystemHealth`, and add Indonesian/English translation keys.
+- [x] 3.1 Add native `Platform` / `System Health` Filament page consumes HealthMonitorService renders overall state, required summaries/details, single Refresh Health action.
+- [x] 3.2 Reuse superuser/Shield authorization convention, seed `View:SystemHealth`, add Indonesian/English translation keys.
 
-## 4. Verification and Operations
+## 4. Verification Operations
 
-- [ ] 4.1 Add tests for HealthMonitorService normalization, unavailable results, System Health authorization, and safe failed-state rendering using package-supported fakes or mocks.
-- [ ] 4.2 Document local and production health configuration, scheduler prerequisites, result persistence, queue-check behavior, and safe refresh usage.
-- [ ] 4.3 Run Pint, focused tests, frontend build if presentation assets change, package/scheduler validation, OpenSpec strict validation, and diff checks.
+- [x] 4.1 Add tests HealthMonitorService normalization, unavailable results, System Health authorization, safe failed-state rendering using package-supported fakes mocks.
+- [x] 4.2 Document local production health configuration, scheduler prerequisites, result persistence, queue-check behavior, safe refresh usage.
+- [ ] 4.3 Run Pint, focused tests, frontend build if presentation assets change, package/scheduler validation, OpenSpec strict validation, diff checks.
