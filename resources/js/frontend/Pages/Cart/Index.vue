@@ -7,6 +7,7 @@ import PageShell from "../../components/PageShell.vue";
 import { Trash2, ShoppingBag, ArrowRight, Minus, Plus } from "lucide-vue-next";
 import { formatCurrency } from "../../lib/utils";
 import Card from "../../components/UI/Card.vue";
+import FormCheckbox from "../../components/UI/FormCheckbox.vue";
 import debounce from "lodash/debounce";
 import { useI18n } from "vue-i18n";
 
@@ -87,21 +88,14 @@ const removeItem = (id) => {
                     <!-- Cart Items List -->
                     <div class="space-y-4">
                         <label class="text-muted-foreground flex cursor-pointer items-center gap-2 px-1 text-sm font-semibold">
-                            <input
-                                type="checkbox"
-                                :checked="isAllSelected"
-                                @change="toggleAllSelection"
-                                class="text-primary h-4 w-4 rounded border-border"
-                            />
+                            <FormCheckbox :model-value="isAllSelected" @update:model-value="toggleAllSelection" />
                             {{ t("labels.cart.select_all") }}
                         </label>
                         <Card v-for="item in localItems" :key="item.id" class="overflow-hidden rounded-2xl border-0 p-3 sm:p-4">
                             <label class="text-muted-foreground mb-3 flex cursor-pointer items-center gap-2 text-xs font-semibold">
-                                <input
-                                    type="checkbox"
-                                    :checked="selectedItemIds.includes(item.id)"
-                                    @change="toggleItemSelection(item.id)"
-                                    class="text-primary h-4 w-4 rounded border-border"
+                                <FormCheckbox
+                                    :model-value="selectedItemIds.includes(item.id)"
+                                    @update:model-value="toggleItemSelection(item.id)"
                                 />
                                 {{ t("labels.cart.select_item") }}
                             </label>

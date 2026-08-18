@@ -36,23 +36,27 @@ const items = computed(() => {
 </script>
 
 <template>
-    <section v-if="items.length" class="border-y border-border bg-secondary/40 py-14 md:py-20">
+    <section v-if="items.length" class="overflow-hidden bg-secondary py-16 text-foreground md:py-28">
         <div class="container mx-auto px-4">
-            <div class="grid items-end gap-9 md:grid-cols-12 md:gap-12">
-                <div class="md:col-span-5">
-                    <p class="mb-3 text-xs font-semibold tracking-[0.12em] text-primary uppercase">{{ eyebrow }}</p>
-                    <h2 class="text-foreground max-w-md text-3xl font-bold leading-[1.1] text-balance md:text-4xl">{{ title }}</h2>
-                    <p class="text-muted-foreground mt-4 max-w-md text-sm leading-6 text-pretty md:text-base">{{ description }}</p>
+            <div class="grid gap-12 md:grid-cols-12 md:gap-16">
+                <div class="flex flex-col justify-between border-t border-foreground/10 pt-6 md:col-span-4 md:pb-2">
+                    <div>
+                        <p class="mb-5 text-xs font-semibold tracking-[0.12em] text-primary uppercase">{{ eyebrow }}</p>
+                        <h2 class="max-w-md text-4xl font-bold leading-[0.98] text-balance md:text-6xl">{{ title }}</h2>
+                    </div>
+                    <p class="mt-8 max-w-sm text-sm leading-6 text-pretty text-muted-foreground md:text-base">{{ description }}</p>
                 </div>
 
-                <div class="grid gap-3 sm:grid-cols-2 md:col-span-7 md:gap-4">
+                <div class="grid gap-3 sm:grid-cols-12 md:col-span-8 md:gap-4">
                     <Link
                         v-for="(item, index) in items"
                         :key="item.id || item.slug || item.title"
                         :href="item.href"
                         :aria-label="`${actionLabel}: ${item.title}`"
-                        class="group relative flex min-h-52 overflow-hidden border border-border bg-background p-5 transition-[border-color,background-color] duration-200 hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:transition-none"
-                        :class="index === 0 ? 'sm:col-span-2 sm:min-h-72' : ''"
+                        class="group relative flex min-h-52 overflow-hidden border border-foreground/10 bg-background p-5 transition-[border-color,background-color] duration-300 hover:border-primary hover:bg-background/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-secondary motion-reduce:transition-none"
+                        :class="[
+                            index === 0 ? 'sm:col-span-7 sm:row-span-2 sm:min-h-[35rem] sm:p-8' : 'sm:col-span-5 sm:min-h-[16.5rem] sm:p-6',
+                        ]"
                     >
                         <img
                             v-if="item.image_url"
@@ -62,14 +66,14 @@ const items = computed(() => {
                             decoding="async"
                             class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none"
                         />
-                        <div v-if="item.image_url" class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/5"></div>
+                        <div v-if="item.image_url" class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/5"></div>
 
                         <div class="relative flex w-full flex-col justify-end" :class="item.image_url ? 'text-white' : 'text-foreground'">
-                            <span class="text-base font-bold leading-snug">{{ item.title }}</span>
-                            <span v-if="item.description" class="mt-1 max-w-md text-sm leading-5" :class="item.image_url ? 'text-white/90' : 'text-muted-foreground'">
+                            <span class="font-bold leading-[1.05]" :class="index === 0 ? 'max-w-sm text-2xl md:text-3xl' : 'text-base'">{{ item.title }}</span>
+                            <span v-if="item.description" class="mt-2 max-w-md text-sm leading-5" :class="item.image_url ? 'text-white/85' : 'text-muted-foreground'">
                                 {{ item.description }}
                             </span>
-                            <span class="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold" :class="item.image_url ? 'text-white' : 'text-primary'">
+                            <span class="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold">
                                 {{ actionLabel }}
                                 <ArrowUpRight class="h-4 w-4 transition-transform duration-200 ease-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none" />
                             </span>

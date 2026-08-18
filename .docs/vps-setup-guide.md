@@ -693,9 +693,52 @@ sudo tail -f /var/www/html/storage/logs/laravel.log
 sudo tail -f /var/www/html/storage/logs/worker.log
 ```
 
-### 14.2 Restart Services
+### 14.2 Cek Status Semua Service Utama
+
+Setelah VPS reboot atau website error, login melalui SSH lalu jalankan:
 
 ```bash
+# Ringkasan service yang gagal dijalankan systemd
+sudo systemctl --failed
+
+# Status setiap service yang dipakai aplikasi
+sudo systemctl status nginx
+sudo systemctl status php8.2-fpm
+sudo systemctl status mysql
+sudo systemctl status supervisor
+
+# Status worker Laravel yang dikelola Supervisor
+sudo supervisorctl status
+
+# Pastikan cron service aktif (scheduler Laravel dijalankan oleh cron)
+sudo systemctl status cron
+```
+
+Service berstatus `active (running)` berarti berjalan normal. Tekan `q` untuk keluar dari tampilan `systemctl status`.
+
+Untuk pemeriksaan cepat tanpa log detail:
+
+```bash
+sudo systemctl is-active nginx php8.2-fpm mysql supervisor cron
+sudo systemctl is-enabled nginx php8.2-fpm mysql supervisor cron
+```
+
+`enabled` berarti service akan otomatis berjalan kembali setelah VPS reboot. Jika service utama belum enabled, aktifkan:
+
+```bash
+sudo systemctl enable nginx php8.2-fpm mysql supervisor cron
+```
+
+### 14.3 Jalankan atau Restart Service
+
+```bash
+# Jalankan service yang sedang mati
+sudo systemctl start nginx
+sudo systemctl start php8.2-fpm
+sudo systemctl start mysql
+sudo systemctl start supervisor
+sudo systemctl start cron
+
 # Restart Nginx
 sudo systemctl restart nginx
 
@@ -705,29 +748,53 @@ sudo systemctl restart php8.2-fpm
 # Restart MySQL
 sudo systemctl restart mysql
 
+# Terapkan konfigurasi Nginx tanpa memutus koneksi aktif
+sudo nginx -t && sudo systemctl reload nginx
+
+# Muat ulang dan restart worker Laravel dari Supervisor
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl restart tokoonline-worker:*
+
 # Clear Laravel cache
+cd /var/www/html
 php artisan optimize:clear
 ```
 
-### 14.3 Cek PHP-FPM Status
+Jangan menjalankan `php artisan queue:work` langsung di terminal sebagai perbaikan permanen; worker tersebut berhenti saat sesi SSH ditutup. Gunakan Supervisor seperti di atas.
+
+### 14.4 Lihat Penyebab Service Gagal
+
+```bash
+# Log systemd sejak boot terakhir; ganti nama service bila perlu
+sudo journalctl -u nginx -b --no-pager -n 100
+sudo journalctl -u php8.2-fpm -b --no-pager -n 100
+sudo journalctl -u mysql -b --no-pager -n 100
+sudo journalctl -u supervisor -b --no-pager -n 100
+
+# Pantau log service secara real-time
+sudo journalctl -fu nginx
+```
+
+### 14.5 Cek PHP-FPM Status
 
 ```bash
 sudo systemctl status php8.2-fpm
 ```
 
-### 14.4 Cek Port yang Digunakan
+### 14.6 Cek Port yang Digunakan
 
 ```bash
 sudo netstat -tlnp
 ```
 
-### 14.5 Cek RAM Usage
+### 14.7 Cek RAM Usage
 
 ```bash
 free -h
 ```
 
-### 14.6 Cek Disk Usage
+### 14.8 Cek Disk Usage
 
 ```bash
 df -h

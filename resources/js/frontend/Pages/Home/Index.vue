@@ -34,14 +34,14 @@ const colorScheme = computed(() => page.props.colorScheme);
         :keywords="settings.site_keywords"
         :social-image="settings.social_image"
         :color-scheme="colorScheme"
-    >
+        >
         <HeroSection :template="template" />
+        <FlashSaleSection v-if="flashsales" :flashsales="flashsales" :template="template" />
         <CategoryMenu :categories="categories" :active-category="filters?.category" />
         <HomeProductsSection :products="products" :filters="filters" :template="template" />
         <StoreStorySection :template="template" :categories="categories" />
         <HeroCarousel :template="template" :slides="sliders" />
         <FeaturedProducts v-if="!filters?.category" :products="products" :template="template" />
-        <FlashSaleSection v-if="flashsales" :flashsales="flashsales" :template="template" />
         <VoucherSection :template="template" />
         <NewsletterSection :template="template" />
     </TemplateWrapper>

@@ -860,3 +860,50 @@ When an override creates meaningful risk, warn briefly before proceeding.
 
 - Deploy workflow runs on push to `main` (`.github/workflows/deploy.yml`).
 - CI runtime is PHP `8.3` + Node `22`, installs (`composer install --no-dev`, `npm ci`), then `npm run build`.
+
+## Development Environment
+
+This project uses Laravel Sail.
+
+The application is already running using Docker / Laravel Sail.
+
+Application URL:
+
+http://localhost:81
+
+Do NOT:
+
+- run `php artisan serve`
+- start another Laravel server
+- start another Docker environment
+- change application ports
+- assume another localhost port
+
+Before starting any server, check:
+
+docker compose ps
+
+For frontend verification, always use:
+
+http://localhost:81
+
+The Vite dev server is already managed by the existing development environment.
+
+If the application cannot be reached, diagnose the existing Sail environment.
+Do not start a replacement development server.
+
+## Playwright
+
+Playwright Chromium is already installed on the host machine.
+
+Do NOT install:
+
+- Chromium
+- Chrome
+- Playwright browsers
+- browser dependencies
+
+The Playwright MCP is configured to use Chromium.
+
+If Playwright cannot launch a browser, report the error and inspect the
+existing MCP/browser configuration instead of installing another browser.

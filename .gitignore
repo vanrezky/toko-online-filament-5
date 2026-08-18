@@ -20,3 +20,5 @@ yarn-error.log
 .serena/
 .devdbrc
 .tokensave
+.playwright-mcp
+playwright
