@@ -93,10 +93,7 @@ const removeItem = (id) => {
                         </label>
                         <Card v-for="item in localItems" :key="item.id" class="overflow-hidden rounded-2xl border-0 p-3 sm:p-4">
                             <label class="text-muted-foreground mb-3 flex cursor-pointer items-center gap-2 text-xs font-semibold">
-                                <FormCheckbox
-                                    :model-value="selectedItemIds.includes(item.id)"
-                                    @update:model-value="toggleItemSelection(item.id)"
-                                />
+                                <FormCheckbox :model-value="selectedItemIds.includes(item.id)" @update:model-value="toggleItemSelection(item.id)" />
                                 {{ t("labels.cart.select_item") }}
                             </label>
                             <div class="grid grid-cols-[5rem_1fr] gap-3 sm:flex sm:gap-4">
@@ -203,12 +200,6 @@ const removeItem = (id) => {
                                     <span>{{ t("labels.cart.checkout_selected") }}</span>
                                     <ArrowRight class="h-4 w-4" />
                                 </Button>
-                                <Link
-                                    :href="route('frontend.checkout')"
-                                    class="text-muted-foreground hover:text-foreground flex w-full items-center justify-center gap-2 py-2 text-sm font-semibold transition-colors"
-                                >
-                                    {{ t("labels.cart.checkout_all") }}
-                                </Link>
                             </Card>
                         </div>
                     </div>
