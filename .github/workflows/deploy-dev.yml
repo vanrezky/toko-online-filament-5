@@ -132,7 +132,7 @@ jobs:
             BROADCAST_DRIVER=log
             CACHE_DRIVER=file
             FILESYSTEM_DISK=local
-            QUEUE_CONNECTION=database
+QUEUE_CONNECTION=redis
             SESSION_DRIVER=file
             SESSION_LIFETIME=120
             SESSION_SECURE_COOKIE=false
@@ -195,9 +195,9 @@ jobs:
             sudo -u www-data php artisan icons:cache
             sudo -u www-data php artisan filament:optimize
 
-            echo "=== Restarting queue workers ==="
-            sudo supervisorctl restart laravel-worker-dev:*
-            sudo -u www-data php artisan queue:restart
+            echo "=== Restarting Horizon ==="
+            sudo -u www-data php artisan horizon:terminate
+            sudo supervisorctl restart laravel-horizon-dev:*
 
             echo "=== Deployment complete! ==="
 

@@ -42,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Orange,
             ])
             ->font('Karla')
-            ->navigationGroups(['Operasional', 'Katalog', 'Pemasaran', 'Sistem'])
+            ->navigationGroups(['Operasional', 'Katalog', 'Pemasaran', 'Sistem', 'Platform'])
             ->favicon(settings('favicon'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverClusters(in: app_path('Filament/Clusters'), for: 'App\\Filament\\Clusters')
@@ -77,7 +77,7 @@ class AdminPanelProvider extends PanelProvider
                     ->gridColumns([
                         'default' => 1,
                         'sm' => 2,
-                        'lg' => 2
+                        'lg' => 2,
                     ])
                     ->sectionColumnSpan(1)
                     ->checkboxListColumns([

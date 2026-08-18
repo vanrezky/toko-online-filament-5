@@ -132,7 +132,7 @@ jobs:
             BROADCAST_DRIVER=log
             CACHE_DRIVER=file
             FILESYSTEM_DISK=local
-            QUEUE_CONNECTION=database
+QUEUE_CONNECTION=redis
             SESSION_DRIVER=file
             SESSION_LIFETIME=120
             SESSION_SECURE_COOKIE=false
