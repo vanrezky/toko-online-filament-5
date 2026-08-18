@@ -22,6 +22,7 @@ The Cart page currently renders a selected-item checkout button and a separate a
 - Keep the existing disabled state when `selectedItems.length === 0`; this prevents an empty client request without replacing server-side validation.
 - Use the existing primary Button styling and label for the single action. This preserves the Cart's visual hierarchy and avoids a competing secondary checkout affordance.
 - Add an E2E scenario that logs in, adds two distinct catalog products, selects all Cart items, and uses the sole checkout action. This exercises the workflow without duplicating backend validation tests.
+- Exclude Playwright E2E files from Vitest discovery so the existing unit-test command and pre-push hook continue to run their respective test runners.
 
 ## Risks / Trade-offs
 
