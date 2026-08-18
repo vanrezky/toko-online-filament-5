@@ -396,7 +396,7 @@ DB_USERNAME=deploy
 DB_PASSWORD=ISI_PASSWORD_DB
 
 CACHE_DRIVER=file
-QUEUE_CONNECTION=database
+QUEUE_CONNECTION=redis
 SESSION_DRIVER=database
 ```
 
@@ -486,7 +486,7 @@ sudo systemctl reload nginx
 
 ## 10. Queue Setup
 
-### 10.1 Pastikan Queue Connection Database
+### 10.1 Pastikan Queue Connection Redis
 
 Edit `.env`:
 
@@ -495,39 +495,39 @@ nano /var/www/html/.env
 ```
 
 ```env
-QUEUE_CONNECTION=database
+QUEUE_CONNECTION=redis
 ```
 
-### 10.2 Buat Tabel Queue (Jika belum ada)
+### 10.2 Konfigurasi Redis dan Horizon
+
+Horizon memerlukan Redis. Pada Sail gunakan `REDIS_HOST=redis`; pada server gunakan hostname Redis yang dapat dijangkau oleh aplikasi. Pastikan `.env` berisi host, port, dan password Redis yang benar. Verifikasi koneksi sebelum menjalankan Horizon:
 
 ```bash
-php artisan queue:table
-php artisan migrate
+redis-cli -h 127.0.0.1 -p 6379 ping
+php artisan horizon:status
 ```
 
-### 10.3 Rekomendasi: Jalankan Queue Worker dengan Supervisor atau systemd
+Jika queue database lama masih memiliki job, drain atau tentukan penanganannya terlebih dahulu. Job yang sudah berada di tabel `jobs` tidak otomatis berpindah ke Redis.
 
-Queue worker tidak ideal dijalankan via cron per menit. Untuk production, gunakan process manager agar worker selalu hidup.
+### 10.3 Rekomendasi: Jalankan Horizon dengan Supervisor
 
-Contoh paling sederhana dengan Supervisor:
+Horizon tidak ideal dijalankan via cron atau sesi SSH. Untuk production, gunakan process manager yang sudah ada agar master supervisor dan worker Horizon selalu hidup.
 
 ```bash
 sudo apt install supervisor -y
-sudo nano /etc/supervisor/conf.d/tokoonline-worker.conf
+sudo nano /etc/supervisor/conf.d/tokoonline-horizon.conf
 ```
 
 ```ini
-[program:tokoonline-worker]
-process_name=%(program_name)s_%(process_num)02d
-command=/usr/bin/php /var/www/html/artisan queue:work --sleep=3 --tries=3 --timeout=60
+[program:tokoonline-horizon]
+command=/usr/bin/php /var/www/html/artisan horizon
 autostart=true
 autorestart=true
 stopasgroup=true
 killasgroup=true
 user=www-data
-numprocs=1
 redirect_stderr=true
-stdout_logfile=/var/www/html/storage/logs/worker.log
+stdout_logfile=/var/www/html/storage/logs/horizon.log
 stopwaitsecs=3600
 ```
 
@@ -539,23 +539,23 @@ sudo supervisorctl update
 sudo supervisorctl status
 ```
 
-### 10.4 Fallback: Cron untuk Queue Worker
+### 10.4 Jalankan dan Restart Horizon
 
-Jika belum memakai Supervisor, cron fallback masih bisa dipakai, tetapi hanya sementara:
-
-```bash
-crontab -e
-```
-
-```cron
-* * * * * cd /var/www/html && php artisan queue:work --stop-when-empty --tries=3 --timeout=60 >> /dev/null 2>&1
-```
-
-### 10.5 Restart Queue Worker (Manual untuk test)
+Untuk local development, jalankan Horizon dari container Sail:
 
 ```bash
-php artisan queue:work
+./vendor/bin/sail artisan horizon
 ```
+
+Untuk restart deployment yang graceful, minta Horizon berhenti lalu biarkan Supervisor menjalankannya kembali:
+
+```bash
+cd /var/www/html
+sudo -u www-data php artisan horizon:terminate
+sudo supervisorctl restart tokoonline-horizon:*
+```
+
+Sesuaikan nama program (`tokoonline-horizon` atau `laravel-horizon-dev`) dengan konfigurasi Supervisor pada environment tersebut. Jangan gunakan `queue:work` atau cron sebagai proses permanen setelah Horizon diaktifkan.
 
 ---
 
@@ -751,17 +751,19 @@ sudo systemctl restart mysql
 # Terapkan konfigurasi Nginx tanpa memutus koneksi aktif
 sudo nginx -t && sudo systemctl reload nginx
 
-# Muat ulang dan restart worker Laravel dari Supervisor
+# Muat ulang dan restart Horizon dari Supervisor
 sudo supervisorctl reread
 sudo supervisorctl update
-sudo supervisorctl restart tokoonline-worker:*
+cd /var/www/html
+sudo -u www-data php artisan horizon:terminate
+sudo supervisorctl restart tokoonline-horizon:*
 
 # Clear Laravel cache
 cd /var/www/html
 php artisan optimize:clear
 ```
 
-Jangan menjalankan `php artisan queue:work` langsung di terminal sebagai perbaikan permanen; worker tersebut berhenti saat sesi SSH ditutup. Gunakan Supervisor seperti di atas.
+Jangan menjalankan `php artisan horizon` langsung di terminal sebagai perbaikan permanen; proses tersebut berhenti saat sesi SSH ditutup. Gunakan Supervisor seperti di atas.
 
 ### 14.4 Lihat Penyebab Service Gagal
 
