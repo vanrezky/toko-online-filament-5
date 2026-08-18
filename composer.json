@@ -27,6 +27,7 @@
         "midtrans/midtrans-php": "^2.6",
         "openai-php/laravel": "^0.8.1",
         "ryangjchandler/blade-tabler-icons": "^2.3",
+        "spatie/laravel-health": "^1.40",
         "superconductor/laravel-vibes": "^0.6",
         "tightenco/ziggy": "^2.5"
     },

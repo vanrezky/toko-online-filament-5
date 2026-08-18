@@ -19,6 +19,7 @@ class ShieldSeeder extends Seeder
         static::makeDirectPermissions($directPermissions);
 
         Utils::getPermissionModel()::findOrCreate('View:QueueMonitor', 'web');
+        Utils::getPermissionModel()::findOrCreate('View:SystemHealth', 'web');
 
         $this->command->info('Shield Seeding Completed.');
     }

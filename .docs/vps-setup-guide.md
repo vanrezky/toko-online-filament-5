@@ -581,6 +581,21 @@ php artisan schedule:list
 
 Harus muncul list scheduled tasks (misal `orders:check-expiry` every 15 minutes).
 
+### 11.3 Health Monitoring
+
+Tidak diperlukan cron atau process manager tambahan. Scheduler Laravel yang sama menjalankan heartbeat queue setiap menit dan menyimpan hasil health check setiap lima menit.
+
+Setelah deploy, jalankan migration dan verifikasi jadwalnya:
+
+```bash
+cd /var/www/html
+php artisan migrate --force
+php artisan schedule:list
+php artisan health:check --no-notification
+```
+
+Pastikan Supervisor menjalankan Horizon seperti pada bagian Queue Setup. Tanpa worker Horizon, queue health check akan melaporkan kegagalan setelah melewati `HEALTH_QUEUE_FAILURE_MINUTES`.
+
 ---
 
 ## 12. SSL Setup (Let's Encrypt)

@@ -18,6 +18,16 @@ class Kernel extends ConsoleKernel
         $schedule->command('installments:mark-overdue')
             ->dailyAt('00:01')
             ->onOneServer();
+
+        $schedule->command('health:queue-check-heartbeat')
+            ->everyMinute()
+            ->onOneServer()
+            ->withoutOverlapping();
+
+        $schedule->command('health:check --no-notification')
+            ->everyFiveMinutes()
+            ->onOneServer()
+            ->withoutOverlapping();
     }
 
     protected function commands(): void
