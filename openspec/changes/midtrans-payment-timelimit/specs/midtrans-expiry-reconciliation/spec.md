@@ -15,7 +15,7 @@ The scheduler SHALL run an expiry scan every minute on one server and dispatch e
 - **THEN** a later scheduled scan dispatches cancellation work again without requiring a new checkout
 
 ### Requirement: Expiry cancellation is idempotent and settlement-safe
-The queued expiry job SHALL lock and re-check the transaction, query the provider status before cancelling an external-gateway transaction, and cancel through the established cancellation service only when provider and local facts still prove it unpaid. A successful provider payment or a locally paid transaction MUST win over cancellation. Unknown provider status MUST cause retry without cancellation.
+The queued expiry job SHALL lock and re-check the transaction, query the provider status before cancelling an external-gateway transaction, and cancel through the established cancellation service only when provider and local facts still prove it unpaid. A successful provider payment or a locally paid transaction MUST win over cancellation. Unknown provider status MUST cause retry without cancellation. A Midtrans status API response of HTTP 404 for the local order ID SHALL be treated as a confirmed absent provider transaction and the eligible local transaction SHALL be cancelled.
 
 #### Scenario: Webhook settlement races with expiry job
 - **WHEN** an external-gateway settlement webhook and an expiry job process the same transaction concurrently
@@ -24,3 +24,7 @@ The queued expiry job SHALL lock and re-check the transaction, query the provide
 #### Scenario: Duplicate expiry jobs run
 - **WHEN** more than one expiry job runs for the same eligible transaction
 - **THEN** cancellation side effects and expiry notification occur at most once
+
+#### Scenario: Midtrans has no transaction for an expired local order
+- **WHEN** Midtrans returns HTTP 404 while the expiry job checks an eligible expired local Midtrans order
+- **THEN** the job cancels the local order without retrying the provider-status lookup
