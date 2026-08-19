@@ -3,6 +3,8 @@
 namespace App\Services\Gateways;
 
 use App\Models\Transaction;
+use App\Modules\Platform\Integration\Models\IntegrationLog;
+use App\Modules\Platform\Integration\Services\IntegrationLogService;
 use App\Services\Gateways\Contracts\PaymentGatewayInterface;
 use App\Services\Gateways\DTOs\PaymentResponse;
 use App\Services\Gateways\DTOs\PaymentStatus;
@@ -13,7 +15,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Midtrans\Config;
 use Midtrans\Snap;
-use Midtrans\CoreApi;
 
 class MidtransGateway implements PaymentGatewayInterface
 {
@@ -28,18 +29,19 @@ class MidtransGateway implements PaymentGatewayInterface
     {
         $creds = $this->settings->getActiveGatewayCredentials();
 
-        if (!$creds) {
+        if (! $creds) {
             Log::warning('Midtrans: No active gateway credentials found');
+
             return;
         }
 
         $serverKey = $creds['server_key'] ?? null;
         $clientKey = $creds['client_key'] ?? null;
 
-        if (!$serverKey || !$clientKey) {
+        if (! $serverKey || ! $clientKey) {
             Log::warning('Midtrans: Server key or client key is empty', [
-                'has_server_key' => !empty($serverKey),
-                'has_client_key' => !empty($clientKey),
+                'has_server_key' => ! empty($serverKey),
+                'has_client_key' => ! empty($clientKey),
                 'mode' => $creds['mode'] ?? 'sandbox',
             ]);
         }
@@ -67,11 +69,11 @@ class MidtransGateway implements PaymentGatewayInterface
     {
         $creds = $this->settings->getActiveGatewayCredentials();
 
-        if (!$creds) {
+        if (! $creds) {
             return false;
         }
 
-        return !empty($creds['server_key']) && !empty($creds['client_key']);
+        return ! empty($creds['server_key']) && ! empty($creds['client_key']);
     }
 
     public function getSupportedCurrencies(): array
@@ -81,7 +83,7 @@ class MidtransGateway implements PaymentGatewayInterface
 
     public function createPayment(Transaction $transaction, array $params = []): PaymentResponse
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return new PaymentResponse(
                 success: false,
                 transactionId: null,
@@ -89,6 +91,9 @@ class MidtransGateway implements PaymentGatewayInterface
                 errorMessage: 'Midtrans is not configured properly'
             );
         }
+
+        $logger = app(IntegrationLogService::class);
+        $integrationLog = null;
 
         try {
             // Ensure products and their related product info are loaded
@@ -112,11 +117,11 @@ class MidtransGateway implements PaymentGatewayInterface
                     $unitPrice = (int) round($netPrice - $unitDiscount, 0, PHP_ROUND_HALF_UP);
                     $remainingProductDiscount -= $unitDiscount;
                     $itemDetails[] = [
-                        'id' => ($item->product?->uuid ?? $item->id) . '-' . $unit,
+                        'id' => ($item->product?->uuid ?? $item->id).'-'.$unit,
                         'price' => $unitPrice,
                         'quantity' => 1,
                         'name' => Str::substr(
-                            $item->product_name ?? $item->product?->name ?? ('Product #' . $item->product_id),
+                            $item->product_name ?? $item->product?->name ?? ('Product #'.$item->product_id),
                             0,
                             50,
                         ),
@@ -195,7 +200,7 @@ class MidtransGateway implements PaymentGatewayInterface
                 throw new \RuntimeException('Midtrans payment total does not match the transaction total.');
             }
 
-            if (!empty($this->config['channels'])) {
+            if (! empty($this->config['channels'])) {
                 $payload['enabled_payments'] = array_values($this->config['channels']);
             }
 
@@ -209,10 +214,27 @@ class MidtransGateway implements PaymentGatewayInterface
                 'order_id' => $transaction->uuid,
                 'gross_amount' => $grossAmount,
                 'mode' => Config::$isProduction ? 'production' : 'sandbox',
-                'has_server_key' => !empty(Config::$serverKey),
+                'has_server_key' => ! empty(Config::$serverKey),
+            ]);
+
+            $integrationLog = $logger->start([
+                'direction' => IntegrationLog::DIRECTION_OUTBOUND,
+                'provider' => 'midtrans',
+                'type' => IntegrationLog::TYPE_API,
+                'method' => 'POST',
+                'url' => $this->snapBaseUrl().'/snap/v1/transactions',
+                'endpoint' => 'Snap::getSnapToken',
+                'request_body' => $payload,
+                'subject' => $transaction,
             ]);
 
             $snapToken = Snap::getSnapToken($payload);
+
+            $logger->finish($integrationLog, [
+                'status' => IntegrationLog::STATUS_SUCCESS,
+                'status_code' => 200,
+                'response_body' => ['snap_token' => $snapToken],
+            ]);
 
             $paymentUrl = Config::$isProduction
                 ? "https://app.midtrans.com/snap/v2/vtweb/{$snapToken}"
@@ -230,11 +252,13 @@ class MidtransGateway implements PaymentGatewayInterface
                 ]
             );
         } catch (\Exception $e) {
+            $logger->fail($integrationLog, $e);
+
             Log::error('Midtrans payment creation failed', [
                 'transaction_id' => $transaction->uuid,
                 'error' => $e->getMessage(),
                 'mode' => Config::$isProduction ? 'production' : 'sandbox',
-                'has_server_key' => !empty(Config::$serverKey),
+                'has_server_key' => ! empty(Config::$serverKey),
             ]);
 
             return new PaymentResponse(
@@ -248,8 +272,26 @@ class MidtransGateway implements PaymentGatewayInterface
 
     public function getPaymentStatus(string $transactionId): PaymentStatus
     {
+        $logger = app(IntegrationLogService::class);
+        $integrationLog = $logger->start([
+            'direction' => IntegrationLog::DIRECTION_OUTBOUND,
+            'provider' => 'midtrans',
+            'type' => IntegrationLog::TYPE_API,
+            'method' => 'GET',
+            'url' => $this->apiBaseUrl().'/v2/'.$transactionId.'/status',
+            'endpoint' => 'Transaction::status',
+            'request_body' => ['order_id' => $transactionId],
+            'subject' => Transaction::query()->where('uuid', $transactionId)->first(),
+        ]);
+
         try {
             $result = \Midtrans\Transaction::status($transactionId);
+
+            $logger->finish($integrationLog, [
+                'status' => IntegrationLog::STATUS_SUCCESS,
+                'status_code' => 200,
+                'response_body' => $this->resultToArray($result),
+            ]);
 
             return new PaymentStatus(
                 status: $this->mapStatus($result->transaction_status ?? 'unknown'),
@@ -260,6 +302,8 @@ class MidtransGateway implements PaymentGatewayInterface
             );
         } catch (\Exception $e) {
             $status = (int) $e->getCode() === 404 ? 'not_found' : 'unknown';
+
+            $logger->fail($integrationLog, $e, $status === 'not_found' ? 404 : null);
 
             Log::{$status === 'not_found' ? 'warning' : 'error'}('Midtrans status check failed', [
                 'transaction_id' => $transactionId,
@@ -286,7 +330,7 @@ class MidtransGateway implements PaymentGatewayInterface
             $grossAmount = $payload['gross_amount'] ?? null;
             $signatureKey = $payload['signature_key'] ?? null;
 
-            if (!$transactionId || !$status) {
+            if (! $transactionId || ! $status) {
                 return new WebhookResult(
                     success: false,
                     action: WebhookResult::ACTION_IGNORE,
@@ -298,9 +342,9 @@ class MidtransGateway implements PaymentGatewayInterface
             $serverKey = $creds['server_key'] ?? '';
 
             // Midtrans signature: SHA512(order_id + status_code + gross_amount + server_key)
-            $signature = hash('sha512', $transactionId . $statusCode . $grossAmount . $serverKey);
+            $signature = hash('sha512', $transactionId.$statusCode.$grossAmount.$serverKey);
 
-            if (!$signatureKey || !hash_equals($signature, (string) $signatureKey)) {
+            if (! $signatureKey || ! hash_equals($signature, (string) $signatureKey)) {
                 Log::warning('Midtrans webhook signature mismatch', [
                     'transaction_id' => $transactionId,
                 ]);
@@ -348,5 +392,28 @@ class MidtransGateway implements PaymentGatewayInterface
             'cancel' => 'cancelled',
             default => 'unknown',
         };
+    }
+
+    private function snapBaseUrl(): string
+    {
+        return Config::$isProduction
+            ? 'https://app.midtrans.com'
+            : 'https://app.sandbox.midtrans.com';
+    }
+
+    private function apiBaseUrl(): string
+    {
+        return Config::$isProduction
+            ? 'https://api.midtrans.com'
+            : 'https://api.sandbox.midtrans.com';
+    }
+
+    private function resultToArray(mixed $result): array
+    {
+        if (is_array($result)) {
+            return $result;
+        }
+
+        return json_decode((string) json_encode($result), true) ?: [];
     }
 }
