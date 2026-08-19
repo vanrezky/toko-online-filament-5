@@ -21,6 +21,7 @@ class ShieldSeeder extends Seeder
         Utils::getPermissionModel()::findOrCreate('View:QueueMonitor', 'web');
         Utils::getPermissionModel()::findOrCreate('View:SystemHealth', 'web');
         Utils::getPermissionModel()::findOrCreate('View:AuditLogs', 'web');
+        Utils::getPermissionModel()::findOrCreate('View:IntegrationLogs', 'web');
 
         $this->command->info('Shield Seeding Completed.');
     }

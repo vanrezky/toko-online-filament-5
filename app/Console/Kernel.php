@@ -34,6 +34,11 @@ class Kernel extends ConsoleKernel
             ->onOneServer()
             ->withoutOverlapping()
             ->when(fn (): bool => (bool) config('activitylog.pruning_enabled'));
+
+        $schedule->command('integration-logs:prune')
+            ->dailyAt('02:30')
+            ->onOneServer()
+            ->withoutOverlapping();
     }
 
     protected function commands(): void

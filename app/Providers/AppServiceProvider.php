@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\SchoolUnit;
 use App\Models\Transaction;
 use App\Modules\Platform\Health\Checks\ApplicationHealthCheck;
+use App\Modules\Platform\Integration\Support\IntegrationCorrelationContext;
 use App\Observers\CustomerObserver;
 use App\Observers\SchoolUnitObserver;
 use App\Observers\TransactionObserver;
@@ -23,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->scoped(IntegrationCorrelationContext::class);
     }
 
     public function boot(): void
