@@ -1,23 +1,4 @@
-## Purpose
-
-Persist the active execution correlation ID on integration logs by default so calls to external services can be traced from the originating execution through the logged exchange, while still honoring explicit caller-provided values.
-
-## Requirements
-
-### Requirement: Integration logs inherit the active correlation ID
-The system SHALL persist the active execution correlation ID on integration logs by default. Callers SHALL NOT be required to pass a correlation ID explicitly; an explicit caller-provided value SHALL still take precedence.
-
-#### Scenario: Log created under an active correlation context
-- **WHEN** an integration log is created while a correlation ID is active in the execution context
-- **THEN** the persisted log SHALL use that correlation ID
-
-#### Scenario: Explicit correlation ID overrides context
-- **WHEN** an integration log is created with an explicit correlation ID
-- **THEN** the persisted log SHALL use the explicit value
-
-#### Scenario: No active context falls back to a generated ID
-- **WHEN** an integration log is created with no explicit correlation ID and no active context
-- **THEN** the system SHALL generate a new correlation ID and persist it
+## ADDED Requirements
 
 ### Requirement: Record outbound Midtrans payment gateway calls
 The system SHALL record outbound Midtrans SDK calls for payment creation and transaction status checks as outbound API integration logs. Each log SHALL carry the provider `midtrans`, the direction `outbound`, the API type, a sanitized request body, the SDK result as the response body, an HTTP-independent status outcome, and the `Transaction` subject when one is available. Business behavior SHALL be preserved: the same return values and failure responses are produced as today.
