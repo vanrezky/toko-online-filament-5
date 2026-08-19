@@ -13,6 +13,7 @@ return [
         'processed' => 'Diproses',
         'queues' => 'Queue Aktif',
         'workload' => 'Workload Queue',
+        'recent_failed' => 'Job Gagal Terbaru',
     ],
     'status' => [
         'running' => 'Berjalan',
@@ -24,6 +25,7 @@ return [
         'unavailable' => 'Tidak tersedia',
         'no_queues' => 'Tidak ada queue aktif',
         'no_workload' => 'Tidak ada workload',
+        'no_failed' => 'Tidak ada job gagal',
     ],
     'workload' => [
         'queue' => 'Queue',
@@ -31,5 +33,10 @@ return [
         'wait' => 'Waktu tunggu',
         'processes' => 'Proses',
         'seconds' => ':count detik|:count detik',
+    ],
+    'recent_failed' => [
+        'job' => 'Job',
+        'correlation_id' => 'Correlation ID',
+        'failed_at' => 'Gagal pada',
     ],
 ];

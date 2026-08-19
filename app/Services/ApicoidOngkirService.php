@@ -44,7 +44,8 @@ class ApicoidOngkirService
         ]);
 
         try {
-            $response = Http::withHeaders($headers)
+            $response = Http::withCorrelation()
+                ->withHeaders($headers)
                 ->withQueryParameters($query)
                 ->get($url);
 

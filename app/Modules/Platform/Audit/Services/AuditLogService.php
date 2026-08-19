@@ -2,6 +2,7 @@
 
 namespace App\Modules\Platform\Audit\Services;
 
+use App\Modules\Platform\Support\Correlation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -20,6 +21,7 @@ final class AuditLogService
         $request = app(Request::class);
 
         return array_filter([
+            'correlation_id' => Correlation::get(),
             'ip' => $request->ip(),
             'method' => $request->method(),
             'url' => Str::limit($request->fullUrl(), 500, ''),

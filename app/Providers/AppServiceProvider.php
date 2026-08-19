@@ -7,10 +7,13 @@ use App\Models\SchoolUnit;
 use App\Models\Transaction;
 use App\Modules\Platform\Health\Checks\ApplicationHealthCheck;
 use App\Modules\Platform\Integration\Support\IntegrationCorrelationContext;
+use App\Modules\Platform\Support\Correlation;
 use App\Observers\CustomerObserver;
 use App\Observers\SchoolUnitObserver;
 use App\Observers\TransactionObserver;
 use App\Overrides\Superconductor\LaravelVibes\Mcp\Capabilities\Prompts\ReadLogPrompt;
+use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Health\Checks\Checks\DatabaseCheck;
@@ -65,5 +68,37 @@ class AppServiceProvider extends ServiceProvider
             }
             MCP::prompt('read-logs', ReadLogPrompt::class);
         }
+
+        $this->assignConsoleCorrelationIds();
+        $this->registerHttpCorrelationMacro();
+    }
+
+    /** @var array<int, string> Long-running queue worker commands that must not anchor a console correlation ID. */
+    private const QUEUE_WORKER_COMMANDS = [
+        'queue:work',
+        'queue:listen',
+        'horizon',
+        'horizon:supervisor',
+        'horizon:work',
+        'horizon:listen',
+    ];
+
+    private function assignConsoleCorrelationIds(): void
+    {
+        $this->app['events']->listen(CommandStarting::class, static function (CommandStarting $event): void {
+            if (in_array($event->command, self::QUEUE_WORKER_COMMANDS, true)) {
+                return;
+            }
+
+            Correlation::id();
+        });
+    }
+
+    private function registerHttpCorrelationMacro(): void
+    {
+        PendingRequest::macro('withCorrelation', function (): PendingRequest {
+            /** @var PendingRequest $this */
+            return $this->withHeaders(Correlation::headers());
+        });
     }
 }
