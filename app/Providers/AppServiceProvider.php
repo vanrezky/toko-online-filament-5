@@ -40,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
                 ->label('Redis'),
             QueueCheck::new()
                 ->onQueue(env('HEALTH_QUEUE_NAME', config('queue.connections.redis.queue', 'default')))
-                ->failWhenTestJobTakesLongerThanMinutes((int) env('HEALTH_QUEUE_FAILURE_MINUTES', 5))
+                ->failWhenHealthJobTakesLongerThanMinutes((int) env('HEALTH_QUEUE_FAILURE_MINUTES', 5))
                 ->name('queue')
                 ->label('Queue'),
             UsedDiskSpaceCheck::new()
