@@ -5,7 +5,9 @@ namespace Tests\Feature\Platform\Audit;
 use App\Models\Product;
 use App\Models\User;
 use App\Modules\Platform\Audit\Services\AuditLogService;
+use App\Modules\Platform\Support\Correlation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
 
@@ -76,5 +78,23 @@ class AuditLoggingTest extends TestCase
         $this->assertSame($initialCount + 1, Activity::query()->count());
         $this->assertSame('business', $activities->first()->event);
         $this->assertSame('product stock corrected', $activities->first()->description);
+    }
+
+    public function test_console_execution_business_activity_records_the_active_correlation_id(): void
+    {
+        $correlationId = (string) Str::uuid();
+        Correlation::set($correlationId);
+        $product = Product::factory()->create();
+
+        app(AuditLogService::class)->logBusinessAction(
+            'order expired and cancelled',
+            $product,
+            ['status' => 'packed'],
+            ['status' => 'cancelled'],
+        );
+
+        $activity = Activity::query()->latest('id')->firstOrFail();
+
+        $this->assertSame($correlationId, $activity->properties->get('context')['correlation_id'] ?? null);
     }
 }

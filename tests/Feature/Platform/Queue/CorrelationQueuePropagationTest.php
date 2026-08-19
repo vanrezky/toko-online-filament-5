@@ -4,7 +4,10 @@ namespace Tests\Feature\Platform\Queue;
 
 use App\Modules\Platform\Support\Correlation;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Support\Facades\Context;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -37,6 +40,38 @@ class CorrelationQueuePropagationTest extends TestCase
 
         CorrelationCaptureJob::dispatch();
         CorrelationCaptureJob::dispatch();
+
+        $this->assertSame([$correlationId, $correlationId], CorrelationCaptureJob::$captured);
+    }
+
+    public function test_replaying_the_same_job_payload_across_attempts_restores_the_same_correlation_id(): void
+    {
+        $correlationId = (string) Str::uuid();
+        Correlation::set($correlationId);
+
+        $rawPayload = null;
+        Event::listen(JobProcessing::class, function (JobProcessing $event) use (&$rawPayload): void {
+            $rawPayload = $event->job->getRawBody();
+        });
+
+        CorrelationCaptureJob::dispatch();
+        CorrelationCaptureJob::$captured = [];
+
+        $this->assertNotNull($rawPayload);
+        $this->assertSame(
+            $correlationId,
+            unserialize(data_get(json_decode($rawPayload, true), 'illuminate:log:context.data.correlation_id')),
+        );
+
+        foreach ([1, 2] as $attempt) {
+            Correlation::reset();
+
+            $job = new SyncJob($this->app, $rawPayload, 'sync', 'default');
+            event(new JobProcessing('sync', $job));
+            $job->fire();
+
+            $this->assertSame($correlationId, Correlation::get());
+        }
 
         $this->assertSame([$correlationId, $correlationId], CorrelationCaptureJob::$captured);
     }
