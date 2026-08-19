@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Modules\Platform\Audit\Concerns\HasPlatformAuditMetadata;
+use App\Services\FlashsalePricingService;
+use App\Services\ProductStatsService;
 use App\Traits\HasMeta;
 use App\Traits\HasUuidTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -10,7 +13,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
-use App\Services\ProductStatsService;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -18,37 +22,51 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Product extends Model implements HasMedia
 {
-    use HasFactory, HasUuidTrait, HasMeta, InteractsWithMedia;
+    use HasFactory, HasMeta, HasPlatformAuditMetadata, HasUuidTrait, InteractsWithMedia, LogsActivity;
 
     protected $fillable = ['name', 'slug', 'warehouse_id', 'category_id', 'digital', 'digital_url', 'description', 'code', 'weight', 'stock', 'price', 'sale_price', 'afiliate_price', 'min_order', 'variant', 'sub_variant', 'user_id', 'security_stock', 'fake_sold_count'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('platform')
+            ->logOnly([
+                'name', 'code', 'category_id', 'warehouse_id', 'digital', 'stock',
+                'security_stock', 'weight', 'price', 'sale_price', 'afiliate_price',
+                'min_order', 'variant', 'sub_variant', 'is_active',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $event): string => "product {$event}");
+    }
 
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($product) {
-            if (empty($product->slug) && !empty($product->name)) {
+            if (empty($product->slug) && ! empty($product->name)) {
                 $product->slug = Str::slug($product->name);
-                
+
                 // Ensure slug is unique
                 $originalSlug = $product->slug;
                 $counter = 1;
                 while (static::where('slug', $product->slug)->exists()) {
-                    $product->slug = $originalSlug . '-' . $counter;
+                    $product->slug = $originalSlug.'-'.$counter;
                     $counter++;
                 }
             }
         });
 
         static::updating(function ($product) {
-            if (empty($product->slug) && !empty($product->name)) {
+            if (empty($product->slug) && ! empty($product->name)) {
                 $product->slug = Str::slug($product->name);
-                
+
                 // Ensure slug is unique (excluding current record)
                 $originalSlug = $product->slug;
                 $counter = 1;
                 while (static::where('slug', $product->slug)->where('id', '!=', $product->id)->exists()) {
-                    $product->slug = $originalSlug . '-' . $counter;
+                    $product->slug = $originalSlug.'-'.$counter;
                     $counter++;
                 }
             }
@@ -72,25 +90,26 @@ class Product extends Model implements HasMedia
     protected function priceCurrency(): Attribute
     {
         return Attribute::make(
-            get: fn(mixed $value, array $attributes) =>  toMoney($attributes['price']),
+            get: fn (mixed $value, array $attributes) => toMoney($attributes['price']),
         );
     }
+
     protected function salePriceCurrency(): Attribute
     {
         return Attribute::make(
-            get: fn(mixed $value, array $attributes) => toMoney($attributes['sale_price']),
+            get: fn (mixed $value, array $attributes) => toMoney($attributes['sale_price']),
         );
     }
 
     protected function savePriceCurrency(): Attribute
     {
         return Attribute::make(
-            get: function (mixed $value,  array $attributes) {
-                if (!empty($attributes['sale_price']) && $attributes['sale_price'] > $attributes['price']) {
+            get: function (mixed $value, array $attributes) {
+                if (! empty($attributes['sale_price']) && $attributes['sale_price'] > $attributes['price']) {
                     $savePrice = $attributes['sale_price'] - $attributes['price'];
+
                     return toMoney($savePrice);
                 }
-
 
                 return null;
             },
@@ -99,7 +118,7 @@ class Product extends Model implements HasMedia
 
     protected function discountPercentace(): Attribute
     {
-        return Attribute::make(get: fn(mixed $value, array $attributes) => round(($attributes['sale_price'] - $attributes['price']) / $attributes['sale_price'] * 100));
+        return Attribute::make(get: fn (mixed $value, array $attributes) => round(($attributes['sale_price'] - $attributes['price']) / $attributes['sale_price'] * 100));
     }
 
     public function category(): BelongsTo
@@ -169,9 +188,10 @@ class Product extends Model implements HasMedia
     {
         return $this->hasMany(ProductAttribute::class);
     }
+
     public function calculatePrice(int $quantity, ?ProductVariant $variant = null): array
     {
-        return app(\App\Services\FlashsalePricingService::class)
+        return app(FlashsalePricingService::class)
             ->resolve($this, $variant, $quantity);
     }
 }

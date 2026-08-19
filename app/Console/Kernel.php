@@ -28,6 +28,12 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes()
             ->onOneServer()
             ->withoutOverlapping();
+
+        $schedule->command('activitylog:clean --force')
+            ->dailyAt('02:15')
+            ->onOneServer()
+            ->withoutOverlapping()
+            ->when(fn (): bool => (bool) config('activitylog.pruning_enabled'));
     }
 
     protected function commands(): void
