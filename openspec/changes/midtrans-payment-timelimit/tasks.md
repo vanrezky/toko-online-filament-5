@@ -24,3 +24,4 @@
 - [ ] 4.2 Add or update frontend tests for timezone payload and deadline/countdown rendering.
 - [x] 4.3 Run focused PHP/frontend tests, build, strict OpenSpec validation, and scoped diff checks.
 - [ ] 4.4 Document Redis queue/scheduler and Midtrans sandbox testing requirements for operational rollout.
+- [x] 4.5 Classify Midtrans status HTTP 404 as an absent provider transaction, cancel the eligible expired local transaction, and add regression coverage while retaining retry behavior for unknown provider failures.

@@ -259,13 +259,16 @@ class MidtransGateway implements PaymentGatewayInterface
                 errorMessage: null
             );
         } catch (\Exception $e) {
-            Log::error('Midtrans status check failed', [
+            $status = (int) $e->getCode() === 404 ? 'not_found' : 'unknown';
+
+            Log::{$status === 'not_found' ? 'warning' : 'error'}('Midtrans status check failed', [
                 'transaction_id' => $transactionId,
                 'error' => $e->getMessage(),
+                'status' => $status,
             ]);
 
             return new PaymentStatus(
-                status: 'unknown',
+                status: $status,
                 transactionId: $transactionId,
                 amount: null,
                 currency: null,
