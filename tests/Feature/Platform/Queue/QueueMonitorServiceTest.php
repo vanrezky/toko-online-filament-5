@@ -18,6 +18,7 @@ class QueueMonitorServiceTest extends TestCase
         $jobs->shouldReceive('countPending')->once()->andReturn(12);
         $jobs->shouldReceive('countFailed')->once()->andReturn(2);
         $jobs->shouldReceive('countCompleted')->once()->andReturn(8291);
+        $jobs->shouldReceive('getFailed')->once()->andReturn(collect());
 
         $masters = Mockery::mock(MasterSupervisorRepository::class);
         $masters->shouldReceive('all')->once()->andReturn([(object) ['status' => 'running']]);
@@ -44,6 +45,7 @@ class QueueMonitorServiceTest extends TestCase
         $jobs->shouldReceive('countPending')->once()->andReturn(0);
         $jobs->shouldReceive('countFailed')->once()->andReturn(0);
         $jobs->shouldReceive('countCompleted')->once()->andReturn(0);
+        $jobs->shouldReceive('getFailed')->once()->andReturn(collect());
 
         $masters = Mockery::mock(MasterSupervisorRepository::class);
         $masters->shouldReceive('all')->once()->andReturn([]);
@@ -73,5 +75,40 @@ class QueueMonitorServiceTest extends TestCase
         $this->assertSame(0, $snapshot->failedJobs);
         $this->assertNull($snapshot->processedJobs);
         $this->assertSame([], $snapshot->workload);
+    }
+
+    public function test_it_extracts_correlation_ids_from_recent_failed_job_payloads(): void
+    {
+        $jobs = Mockery::mock(JobRepository::class);
+        $jobs->shouldReceive('countPending')->once()->andReturn(0);
+        $jobs->shouldReceive('countFailed')->once()->andReturn(1);
+        $jobs->shouldReceive('countCompleted')->once()->andReturn(0);
+        $jobs->shouldReceive('getFailed')->once()->andReturn(collect([
+            (object) [
+                'id' => 'job-1',
+                'name' => 'App\Jobs\ExampleJob',
+                'failed_at' => '2026-08-20 01:00:00',
+                'payload' => json_encode(['displayName' => 'App\Jobs\ExampleJob', 'illuminate:log:context' => ['correlation_id' => 'trace-abc']]),
+            ],
+            (object) [
+                'id' => 'job-2',
+                'name' => 'App\Jobs\ExampleJob',
+                'failed_at' => '2026-08-20 01:01:00',
+                'payload' => null,
+            ],
+        ]));
+
+        $masters = Mockery::mock(MasterSupervisorRepository::class);
+        $masters->shouldReceive('all')->once()->andReturn([(object) ['status' => 'running']]);
+
+        $workloads = Mockery::mock(WorkloadRepository::class);
+        $workloads->shouldReceive('get')->once()->andReturn([]);
+
+        $snapshot = (new QueueMonitorService($jobs, $masters, $workloads))->snapshot();
+
+        $this->assertCount(2, $snapshot->recentFailedJobs);
+        $this->assertSame('job-2', $snapshot->recentFailedJobs[0]['id']);
+        $this->assertNull($snapshot->recentFailedJobs[0]['correlation_id']);
+        $this->assertSame('trace-abc', $snapshot->recentFailedJobs[1]['correlation_id']);
     }
 }

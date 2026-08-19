@@ -69,4 +69,36 @@
             </div>
         @endif
     </x-filament::section>
+<x-filament::section :heading="__('admin/queue-monitor-page.cards.recent_failed')">
+        @if ($snapshot->recentFailedJobs === [])
+            <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('admin/queue-monitor-page.value.no_failed') }}</p>
+        @else
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="text-gray-500 dark:text-gray-400">
+                        <tr>
+                            <th class="pb-3 pr-4 font-medium">{{ __('admin/queue-monitor-page.recent_failed.job') }}</th>
+                            <th class="pb-3 pr-4 font-medium">{{ __('admin/queue-monitor-page.recent_failed.correlation_id') }}</th>
+                            <th class="pb-3 font-medium">{{ __('admin/queue-monitor-page.recent_failed.failed_at') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($snapshot->recentFailedJobs as $job)
+                            <tr class="border-t border-gray-200 dark:border-white/10">
+                                <td class="py-3 pr-4 font-mono text-xs">{{ $job['name'] }}</td>
+                                <td class="py-3 pr-4 font-mono text-xs">
+                                    @if ($job['correlation_id'])
+                                        {{ $job['correlation_id'] }}
+                                    @else
+                                        <span class="text-gray-400">—</span>
+                                    @endif
+                                </td>
+                                <td class="py-3">{{ $job['failed_at'] }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </x-filament::section>
 </x-filament-panels::page>

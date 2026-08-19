@@ -38,10 +38,31 @@ final class QueueMonitorService
                 processedJobs: $this->jobs->countCompleted(),
                 queues: collect($workload)->pluck('name')->filter()->values()->all(),
                 workload: $workload,
+                recentFailedJobs: $this->recentFailedJobs(),
             );
         } catch (Throwable) {
             return QueueMonitorSnapshot::unavailable();
         }
+    }
+
+    /** @return array<int, array{id: string, name: string, failed_at: mixed, correlation_id: string|null}> */
+    private function recentFailedJobs(): array
+    {
+        return $this->jobs->getFailed()
+            ->sortByDesc('failed_at')
+            ->take(10)
+            ->map(function (object $job): array {
+                $payload = json_decode((string) ($job->payload ?? '[]'), true);
+
+                return [
+                    'id' => (string) ($job->id ?? ''),
+                    'name' => (string) ($job->name ?? ''),
+                    'failed_at' => $job->failed_at ?? null,
+                    'correlation_id' => data_get($payload, 'illuminate:log:context.correlation_id'),
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     /**

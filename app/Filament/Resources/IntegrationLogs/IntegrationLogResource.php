@@ -112,6 +112,10 @@ class IntegrationLogResource extends Resource
                 TextColumn::make('duration_ms')
                     ->label(__('admin/integration-log-resource.columns.duration'))
                     ->formatStateUsing(fn (?int $state): string => $state === null ? '—' : ($state >= 1000 ? number_format($state / 1000, 2).'s' : $state.'ms')),
+                TextColumn::make('correlation_id')
+                    ->label(__('admin/integration-log-resource.columns.correlation_id'))
+                    ->placeholder('—')
+                    ->toggleable(),
                 TextColumn::make('subject_id')
                     ->label(__('admin/integration-log-resource.columns.subject'))
                     ->getStateUsing(fn (IntegrationLog $record): string => static::subjectLabel($record)),

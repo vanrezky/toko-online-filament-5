@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Modules\Platform\Audit\Services\AuditLogService;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
@@ -158,6 +159,15 @@ class AuditLogResource extends Resource
                     ->query(fn (Builder $query, array $data): Builder => $query
                         ->when($data['from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '>=', $date))
                         ->when($data['until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '<=', $date))),
+                Filter::make('correlation_id')
+                    ->schema([
+                        TextInput::make('correlation_id')
+                            ->label(__('admin/audit-log-resource.filters.correlation_id')),
+                    ])
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        filled($data['correlation_id'] ?? null),
+                        fn (Builder $query, string $value): Builder => $query->where('properties->context->correlation_id', 'like', "%{$value}%"),
+                    )),
             ]);
     }
 
@@ -178,6 +188,7 @@ class AuditLogResource extends Resource
                 ])->columns(2),
             Section::make(__('admin/audit-log-resource.sections.metadata'))
                 ->schema([
+                    TextEntry::make('metadata.correlation_id')->label(__('admin/audit-log-resource.entries.correlation_id'))->getStateUsing(fn (Activity $record): string => (string) data_get($record->properties?->all(), 'context.correlation_id', '—')),
                     TextEntry::make('metadata.ip')->label(__('admin/audit-log-resource.entries.ip'))->getStateUsing(fn (Activity $record): string => (string) data_get($record->properties?->all(), 'context.ip', '—')),
                     TextEntry::make('metadata.method')->label(__('admin/audit-log-resource.entries.method'))->getStateUsing(fn (Activity $record): string => (string) data_get($record->properties?->all(), 'context.method', '—')),
                     TextEntry::make('metadata.url')->label(__('admin/audit-log-resource.entries.url'))->getStateUsing(fn (Activity $record): string => (string) data_get($record->properties?->all(), 'context.url', '—'))->columnSpanFull(),

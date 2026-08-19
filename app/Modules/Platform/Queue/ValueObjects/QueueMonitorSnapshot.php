@@ -7,6 +7,7 @@ final readonly class QueueMonitorSnapshot
     /**
      * @param  array<int, string>  $queues
      * @param  array<int, array{name: string, length: int, wait: int, processes: int}>  $workload
+     * @param  array<int, array{id: string, name: string, failed_at: mixed, correlation_id: string|null}>  $recentFailedJobs
      */
     public function __construct(
         public string $status,
@@ -15,6 +16,7 @@ final readonly class QueueMonitorSnapshot
         public ?int $processedJobs,
         public array $queues,
         public array $workload,
+        public array $recentFailedJobs = [],
     ) {}
 
     public static function unavailable(): self
@@ -26,6 +28,7 @@ final readonly class QueueMonitorSnapshot
             processedJobs: null,
             queues: [],
             workload: [],
+            recentFailedJobs: [],
         );
     }
 

@@ -11,6 +11,7 @@ return [
         'processed' => 'Processed',
         'queues' => 'Active Queues',
         'workload' => 'Queue Workload',
+        'recent_failed' => 'Recent Failed Jobs',
     ],
     'status' => [
         'running' => 'Running',
@@ -22,6 +23,7 @@ return [
         'unavailable' => 'Unavailable',
         'no_queues' => 'No active queues',
         'no_workload' => 'No workload',
+        'no_failed' => 'No failed jobs',
     ],
     'workload' => [
         'queue' => 'Queue',
@@ -29,5 +31,10 @@ return [
         'wait' => 'Wait time',
         'processes' => 'Processes',
         'seconds' => ':count second|:count seconds',
+    ],
+    'recent_failed' => [
+        'job' => 'Job',
+        'correlation_id' => 'Correlation ID',
+        'failed_at' => 'Failed At',
     ],
 ];
