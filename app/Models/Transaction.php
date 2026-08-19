@@ -2,25 +2,27 @@
 
 namespace App\Models;
 
-use App\Enums\TransactionStatus;
-use App\Enums\TransactionBillingStatus;
 use App\Enums\EmailTemplateCode;
+use App\Enums\TransactionBillingStatus;
+use App\Enums\TransactionStatus;
+use App\Modules\Platform\Audit\Concerns\HasPlatformAuditMetadata;
 use App\Services\CodeGeneratorService;
 use App\Services\EmailTemplateService;
 use App\Services\ProductStatsService;
 use App\Settings\GeneralSettings;
 use App\Traits\HasUuidTrait;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Transaction extends Model
 {
-    use HasFactory, HasUuidTrait;
+    use HasFactory, HasPlatformAuditMetadata, HasUuidTrait, LogsActivity;
 
     protected $fillable = [
         'customer_id',
@@ -54,6 +56,19 @@ class Transaction extends Model
         'complete_date' => 'datetime',
         'status' => TransactionStatus::class,
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('platform')
+            ->logOnly([
+                'payment_type', 'payment_method', 'billing_status', 'status', 'receipt_code',
+                'delivery_date', 'complete_date', 'request_cancellation', 'shipping_cost', 'cod', 'cod_fee',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $event): string => "transaction {$event}");
+    }
 
     protected static function booted(): void
     {
@@ -100,7 +115,7 @@ class Transaction extends Model
                 code: EmailTemplateCode::ORDER_STATUS_CHANGED->value,
                 email: $customer->email,
                 placeholders: [
-                    'customer_name' => $customer->full_name ?? trim((string) $customer->first_name . ' ' . (string) $customer->last_name),
+                    'customer_name' => $customer->full_name ?? trim((string) $customer->first_name.' '.(string) $customer->last_name),
                     'order_id' => $transaction->code ?? $transaction->uuid,
                     'old_status' => (string) ($oldStatusEnum?->getLabel() ?? $oldStatusRaw ?? '-'),
                     'new_status' => (string) ($newStatusEnum?->getLabel() ?? $newStatusRaw ?? '-'),

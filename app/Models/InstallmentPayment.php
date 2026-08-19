@@ -4,14 +4,17 @@ namespace App\Models;
 
 use App\Enums\InstallmentPaymentStatus;
 use App\Enums\InstallmentStatus;
+use App\Modules\Platform\Audit\Concerns\HasPlatformAuditMetadata;
 use App\Services\CodeGeneratorService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class InstallmentPayment extends Model
 {
-    use HasFactory;
+    use HasFactory, HasPlatformAuditMetadata, LogsActivity;
 
     protected $fillable = [
         'code',
@@ -41,6 +44,20 @@ class InstallmentPayment extends Model
         'submitted_at' => 'datetime',
         'confirmed_at' => 'datetime',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('platform')
+            ->logOnly([
+                'installment_id', 'installment_number', 'amount', 'due_date', 'billing_month',
+                'paid_amount', 'paid_date', 'payment_method', 'collection_method', 'payroll_status',
+                'submitted_at', 'confirmed_at', 'status',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $event): string => "installment payment {$event}");
+    }
 
     protected static function booted(): void
     {
@@ -74,7 +91,7 @@ class InstallmentPayment extends Model
         return $query->where('status', InstallmentPaymentStatus::overdue->value)
             ->orWhere(function ($q) {
                 $q->where('status', InstallmentPaymentStatus::unpaid->value)
-                  ->where('due_date', '<', now());
+                    ->where('due_date', '<', now());
             });
     }
 
