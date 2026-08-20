@@ -25,14 +25,24 @@ class CorrelationAuditMetadataTest extends TestCase
         $this->assertArrayHasKey('ip', $metadata);
     }
 
-    public function test_request_metadata_is_empty_in_console_context(): void
+    public function test_request_metadata_is_empty_in_console_context_without_correlation(): void
     {
-        Correlation::set((string) Str::uuid());
         $this->forceRunningInConsole(true);
 
         $metadata = app(AuditLogService::class)->requestMetadata();
 
         $this->assertSame([], $metadata);
+    }
+
+    public function test_request_metadata_keeps_the_correlation_id_in_console_context(): void
+    {
+        $correlationId = (string) Str::uuid();
+        Correlation::set($correlationId);
+        $this->forceRunningInConsole(true);
+
+        $metadata = app(AuditLogService::class)->requestMetadata();
+
+        $this->assertSame(['correlation_id' => $correlationId], $metadata);
     }
 
     private function forceRunningInConsole(bool $value): void

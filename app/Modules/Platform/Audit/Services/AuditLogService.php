@@ -14,14 +14,18 @@ final class AuditLogService
     /** @return array<string, string> */
     public function requestMetadata(): array
     {
+        // The correlation ID is execution-scoped, so it stays available to
+        // console and queue executions as well as HTTP requests.
+        $metadata = ['correlation_id' => Correlation::get()];
+
         if (app()->runningInConsole() || ! app()->bound('request')) {
-            return [];
+            return array_filter($metadata, fn (?string $value): bool => filled($value));
         }
 
         $request = app(Request::class);
 
         return array_filter([
-            'correlation_id' => Correlation::get(),
+            ...$metadata,
             'ip' => $request->ip(),
             'method' => $request->method(),
             'url' => Str::limit($request->fullUrl(), 500, ''),
