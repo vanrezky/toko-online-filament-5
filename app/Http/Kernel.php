@@ -10,6 +10,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\RedirectIfAuthenticatedCustomer;
+use App\Http\Middleware\TracingMiddleware;
 use App\Http\Middleware\TrimStrings;
 use App\Http\Middleware\TrustProxies;
 use App\Http\Middleware\ValidateSignature;
@@ -46,6 +47,7 @@ class Kernel extends HttpKernel
         TrustProxies::class,
         HandleCors::class,
         CorrelationIdMiddleware::class,
+        TracingMiddleware::class,
         PreventRequestsDuringMaintenance::class,
         ValidatePostSize::class,
         TrimStrings::class,
