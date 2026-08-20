@@ -8,6 +8,7 @@ use App\Providers\HelperServiceProvider;
 use App\Providers\HorizonServiceProvider;
 use App\Providers\RouteServiceProvider;
 use App\Providers\TemplateServiceProvider;
+use App\Providers\TracingServiceProvider;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
 
@@ -180,6 +181,7 @@ return [
         RouteServiceProvider::class,
         HelperServiceProvider::class,
         TemplateServiceProvider::class,
+        TracingServiceProvider::class,
     ])->toArray(),
 
     /*
