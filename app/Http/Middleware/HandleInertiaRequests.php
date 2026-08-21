@@ -9,20 +9,18 @@ use App\Models\CartItem;
 use App\Models\Category;
 use App\Models\Page;
 use App\Models\Wishlist;
+use App\Services\CacheService;
 use App\Services\TemplateService;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Inertia\Middleware;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
     protected $rootView = 'frontend';
 
-    public function __construct(private readonly TemplateService $templateService)
-    {
-    }
+    public function __construct(private readonly TemplateService $templateService) {}
 
     public function version(Request $request): ?string
     {
@@ -32,9 +30,10 @@ class HandleInertiaRequests extends Middleware
     protected function isFrontendRequest(Request $request): bool
     {
         $path = $request->path();
-        return !str_starts_with($path, 'admin') 
-            && !str_starts_with($path, 'filament')
-            && !str_starts_with($path, '_debugbar');
+
+        return ! str_starts_with($path, 'admin')
+            && ! str_starts_with($path, 'filament')
+            && ! str_starts_with($path, '_debugbar');
     }
 
     public function share(Request $request): array
@@ -44,6 +43,7 @@ class HandleInertiaRequests extends Middleware
         $shared = [
             'settings' => function () {
                 $settings = app(GeneralSettings::class);
+
                 return [
                     'logo' => $settings->getLogo() ?? '',
                     'favicon' => $settings->getFavicon() ?? '',
@@ -65,7 +65,7 @@ class HandleInertiaRequests extends Middleware
             ],
         ];
 
-        if (!$isFrontend) {
+        if (! $isFrontend) {
             return array_merge(parent::share($request), $shared);
         }
 
@@ -81,27 +81,29 @@ class HandleInertiaRequests extends Middleware
                         ->pluck('product.uuid')
                         ->toArray();
                 }
+
                 return [];
             },
             'cart_total' => function () {
                 if (Auth::guard('customer')->check()) {
-                    return CartItem::with('cart[id,customer_id,status]')->whereHas('cart', fn($Q) => $Q->where(
+                    return CartItem::with('cart[id,customer_id,status]')->whereHas('cart', fn ($Q) => $Q->where(
                         [
                             'customer_id' => Auth::guard('customer')->id(),
-                            'status' => CartStatus::Active
+                            'status' => CartStatus::Active,
                         ]
                     ))->count();
                 }
+
                 return 0;
             },
             'menu' => function () {
-                return Cache::remember('frontend_menu', 3600, function () {
+                return CacheService::rememberManaged('frontend', 'frontend_menu', 3600, function () {
                     return [
-                        'header' => Page::headerMenu()->get()->map(fn($page) => [
+                        'header' => Page::headerMenu()->get()->map(fn ($page) => [
                             'name' => $page->title,
                             'href' => route('frontend.page.show', $page->slug),
                         ]),
-                        'footer' => Page::footerMenu()->get()->map(fn($page) => [
+                        'footer' => Page::footerMenu()->get()->map(fn ($page) => [
                             'name' => $page->title,
                             'href' => route('frontend.page.show', $page->slug),
                         ]),
@@ -109,7 +111,7 @@ class HandleInertiaRequests extends Middleware
                 });
             },
             'categories' => function () {
-                return Cache::remember('frontend_categories', 3600, function () {
+                return CacheService::rememberManaged('frontend', 'frontend_categories', 3600, function () {
                     return CategoryResource::collection(
                         Category::homepage()->with('media')->get()
                     );

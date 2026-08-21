@@ -54,6 +54,23 @@ final class AuditLogService
         return $logger->log($description);
     }
 
+    /** @param array<string, mixed> $attributes */
+    public function logOperationalAction(string $description, array $attributes = []): Activity
+    {
+        $logger = activity('platform')
+            ->event('operational')
+            ->withProperties([
+                'attributes' => $attributes,
+                'context' => $this->requestMetadata(),
+            ]);
+
+        if ($actor = auth()->user()) {
+            $logger->causedBy($actor);
+        }
+
+        return $logger->log($description);
+    }
+
     public function actorLabel(Activity $activity): string
     {
         return (string) ($activity->causer?->name ?? $activity->causer?->email ?? __('admin/audit-log-resource.system'));

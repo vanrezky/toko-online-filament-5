@@ -2,167 +2,111 @@
 
 namespace App\Services;
 
-use Throwable;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Str;
 
-class CacheService
+final class CacheService
 {
+    /** @var array<string, string> */
+    private const MANAGED_GROUPS = [
+        'navigation' => 'Navigation',
+        'dashboard' => 'Dashboard',
+        'template' => 'Template',
+        'regional' => 'Regional',
+        'voucher' => 'Voucher',
+        'product-stats' => 'Product statistics',
+        'frontend' => 'Frontend content',
+        'shipping' => 'Shipping',
+    ];
 
-    protected static $redisAvailable = null;
-
-    protected static function isRedisAvailable()
+    public static function remember(string $cacheKey, int $ttl, callable $callback): mixed
     {
-        try {
-            return Redis::ping() ? true : false;
-        } catch (Throwable $e) {
-            Log::warning("Redis is not available: " . $e->getMessage());
-            return false;
-        }
+        return Cache::remember($cacheKey, $ttl, $callback);
     }
 
-    public static function remember($cacheKey, $ttl = 60, $callback)
+    public static function has(string $cacheKey): bool
     {
-        try {
-            // Check Redis connectivity only once
-            if (is_null(self::$redisAvailable)) {
-                self::$redisAvailable = self::isRedisAvailable();
-            }
-
-            if (self::$redisAvailable) {
-                return Cache::store('redis')->remember($cacheKey, $ttl, $callback);
-            }
-        } catch (Throwable $e) {
-            Log::warning("Redis error: " . $e->getMessage());
-        }
-
-        return Cache::remember($cacheKey, $ttl,  $callback);
-    }
-
-    public static function has($cacheKey)
-    {
-        // Check Redis connectivity only once
-        try {
-            if (is_null(self::$redisAvailable)) {
-                self::$redisAvailable = self::isRedisAvailable();
-            }
-
-            if (self::$redisAvailable) {
-                return Cache::store('redis')->has($cacheKey);
-            }
-        } catch (Throwable $e) {
-            Log::warning("Redis error: " . $e->getMessage());
-        }
-
         return Cache::has($cacheKey);
     }
 
-    public static function get($cacheKey)
+    public static function get(string $cacheKey, mixed $default = null): mixed
     {
-
-        try {
-            if (is_null(self::$redisAvailable)) {
-                self::$redisAvailable = self::isRedisAvailable();
-            }
-
-            if (self::$redisAvailable) {
-                return Cache::store('redis')->get($cacheKey);
-            }
-        } catch (Throwable $e) {
-            Log::warning("Redis error: " . $e->getMessage());
-        }
-
-        return Cache::get($cacheKey);
+        return Cache::get($cacheKey, $default);
     }
 
-    public static function delete($cacheKey)
+    public static function delete(string $cacheKey): bool
     {
-        try {
-            if (is_null(self::$redisAvailable)) {
-                self::$redisAvailable = self::isRedisAvailable();
-            }
-
-            if (self::$redisAvailable) {
-                return Cache::store('redis')->delete($cacheKey);
-            }
-        } catch (Throwable $e) {
-            Log::warning("Redis error: " . $e->getMessage());
-        }
-
-        return Cache::delete($cacheKey);
+        return Cache::forget($cacheKey);
     }
 
-    // Method untuk menyimpan cache dengan prefix, mendukung Redis dan store lain
-    public static function putWithPrefix($prefix, $key, $ttl = 60, $value)
+    public static function rememberManaged(string $group, string $cacheKey, int $ttl, callable $callback): mixed
     {
-        $fullKey = $prefix . $key;
+        self::assertManagedGroup($group);
 
-        try {
-            if (is_null(self::$redisAvailable)) {
-                self::$redisAvailable = self::isRedisAvailable();
-            }
-
-            if (self::$redisAvailable) {
-                return Cache::store('redis')->remember($fullKey, $ttl, $value);
-            }
-        } catch (Throwable $e) {
-            Log::warning("Redis error: " . $e->getMessage());
-        }
-
-        $value = Cache::put($fullKey, $value, $ttl);
-
-        // Jika tidak menggunakan Redis, simpan key dalam daftar keys
-        $allKeys = Cache::get($prefix . '_keys', []);
-        $allKeys[] = $fullKey;
-        Cache::put($prefix . '_keys', $allKeys, $ttl);
-
-        return $value;
+        return Cache::remember(
+            self::managedKey($group, $cacheKey),
+            $ttl,
+            $callback,
+        );
     }
 
-    // Method untuk menghapus cache berdasarkan prefix
-    public static function deleteByPrefix($prefix)
+    public static function forgetManaged(string $group, string $cacheKey): bool
     {
+        self::assertManagedGroup($group);
 
-        // Jika menggunakan Redis, gunakan Redis commands untuk menghapus keys dengan prefix
+        return Cache::forget(self::managedKey($group, $cacheKey));
+    }
 
-        try {
-            if (is_null(self::$redisAvailable)) {
-                self::$redisAvailable = self::isRedisAvailable();
-            }
+    public static function getManaged(string $group, string $cacheKey, mixed $default = null): mixed
+    {
+        self::assertManagedGroup($group);
 
-            if (self::$redisAvailable) {
-                $databasePrefix = config('database.redis.options.prefix');
-                $cachePrefix = config('cache.prefix');
+        return Cache::get(self::managedKey($group, $cacheKey), $default);
+    }
 
-                $basePrefix = $databasePrefix . $cachePrefix;
-                $prefix = $basePrefix . $prefix . ':*';
+    /** @return array<string, string> */
+    public static function managedGroups(): array
+    {
+        return self::MANAGED_GROUPS;
+    }
 
-                $cursor = '0';
-
-                do {
-                    [$cursor, $keys] = Redis::scan($cursor, 'MATCH', $prefix);
-
-                    foreach ($keys as $key) {
-                        $key = str_replace($basePrefix, '', $key); // Menghapus prefix database Redis
-                        self::delete($key);
-                    }
-                } while ($cursor !== '0');
-
-                return;
-            }
-        } catch (Exception $e) {
-            Log::warning("Redis error: " . $e->getMessage());
+    /** @return array<int, string> */
+    public static function clearManaged(): array
+    {
+        foreach (array_keys(self::MANAGED_GROUPS) as $group) {
+            self::clearManagedGroup($group);
         }
 
-        // Jika tidak menggunakan Redis, gunakan metode manual
-        $keys = Cache::get($prefix . '_keys', []);
+        return array_keys(self::MANAGED_GROUPS);
+    }
 
-        foreach ($keys as $key) {
-            Cache::forget($key);
+    public static function clearManagedGroup(string $group): void
+    {
+        self::assertManagedGroup($group);
+        Cache::forever(self::versionKey($group), (string) Str::uuid());
+    }
+
+    public static function putWithPrefix(string $prefix, string $key, int $ttl, mixed $value): bool
+    {
+        return Cache::put($prefix.$key, $value, $ttl);
+    }
+
+    private static function managedKey(string $group, string $cacheKey): string
+    {
+        $version = Cache::rememberForever(self::versionKey($group), fn (): string => (string) Str::uuid());
+
+        return "managed:{$group}:{$version}:{$cacheKey}";
+    }
+
+    private static function versionKey(string $group): string
+    {
+        return "cache-management:group:{$group}:version";
+    }
+
+    private static function assertManagedGroup(string $group): void
+    {
+        if (! array_key_exists($group, self::MANAGED_GROUPS)) {
+            throw new \InvalidArgumentException("Unknown managed cache group [{$group}].");
         }
-
-        // Hapus juga daftar keys
-        Cache::forget($prefix . '_keys');
     }
 }

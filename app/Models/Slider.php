@@ -46,7 +46,7 @@ class Slider extends Model implements HasMedia
 
     public static function clearCache(): void
     {
-        CacheService::delete(self::CACHE_KEY);
+        CacheService::forgetManaged('frontend', self::CACHE_KEY);
     }
 
     public function getImageUrlAttribute(): string

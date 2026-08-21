@@ -9,11 +9,11 @@ use App\Models\Customer;
 use App\Models\Voucher;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 
 class VoucherService
 {
     protected const CACHE_PREFIX = 'vouchers_';
+
     protected const CACHE_TTL = 3600;
 
     public function getPublicVouchers(?string $type = null): Collection
@@ -36,10 +36,11 @@ class VoucherService
 
     public function getCachedPublicVouchers(): Collection
     {
-        return Cache::remember(
-            self::CACHE_PREFIX . 'public',
+        return CacheService::rememberManaged(
+            'voucher',
+            self::CACHE_PREFIX.'public',
             self::CACHE_TTL,
-            fn() => $this->getPublicVouchers()
+            fn () => $this->getPublicVouchers()
         );
     }
 
@@ -47,15 +48,15 @@ class VoucherService
     {
         $voucher = Voucher::where('code', $code)->first();
 
-        if (!$voucher) {
+        if (! $voucher) {
             return ValidationResult::error('VOUCHER_NOT_FOUND', __('messages.error.voucher_invalid_code'));
         }
 
-        if (!$voucher->is_active) {
+        if (! $voucher->is_active) {
             return ValidationResult::error('VOUCHER_INACTIVE', __('messages.error.voucher_inactive'));
         }
 
-        if (!$voucher->is_public) {
+        if (! $voucher->is_public) {
             return ValidationResult::error('VOUCHER_NOT_PUBLIC', __('messages.error.voucher_not_public'));
         }
 
@@ -82,7 +83,7 @@ class VoucherService
             if ($voucher->discount_min && $cart->subtotal < $voucher->discount_min) {
                 return ValidationResult::error(
                     'VOUCHER_MIN_PURCHASE',
-                    __('messages.error.voucher_min_purchase', ['amount' => 'Rp ' . number_format($voucher->discount_min, 0, ',', '.')])
+                    __('messages.error.voucher_min_purchase', ['amount' => 'Rp '.number_format($voucher->discount_min, 0, ',', '.')])
                 );
             }
         }
@@ -100,13 +101,14 @@ class VoucherService
         foreach (['shipping', 'product'] as $type) {
             if (empty($vouchers[$type])) {
                 $results[$type] = null;
+
                 continue;
             }
 
             $voucherData = $vouchers[$type];
             $code = $voucherData['code'] ?? null;
 
-            if (!$code) {
+            if (! $code) {
                 $results[$type] = [
                     'valid' => false,
                     'code' => null,
@@ -115,12 +117,13 @@ class VoucherService
                     'formatted_discount' => 'Rp 0',
                     'error' => __('messages.error.voucher_invalid_code'),
                 ];
+
                 continue;
             }
 
             $result = $this->validateVoucher($code, $cart, $customer);
 
-            if (!$result->success) {
+            if (! $result->success) {
                 $results[$type] = [
                     'valid' => false,
                     'code' => $code,
@@ -129,6 +132,7 @@ class VoucherService
                     'formatted_discount' => 'Rp 0',
                     'error' => $result->errorMessage,
                 ];
+
                 continue;
             }
 
@@ -143,7 +147,7 @@ class VoucherService
                 'discount_type' => $voucher->discount_type->value,
                 'discount_value' => $voucher->discount,
                 'discount_amount' => $discountAmount,
-                'formatted_discount' => 'Rp ' . number_format($discountAmount, 0, ',', '.'),
+                'formatted_discount' => 'Rp '.number_format($discountAmount, 0, ',', '.'),
                 'error' => null,
             ];
         }
@@ -157,7 +161,7 @@ class VoucherService
             return min((float) $voucher->discount, 100000);
         }
 
-        if (!$cart) {
+        if (! $cart) {
             return 0;
         }
 
@@ -188,7 +192,7 @@ class VoucherService
 
     public function clearCache(): void
     {
-        Cache::forget(self::CACHE_PREFIX . 'public');
+        CacheService::forgetManaged('voucher', self::CACHE_PREFIX.'public');
     }
 
     protected function getUserUsageCount(Voucher $voucher, Customer $customer): int
@@ -200,8 +204,11 @@ class VoucherService
 class ValidationResult
 {
     public bool $success;
+
     public ?string $errorCode;
+
     public ?string $errorMessage;
+
     public ?Voucher $voucher;
 
     public function __construct(bool $success, ?Voucher $voucher = null, ?string $errorCode = null, ?string $errorMessage = null)

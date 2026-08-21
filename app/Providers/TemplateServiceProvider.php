@@ -5,8 +5,8 @@ namespace App\Providers;
 use App\Models\Template;
 use App\Models\TemplateSection;
 use App\Models\TemplateSectionContent;
+use App\Services\CacheService;
 use App\Services\TemplateService;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\ServiceProvider;
 
 class TemplateServiceProvider extends ServiceProvider
@@ -16,7 +16,7 @@ class TemplateServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(TemplateService::class, function ($app) {
-            return new TemplateService();
+            return new TemplateService;
         });
     }
 
@@ -50,7 +50,7 @@ class TemplateServiceProvider extends ServiceProvider
 
     protected function clearTemplateCache(): void
     {
-        Cache::forget(self::CACHE_PREFIX . 'active');
-        Cache::forget(self::CACHE_PREFIX . 'colors');
+        CacheService::forgetManaged('template', self::CACHE_PREFIX.'active');
+        CacheService::forgetManaged('template', self::CACHE_PREFIX.'colors');
     }
 }

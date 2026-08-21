@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
-use App\Models\ProductReview;
+use App\Http\Resources\ProductRatingResource;
 use App\Models\Product;
+use App\Models\ProductReview;
 use App\Models\Transaction;
 use App\Models\TransactionProduct;
 use App\Services\CacheService;
@@ -20,7 +21,7 @@ class ProductReviewController extends Controller
     {
         $rating = request()->integer('rating');
 
-        $summary = CacheService::remember("product-rating-summary:{$product->id}", 3600, function () use ($product): array {
+        $summary = CacheService::rememberManaged('product-stats', "product-rating-summary:{$product->id}", 3600, function () use ($product): array {
             $aggregate = $product->reviews()
                 ->selectRaw('COUNT(*) as review_count, COALESCE(AVG(rating), 0) as rating_average')
                 ->selectRaw('SUM(CASE WHEN is_admin = 0 THEN 1 ELSE 0 END) as customer_count')
@@ -42,7 +43,7 @@ class ProductReviewController extends Controller
                 'customer_average' => round((float) $aggregate->customer_average, 1),
                 'admin_average' => round((float) $aggregate->admin_average, 1),
                 'distribution' => collect(range(1, 5))->mapWithKeys(fn (int $value) => [
-                    $value => (int) $aggregate->{'rating_' . $value . '_count'},
+                    $value => (int) $aggregate->{'rating_'.$value.'_count'},
                 ]),
             ];
         });
@@ -55,7 +56,7 @@ class ProductReviewController extends Controller
             ->paginate(10);
 
         return response()->json([
-            'data' => \App\Http\Resources\ProductRatingResource::make([
+            'data' => ProductRatingResource::make([
                 'summary' => $summary,
                 'reviews' => $reviews->getCollection(),
             ])->resolve(),
