@@ -126,60 +126,65 @@ const submit = () => {
 
                     <div class="space-y-2">
                         <label for="password" class="text-foreground text-sm font-semibold">{{ t("labels.form.password") }}</label>
-                        <FormInput
-                            ref="passwordInput"
-                            id="password"
-                            v-model="form.password"
-                            :type="showPassword ? 'text' : 'password'"
-                            autocomplete="new-password"
-                            required
-                            :invalid="Boolean(form.errors.password)"
-                            :aria-describedby="form.errors.password ? 'password-error' : undefined"
-                            class="py-3.5"
-                            :placeholder="t('placeholders.password')"
-                        >
-                            <template #prefix><Lock class="text-muted-foreground absolute top-3.5 left-4 h-5 w-5" /></template>
-                            <template #suffix>
-                                <Button
-                                    type="button"
-                                    class="text-muted-foreground hover:text-foreground focus:ring-primary/20 absolute top-1/2 right-3 -translate-y-1/2 rounded-lg p-2 transition-colors focus:ring-2 focus:outline-none"
-                                    :aria-label="showPassword ? t('labels.auth.hide_password') : t('labels.auth.show_password')"
-                                    @click="showPassword = !showPassword"
-                                >
-                                    <EyeOff v-if="showPassword" class="h-5 w-5" />
-                                    <Eye v-else class="h-5 w-5" />
-                                </Button>
-                            </template>
-                        </FormInput>
-                        <p v-if="form.errors.password" id="password-error" class="text-destructive text-xs" role="alert">
-                            {{ form.errors.password }}
-                        </p>
-                        <div
-                            v-if="props.secure_password"
-                            class="border-border bg-secondary/40 space-y-2 rounded-lg border p-3"
-                            role="group"
-                            :aria-label="t('labels.auth.secure_password_requirements')"
-                        >
-                            <p class="text-foreground text-xs font-semibold">{{ t("labels.auth.secure_password_requirements") }}</p>
-                            <ul class="grid gap-1.5 text-xs sm:grid-cols-2">
-                                <li
-                                    v-for="requirement in passwordRequirements"
-                                    :key="requirement.key"
-                                    class="flex items-center gap-2"
-                                    :class="requirement.passed ? 'text-primary' : 'text-muted-foreground'"
-                                >
-                                    <CheckCircle2 v-if="requirement.passed" class="h-4 w-4 shrink-0" aria-hidden="true" />
-                                    <Circle v-else class="h-4 w-4 shrink-0" aria-hidden="true" />
-                                    <span>{{ t(`labels.auth.secure_password_${requirement.key}`) }}</span>
-                                    <span class="sr-only">
-                                        {{
-                                            requirement.passed
-                                                ? t("labels.auth.secure_password_requirement_met")
-                                                : t("labels.auth.secure_password_requirement_pending")
-                                        }}
-                                    </span>
-                                </li>
-                            </ul>
+                        <div class="group relative">
+                            <FormInput
+                                ref="passwordInput"
+                                id="password"
+                                v-model="form.password"
+                                :type="showPassword ? 'text' : 'password'"
+                                autocomplete="new-password"
+                                required
+                                :invalid="Boolean(form.errors.password)"
+                                :aria-describedby="
+                                    form.errors.password ? 'password-error' : props.secure_password ? 'password-requirements' : undefined
+                                "
+                                class="py-3.5"
+                                :placeholder="t('placeholders.password')"
+                            >
+                                <template #prefix><Lock class="text-muted-foreground absolute top-3.5 left-4 h-5 w-5" /></template>
+                                <template #suffix>
+                                    <Button
+                                        type="button"
+                                        class="text-muted-foreground hover:text-foreground focus:ring-primary/20 absolute top-1/2 right-3 -translate-y-1/2 rounded-lg p-2 transition-colors focus:ring-2 focus:outline-none"
+                                        :aria-label="showPassword ? t('labels.auth.hide_password') : t('labels.auth.show_password')"
+                                        @click="showPassword = !showPassword"
+                                    >
+                                        <EyeOff v-if="showPassword" class="h-5 w-5" />
+                                        <Eye v-else class="h-5 w-5" />
+                                    </Button>
+                                </template>
+                            </FormInput>
+                            <p v-if="form.errors.password" id="password-error" class="text-destructive relative z-30 text-xs" role="alert">
+                                {{ form.errors.password }}
+                            </p>
+                            <div
+                                v-if="props.secure_password"
+                                id="password-requirements"
+                                class="border-border bg-background pointer-events-none invisible absolute top-full left-0 z-20 mt-2 w-full translate-y-1 space-y-2 rounded-lg border p-3 text-xs font-normal opacity-0 shadow-lg transition-all duration-150 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:visible group-hover:translate-y-0 group-hover:opacity-100"
+                                role="group"
+                                :aria-label="t('labels.auth.secure_password_requirements')"
+                            >
+                                <p class="text-foreground font-semibold">{{ t("labels.auth.secure_password_requirements") }}</p>
+                                <ul class="grid gap-1.5 sm:grid-cols-2">
+                                    <li
+                                        v-for="requirement in passwordRequirements"
+                                        :key="requirement.key"
+                                        class="flex items-center gap-2"
+                                        :class="requirement.passed ? 'text-primary' : 'text-muted-foreground'"
+                                    >
+                                        <CheckCircle2 v-if="requirement.passed" class="h-4 w-4 shrink-0" aria-hidden="true" />
+                                        <Circle v-else class="h-4 w-4 shrink-0" aria-hidden="true" />
+                                        <span>{{ t(`labels.auth.secure_password_${requirement.key}`) }}</span>
+                                        <span class="sr-only">
+                                            {{
+                                                requirement.passed
+                                                    ? t("labels.auth.secure_password_requirement_met")
+                                                    : t("labels.auth.secure_password_requirement_pending")
+                                            }}
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
 
@@ -218,7 +223,11 @@ const submit = () => {
                     </div>
                 </div>
 
-                <label v-if="settings.term_agreement" for="terms_accepted" class="text-muted-foreground flex min-h-11 cursor-pointer items-start gap-3 text-sm">
+                <label
+                    v-if="settings.term_agreement"
+                    for="terms_accepted"
+                    class="text-muted-foreground flex min-h-11 cursor-pointer items-start gap-3 text-sm"
+                >
                     <FormCheckbox id="terms_accepted" v-model="form.terms_accepted" type="checkbox" required class="mt-0.5" />
                     <span>
                         {{ t("labels.auth.terms_agreement_prefix") }}

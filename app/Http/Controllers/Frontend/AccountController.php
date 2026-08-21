@@ -60,6 +60,7 @@ class AccountController extends Controller
             'balanceHistory' => $balanceEnabled
                 ? $customer->balances()->latest()->limit(5)->get(['id', 'amount', 'post_balance', 'trx_type', 'type', 'notes', 'created_at'])
                 : [],
+            'passwordRequirementsEnabled' => (bool) app(GeneralSettings::class)->secure_password,
         ]);
     }
 
