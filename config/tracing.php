@@ -60,6 +60,34 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Database Persistence
+    |--------------------------------------------------------------------------
+    |
+    | When true (and tracing is enabled) every ended span is also written to
+    | the `tracing_spans` table in addition to the configured exporter. This
+    | makes traces queryable from the application so the admin trace UI and
+    | service map can be populated. Defaults to false so existing OTLP-only
+    | behavior is unchanged. Persistence is best-effort: a DB failure is
+    | reported and swallowed, never breaking the request.
+    |
+    */
+
+    'persist' => Env::get('TRACING_PERSIST', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Slow Span Threshold
+    |--------------------------------------------------------------------------
+    |
+    | Spans whose duration is equal to or greater than this number of
+    | milliseconds are highlighted as slow in the trace detail page.
+    |
+    */
+
+    'slow_span_threshold_ms' => (int) Env::get('TRACING_SLOW_SPAN_THRESHOLD_MS', 1000),
+
+    /*
+    |--------------------------------------------------------------------------
     | Instrumentation Sources
     |--------------------------------------------------------------------------
     |

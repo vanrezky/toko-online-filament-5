@@ -35,6 +35,13 @@ final class DatabaseQueryListener
         $table = $this->parseTable((string) $event->sql);
         if ($table !== null) {
             $attributes[TracingAttributes::DB_NAMESPACE] = $table;
+
+            // Never instrument the persistence of spans themselves. Writing a
+            // span fires another QueryExecuted event; instrumenting it would
+            // cause a new span, which would be persisted, and so on forever.
+            if (strtolower($table) === 'tracing_spans') {
+                return;
+            }
         }
 
         $activeSpan = $this->traceManager->startSpan('DB '.($operation !== '' ? $operation : 'query'), SpanKind::KIND_CLIENT, $attributes);
