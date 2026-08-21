@@ -33,10 +33,10 @@ use App\Settings\CourierSettings;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -57,6 +57,7 @@ class CheckoutController extends Controller
     protected FlashsaleReservationService $flashsaleReservationService;
 
     protected BalanceService $balanceService;
+
     protected RegionalService $regionalService;
 
     public function __construct(
@@ -243,7 +244,7 @@ class CheckoutController extends Controller
 
         $shippingCostsVersion = (int) Cache::get('shipping_costs_version', 1);
         $cacheKey = "shipping_costs_v{$shippingCostsVersion}_{$customer->id}_{$address->id}_{$cartHash}";
-        $shippingResults = CacheService::remember($cacheKey, 1800, function () use ($cart, $address, $ongkirService, $courierSettings) {
+        $shippingResults = CacheService::rememberManaged('shipping', $cacheKey, 1800, function () use ($cart, $address, $ongkirService, $courierSettings) {
             $warehouseGroups = $cart->items->groupBy(function ($item) {
                 return $item->product->warehouse_id ?: 0;
             });

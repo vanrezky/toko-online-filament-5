@@ -143,6 +143,7 @@ class AuditLogResource extends Resource
                         'updated' => 'updated',
                         'deleted' => 'deleted',
                         'business' => 'business',
+                        'operational' => 'operational',
                     ]),
                 SelectFilter::make('subject_type')
                     ->label(__('admin/audit-log-resource.filters.subject_type'))

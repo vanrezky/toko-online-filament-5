@@ -12,8 +12,8 @@ use App\Models\Product;
 use App\Models\Slider;
 use App\Models\TemplateSection;
 use App\Services\CacheService;
-use App\Services\TemplateService;
 use App\Services\ProductStatsService;
+use App\Services\TemplateService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -109,10 +109,11 @@ class HomeController extends Controller
 
         ProductStatsService::attachCatalogStats($products->getCollection());
 
-        $sliders = CacheService::remember(
+        $sliders = CacheService::rememberManaged(
+            'frontend',
             Slider::CACHE_KEY,
             Slider::CACHE_TTL,
-            fn() => Slider::query()
+            fn () => Slider::query()
                 ->visible()
                 ->ordered()
                 ->with('media')

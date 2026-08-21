@@ -13,7 +13,9 @@ class ProductStatsService
     public static function attachCatalogStats(Collection $products): void
     {
         $ids = $products->pluck('id')->filter()->values();
-        if ($ids->isEmpty()) return;
+        if ($ids->isEmpty()) {
+            return;
+        }
 
         $stats = self::rememberBatch('catalog', $ids, function () use ($ids): array {
             $reviews = ProductReview::query()
@@ -40,7 +42,9 @@ class ProductStatsService
     public static function attachSales(Collection $products): void
     {
         $ids = $products->pluck('id')->filter()->values();
-        if ($ids->isEmpty()) return;
+        if ($ids->isEmpty()) {
+            return;
+        }
 
         $sales = self::rememberBatch('sales', $ids, fn () => self::completedSales($ids)->all());
         $products->each(fn (Product $product) => $product->setAttribute('completed_sold_count', (int) ($sales[$product->id] ?? 0)));
@@ -48,13 +52,15 @@ class ProductStatsService
 
     public static function bustProduct(int $productId): void
     {
-        CacheService::delete("product-stats-version:{$productId}");
-        CacheService::delete("product-rating-summary:{$productId}");
+        CacheService::forgetManaged('product-stats', "product-stats-version:{$productId}");
+        CacheService::forgetManaged('product-stats', "product-rating-summary:{$productId}");
     }
 
     public static function bustProducts(iterable $productIds): void
     {
-        foreach (collect($productIds)->filter()->unique() as $productId) self::bustProduct((int) $productId);
+        foreach (collect($productIds)->filter()->unique() as $productId) {
+            self::bustProduct((int) $productId);
+        }
     }
 
     private static function completedSales(Collection $ids): Collection
@@ -69,9 +75,9 @@ class ProductStatsService
 
     private static function rememberBatch(string $type, Collection $ids, callable $callback): array
     {
-        $versions = $ids->map(fn ($id) => CacheService::remember("product-stats-version:{$id}", 86400, fn () => Str::random(12)));
-        $key = 'product-stats:' . $type . ':' . sha1($ids->implode(',') . '|' . $versions->implode('|'));
+        $versions = $ids->map(fn ($id) => CacheService::rememberManaged('product-stats', "product-stats-version:{$id}", 86400, fn () => Str::random(12)));
+        $key = 'product-stats:'.$type.':'.sha1($ids->implode(',').'|'.$versions->implode('|'));
 
-        return CacheService::remember($key, 600, $callback);
+        return CacheService::rememberManaged('product-stats', $key, 600, $callback);
     }
 }
