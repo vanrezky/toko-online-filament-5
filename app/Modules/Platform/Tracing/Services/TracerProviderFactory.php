@@ -2,6 +2,7 @@
 
 namespace App\Modules\Platform\Tracing\Services;
 
+use App\Modules\Platform\Tracing\SpanProcessors\DbSpanProcessor;
 use App\Modules\Platform\Tracing\Support\TracingAttributes;
 use ArrayObject;
 use OpenTelemetry\API\Common\Time\Clock;
@@ -43,11 +44,22 @@ final class TracerProviderFactory
 
         $exporter = $this->exporter();
 
-        $processor = $this->testing
+        $exportProcessor = $this->testing
             ? new SimpleSpanProcessor($exporter)
             : new BatchSpanProcessor($exporter, Clock::getDefault());
 
-        return new TracerProvider($processor, $this->sampler(), $resource);
+        $processors = [$exportProcessor];
+
+        if ($this->persisting()) {
+            $processors[] = new DbSpanProcessor;
+        }
+
+        return new TracerProvider($processors, $this->sampler(), $resource);
+    }
+
+    private function persisting(): bool
+    {
+        return (bool) config('tracing.persist', false);
     }
 
     private function resource(): ResourceInfo

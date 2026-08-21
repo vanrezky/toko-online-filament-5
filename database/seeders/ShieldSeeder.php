@@ -23,6 +23,8 @@ class ShieldSeeder extends Seeder
         Utils::getPermissionModel()::findOrCreate('View:AuditLogs', 'web');
         Utils::getPermissionModel()::findOrCreate('View:IntegrationLogs', 'web');
         Utils::getPermissionModel()::findOrCreate('View:Observability', 'web');
+        Utils::getPermissionModel()::findOrCreate('View:Traces', 'web');
+        Utils::getPermissionModel()::findOrCreate('View:ServiceMap', 'web');
 
         $this->command->info('Shield Seeding Completed.');
     }

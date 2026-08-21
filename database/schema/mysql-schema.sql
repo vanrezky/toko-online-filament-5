@@ -1237,6 +1237,36 @@ CREATE TABLE `templates` (
   UNIQUE KEY `templates_code_unique` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `tracing_spans`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tracing_spans` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `trace_id` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `span_id` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `parent_span_id` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `kind` smallint unsigned NOT NULL DEFAULT '0',
+  `status_code` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `start_ns` bigint unsigned NOT NULL,
+  `end_ns` bigint unsigned DEFAULT NULL,
+  `duration_ms` int unsigned DEFAULT NULL,
+  `attributes` json DEFAULT NULL,
+  `events` json DEFAULT NULL,
+  `correlation_id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `tracing_spans_span_id_unique` (`span_id`),
+  KEY `tracing_spans_trace_id_index` (`trace_id`),
+  KEY `tracing_spans_parent_span_id_index` (`parent_span_id`),
+  KEY `tracing_spans_correlation_id_index` (`correlation_id`),
+  KEY `tracing_spans_trace_id_start_ns_index` (`trace_id`,`start_ns`),
+  KEY `tracing_spans_created_at_index` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `transaction_return_items`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
