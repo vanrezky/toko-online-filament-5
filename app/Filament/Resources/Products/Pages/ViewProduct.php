@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Products\Pages;
 
 use App\Filament\Resources\Products\ProductResource;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,6 +14,13 @@ class ViewProduct extends ViewRecord
     public function getTitle(): string
     {
         return __('admin/product-resource.pages.view.title');
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            EditAction::make(),
+        ];
     }
 
     protected function resolveRecord(int|string $key): Model
