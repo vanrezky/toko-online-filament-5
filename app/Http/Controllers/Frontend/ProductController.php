@@ -8,13 +8,14 @@ use App\Http\Resources\ProductResource;
 use App\Http\Resources\ProductSimpleResource;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\ProductSearchService;
 use App\Services\ProductStatsService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ProductController extends Controller
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, ProductSearchService $productSearchService)
     {
         $resellerId = auth('customer')->user()?->reseller_id;
 
@@ -45,8 +46,10 @@ class ProductController extends Controller
             });
         }
 
-        if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+        $search = trim((string) $request->input('search'));
+
+        if ($search !== '') {
+            $productSearchService->apply($query, $search);
         }
 
         if ($request->filled('price_min')) {
@@ -95,7 +98,7 @@ class ProductController extends Controller
     {
         $product->loadMissing([
             'category',
-            'productVariants.variantAttributes' => fn($query) => $query->with([
+            'productVariants.variantAttributes' => fn ($query) => $query->with([
                 'productAttribute',
                 'productAttributeOption',
             ]),
