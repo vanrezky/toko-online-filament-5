@@ -164,7 +164,7 @@ onUnmounted(() => {
                         </p>
                     </div>
 
-                    <div v-if="productItems.length" class="grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4">
+                    <div v-if="productItems.length" class="grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-5">
                         <div
                             v-for="(item, index) in productItems"
                             :key="item.id"
