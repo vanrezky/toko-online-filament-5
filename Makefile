@@ -1,4 +1,4 @@
-.PHONY: help
+.PHONY: help dev restart-dev
 SAIL = ./vendor/bin/sail
 CONTAINER_NAME=laravel-toko-online
 VOLUME_DATABASE=toko-online_db-vol
@@ -15,6 +15,12 @@ build: ## Build all containers.
 
 start: ## Start all containers.
 	@${SAIL} up -d
+
+dev: start ## Start Sail, Vite, Horizon, and scheduler.
+	@npm run dev:services
+
+restart-dev: ## Restart Vite, Horizon, and scheduler without restarting Sail.
+	@npm run dev:services
 
 stop: ## Stop all containers.
 	@${SAIL} down
@@ -47,4 +53,3 @@ cache: ## clear Cache Project
 
 storage-link: ## Cache Project
 	@${SAIL} artisan storage:link
-

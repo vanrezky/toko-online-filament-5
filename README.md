@@ -118,6 +118,24 @@ npm run test
 npm run dev
 ```
 
+### Development processes
+
+Untuk menjalankan Sail, Vite, Horizon, dan scheduler sekaligus:
+
+```bash
+make dev
+```
+
+Jika container Sail sudah berjalan dan hanya proses development yang perlu
+dijalankan ulang:
+
+```bash
+make restart-dev
+```
+
+Perintah `make restart-dev` menjalankan Vite, Horizon, dan scheduler tanpa
+menjalankan ulang container Sail.
+
 ## Catatan Environment yang Mudah Terlewat
 
 - `phpunit.xml` mengarah ke database test di `127.0.0.1:3307` dengan nama `toko_online_testing`.

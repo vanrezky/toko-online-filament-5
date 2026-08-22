@@ -3,6 +3,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
+        "dev:services": "concurrently --kill-others-on-fail --names VITE,HORIZON,SCHEDULE \"npm run dev\" \"./vendor/bin/sail artisan horizon\" \"./vendor/bin/sail artisan schedule:work\"",
         "build": "vite build",
         "test": "vitest run",
         "e2e": "playwright test",
