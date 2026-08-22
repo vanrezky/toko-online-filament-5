@@ -12,7 +12,10 @@ class TopProductsChart extends ChartWidget
 
     protected int $cacheSeconds = 300;
 
-    protected ?string $heading = 'Top Products';
+    public function getHeading(): string
+    {
+        return __('admin/page-dashboard.top_products.title');
+    }
 
     public ?string $filter = 'quantity';
 
@@ -26,7 +29,9 @@ class TopProductsChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => $isQuantity ? 'Quantity Sold' : 'Revenue',
+                    'label' => $isQuantity
+                        ? __('admin/page-dashboard.top_products.quantity_sold')
+                        : __('admin/page-dashboard.top_products.revenue'),
                     'data' => array_column($products, $isQuantity ? 'total_quantity' : 'total_revenue'),
                     'backgroundColor' => [
                         'rgba(37, 99, 235, 0.8)',
@@ -72,8 +77,8 @@ class TopProductsChart extends ChartWidget
     protected function getFilters(): ?array
     {
         return [
-            'quantity' => 'By Quantity',
-            'revenue' => 'By Revenue',
+            'quantity' => __('admin/page-dashboard.top_products.by_quantity'),
+            'revenue' => __('admin/page-dashboard.top_products.by_revenue'),
         ];
     }
 }

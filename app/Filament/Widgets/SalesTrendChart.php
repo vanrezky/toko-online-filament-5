@@ -12,7 +12,10 @@ class SalesTrendChart extends ChartWidget
 
     protected int $cacheSeconds = 300;
 
-    protected ?string $heading = 'Sales Trend (7 Hari)';
+    public function getHeading(): string
+    {
+        return __('admin/page-dashboard.sales_trend.title');
+    }
 
     protected function getData(): array
     {
@@ -23,7 +26,7 @@ class SalesTrendChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Periode Ini',
+                    'label' => __('admin/page-dashboard.sales_trend.current_period'),
                     'data' => $trend['current'],
                     'borderColor' => '#2563eb',
                     'backgroundColor' => 'rgba(37, 99, 235, 0.1)',
@@ -34,7 +37,7 @@ class SalesTrendChart extends ChartWidget
                     'pointHitRadius' => 8,
                 ],
                 [
-                    'label' => 'Periode Sebelumnya',
+                    'label' => __('admin/page-dashboard.sales_trend.previous_period'),
                     'data' => $trend['previous'],
                     'borderColor' => '#94a3b8',
                     'backgroundColor' => 'rgba(148, 163, 184, 0.1)',

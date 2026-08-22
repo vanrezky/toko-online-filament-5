@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\TransactionStatus;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Tables\Columns\TextColumn;
 use App\Models\Transaction;
 use Filament\Tables;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class RecentOrdersTable extends BaseWidget
 {
+    use InteractsWithPageFilters;
+
     protected int $cacheSeconds = 300;
 
     protected int $pageSize = 5;
@@ -24,6 +27,14 @@ class RecentOrdersTable extends BaseWidget
     {
         return Transaction::query()
             ->with('customer')
+            ->when(
+                $this->pageFilters['startDate'] ?? null,
+                fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '>=', $date),
+            )
+            ->when(
+                $this->pageFilters['endDate'] ?? null,
+                fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '<=', $date),
+            )
             ->select(['transactions.*'])
             ->selectSub(function ($query) {
                 $query->selectRaw('SUM((price * quantity) - discount)')

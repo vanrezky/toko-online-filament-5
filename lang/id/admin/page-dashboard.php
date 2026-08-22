@@ -23,6 +23,20 @@ return [
         'title' => 'Pesanan berdasarkan status',
     ],
 
+    'sales_trend' => [
+        'title' => 'Tren penjualan',
+        'current_period' => 'Periode ini',
+        'previous_period' => 'Periode sebelumnya',
+    ],
+
+    'top_products' => [
+        'title' => 'Produk terlaris',
+        'quantity_sold' => 'Jumlah terjual',
+        'revenue' => 'Pendapatan',
+        'by_quantity' => 'Berdasarkan jumlah',
+        'by_revenue' => 'Berdasarkan pendapatan',
+    ],
+
     'recent_orders' => [
         'title' => 'Pesanan terbaru',
         'columns' => [

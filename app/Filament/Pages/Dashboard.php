@@ -38,11 +38,15 @@ class Dashboard extends \Filament\Pages\Dashboard
                             ->label(__('admin/page-dashboard.filters.start_date'))
                             ->placeholder(__('admin/page-dashboard.filters.select_date'))
                             ->default(now()->subDays(6)->toDateString())
+                            ->rule('date')
+                            ->rule('before_or_equal:endDate')
                             ->displayFormat('d M Y'),
                         DatePicker::make('endDate')
                             ->label(__('admin/page-dashboard.filters.end_date'))
                             ->placeholder(__('admin/page-dashboard.filters.select_date'))
                             ->default(now()->toDateString())
+                            ->rule('date')
+                            ->rule('after_or_equal:startDate')
                             ->displayFormat('d M Y'),
                     ])
                     ->columns([
@@ -57,8 +61,8 @@ class Dashboard extends \Filament\Pages\Dashboard
     {
         return [
             SalesStatsOverviewWidget::class,
-            // SalesTrendChart::class,
-            // TopProductsChart::class,
+            SalesTrendChart::class,
+            TopProductsChart::class,
             OrdersByStatusChart::class,
             RecentOrdersTable::class,
             LowStockAlertWidget::class,
