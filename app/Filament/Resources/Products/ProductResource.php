@@ -6,6 +6,7 @@ use App\Constants\Status;
 use App\Constants\UploadPath;
 use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
+use App\Filament\Resources\Products\Pages\ImportProducts;
 use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Filament\Resources\Products\Pages\ViewProduct;
 use App\Filament\Resources\Products\RelationManagers\ProductVariantsRelationManager;
@@ -664,6 +665,7 @@ class ProductResource extends Resource
     {
         return [
             'index' => ListProducts::route('/'),
+            'import' => ImportProducts::route('/import'),
             'create' => CreateProduct::route('/create'),
             'view' => ViewProduct::route('/{record}'),
             'edit' => EditProduct::route('/{record}/edit'),
