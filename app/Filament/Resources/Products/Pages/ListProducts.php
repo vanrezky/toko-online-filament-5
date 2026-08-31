@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\Products\Pages;
 
-use Filament\Actions\CreateAction;
-use Filament\Schemas\Components\Tabs\Tab;
 use App\Constants\Status;
 use App\Filament\Resources\Products\ProductResource;
 use App\Models\Product;
-use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListProducts extends ListRecords
@@ -23,6 +23,11 @@ class ListProducts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('importProducts')
+                ->label(__('admin/product-import.actions.import'))
+                ->icon('heroicon-o-arrow-up-tray')
+                ->color('info')
+                ->url(ProductResource::getUrl('import')),
             CreateAction::make(),
         ];
     }
@@ -33,12 +38,12 @@ class ListProducts extends ListRecords
             'all' => Tab::make()->label(__('admin/product-resource.tabs_list.all')),
             'low_stock' => Tab::make()
                 ->label(__('admin/product-resource.tabs_list.low_stock'))
-                ->modifyQueryUsing(fn(Builder $query): Builder => $query->whereColumn('stock', '<=', 'security_stock')->where('stock', '>', Status::COUNT_OUT_OF_STOCK))
+                ->modifyQueryUsing(fn (Builder $query): Builder => $query->whereColumn('stock', '<=', 'security_stock')->where('stock', '>', Status::COUNT_OUT_OF_STOCK))
                 ->badge(Product::query()->whereColumn('stock', '<=', 'security_stock')->where('stock', '>', Status::COUNT_OUT_OF_STOCK)->count())
                 ->badgeColor('warning'),
             'out_of_stock' => Tab::make()
                 ->label(__('admin/product-resource.tabs_list.out_of_stock'))
-                ->modifyQueryUsing(fn(Builder $query): Builder => $query->where('stock', Status::COUNT_OUT_OF_STOCK))
+                ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('stock', Status::COUNT_OUT_OF_STOCK))
                 ->badge(Product::query()->where('stock', Status::COUNT_OUT_OF_STOCK)->count())
                 ->badgeColor('danger'),
 
