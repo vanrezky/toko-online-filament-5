@@ -1,6 +1,21 @@
 <?php
 
+use App\Filament\Clusters\ContentCluster;
+use App\Filament\Clusters\CustomerCluster;
+use App\Filament\Clusters\MonitoringCluster;
+use App\Filament\Clusters\ObservabilityCluster;
+use App\Filament\Clusters\PromotionCluster;
+use App\Filament\Clusters\RegionCluster;
+use App\Filament\Pages\CacheManagement;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\ObservabilityExecutionDetail;
+use App\Filament\Pages\ObservabilityExecutions;
+use App\Filament\Pages\ObservabilityOverview;
+use App\Filament\Pages\ObservabilityServiceMap;
+use App\Filament\Pages\ObservabilityTraceDetail;
+use App\Filament\Pages\ObservabilityTraces;
+use App\Filament\Pages\QueueMonitor;
+use App\Filament\Pages\SystemHealth;
 use App\Filament\Resources\Balances\BalanceResource;
 use App\Filament\Resources\NewsletterSubscribers\NewsletterSubscriberResource;
 use App\Filament\Resources\Resellers\ResellerResource;
@@ -75,7 +90,6 @@ return [
             ],
         ],
         'exclude' => [
-            NewsletterSubscriberResource::class,
             ResellerResource::class,
         ],
     ],
@@ -85,6 +99,24 @@ return [
         'prefix' => 'view',
         'exclude' => [
             Dashboard::class,
+            ObservabilityCluster::class,
+            MonitoringCluster::class,
+            ContentCluster::class,
+            RegionCluster::class,
+            CustomerCluster::class,
+            PromotionCluster::class,
+            //monitor,
+            QueueMonitor::class,
+            CacheManagement::class,
+            ObservabilityExecutionDetail::class,
+            ObservabilityExecutions::class,
+            ObservabilityTraces::class,
+            ObservabilityOverview::class,
+            ObservabilityServiceMap::class,
+            ObservabilityTraceDetail::class,
+            SystemHealth::class
+
+
         ],
     ],
 
