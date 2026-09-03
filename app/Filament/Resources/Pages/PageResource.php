@@ -148,6 +148,7 @@ class PageResource extends Resource
                                     ->label(__('admin/page-resource.fields.featured_image'))
                                     ->image()
                                     ->imageEditor()
+                                    ->disk(config('filesystems.upload_disk'))
                                     ->directory(UploadPath::IMAGES_UPLOAD_PATH),
                             ]),
                     ])->columnSpanFull(),

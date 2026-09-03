@@ -12,6 +12,7 @@ use App\Observers\CustomerObserver;
 use App\Observers\SchoolUnitObserver;
 use App\Observers\TransactionObserver;
 use App\Overrides\Superconductor\LaravelVibes\Mcp\Capabilities\Prompts\ReadLogPrompt;
+use App\Support\MediaLibrary\UploadPathGenerator;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -32,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        config(['media-library.path_generator' => UploadPathGenerator::class]);
+
         Health::checks([
             ApplicationHealthCheck::new()->name('application')->label('Application'),
             DatabaseCheck::new()

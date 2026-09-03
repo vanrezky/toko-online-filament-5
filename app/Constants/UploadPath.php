@@ -12,6 +12,7 @@ class UploadPath
     const CONFIG_UPLOAD_PATH = 'uploads/configs';
     const SLIDER_UPLOAD_PATH = 'uploads/sliders';
     const PRODUCT_UPLOAD_PATH = 'uploads/products';
+    const REVIEW_UPLOAD_PATH = 'uploads/products/reviews';
 
     // folder untuk video
 }

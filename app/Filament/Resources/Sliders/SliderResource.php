@@ -66,7 +66,7 @@ class SliderResource extends Resource
                             ->image()
                             ->directory(UploadPath::SLIDER_UPLOAD_PATH)
                             ->helperText(__('admin/slider-resource.fields.image_helper'))
-                            ->disk(getActiveDisk())
+                            ->disk(config('filesystems.upload_disk'))
                             ->required()
                             ->imageEditor()
                             ->columnSpanFull(),

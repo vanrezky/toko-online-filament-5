@@ -26,8 +26,9 @@ class ProductImageUrlImporterTest extends TestCase
         parent::setUp();
 
         Storage::fake('public');
+        Storage::fake('r2');
         config([
-            'media-library.disk_name' => 'public',
+            'filesystems.upload_disk' => 'r2',
             'media-library.queue_conversions_by_default' => false,
         ]);
     }
@@ -44,6 +45,9 @@ class ProductImageUrlImporterTest extends TestCase
 
         $product = $product->fresh();
         $this->assertCount(1, $product->getMedia());
+        $media = $product->getFirstMedia();
+        $this->assertSame('r2', $media->disk);
+        $this->assertSame("uploads/products/{$media->id}/", $media->getPath());
 
         $productResponse = (new ProductResource($product))->resolve();
         $simpleResponse = (new ProductSimpleResource($product))->resolve();
@@ -110,6 +114,7 @@ class ProductImageUrlImporterTest extends TestCase
         $this->importer()->import($product, [['url' => 'https://images.example.test/linked.png']]);
 
         $this->assertCount(2, $product->fresh()->getMedia());
+        $this->assertSame('r2', $product->fresh()->getMedia()->last()->disk);
     }
 
     private function importer(): ProductImageUrlImporter

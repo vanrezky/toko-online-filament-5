@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MetaResource;
 use App\Models\Page;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class PageController extends Controller
@@ -21,7 +22,7 @@ class PageController extends Controller
                 'id' => $page->id,
                 'title' => $page->title,
                 'content' => $page->content,
-                'image_url' => $page->image ? asset('storage/' . $page->image) : null,
+                'image_url' => $page->image ? Storage::disk(config('filesystems.upload_disk', 'public'))->url($page->image) : null,
                 'meta' => MetaResource::make($page->meta),
             ],
         ]);

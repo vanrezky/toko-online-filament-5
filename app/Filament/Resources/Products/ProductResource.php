@@ -97,7 +97,7 @@ class ProductResource extends Resource
         return array_filter([
             __('admin/product-resource.fields.code') => $record->code,
             __('admin/product-resource.fields.category_id') => $record->category?->name,
-        ], fn (?string $value): bool => filled($value));
+        ], fn(?string $value): bool => filled($value));
     }
 
     public static function getGlobalSearchEloquentQuery(): Builder
@@ -119,7 +119,7 @@ class ProductResource extends Resource
                                         SpatieMediaLibraryFileUpload::make('images')
                                             ->image()
                                             ->imageEditor()
-                                            ->required(fn (Get $get): bool => empty($get('image_urls')))
+                                            ->required(fn(Get $get): bool => empty($get('image_urls')))
                                             ->hiddenLabel()
                                             ->multiple()
                                             ->reorderable()
@@ -128,7 +128,7 @@ class ProductResource extends Resource
                                             ->imageEditorAspectRatios(['1:1'])
                                             ->downloadable()
                                             ->panelLayout('grid')
-                                            ->disk(getActiveDisk())
+                                            ->disk(config('filesystems.upload_disk'))
                                             ->rules(['mimes:png,jpg,jpeg,webp,gif'])
                                             ->directory(UploadPath::PRODUCT_UPLOAD_PATH),
                                     ]),
@@ -152,10 +152,10 @@ class ProductResource extends Resource
                                             ->maxItems(5)
                                             ->addActionLabel(__('admin/product-resource.actions.add_image_url'))
                                             ->rules([
-                                                fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                                                fn(Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
                                                     $uploadedImageCount = count(array_filter($get('images') ?? []));
                                                     $linkedImageCount = collect($get('image_urls') ?? [])
-                                                        ->filter(fn (array $image): bool => filled($image['url'] ?? null))
+                                                        ->filter(fn(array $image): bool => filled($image['url'] ?? null))
                                                         ->count();
 
                                                     if ($uploadedImageCount + $linkedImageCount > 5) {
@@ -207,7 +207,7 @@ class ProductResource extends Resource
                                         Select::make('category_id')
                                             ->label(__('admin/product-resource.fields.category_id'))
                                             ->helperText(__('admin/product-resource.fields.category_id_helper'))
-                                            ->relationship('category', 'name', fn (Builder $query): Builder => $query->active())
+                                            ->relationship('category', 'name', fn(Builder $query): Builder => $query->active())
                                             ->searchable()
                                             ->preload()
                                             ->required(),
@@ -234,8 +234,8 @@ class ProductResource extends Resource
                                             ->placeholder(__('admin/product-resource.fields.digital_url_placeholder'))
                                             ->helperText(__('admin/product-resource.fields.digital_url_helper'))
                                             ->columnSpanFull()
-                                            ->visible(fn (Get $get): bool => $get('digital'))
-                                            ->required(fn (Get $get): bool => $get('digital'))
+                                            ->visible(fn(Get $get): bool => $get('digital'))
+                                            ->required(fn(Get $get): bool => $get('digital'))
                                             ->url()
                                             ->columnSpanFull(),
                                     ])->columns(2),
@@ -262,7 +262,7 @@ class ProductResource extends Resource
                                             ->label(__('admin/product-resource.fields.sale_price'))
                                             ->helperText(__('admin/product-resource.fields.sale_price_helper'))
                                             ->rules([
-                                                fn (Get $get, ?Model $record): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
+                                                fn(Get $get, ?Model $record): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
                                                     $price = $get('price');
                                                     if ($value !== null && $price !== null && (float) $value >= (float) $price) {
                                                         $fail(__('admin/product-resource.notifications.sale_price_error'));
@@ -279,7 +279,7 @@ class ProductResource extends Resource
                                             ->helperText(__('admin/product-resource.fields.min_order_helper'))
                                             ->required()
                                             ->default(1)
-                                            ->maxValue(fn (Get $get) => $get('stock')),
+                                            ->maxValue(fn(Get $get) => $get('stock')),
                                     ])->columns(2),
                                 Section::make(__('admin/product-resource.sections.inventory'))
                                     ->schema([
@@ -296,21 +296,21 @@ class ProductResource extends Resource
                                             ->helperText(__('admin/product-resource.fields.security_stock_helper'))
                                             ->required()
                                             ->default(0)
-                                            ->maxValue(fn (Get $get) => $get('stock')),
+                                            ->maxValue(fn(Get $get) => $get('stock')),
                                         TextInput::make('weight')
                                             ->rules('nullable|numeric')
                                             ->label(__('admin/product-resource.fields.weight'))
                                             ->helperText(__('admin/product-resource.fields.weight_helper'))
-                                            ->visible(fn (Get $get): bool => ! $get('digital'))
-                                            ->required(fn (Get $get): bool => ! $get('digital')),
+                                            ->visible(fn(Get $get): bool => ! $get('digital'))
+                                            ->required(fn(Get $get): bool => ! $get('digital')),
                                         Select::make('warehouse_id')
                                             ->label(__('admin/product-resource.fields.warehouse_id'))
                                             ->helperText(str(__('admin/product-resource.fields.warehouse_id_helper'))->inlineMarkdown()->toHtmlString())
-                                            ->relationship('warehouse', 'name', fn (Builder $query): Builder => $query->active())
+                                            ->relationship('warehouse', 'name', fn(Builder $query): Builder => $query->active())
                                             ->searchable()
                                             ->preload()
-                                            ->visible(fn (Get $get): bool => ! $get('digital'))
-                                            ->required(fn (Get $get): bool => ! $get('digital')),
+                                            ->visible(fn(Get $get): bool => ! $get('digital'))
+                                            ->required(fn(Get $get): bool => ! $get('digital')),
                                     ])->columns(2),
                             ]),
                         Tab::make(__('admin/product-resource.tabs.sales_content'))
@@ -321,7 +321,7 @@ class ProductResource extends Resource
                                             ->relationship('resellerPrices')
                                             ->hiddenLabel()
                                             ->reorderable(false)
-                                            ->deleteAction(fn (Action $action) => $action->requiresConfirmation())
+                                            ->deleteAction(fn(Action $action) => $action->requiresConfirmation())
                                             ->defaultItems(0)
                                             ->schema([
                                                 Select::make('reseller_id')
@@ -334,31 +334,31 @@ class ProductResource extends Resource
                                                             ->label(__('admin/product-resource.actions.add_wholesale'))
                                                             ->form([
                                                                 Repeater::make('wholesales')
-                                                                    ->default(fn ($record): array => $record ? $record->wholesales->toArray() : [])
+                                                                    ->default(fn($record): array => $record ? $record->wholesales->toArray() : [])
                                                                     ->schema(self::getWholesalesSchema())
                                                                     ->hiddenLabel()
                                                                     ->grid(['lg' => 2]),
                                                             ])
-                                                            ->action(fn (array $data, $record) => self::setActionWholesales($data, $record))
-                                                            ->visible(fn ($record): bool => ! empty($record))
+                                                            ->action(fn(array $data, $record) => self::setActionWholesales($data, $record))
+                                                            ->visible(fn($record): bool => ! empty($record))
                                                     ),
                                                 TextInput::make('price')
                                                     ->label(__('admin/product-resource.fields.price'))
                                                     ->required()
                                                     ->numeric()
-                                                    ->default(fn (Get $get) => $get('../../price'))
+                                                    ->default(fn(Get $get) => $get('../../price'))
                                                     ->live(onBlur: true)
-                                                    ->hint(fn (Get $get): string => __('admin/product-resource.fields.normal_price').': Rp '.number_format($get('../../price') ?? 0, 0, ',', '.')),
+                                                    ->hint(fn(Get $get): string => __('admin/product-resource.fields.normal_price') . ': Rp ' . number_format($get('../../price') ?? 0, 0, ',', '.')),
                                             ])->grid(['md' => 2]),
                                     ]),
                                 Section::make(__('admin/product-resource.sections.wholesale_pricing'))
                                     ->schema([
                                         Repeater::make('wholesales')
                                             ->label(__('admin/product-resource.tabs.wholesales_price'))
-                                            ->relationship('wholesales', fn (Builder $query): Builder => $query->whereNull('reseller_id'))
+                                            ->relationship('wholesales', fn(Builder $query): Builder => $query->whereNull('reseller_id'))
                                             ->reorderable(false)
                                             ->hiddenLabel()
-                                            ->deleteAction(fn (Action $action) => $action->requiresConfirmation())
+                                            ->deleteAction(fn(Action $action) => $action->requiresConfirmation())
                                             ->cloneable()
                                             ->defaultItems(0)
                                             ->schema(self::getWholesalesSchema())
@@ -403,7 +403,8 @@ class ProductResource extends Resource
                                                     ->image()
                                                     ->multiple()
                                                     ->maxFiles(3)
-                                                    ->maxSize(5120),
+                                                    ->maxSize(5120)
+                                                    ->disk(config('filesystems.upload_disk')),
                                             ])->columns(2),
                                     ])->columns(2),
                             ]),
@@ -500,9 +501,9 @@ class ProductResource extends Resource
                     ->indicateUsing(function (array $data): ?string {
                         $text = null;
                         if ($data['created_from']) {
-                            $text = __('admin/product-resource.fields.created_from').' '.Carbon::parse($data['created_from'])->toFormattedDateString();
+                            $text = __('admin/product-resource.fields.created_from') . ' ' . Carbon::parse($data['created_from'])->toFormattedDateString();
                             if ($data['created_until']) {
-                                $text .= ' - '.Carbon::parse($data['created_until'])->toFormattedDateString();
+                                $text .= ' - ' . Carbon::parse($data['created_until'])->toFormattedDateString();
                             }
                         }
 
@@ -512,11 +513,11 @@ class ProductResource extends Resource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
 
@@ -557,24 +558,24 @@ class ProductResource extends Resource
                         TextEntry::make('category.name')->label(__('admin/product-resource.fields.category_id')),
                         TextEntry::make('digital')
                             ->label(__('admin/product-resource.fields.digital'))
-                            ->formatStateUsing(fn (int $state): string => $state === Status::DIGITAL_PRODUCT
+                            ->formatStateUsing(fn(int $state): string => $state === Status::DIGITAL_PRODUCT
                                 ? __('admin/product-resource.fields.digital_product')
                                 : __('admin/product-resource.fields.physical_product')),
                         TextEntry::make('is_active')
                             ->label(__('admin/product-resource.fields.is_active'))
                             ->badge()
-                            ->color(fn (bool $state): string => $state ? 'success' : 'gray')
-                            ->formatStateUsing(fn (bool $state): string => $state
+                            ->color(fn(bool $state): string => $state ? 'success' : 'gray')
+                            ->formatStateUsing(fn(bool $state): string => $state
                                 ? __('admin/product-resource.status.published')
                                 : __('admin/product-resource.status.draft')),
                         TextEntry::make('digital_url')
                             ->label(__('admin/product-resource.fields.digital_url'))
-                            ->url(fn (?string $state): ?string => $state)
-                            ->visible(fn (Product $record): bool => $record->digital === Status::DIGITAL_PRODUCT)
+                            ->url(fn(?string $state): ?string => $state)
+                            ->visible(fn(Product $record): bool => $record->digital === Status::DIGITAL_PRODUCT)
                             ->columnSpanFull(),
                         TextEntry::make('tags')
                             ->label(__('admin/product-resource.fields.tags'))
-                            ->formatStateUsing(fn ($state): string => collect($state ?? [])->implode(', '))
+                            ->formatStateUsing(fn($state): string => collect($state ?? [])->implode(', '))
                             ->placeholder('-')
                             ->columnSpanFull(),
                         TextEntry::make('description')
@@ -592,11 +593,11 @@ class ProductResource extends Resource
                         TextEntry::make('security_stock')->label(__('admin/product-resource.fields.security_stock')),
                         TextEntry::make('warehouse.name')
                             ->label(__('admin/product-resource.fields.warehouse_id'))
-                            ->visible(fn (Product $record): bool => $record->digital !== Status::DIGITAL_PRODUCT),
+                            ->visible(fn(Product $record): bool => $record->digital !== Status::DIGITAL_PRODUCT),
                         TextEntry::make('weight')
                             ->label(__('admin/product-resource.fields.weight'))
                             ->suffix(' g')
-                            ->visible(fn (Product $record): bool => $record->digital !== Status::DIGITAL_PRODUCT),
+                            ->visible(fn(Product $record): bool => $record->digital !== Status::DIGITAL_PRODUCT),
                     ])->columns(3),
                 Section::make(__('admin/product-resource.sections.reseller_pricing'))
                     ->schema([
@@ -622,7 +623,7 @@ class ProductResource extends Resource
                     ->schema([
                         RepeatableEntry::make('normalWholesales')
                             ->label(__('admin/product-resource.sections.wholesale_pricing'))
-                            ->getStateUsing(fn (Product $record): array => $record->wholesales
+                            ->getStateUsing(fn(Product $record): array => $record->wholesales
                                 ->whereNull('reseller_id')
                                 ->values()
                                 ->all())
@@ -697,7 +698,7 @@ class ProductResource extends Resource
         if (self::shouldCanUpdate()) {
             return ToggleColumn::make('is_active')
                 ->label(__('admin/product-resource.columns.published'))
-                ->afterStateUpdated(fn () => notification(__('admin/product-resource.notifications.published_updated'), 'success'));
+                ->afterStateUpdated(fn() => notification(__('admin/product-resource.notifications.published_updated'), 'success'));
         }
 
         return IconColumn::make('is_active')->boolean()->label(__('admin/product-resource.columns.published'));
@@ -719,9 +720,9 @@ class ProductResource extends Resource
             TextInput::make('price')
                 ->label(__('admin/product-resource.fields.price_per_item'))
                 ->required()
-                ->default(fn (Get $get) => $get('../../price'))
+                ->default(fn(Get $get) => $get('../../price'))
                 ->live(onBlur: true)
-                ->hint(fn (Get $get): string => __('admin/product-resource.fields.price').': Rp '.number_format($get('../../price') ?? 0, 0, ',', '.'))
+                ->hint(fn(Get $get): string => __('admin/product-resource.fields.price') . ': Rp ' . number_format($get('../../price') ?? 0, 0, ',', '.'))
                 ->distinct(),
         ];
     }
@@ -788,14 +789,15 @@ class ProductResource extends Resource
 
                 if ($imageData instanceof TemporaryUploadedFile) {
                     // Move the temporary file to the active disk
-                    $filePath = $imageData->store('/', getActiveDisk());
+                    $uploadDisk = config('filesystems.upload_disk');
+                    $filePath = $imageData->store('/', $uploadDisk);
 
                     // Remove old media if needed
                     $variant->clearMediaCollection('default');
 
                     // Attach new media
-                    $variant->addMediaFromDisk($filePath, getActiveDisk())
-                        ->toMediaCollection();
+                    $variant->addMediaFromDisk($filePath, $uploadDisk)
+                        ->toMediaCollection('default', $uploadDisk);
                 }
             }
             // Simpan attribute untuk variant

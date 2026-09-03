@@ -107,7 +107,7 @@ class ProductReviewController extends Controller
         }
 
         foreach ($request->file('images', []) as $image) {
-            $review->addMedia($image)->toMediaCollection('images');
+            $review->addMedia($image)->toMediaCollection('images', config('filesystems.upload_disk'));
         }
 
         return back()->with('success', 'Ulasan produk berhasil ditambahkan.');
@@ -165,7 +165,7 @@ class ProductReviewController extends Controller
                 }
 
                 foreach ($reviewData['images'] ?? [] as $image) {
-                    $review->addMedia($image)->toMediaCollection('images');
+                    $review->addMedia($image)->toMediaCollection('images', config('filesystems.upload_disk'));
                 }
             }
         });

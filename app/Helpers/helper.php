@@ -3,6 +3,7 @@
 use App\Settings\GeneralSettings;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Retrieve a value from the general settings with an optional default value.
@@ -63,8 +64,7 @@ if (!function_exists('getUrlImage')) {
             return $image;
         }
 
-        // Jika bukan URL eksternal, gunakan asset dari penyimpanan lokal
-        return asset('/storage/' . $image);
+        return Storage::disk(config('filesystems.upload_disk', 'public'))->url($image);
     }
 }
 
@@ -80,14 +80,13 @@ if (!function_exists('toMoney')) {
 if (!function_exists('getActiveDisk')) {
     function getActiveDisk(): string
     {
-        return 'public';
+        return config('filesystems.default');
     }
 }
 
 if (!function_exists('noImage')) {
     function noImage(): string
     {
-        dd(asset('assets/images/noimage.jpg'));
         return asset('assets/images/noimage.jpg');
     }
 }

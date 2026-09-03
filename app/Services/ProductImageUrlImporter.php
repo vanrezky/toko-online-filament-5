@@ -75,7 +75,7 @@ class ProductImageUrlImporter
                 $importedMedia->push(
                     $product->addMediaFromString($body)
                         ->usingFileName($this->filenameFor($url, $mimeType))
-                        ->toMediaCollection(),
+                        ->toMediaCollection('default', config('filesystems.upload_disk')),
                 );
             });
         } catch (Throwable $exception) {

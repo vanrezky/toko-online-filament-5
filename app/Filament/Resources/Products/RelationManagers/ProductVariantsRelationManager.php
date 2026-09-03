@@ -152,7 +152,7 @@ class ProductVariantsRelationManager extends RelationManager
                     ->imageEditorAspectRatios([
                         '1:1'
                     ])
-                    ->disk(getActiveDisk())
+                    ->disk(config('filesystems.upload_disk'))
                     ->rules(['required', 'mimes:png,jpg,jpeg,webp,gif', 'max:1024'])
                     ->maxSize(1024)
                     ->helperText(__('admin/product-resource.product-variant.fields.image_helper'))
