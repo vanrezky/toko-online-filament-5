@@ -59,6 +59,8 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
+    protected static ?string $recordTitleAttribute = 'name';
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
 
     protected static ?string $slug = 'products';
@@ -83,6 +85,24 @@ class ProductResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('admin/product-resource.plural_model_label');
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'code', 'slug', 'category.name'];
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return array_filter([
+            __('admin/product-resource.fields.code') => $record->code,
+            __('admin/product-resource.fields.category_id') => $record->category?->name,
+        ], fn (?string $value): bool => filled($value));
+    }
+
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()->with('category');
     }
 
     public static function form(Schema $schema): Schema
