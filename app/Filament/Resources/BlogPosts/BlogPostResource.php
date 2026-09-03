@@ -138,6 +138,7 @@ class BlogPostResource extends Resource
                                     ->label(__('admin/blog-post-resource.fields.featured_image'))
                                     ->image()
                                     ->imageEditor()
+                                    ->disk(config('filesystems.upload_disk'))
                                     ->directory(UploadPath::IMAGES_UPLOAD_PATH),
                             ]),
 

@@ -82,7 +82,7 @@ class CategoryResource extends Resource
                                     ->imageCropAspectRatio('1:1')
                                     ->imagePreviewHeight(250)
                                     ->helperText(__('admin/category-resource.fields.image_helper'))
-                                    ->disk(getActiveDisk())
+                                    ->disk(config('filesystems.upload_disk'))
                             ])->columns(2),
                         Tab::make(__('admin/category-resource.tabs.seo'))
                             ->schema([

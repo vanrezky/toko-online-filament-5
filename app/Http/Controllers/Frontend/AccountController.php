@@ -86,7 +86,7 @@ class AccountController extends Controller
         if ($request->hasFile('image')) {
             $customer->clearMediaCollection('profile_photos');
             $media = $customer->addMediaFromRequest('image')
-                ->toMediaCollection('profile_photos');
+                ->toMediaCollection('profile_photos', config('filesystems.upload_disk'));
 
             $customer->update([
                 'image' => $media->getUrl('thumb'),

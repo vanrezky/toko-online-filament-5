@@ -161,7 +161,7 @@ class VoucherResource extends Resource
                                 ->imageCropAspectRatio('1:1')
                                 ->helperText(__('admin/voucher-resource.fields.image_helper'))
                                 ->directory(UploadPath::VOUCHER_UPLOAD_PATH)
-                                ->disk(getActiveDisk()),
+                                ->disk(config('filesystems.upload_disk')),
                             Select::make('category_id')
                                 ->label(__('admin/voucher-resource.fields.category_id'))
                                 ->placeholder(__('admin/voucher-resource.fields.all_category'))

@@ -112,6 +112,7 @@ class CustomerResource extends Resource
                                 '1:1',
                             ])
                             ->rules(['nullable', 'mimes:png,jpg,jpeg', 'max:1024'])
+                            ->disk(config('filesystems.upload_disk'))
                             ->columnSpanFull()
                             ->alignCenter()
                             ->helperText(__('admin/customer-resource.fields.profile_image_helper')),

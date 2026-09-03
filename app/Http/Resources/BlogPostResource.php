@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class BlogPostResource extends JsonResource
 {
@@ -22,7 +23,7 @@ class BlogPostResource extends JsonResource
             'content' => $this->content,
             'excerpt' => Str::limit(strip_tags($this->content), 150),
             'published_at' => $this->published_at ? $this->published_at->format('M d, Y') : null,
-            'image_url' => $this->image ? asset('storage/' . $this->image) : null,
+            'image_url' => $this->image ? Storage::disk(config('filesystems.upload_disk', 'public'))->url($this->image) : null,
             'category' => [
                 'name' => $this->category?->name,
                 'slug' => $this->category?->slug,

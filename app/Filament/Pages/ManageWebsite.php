@@ -103,6 +103,7 @@ class ManageWebsite extends SettingsPage
                                             ->maxSize(1024)
                                             ->rules(['nullable', 'mimes:png,jpg,jpeg,webp,avif', 'max:1024'])
                                             ->directory(UploadPath::CONFIG_UPLOAD_PATH)
+                                            ->disk(config('filesystems.upload_disk'))
                                             ->helperText(__('admin/page-manage-website.file_helpers.logo_supported'))
                                             ->imageEditor(),
                                         FileUpload::make('login_logo')
@@ -111,6 +112,7 @@ class ManageWebsite extends SettingsPage
                                             ->maxSize(1024)
                                             ->rules(['nullable', 'mimes:png,jpg,jpeg,webp,avif', 'max:1024'])
                                             ->directory(UploadPath::CONFIG_UPLOAD_PATH)
+                                            ->disk(config('filesystems.upload_disk'))
                                             ->helperText(__('admin/page-manage-website.file_helpers.logo_supported')),
                                         FileUpload::make('favicon')
                                             ->label(__('admin/page-manage-website.fields.favicon'))
@@ -118,6 +120,7 @@ class ManageWebsite extends SettingsPage
                                             ->maxSize(1024)
                                             ->rules(['nullable', 'mimes:png,jpg,jpeg,webp,avif,ico', 'max:1024'])
                                             ->directory(UploadPath::CONFIG_UPLOAD_PATH)
+                                            ->disk(config('filesystems.upload_disk'))
                                             ->helperText(__('admin/page-manage-website.file_helpers.favicon_supported')),
                                     ])
                                     ->columns(2),
@@ -132,6 +135,7 @@ class ManageWebsite extends SettingsPage
                                             ->helperText(__('admin/page-manage-website.file_helpers.social_image'))
                                             ->rules(['nullable', 'mimes:png,jpg,jpeg,webp,avif', 'max:1024'])
                                             ->directory(UploadPath::IMAGES_UPLOAD_PATH)
+                                            ->disk(config('filesystems.upload_disk'))
                                             ->image()
                                             ->imageResizeTargetWidth('1180')
                                             ->imageResizeTargetHeight('600'),
