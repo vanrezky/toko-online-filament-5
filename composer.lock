@@ -4112,6 +4112,61 @@
             "time": "2026-08-08T16:19:23+00:00"
         },
         {
+            "name": "league/flysystem-aws-s3-v3",
+            "version": "3.35.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thephpleague/flysystem-aws-s3-v3.git",
+                "reference": "b03780cb97585ee7e48977f40ed599b33b751634"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thephpleague/flysystem-aws-s3-v3/zipball/b03780cb97585ee7e48977f40ed599b33b751634",
+                "reference": "b03780cb97585ee7e48977f40ed599b33b751634",
+                "shasum": ""
+            },
+            "require": {
+                "aws/aws-sdk-php": "^3.371.5",
+                "league/flysystem": "^3.10.0",
+                "league/mime-type-detection": "^1.0.0",
+                "php": "^8.0.2"
+            },
+            "conflict": {
+                "guzzlehttp/guzzle": "<7.0",
+                "guzzlehttp/ringphp": "<1.1.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "League\\Flysystem\\AwsS3V3\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Frank de Jonge",
+                    "email": "info@frankdejonge.nl"
+                }
+            ],
+            "description": "AWS S3 filesystem adapter for Flysystem.",
+            "keywords": [
+                "Flysystem",
+                "aws",
+                "file",
+                "files",
+                "filesystem",
+                "s3",
+                "storage"
+            ],
+            "support": {
+                "source": "https://github.com/thephpleague/flysystem-aws-s3-v3/tree/3.35.3"
+            },
+            "time": "2026-08-08T16:19:23+00:00"
+        },
+        {
             "name": "league/flysystem-local",
             "version": "3.35.3",
             "source": {
@@ -8652,69 +8707,6 @@
                 }
             ],
             "time": "2026-03-19T10:36:26+00:00"
-        },
-        {
-            "name": "ryangjchandler/blade-tabler-icons",
-            "version": "v2.3.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ryangjchandler/blade-tabler-icons.git",
-                "reference": "cd359f5d3b406a982dae1aaaf121d84067576a2e"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ryangjchandler/blade-tabler-icons/zipball/cd359f5d3b406a982dae1aaaf121d84067576a2e",
-                "reference": "cd359f5d3b406a982dae1aaaf121d84067576a2e",
-                "shasum": ""
-            },
-            "require": {
-                "blade-ui-kit/blade-icons": "^1.5",
-                "illuminate/support": "^10.0 || ^11.0",
-                "php": "^8.1"
-            },
-            "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.14",
-                "orchestra/testbench": "^8.0 || ^9.0",
-                "phpunit/phpunit": "^9.5.10 || ^10.5"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "RyanChandler\\TablerIcons\\BladeTablerIconsServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "RyanChandler\\TablerIcons\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ryan Chandler",
-                    "email": "support@ryangjchandler.co.uk",
-                    "homepage": "https://ryangjchandler.co.uk",
-                    "role": "Developer"
-                }
-            ],
-            "description": "A package to easily make use of Tabler icons in your Laravel Blade views.",
-            "homepage": "https://github.com/ryangjchandler/blade-tabler-icons",
-            "keywords": [
-                "blade",
-                "laravel",
-                "tabler"
-            ],
-            "support": {
-                "issues": "https://github.com/ryangjchandler/blade-tabler-icons/issues",
-                "source": "https://github.com/ryangjchandler/blade-tabler-icons/tree/v2.3.0"
-            },
-            "abandoned": "secondnetwork/blade-tabler-icons",
-            "time": "2024-03-12T23:54:24+00:00"
         },
         {
             "name": "scrivo/highlight.php",

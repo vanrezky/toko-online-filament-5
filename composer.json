@@ -31,7 +31,6 @@
         "open-telemetry/sdk": "^1.15",
         "openai-php/laravel": "^0.8.1",
         "predis/predis": "^3.6",
-        "ryangjchandler/blade-tabler-icons": "^2.3",
         "spatie/laravel-activitylog": "*",
         "spatie/laravel-health": "^1.40",
         "superconductor/laravel-vibes": "^0.6",
@@ -86,7 +85,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "tbachert/spi": false
         }
     },
     "minimum-stability": "dev",
