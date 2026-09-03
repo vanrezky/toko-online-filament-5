@@ -77,13 +77,6 @@ if (!function_exists('toMoney')) {
     }
 }
 
-if (!function_exists('getActiveDisk')) {
-    function getActiveDisk(): string
-    {
-        return config('filesystems.default');
-    }
-}
-
 if (!function_exists('noImage')) {
     function noImage(): string
     {

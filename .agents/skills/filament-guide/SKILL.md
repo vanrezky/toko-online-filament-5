@@ -88,7 +88,7 @@ SpatieMediaLibraryFileUpload::make('images')
     ->maxFiles(5)
     ->optimize('webp')
     ->directory(UploadPath::YOUR_PATH)
-    ->disk(getActiveDisk())
+    ->disk(config('filesystems.upload_disk'))
 ```
 
 ### SEO Schema Helpers
@@ -225,4 +225,4 @@ Forms\Components\TextInput::make('price')
 - Check `app/Filament/Resources/` for existing patterns before creating new ones
 - This project uses Spatie Laravel Media Library for file uploads
 - Follow existing permission patterns with `shouldCanUpdate()`
-- Use `getActiveDisk()` helper for storage disk configuration
+- Use `->disk(config('filesystems.upload_disk'))` for persistent upload storage

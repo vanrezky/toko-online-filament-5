@@ -118,7 +118,7 @@ I help navigate and modify the existing Filament admin panel for this e-commerce
 This project uses Spatie Laravel Media Library:
 - File upload: `SpatieMediaLibraryFileUpload::make('images')`
 - Image column: `SpatieMediaLibraryImageColumn::make('images')->conversion('thumb')`
-- Storage disk: `getActiveDisk()` helper
+- Storage disk: `config('filesystems.upload_disk')`
 - Upload paths in `App\Constants\UploadPath`
 
 ### Payment Integration
