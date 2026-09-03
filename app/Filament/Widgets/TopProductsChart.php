@@ -3,14 +3,16 @@
 namespace App\Filament\Widgets;
 
 use App\Services\DashboardStats;
-use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 
 class TopProductsChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
     protected int $cacheSeconds = 300;
+
+    protected ?string $maxHeight = '600px';
 
     public function getHeading(): string
     {
@@ -22,7 +24,7 @@ class TopProductsChart extends ChartWidget
     protected function getData(): array
     {
         $stats = new DashboardStats($this->pageFilters ?? []);
-        $products = $stats->getTopProducts(5);
+        $products = $stats->getTopProducts(10);
 
         $isQuantity = ($this->filter ?? 'quantity') === 'quantity';
 
@@ -33,13 +35,9 @@ class TopProductsChart extends ChartWidget
                         ? __('admin/page-dashboard.top_products.quantity_sold')
                         : __('admin/page-dashboard.top_products.revenue'),
                     'data' => array_column($products, $isQuantity ? 'total_quantity' : 'total_revenue'),
-                    'backgroundColor' => [
-                        'rgba(37, 99, 235, 0.8)',
-                        'rgba(37, 99, 235, 0.6)',
-                        'rgba(37, 99, 235, 0.5)',
-                        'rgba(37, 99, 235, 0.4)',
-                        'rgba(37, 99, 235, 0.3)',
-                    ],
+                    'backgroundColor' => 'rgba(37, 99, 235, 0.8)',
+                    'borderColor' => '#2563eb',
+                    'borderWidth' => 2,
                     'borderRadius' => 8,
                 ],
             ],
@@ -59,16 +57,27 @@ class TopProductsChart extends ChartWidget
             'responsive' => true,
             'maintainAspectRatio' => false,
             'plugins' => [
-                'legend' => ['display' => false],
+                'legend' => [
+                    'display' => true,
+                    'position' => 'bottom',
+                    'labels' => [
+                        'usePointStyle' => false,
+                        'boxWidth' => 24,
+                        'padding' => 16,
+                    ],
+                ],
                 'tooltip' => [],
             ],
             'scales' => [
                 'x' => [
                     'grid' => ['display' => false],
-                    'ticks' => [],
+                    'ticks' => ['display' => true],
                 ],
                 'y' => [
-                    'grid' => ['display' => false],
+                    'grid' => [
+                        'display' => true,
+                        'color' => 'rgba(148, 163, 184, 0.35)',
+                    ],
                 ],
             ],
         ];

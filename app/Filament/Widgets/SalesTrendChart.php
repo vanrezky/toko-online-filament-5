@@ -3,8 +3,8 @@
 namespace App\Filament\Widgets;
 
 use App\Services\DashboardStats;
-use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 
 class SalesTrendChart extends ChartWidget
 {
@@ -84,7 +84,7 @@ class SalesTrendChart extends ChartWidget
                 'y' => [
                     'beginAtZero' => true,
                     'grid' => ['color' => 'rgba(0, 0, 0, 0.05)'],
-                    'ticks' => [],
+                    'ticks' => ['display' => false],
                 ],
             ],
         ];

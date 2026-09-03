@@ -4,11 +4,13 @@ return [
     'title' => 'Dashboard',
 
     'filters' => [
-        'title' => 'Rentang laporan',
-        'description' => 'Pilih periode untuk memperbarui seluruh ringkasan di bawah.',
         'start_date' => 'Tanggal mulai',
         'end_date' => 'Tanggal selesai',
         'select_date' => 'Pilih tanggal',
+        'category' => 'Kategori produk',
+        'status' => 'Status produk',
+        'all_categories' => 'Semua kategori',
+        'all_statuses' => 'Semua status',
     ],
 
     'stats' => [
@@ -21,6 +23,7 @@ return [
 
     'orders_by_status' => [
         'title' => 'Pesanan berdasarkan status',
+        'order_count' => 'Jumlah pesanan',
     ],
 
     'sales_trend' => [

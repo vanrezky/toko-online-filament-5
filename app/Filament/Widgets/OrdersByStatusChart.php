@@ -4,8 +4,8 @@ namespace App\Filament\Widgets;
 
 use App\Enums\TransactionStatus;
 use App\Services\DashboardStats;
-use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 
 class OrdersByStatusChart extends ChartWidget
 {
@@ -43,6 +43,7 @@ class OrdersByStatusChart extends ChartWidget
         return [
             'datasets' => [
                 [
+                    'label' => __('admin/page-dashboard.orders_by_status.order_count'),
                     'data' => array_values($data),
                     'backgroundColor' => array_map(fn ($status) => $colors[$status] ?? self::STATUS_COLORS['default'], array_keys($data)),
                     'borderWidth' => 0,
@@ -54,7 +55,7 @@ class OrdersByStatusChart extends ChartWidget
 
     protected function getType(): string
     {
-        return 'doughnut';
+        return 'bar';
     }
 
     protected function getOptions(): array
@@ -62,7 +63,7 @@ class OrdersByStatusChart extends ChartWidget
         return [
             'responsive' => true,
             'maintainAspectRatio' => false,
-            'cutout' => '65%',
+            'indexAxis' => 'y',
             'plugins' => [
                 'legend' => [
                     'position' => 'bottom',
