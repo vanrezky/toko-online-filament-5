@@ -3,10 +3,10 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\TransactionStatus;
-use Filament\Widgets\Concerns\InteractsWithPageFilters;
-use Filament\Tables\Columns\TextColumn;
 use App\Models\Transaction;
-use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -16,7 +16,12 @@ class RecentOrdersTable extends BaseWidget
 
     protected int $cacheSeconds = 300;
 
-    protected int $pageSize = 5;
+    public function table(Table $table): Table
+    {
+        return $table
+            ->defaultPaginationPageOption(5)
+            ->paginationPageOptions([5]);
+    }
 
     protected function getTableHeading(): string
     {
@@ -35,14 +40,17 @@ class RecentOrdersTable extends BaseWidget
                 $this->pageFilters['endDate'] ?? null,
                 fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '<=', $date),
             )
+            ->when(
+                $this->pageFilters['transactionStatus'] ?? null,
+                fn (Builder $query, string $status): Builder => $query->where('transactions.status', $status),
+            )
             ->select(['transactions.*'])
             ->selectSub(function ($query) {
                 $query->selectRaw('SUM((price * quantity) - discount)')
                     ->from('transcation_products')
                     ->whereColumn('transaction_id', 'transactions.id');
             }, 'total_amount')
-            ->orderByDesc('created_at')
-            ->limit(10);
+            ->orderByDesc('created_at');
     }
 
     protected function getTableColumns(): array

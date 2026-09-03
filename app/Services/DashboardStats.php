@@ -24,9 +24,17 @@ class DashboardStats
 
     protected ?array $combinedStats = null;
 
+    protected ?int $categoryId = null;
+
+    protected ?string $transactionStatus = null;
+
     public function __construct(array $filters = [])
     {
         $this->filters = $filters;
+        $this->categoryId = filled($filters['categoryId'] ?? null) ? (int) $filters['categoryId'] : null;
+        $this->transactionStatus = filled($filters['transactionStatus'] ?? null)
+            ? TransactionStatus::tryFrom((string) $filters['transactionStatus'])?->value
+            : null;
     }
 
     public function getStartDate(): ?Carbon
@@ -60,7 +68,10 @@ class DashboardStats
         $start = $this->getStartDate()?->format('Y-m-d') ?? 'default';
         $end = $this->getEndDate()?->format('Y-m-d') ?? 'default';
 
-        return "dashboard_stats_{$method}_{$start}_{$end}";
+        $category = $this->categoryId ?? 'all';
+        $status = $this->transactionStatus ?? 'all';
+
+        return "dashboard_stats_{$method}_{$start}_{$end}_category_{$category}_status_{$status}";
     }
 
     public function getRevenueStats(): array
@@ -144,8 +155,13 @@ class DashboardStats
     {
         return CacheService::rememberManaged('dashboard', $this->getCacheKey('status'), $this->cacheSeconds, function () {
             $results = Transaction::query()
-                ->when($this->getStartDate() && $this->getEndDate(), fn ($q) => $q->whereBetween('created_at', [$this->getStartDate(), $this->getEndDate()]))
-                ->select('status', DB::raw('COUNT(*) as count'))
+                ->when($this->hasCategoryFilter(), fn ($q) => $q
+                    ->join('transcation_products', 'transcation_products.transaction_id', '=', 'transactions.id')
+                    ->join('products', 'transcation_products.product_id', '=', 'products.id')
+                    ->tap(fn ($joined) => $this->applyCategoryFilter($joined)))
+                ->when($this->transactionStatus !== null, fn ($q) => $q->where('transactions.status', $this->transactionStatus))
+                ->when($this->getStartDate() && $this->getEndDate(), fn ($q) => $q->whereBetween('transactions.created_at', [$this->getStartDate(), $this->getEndDate()]))
+                ->select('transactions.status', DB::raw('COUNT(DISTINCT transactions.id) as count'))
                 ->groupBy('status')
                 ->pluck('count', 'status')
                 ->toArray();
@@ -165,7 +181,7 @@ class DashboardStats
             return TransactionProduct::query()
                 ->join('transactions', 'transcation_products.transaction_id', '=', 'transactions.id')
                 ->join('products', 'transcation_products.product_id', '=', 'products.id')
-                ->where('transactions.status', 'completed')
+                ->tap(fn ($query) => $this->applySalesStatus($query))
                 ->tap(fn ($query) => $this->applyCompletedDateRange($query, $this->getStartDate(), $this->getEndDate()))
                 ->groupBy('products.id', 'products.name')
                 ->selectRaw('
@@ -174,6 +190,7 @@ class DashboardStats
                     SUM(transcation_products.quantity) as total_quantity,
                     SUM((transcation_products.price * transcation_products.quantity) - transcation_products.discount) as total_revenue
                 ')
+                ->tap(fn ($query) => $this->applyCategoryFilter($query))
                 ->orderByDesc('total_quantity')
                 ->limit($limit)
                 ->get()
@@ -185,6 +202,7 @@ class DashboardStats
     {
         return CacheService::rememberManaged('dashboard', $this->getCacheKey('lowstock'), $this->cacheSeconds, function () {
             return Product::where('is_active', true)
+                ->tap(fn ($query) => $this->applyCategoryFilter($query, 'products'))
                 ->whereColumn('stock', '<=', 'security_stock')
                 ->with('category')
                 ->limit(10)
@@ -214,8 +232,10 @@ class DashboardStats
 
         $current = TransactionProduct::query()
             ->join('transactions', 'transcation_products.transaction_id', '=', 'transactions.id')
-            ->where('transactions.status', 'completed')
+            ->join('products', 'transcation_products.product_id', '=', 'products.id')
+            ->tap(fn ($query) => $this->applySalesStatus($query))
             ->tap(fn ($query) => $this->applyCompletedDateRange($query, $startDate, $endDate))
+            ->tap(fn ($query) => $this->applyCategoryFilter($query))
             ->selectRaw('
                 SUM((transcation_products.price * transcation_products.quantity) - transcation_products.discount) as revenue,
                 COUNT(DISTINCT transactions.id) as orders
@@ -224,8 +244,10 @@ class DashboardStats
 
         $previous = TransactionProduct::query()
             ->join('transactions', 'transcation_products.transaction_id', '=', 'transactions.id')
-            ->where('transactions.status', 'completed')
+            ->join('products', 'transcation_products.product_id', '=', 'products.id')
+            ->tap(fn ($query) => $this->applySalesStatus($query))
             ->tap(fn ($query) => $this->applyCompletedDateRange($query, $prevPeriod['start'], $prevPeriod['end']))
+            ->tap(fn ($query) => $this->applyCategoryFilter($query))
             ->selectRaw('
                 SUM((transcation_products.price * transcation_products.quantity) - transcation_products.discount) as revenue,
                 COUNT(DISTINCT transactions.id) as orders
@@ -248,8 +270,10 @@ class DashboardStats
 
         $results = TransactionProduct::query()
             ->join('transactions', 'transcation_products.transaction_id', '=', 'transactions.id')
-            ->where('transactions.status', 'completed')
+            ->join('products', 'transcation_products.product_id', '=', 'products.id')
+            ->tap(fn ($query) => $this->applySalesStatus($query))
             ->tap(fn ($query) => $this->applyCompletedDateRange($query, $startDate, $endDate))
+            ->tap(fn ($query) => $this->applyCategoryFilter($query))
             ->selectRaw('DATE(IFNULL(transactions.complete_date, transactions.created_at)) as date, SUM((transcation_products.price * transcation_products.quantity) - transcation_products.discount) as total')
             ->groupBy('date')
             ->pluck('total', 'date')
@@ -310,6 +334,21 @@ class DashboardStats
                         ->whereBetween('transactions.created_at', [$startDate, $endDate]);
                 });
         });
+    }
+
+    protected function hasCategoryFilter(): bool
+    {
+        return $this->categoryId !== null;
+    }
+
+    protected function applyCategoryFilter($query, string $productTable = 'products'): void
+    {
+        $query->when($this->categoryId !== null, fn ($q) => $q->where("{$productTable}.category_id", $this->categoryId));
+    }
+
+    protected function applySalesStatus($query): void
+    {
+        $query->where('transactions.status', $this->transactionStatus ?? TransactionStatus::completed->value);
     }
 
     protected function calculatePercentChange(float $current, float $previous): float
