@@ -134,12 +134,19 @@ return [
         'mark_as_rejected' => 'Tandai Ditolak',
         'mark_as_delivered' => 'Tandai Diterima',
         'mark_as_completed' => 'Tandai Selesai',
+        'print_receipt' => 'Cetak Receipt',
+        'print_receipts' => 'Cetak Receipt Terpilih',
     ],
 
     'notifications' => [
         'status_updated' => 'Status Diperbarui',
         'status_changed_to' => 'Status pesanan diubah menjadi',
         'update_failed' => 'Gagal Memperbarui',
+        'receipt_failed' => 'Gagal Membuat Receipt',
+        'receipt_none_eligible' => 'Tidak Ada Transaksi yang Dapat Dicetak',
+        'receipt_skipped_count' => ':count transaksi dibatalkan dan dilewati.',
+        'receipt_batch_ready' => 'Receipt Batch Siap Diunduh',
+        'receipt_batch_summary' => ':eligible receipt dibuat/digunakan; :skipped transaksi dilewati.',
     ],
 
     'copy' => [

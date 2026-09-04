@@ -44,6 +44,7 @@ return [
         'completed' => 'Lunas',
         'overdue' => 'Terlambat',
         'defaulted' => 'Wanprestasi',
+        'cancelled' => 'Dibatalkan',
     ],
 
     'columns' => [
