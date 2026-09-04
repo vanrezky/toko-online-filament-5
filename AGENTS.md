@@ -4,6 +4,39 @@ This repository uses an issue-first development workflow with optional OpenSpec 
 
 The agent must determine the appropriate workflow automatically before editing application code.
 
+## Mandatory Laravel Sail Policy
+
+All Laravel backend commands MUST run through Laravel Sail.
+
+For backend tests, the canonical command is:
+
+```bash
+./vendor/bin/sail artisan test
+```
+
+For a focused backend test, use:
+
+```bash
+./vendor/bin/sail artisan test --filter TestName
+```
+
+Do NOT run backend tests through the host PHP installation. The following commands are forbidden:
+
+- `php artisan test`
+- `./vendor/bin/phpunit`
+- `./vendor/bin/phpunit --filter TestName`
+- `./vendor/bin/sail test`
+
+The same Sail requirement applies to PHP, Artisan, Composer, and Pint commands. Use `./vendor/bin/sail php ...`, `./vendor/bin/sail artisan ...`, `./vendor/bin/sail composer ...`, and `./vendor/bin/sail pint ...`.
+
+Before running backend tests or other service-dependent validation, inspect the existing environment with:
+
+```bash
+docker compose ps
+```
+
+If Sail or the `laravel.test` container is unavailable, diagnose and report the environment issue. Do not fall back to host PHP or start another Laravel/Docker environment.
+
 ## Core Principles
 
 - One logical business outcome should map to:
@@ -837,8 +870,8 @@ When an override creates meaningful risk, warn briefly before proceeding.
 - Bring up local services with Sail: `make start`.
 - Fresh local bootstrap: `make setup` (includes `migrate:fresh`, `db:seed`, `storage:link`, `optimize`).
 - Full rebuild from scratch: `make fresh`.
-- Backend tests: `./vendor/bin/phpunit` (or `./vendor/bin/sail test`).
-- Single backend test: `./vendor/bin/phpunit --filter TestName`.
+- Backend tests: `./vendor/bin/sail artisan test`.
+- Single backend test: `./vendor/bin/sail artisan test --filter TestName`.
 - Frontend verify: `npm run build`; frontend tests: `npm run test`.
 
 ## High-signal gotchas

@@ -100,14 +100,8 @@ make destroy
 ### Backend
 
 ```bash
-./vendor/bin/phpunit
-./vendor/bin/phpunit --filter TestName
-```
-
-Jika memakai Sail:
-
-```bash
-./vendor/bin/sail test
+./vendor/bin/sail artisan test
+./vendor/bin/sail artisan test --filter TestName
 ```
 
 ### Frontend
