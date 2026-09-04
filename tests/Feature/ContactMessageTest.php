@@ -140,7 +140,7 @@ class ContactMessageTest extends TestCase
      */
     public function test_admin_can_access_contact_messages_list(): void
     {
-        $admin = User::factory()->create();
+        $admin = User::factory()->create(['is_super_user' => true]);
 
         ContactMessage::factory()->count(3)->create();
 
@@ -155,7 +155,7 @@ class ContactMessageTest extends TestCase
      */
     public function test_admin_can_view_contact_message_detail(): void
     {
-        $admin = User::factory()->create();
+        $admin = User::factory()->create(['is_super_user' => true]);
         $message = ContactMessage::factory()->create([
             'name' => 'Jane Doe',
             'email' => 'jane@example.com',

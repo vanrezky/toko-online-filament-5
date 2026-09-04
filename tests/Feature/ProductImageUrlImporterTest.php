@@ -47,7 +47,10 @@ class ProductImageUrlImporterTest extends TestCase
         $this->assertCount(1, $product->getMedia());
         $media = $product->getFirstMedia();
         $this->assertSame('r2', $media->disk);
-        $this->assertSame("uploads/products/{$media->id}/", $media->getPath());
+        $this->assertSame(
+            "uploads/products/{$media->id}/product.png",
+            $media->getPathRelativeToRoot()
+        );
 
         $productResponse = (new ProductResource($product))->resolve();
         $simpleResponse = (new ProductSimpleResource($product))->resolve();

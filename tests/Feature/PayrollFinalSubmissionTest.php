@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\TransactionBillingStatus;
 use App\Models\Customer;
+use App\Models\CustomerAddress;
 use App\Models\Installment;
 use App\Models\InstallmentPayment;
 use App\Models\InstallmentPlan;
@@ -11,6 +13,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Warehouse;
 use App\Services\PayrollExportService;
+use App\Settings\GeneralSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -19,6 +22,18 @@ use Tests\TestCase;
 class PayrollFinalSubmissionTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        DB::table('settings')->updateOrInsert(
+            ['group' => 'general', 'name' => 'billing_due_month_offset'],
+            ['payload' => json_encode(0), 'updated_at' => now()]
+        );
+
+        $this->app->forgetInstance(GeneralSettings::class);
+    }
 
     public function test_export_draft_does_not_update_billing_or_payroll_statuses(): void
     {
@@ -31,7 +46,7 @@ class PayrollFinalSubmissionTest extends TestCase
         $fullTransaction->refresh();
         $installmentPayment->refresh();
 
-        $this->assertSame('pending', $fullTransaction->billing_status);
+        $this->assertSame(TransactionBillingStatus::pending, $fullTransaction->billing_status);
         $this->assertSame('scheduled', $installmentPayment->payroll_status);
         $this->assertNull($installmentPayment->payroll_batch_reference);
         $this->assertNull($installmentPayment->submitted_at);
@@ -48,7 +63,7 @@ class PayrollFinalSubmissionTest extends TestCase
         $fullTransaction->refresh();
         $installmentPayment->refresh();
 
-        $this->assertSame('submitted', $fullTransaction->billing_status);
+        $this->assertSame(TransactionBillingStatus::submitted, $fullTransaction->billing_status);
         $this->assertSame('submitted', $installmentPayment->payroll_status);
         $this->assertNotNull($installmentPayment->payroll_batch_reference);
         $this->assertNotNull($installmentPayment->submitted_at);
@@ -84,6 +99,7 @@ class PayrollFinalSubmissionTest extends TestCase
             'quantity' => 1,
             'price' => 200_000,
             'discount' => 0,
+            'line_subtotal' => 200_000,
             'description' => null,
         ]);
 
@@ -128,6 +144,7 @@ class PayrollFinalSubmissionTest extends TestCase
             'quantity' => 1,
             'price' => 100_000,
             'discount' => 0,
+            'line_subtotal' => 100_000,
             'description' => null,
         ]);
 
@@ -235,7 +252,7 @@ class PayrollFinalSubmissionTest extends TestCase
 
     private function createAddress(int $customerId, array $geo)
     {
-        return \App\Models\CustomerAddress::query()->create([
+        return CustomerAddress::query()->create([
             'customer_id' => $customerId,
             'province_id' => $geo['province_id'],
             'district_id' => $geo['district_id'],

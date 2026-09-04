@@ -35,7 +35,7 @@ class AuditLoggingTest extends TestCase
 
     public function test_non_allow_listed_product_content_does_not_create_a_noisy_activity(): void
     {
-        $product = Product::factory()->create();
+        $product = Product::factory()->create(['sale_price' => null]);
         $initialCount = Activity::query()->count();
 
         $product->update(['description' => 'Updated public product description']);
