@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use App\Models\CustomerAddress;
 use App\Models\Installment;
 use App\Models\InstallmentPayment;
 use App\Models\InstallmentPlan;
@@ -11,6 +12,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Warehouse;
 use App\Services\PayrollExportService;
+use App\Settings\GeneralSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -19,6 +21,18 @@ use Tests\TestCase;
 class PayrollMonthlyBillingAggregationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        DB::table('settings')->updateOrInsert(
+            ['group' => 'general', 'name' => 'billing_due_month_offset'],
+            ['payload' => json_encode(0), 'updated_at' => now()]
+        );
+
+        $this->app->forgetInstance(GeneralSettings::class);
+    }
 
     public function test_it_aggregates_installment_and_full_bills_per_customer_for_target_month(): void
     {
@@ -46,6 +60,7 @@ class PayrollMonthlyBillingAggregationTest extends TestCase
             'quantity' => 1,
             'price' => 200_000,
             'discount' => 0,
+            'line_subtotal' => 200_000,
             'description' => null,
         ]);
 
@@ -90,6 +105,7 @@ class PayrollMonthlyBillingAggregationTest extends TestCase
             'quantity' => 1,
             'price' => 100_000,
             'discount' => 0,
+            'line_subtotal' => 100_000,
             'description' => null,
         ]);
 
@@ -131,6 +147,7 @@ class PayrollMonthlyBillingAggregationTest extends TestCase
             'quantity' => 1,
             'price' => 100_000,
             'discount' => 0,
+            'line_subtotal' => 100_000,
             'description' => null,
         ]);
 
@@ -204,6 +221,7 @@ class PayrollMonthlyBillingAggregationTest extends TestCase
             'quantity' => 1,
             'price' => 100_000,
             'discount' => 0,
+            'line_subtotal' => 100_000,
             'description' => null,
         ]);
 
@@ -316,7 +334,7 @@ class PayrollMonthlyBillingAggregationTest extends TestCase
 
     private function createAddress(int $customerId, array $geo)
     {
-        return \App\Models\CustomerAddress::query()->create([
+        return CustomerAddress::query()->create([
             'customer_id' => $customerId,
             'province_id' => $geo['province_id'],
             'district_id' => $geo['district_id'],

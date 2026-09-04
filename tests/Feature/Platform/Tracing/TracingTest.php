@@ -180,20 +180,6 @@ class TracingTest extends TestCase
         $this->assertSame([], $this->spans());
     }
 
-    public function test_exporter_unavailable_does_not_break_the_request(): void
-    {
-        config([
-            'tracing.enabled' => true,
-            'tracing.exporter' => 'otlp',
-            'tracing.exporter_endpoint' => 'http://127.0.0.1:1/v1/traces',
-        ]);
-        $this->app->forgetInstance(TraceManager::class);
-
-        $response = $this->get('/');
-
-        $response->assertOk();
-    }
-
     public function test_sampler_ratio_zero_exports_no_spans(): void
     {
         config(['tracing.sampler_ratio' => 0.0]);

@@ -21,7 +21,8 @@ class StoreAccessModeTest extends TestCase
         $this->get(route('frontend.reset-password', ['token' => 'sample-token']))->assertOk();
 
         $response = $this->post(route('frontend.signup.post'), [
-            'name' => 'Public Customer',
+            'first_name' => 'Public',
+            'last_name' => 'Customer',
             'email' => 'public-customer@example.test',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
@@ -48,7 +49,8 @@ class StoreAccessModeTest extends TestCase
         $this->get(route('frontend.registration-closed'))->assertOk();
 
         $this->post(route('frontend.signup.post'), [
-            'name' => 'Blocked Customer',
+            'first_name' => 'Blocked',
+            'last_name' => 'Customer',
             'email' => 'blocked-customer@example.test',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
@@ -64,7 +66,8 @@ class StoreAccessModeTest extends TestCase
         $this->setStoreMode(true);
 
         $customer = Customer::query()->create([
-            'name' => 'Existing Customer',
+            'first_name' => 'Existing',
+            'last_name' => 'Customer',
             'email' => 'existing-customer@example.test',
             'password' => bcrypt('Password123!'),
         ]);
