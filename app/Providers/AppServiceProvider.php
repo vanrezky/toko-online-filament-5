@@ -8,6 +8,10 @@ use App\Models\Transaction;
 use App\Modules\Platform\Health\Checks\ApplicationHealthCheck;
 use App\Modules\Platform\Integration\Support\IntegrationCorrelationContext;
 use App\Modules\Platform\Support\Correlation;
+use App\Modules\TransactionReceipt\Contracts\ReceiptDataMapper;
+use App\Modules\TransactionReceipt\Contracts\ReceiptPdfRenderer;
+use App\Modules\TransactionReceipt\Services\DompdfReceiptRenderer;
+use App\Modules\TransactionReceipt\Services\TransactionReceiptDataMapper;
 use App\Observers\CustomerObserver;
 use App\Observers\SchoolUnitObserver;
 use App\Observers\TransactionObserver;
@@ -29,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(IntegrationCorrelationContext::class);
+        $this->app->bind(ReceiptDataMapper::class, TransactionReceiptDataMapper::class);
+        $this->app->bind(ReceiptPdfRenderer::class, DompdfReceiptRenderer::class);
     }
 
     public function boot(): void

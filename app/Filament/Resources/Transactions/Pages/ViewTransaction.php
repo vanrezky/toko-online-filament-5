@@ -14,6 +14,7 @@ use App\Enums\TransactionStatus;
 use App\Filament\Resources\Transactions\TransactionResource;
 use App\Filament\Resources\Installments\InstallmentResource;
 use App\Models\Transaction;
+use App\Modules\TransactionReceipt\Services\TransactionReceiptService;
 use Filament\Actions;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ImageEntry;
@@ -21,6 +22,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class ViewTransaction extends ViewRecord
 {
@@ -37,6 +39,37 @@ class ViewTransaction extends ViewRecord
             EditAction::make(),
             ...$this->getStatusActions(),
             ...$this->getBillingActions(),
+            ...$this->getReceiptActions(),
+        ];
+    }
+
+    protected function getReceiptActions(): array
+    {
+        $record = $this->getRecord();
+        $receiptService = app(TransactionReceiptService::class);
+
+        if (! $receiptService->isEligible($record)) {
+            return [];
+        }
+
+        return [
+            Action::make('printReceipt')
+                ->label(__('admin/transaction-resource.actions.print_receipt'))
+                ->icon('heroicon-o-printer')
+                ->color('gray')
+                ->action(function () use ($receiptService, $record): mixed {
+                    try {
+                        return $receiptService->download($record);
+                    } catch (Throwable $exception) {
+                        Notification::make()
+                            ->title(__('admin/transaction-resource.notifications.receipt_failed'))
+                            ->body($exception->getMessage())
+                            ->danger()
+                            ->send();
+
+                        return null;
+                    }
+                }),
         ];
     }
 

@@ -25,6 +25,7 @@ use App\Enums\CourierCode;
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionBillingStatus;
 use App\Models\Transaction;
+use App\Modules\TransactionReceipt\Services\TransactionReceiptBatchService;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -398,6 +399,52 @@ class TransactionResource extends Resource
                                 new SelectedTransactionsExport($records->values()),
                                 'transaksi-terpilih-' . now()->format('Ymd-His') . '.xlsx'
                             );
+                        }),
+
+                    BulkAction::make('print_receipts')
+                        ->label(__('admin/transaction-resource.actions.print_receipts'))
+                        ->icon('heroicon-o-printer')
+                        ->color('gray')
+                        ->deselectRecordsAfterCompletion()
+                        ->action(function (Collection $records): mixed {
+                            try {
+                                $result = app(TransactionReceiptBatchService::class)->createArchive($records);
+
+                                if ($result->archivePath === null) {
+                                    Notification::make()
+                                        ->title(__('admin/transaction-resource.notifications.receipt_none_eligible'))
+                                        ->body(__('admin/transaction-resource.notifications.receipt_skipped_count', ['count' => $result->skippedCount]))
+                                        ->warning()
+                                        ->send();
+
+                                    return null;
+                                }
+
+                                Notification::make()
+                                    ->title(__('admin/transaction-resource.notifications.receipt_batch_ready'))
+                                    ->body(__('admin/transaction-resource.notifications.receipt_batch_summary', [
+                                        'eligible' => $result->eligibleCount,
+                                        'skipped' => $result->skippedCount,
+                                    ]))
+                                    ->success()
+                                    ->send();
+
+                                return response()
+                                    ->download(
+                                        $result->archivePath,
+                                        'receipts-'.now()->format('Ymd-His').'.zip',
+                                        ['Content-Type' => 'application/zip'],
+                                    )
+                                    ->deleteFileAfterSend(true);
+                            } catch (\Throwable $exception) {
+                                Notification::make()
+                                    ->title(__('admin/transaction-resource.notifications.receipt_failed'))
+                                    ->body($exception->getMessage())
+                                    ->danger()
+                                    ->send();
+
+                                return null;
+                            }
                         }),
 
                     BulkAction::make('mark_in_transit')
