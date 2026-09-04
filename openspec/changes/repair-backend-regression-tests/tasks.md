@@ -20,4 +20,4 @@
 - [x] 3.3 Run `git diff --check`.
 - [x] 3.4 Run the complete backend suite through Laravel Sail.
 - [x] 3.5 Validate this OpenSpec change with `openspec validate repair-backend-regression-tests --type change --strict`.
-- [ ] 3.6 Update Issue #90 status and prepare a linked Pull Request after verification.
+- [x] 3.6 Update Issue #90 status and prepare linked Pull Request #91 after verification.
