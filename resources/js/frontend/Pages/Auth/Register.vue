@@ -231,11 +231,21 @@ const submit = () => {
                     <FormCheckbox id="terms_accepted" v-model="form.terms_accepted" type="checkbox" required class="mt-0.5" />
                     <span>
                         {{ t("labels.auth.terms_agreement_prefix") }}
-                        <Link :href="route('frontend.page.show', 'syarat-ketentuan')" class="text-primary font-bold hover:underline">
+                        <Link
+                            :href="route('frontend.page.show', 'syarat-ketentuan')"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-primary font-bold hover:underline"
+                        >
                             {{ t("labels.auth.terms_and_conditions") }}
                         </Link>
                         {{ t("labels.auth.terms_agreement_connector") }}
-                        <Link :href="route('frontend.page.show', 'kebijakan-privasi')" class="text-primary font-bold hover:underline">
+                        <Link
+                            :href="route('frontend.page.show', 'kebijakan-privasi')"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-primary font-bold hover:underline"
+                        >
                             {{ t("labels.auth.privacy_policy") }}
                         </Link>
                         {{ settings.site_name }}

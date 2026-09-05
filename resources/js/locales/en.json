@@ -81,6 +81,8 @@
         "default_badge": "Default",
         "no_default": "No default address yet",
         "empty": "No saved addresses yet",
+        "public_store_empty": "Add your first address for delivery.",
+        "awaiting_school_unit": "An address will appear automatically after an administrator assigns a school unit.",
         "new_heading": "New Shipping Address",
         "edit_heading": "Edit Address",
         "new_description": "Add a new address for shipping",
@@ -109,7 +111,20 @@
         "password_min_length": "At least 8 characters",
         "password_uppercase": "1 uppercase letter",
         "password_number": "1 number",
-        "password_symbol": "1 symbol"
+        "password_symbol": "1 symbol",
+        "show_password": "Show password",
+        "hide_password": "Hide password",
+        "secure_password_requirements": "Your password must include:",
+        "secure_password_minimum": "At least 8 characters",
+        "secure_password_letter": "A letter",
+        "secure_password_number": "A number",
+        "secure_password_symbol": "A symbol",
+        "secure_password_requirement_met": "met",
+        "secure_password_requirement_pending": "not yet met",
+        "terms_agreement_prefix": "I agree to the",
+        "terms_and_conditions": "Terms & Conditions",
+        "terms_agreement_connector": "and",
+        "privacy_policy": "Privacy Policy"
     },
     "breadcrumb": {
         "home": "Home",
@@ -239,13 +254,13 @@
         "payment_deadline": "Payment deadline",
         "payment_countdown": "Time remaining: {time}",
         "payment_method": "Payment Method",
-            "cancel": "Cancel Order",
-            "payment_actions": {
-                "pending_title": "Payment pending",
-                "resume": "Continue payment",
-                "resume_help": "Your payment is not complete. Select Continue payment to open Midtrans; you can choose another payment method there.",
-                "initiation_failed": "Midtrans payment could not be started. Please try again."
-            },
+        "cancel": "Cancel Order",
+        "payment_actions": {
+            "pending_title": "Payment pending",
+            "resume": "Continue payment",
+            "resume_help": "Your payment is not complete. Select Continue payment to open Midtrans; you can choose another payment method there.",
+            "initiation_failed": "Midtrans payment could not be started. Please try again."
+        },
         "payment_status_label": "Status:",
         "summary_title": "Order Summary",
         "subtotal": "Subtotal",
@@ -612,6 +627,7 @@
             "all_time": "All time",
             "menu": {
                 "overview": "Overview",
+                "balance": "Wallet Balance",
                 "orders": "My Orders",
                 "addresses": "Shipping Addresses",
                 "settings": "Settings",
@@ -632,7 +648,9 @@
             "profile_photo": "Profile Photo",
             "photo_requirements": "JPEG, PNG or WEBP. Max 2MB.",
             "balance": "Balance",
-            "balance_description": "Prepaid balance available for full payments.",
+            "balance_heading": "Wallet Balance",
+            "balance_page_description": "View your wallet balance and usage history.",
+            "balance_description": "Wallet balance available for full payments.",
             "balance_history": "Balance History",
             "balance_history_empty": "No balance history yet."
         },
@@ -685,6 +703,7 @@
         "heading": "My Account",
         "menu": {
             "overview": "Overview",
+            "balance": "Wallet Balance",
             "orders": "My Orders",
             "addresses": "Shipping Addresses",
             "settings": "Settings",
@@ -704,7 +723,13 @@
         "password_description": "Use a strong password to keep your account secure.",
         "current_password": "Current Password",
         "profile_photo": "Profile Photo",
-        "photo_requirements": "JPEG, PNG or WEBP. Max 2MB."
+        "photo_requirements": "JPEG, PNG or WEBP. Max 2MB.",
+        "balance": "Balance",
+        "balance_heading": "Wallet Balance",
+        "balance_page_description": "View your wallet balance and usage history.",
+        "balance_description": "Wallet balance available for full payments.",
+        "balance_history": "Balance History",
+        "balance_history_empty": "No balance history yet."
     },
     "blog": {
         "share": "Share:",

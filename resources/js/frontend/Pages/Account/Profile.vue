@@ -207,7 +207,7 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                     <span class="text-foreground font-medium">{{ t("labels.account.heading") }}</span>
                 </div>
 
-                <AccountShell :user="user" :active-destination="activeSection">
+                <AccountShell :user="user" :balance-enabled="balanceEnabled" :active-destination="activeSection">
                     <header class="space-y-2">
                         <h1 class="text-foreground text-2xl font-bold">{{ t("labels.account.heading") }}</h1>
                         <p class="text-muted-foreground text-sm">{{ t("labels.account.settings_description") }}</p>
@@ -306,29 +306,6 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                             </div>
                         </div>
 
-                        <div v-if="balanceEnabled" class="border-border bg-background rounded-2xl border p-6 shadow-sm">
-                            <h3 class="text-foreground mb-4 flex items-center gap-2 text-lg font-bold">
-                                <Wallet class="text-primary h-5 w-5" />
-                                {{ t("labels.account.balance_history") }}
-                            </h3>
-                            <div v-if="balanceHistory?.length" class="space-y-3">
-                                <div
-                                    v-for="entry in balanceHistory"
-                                    :key="entry.id"
-                                    class="border-border flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
-                                >
-                                    <div>
-                                        <p class="text-foreground text-sm font-medium">{{ entry.notes }}</p>
-                                        <p class="text-muted-foreground text-xs">{{ formatDate(entry.created_at, dateFormat, localeCode) }}</p>
-                                    </div>
-                                    <span :class="entry.trx_type === '+' ? 'text-emerald-600' : 'text-red-600'" class="text-sm font-semibold">
-                                        {{ entry.trx_type === "+" ? "+" : "-" }}{{ formatCurrency(entry.amount, localeCode) }}
-                                    </span>
-                                </div>
-                            </div>
-                            <p v-else class="text-muted-foreground text-sm">{{ t("labels.account.balance_history_empty") }}</p>
-                        </div>
-
                         <!-- Recent Activity -->
                         <div class="border-border bg-background rounded-2xl border p-6 shadow-sm">
                             <h3 class="text-foreground mb-6 flex items-center gap-2 text-lg font-bold">
@@ -395,6 +372,53 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                         @cancel="activeSection = 'overview'"
                     />
                     <AccountPasswordForm v-if="activeSection === 'password'" :password-requirements-enabled="passwordRequirementsEnabled" />
+
+                    <div v-if="activeSection === 'balance' && balanceEnabled" data-test="balance-section" class="space-y-6">
+                        <header class="space-y-2">
+                            <h2 class="text-foreground text-xl font-bold">{{ t("labels.account.balance_heading") }}</h2>
+                            <p class="text-muted-foreground text-sm">{{ t("labels.account.balance_page_description") }}</p>
+                        </header>
+
+                        <div data-test="balance-summary" class="border-border bg-background rounded-2xl border p-6 shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-primary/10 flex h-11 w-11 items-center justify-center rounded-xl">
+                                    <Wallet class="text-primary h-6 w-6" />
+                                </div>
+                                <div>
+                                    <p class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                                        {{ t("labels.account.balance") }}
+                                    </p>
+                                    <p class="text-foreground mt-1 text-3xl font-bold">{{ formatCurrency(user.balance || 0, localeCode) }}</p>
+                                </div>
+                            </div>
+                            <p class="text-muted-foreground border-border/60 mt-5 border-t pt-3 text-sm">
+                                {{ t("labels.account.balance_description") }}
+                            </p>
+                        </div>
+
+                        <div data-test="balance-history" class="border-border bg-background rounded-2xl border p-6 shadow-sm">
+                            <h3 class="text-foreground mb-4 flex items-center gap-2 text-lg font-bold">
+                                <Wallet class="text-primary h-5 w-5" />
+                                {{ t("labels.account.balance_history") }}
+                            </h3>
+                            <div v-if="balanceHistory?.length" class="space-y-3">
+                                <div
+                                    v-for="entry in balanceHistory"
+                                    :key="entry.id"
+                                    class="border-border flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
+                                >
+                                    <div>
+                                        <p class="text-foreground text-sm font-medium">{{ entry.notes }}</p>
+                                        <p class="text-muted-foreground text-xs">{{ formatDate(entry.created_at, dateFormat, localeCode) }}</p>
+                                    </div>
+                                    <span :class="entry.trx_type === '+' ? 'text-emerald-600' : 'text-red-600'" class="text-sm font-semibold">
+                                        {{ entry.trx_type === "+" ? "+" : "-" }}{{ formatCurrency(entry.amount, localeCode) }}
+                                    </span>
+                                </div>
+                            </div>
+                            <p v-else class="text-muted-foreground text-sm">{{ t("labels.account.balance_history_empty") }}</p>
+                        </div>
+                    </div>
 
                     <div v-if="activeSection === 'addresses'" class="space-y-6">
                         <div class="border-border flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -473,17 +497,15 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
 
                             <div
                                 v-if="!addresses || addresses.length === 0"
-                                class="border-border relative overflow-hidden rounded-3xl border-2 border-dashed bg-gradient-to-br from-slate-50 to-slate-100 py-16 text-center"
+                                data-test="addresses-empty-state"
+                                class="border-border bg-background space-y-8 rounded-2xl border py-20 text-center shadow-sm"
                             >
-                                <div class="bg-primary/5 absolute -top-10 -right-10 h-40 w-40 rounded-full"></div>
-                                <div class="bg-primary/5 absolute -bottom-10 -left-10 h-32 w-32 rounded-full"></div>
-
-                                <div class="relative z-10">
-                                    <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-lg">
-                                        <MapPin class="text-muted-foreground h-10 w-10" />
-                                    </div>
-                                    <p class="text-muted-foreground mb-6 text-sm font-medium">{{ t("labels.address.empty") }}</p>
-                                    <p class="text-muted-foreground text-sm font-medium">
+                                <div class="bg-secondary mx-auto flex h-24 w-24 items-center justify-center rounded-full">
+                                    <MapPin class="text-muted-foreground h-10 w-10" />
+                                </div>
+                                <div class="space-y-3">
+                                    <h2 class="text-foreground text-2xl font-bold">{{ t("labels.address.empty") }}</h2>
+                                    <p class="text-muted-foreground mx-auto max-w-sm text-sm">
                                         {{ t(isPrivateStore ? "labels.address.awaiting_school_unit" : "labels.address.public_store_empty") }}
                                     </p>
                                 </div>

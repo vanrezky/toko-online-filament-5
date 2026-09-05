@@ -1,15 +1,24 @@
-import { config } from '@vue/test-utils';
-import { vi } from 'vitest';
-import { createI18n } from 'vue-i18n';
-import en from '../../resources/js/locales/en.json';
-import id from '../../resources/js/locales/id.json';
+import { config } from "@vue/test-utils";
+import { vi } from "vitest";
+import { createI18n } from "vue-i18n";
+import en from "../../resources/js/locales/en.json";
+import id from "../../resources/js/locales/id.json";
+
+const withLabelsNamespace = (messages) => ({
+    ...messages,
+    labels: Object.entries(messages.labels ?? {}).reduce(
+        (labels, [key, value]) => ({
+            ...labels,
+            [key]: typeof labels[key] === "object" && typeof value === "object" ? { ...labels[key], ...value } : value,
+        }),
+        { ...messages },
+    ),
+});
 
 // Mock global route function used by Ziggy
 global.route = vi.fn((name, params) => {
     if (params) {
-        const paramStr = typeof params === 'object' && params.token
-            ? `/${params.token}`
-            : '';
+        const paramStr = typeof params === "object" && params.token ? `/${params.token}` : "";
         return `/${name}${paramStr}`;
     }
     return `/${name}`;
@@ -25,22 +34,20 @@ global.toast = {
 // Setup i18n for tests
 const i18n = createI18n({
     legacy: false,
-    locale: 'en',
-    fallbackLocale: 'en',
+    locale: "en",
+    fallbackLocale: "en",
     globalInjection: true,
     messages: {
         en: {
-            ...en,
-            labels: en,
+            ...withLabelsNamespace(en),
             meta: {
                 newsletter_manage: {
-                    title: 'Newsletter Management'
-                }
-            }
+                    title: "Newsletter Management",
+                },
+            },
         },
         id: {
-            ...id,
-            labels: id,
+            ...withLabelsNamespace(id),
         },
     },
 });
@@ -53,13 +60,13 @@ config.global.mocks = {
 config.global.plugins = [i18n];
 
 // Mock Inertia's usePage
-vi.mock('@inertiajs/vue3', async () => {
-    const actual = await vi.importActual('@inertiajs/vue3');
+vi.mock("@inertiajs/vue3", async () => {
+    const actual = await vi.importActual("@inertiajs/vue3");
     return {
         ...actual,
         usePage: () => ({
             props: {
-                settings: { site_name: 'Test Store', logo: null },
+                settings: { site_name: "Test Store", logo: null, term_agreement: true },
                 menu: { footer: [] },
                 promotions: { data: [] },
             },
@@ -68,14 +75,14 @@ vi.mock('@inertiajs/vue3', async () => {
             ...data,
             errors: {},
             processing: false,
-            post: vi.fn(function(url, options) {
+            post: vi.fn(function (url, options) {
                 if (options?.onSuccess) options.onSuccess();
                 return Promise.resolve();
             }),
             reset: vi.fn(),
         }),
         Link: {
-            props: ['href'],
+            props: ["href"],
             template: '<a :href="href"><slot /></a>',
         },
     };

@@ -6,7 +6,7 @@ test("admin dashboard renders charts without chart errors", async ({ page }) => 
         if (message.type() === "error") consoleErrors.push(message.text());
     });
 
-    await page.goto("/admin/login");
+    await page.goto("/admin/login", { waitUntil: "domcontentloaded" });
     await page.locator('input[type="email"]').fill(process.env.ADMIN_EMAIL ?? "superadmin@example.com");
     await page.locator('input[type="password"]').fill(process.env.ADMIN_PASSWORD ?? "admin123");
     await page.getByRole("button", { name: /Masuk|Login/ }).click();
@@ -20,7 +20,7 @@ test("admin dashboard renders charts without chart errors", async ({ page }) => 
 });
 
 test("admin global search finds and opens products and customers", async ({ page }) => {
-    await page.goto("/admin/login");
+    await page.goto("/admin/login", { waitUntil: "domcontentloaded" });
     await page.locator('input[type="email"]').fill(process.env.ADMIN_EMAIL ?? "superadmin@example.com");
     await page.locator('input[type="password"]').fill(process.env.ADMIN_PASSWORD ?? "admin123");
     await page.getByRole("button", { name: /Masuk|Login/ }).click();
@@ -34,7 +34,7 @@ test("admin global search finds and opens products and customers", async ({ page
     await productResult.click();
     await expect(page).toHaveURL(/\/admin\/products\/[^/]+$/);
 
-    await page.goto("/admin/dashboard");
+    await page.goto("/admin/dashboard", { waitUntil: "domcontentloaded" });
     await search.fill("jakubowski.maryam@example.org");
     const customerResult = page.locator(".fi-global-search-result-link").filter({ hasText: "Jesse Dickinson" }).first();
     await expect(customerResult).toBeVisible();

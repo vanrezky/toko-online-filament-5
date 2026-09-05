@@ -8,6 +8,7 @@ const mountShell = (activeDestination = "overview") =>
     mount(AccountShell, {
         props: {
             activeDestination,
+            balanceEnabled: activeDestination === "balance",
             user: {
                 full_name: "Customer Test",
                 email: "customer@example.test",
@@ -21,18 +22,14 @@ const mountShell = (activeDestination = "overview") =>
 describe("AccountShell navigation", () => {
     beforeEach(() => {
         global.route.mockReset();
-        global.route.mockImplementation((name, params) =>
-            params?.section ? `/${name}?section=${params.section}` : `/${name}`,
-        );
+        global.route.mockImplementation((name, params) => (params?.section ? `/${name}?section=${params.section}` : `/${name}`));
     });
 
     it("renders every account and shopping destination in desktop and mobile navigation", () => {
         const wrapper = mountShell();
 
         expect(wrapper.find("aside.hidden.lg\\:block").exists()).toBe(true);
-        expect(wrapper.find("main > nav").classes()).toEqual(
-            expect.arrayContaining(["overflow-x-auto", "lg:hidden"]),
-        );
+        expect(wrapper.find("main > nav").classes()).toEqual(expect.arrayContaining(["overflow-x-auto", "lg:hidden"]));
 
         for (const destination of destinations) {
             expect(wrapper.findAll(`a[href="/frontend.account?section=${destination}"]`)).toHaveLength(2);
@@ -50,6 +47,29 @@ describe("AccountShell navigation", () => {
         passwordLinks.forEach((link) => {
             expect(link.classes()).toContain("bg-primary");
         });
+    });
+
+    it("renders wallet balance in both navigation variants when enabled", () => {
+        const wrapper = mountShell("balance");
+        const balanceLinks = wrapper.findAll('a[href="/frontend.account?section=balance"]');
+
+        expect(balanceLinks).toHaveLength(2);
+        balanceLinks.forEach((link) => {
+            expect(link.classes()).toContain("bg-primary");
+        });
+    });
+
+    it("does not render wallet balance when disabled", () => {
+        const wrapper = mount(AccountShell, {
+            props: {
+                activeDestination: "overview",
+                balanceEnabled: false,
+                user: { full_name: "Customer Test", email: "customer@example.test" },
+            },
+            slots: { default: "<p>Account content</p>" },
+        });
+
+        expect(wrapper.findAll('a[href="/frontend.account?section=balance"]')).toHaveLength(0);
     });
 
     it("keeps address navigation active while its URL-backed form is open", () => {
