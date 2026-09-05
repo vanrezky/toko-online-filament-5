@@ -11,13 +11,24 @@ import { createI18n } from "vue-i18n";
 import id from "../locales/id.json";
 import en from "../locales/en.json";
 
+const withLabelsNamespace = (messages) => ({
+    ...messages,
+    labels: Object.entries(messages.labels ?? {}).reduce(
+        (labels, [key, value]) => ({
+            ...labels,
+            [key]: typeof labels[key] === "object" && typeof value === "object" ? { ...labels[key], ...value } : value,
+        }),
+        { ...messages },
+    ),
+});
+
 const i18n = createI18n({
     legacy: false,
     locale: "id",
     fallbackLocale: "en",
     messages: {
-        id,
-        en,
+        id: withLabelsNamespace(id),
+        en: withLabelsNamespace(en),
     },
 });
 

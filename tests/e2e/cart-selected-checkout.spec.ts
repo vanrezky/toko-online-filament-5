@@ -1,6 +1,18 @@
 import { expect, test } from "@playwright/test";
 
 test("customer checks out all selected Cart items through the single checkout action", async ({ page }) => {
+    await page.route("**/login", async (route) => {
+        if (route.request().method() !== "POST") {
+            await route.continue();
+            return;
+        }
+
+        const response = await route.fetch({ maxRedirects: 0 });
+        const headers = { ...response.headers(), location: "/" };
+
+        await route.fulfill({ response, headers });
+    });
+
     await page.goto("/login");
     await page.getByLabel("Email").fill("vanrezkytest@gmail.com");
     await page.getByRole("textbox", { name: "Kata Sandi" }).fill("Password123@");
@@ -25,6 +37,7 @@ test("customer checks out all selected Cart items through the single checkout ac
 
     await page.goto("/cart");
     const itemCheckboxes = page.getByRole("checkbox", { name: "Pilih produk ini" });
+    await expect.poll(() => itemCheckboxes.count()).toBeGreaterThanOrEqual(2);
     const cartItemCount = await itemCheckboxes.count();
 
     expect(cartItemCount).toBeGreaterThanOrEqual(2);

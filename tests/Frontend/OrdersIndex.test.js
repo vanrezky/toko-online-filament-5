@@ -25,5 +25,8 @@ describe("OrdersIndex", () => {
 
         expect(wrapper.get('[data-test="account-shell"]').attributes("data-active-destination")).toBe("orders");
         expect(wrapper.text()).toContain("Track the status and details of every order.");
+        expect(wrapper.get('[data-test="orders-empty-state"]').classes()).toEqual(
+            expect.arrayContaining(["border-border", "space-y-8", "rounded-2xl", "bg-background", "py-20"]),
+        );
     });
 });
