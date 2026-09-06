@@ -208,7 +208,7 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                 </div>
 
                 <AccountShell :user="user" :balance-enabled="balanceEnabled" :active-destination="activeSection">
-                    <header class="space-y-2">
+                    <header class="hidden space-y-2 lg:block">
                         <h1 class="text-foreground text-2xl font-bold">{{ t("labels.account.heading") }}</h1>
                         <p class="text-muted-foreground text-sm">{{ t("labels.account.settings_description") }}</p>
                     </header>

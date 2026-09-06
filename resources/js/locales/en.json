@@ -701,6 +701,8 @@
     },
     "account": {
         "heading": "My Account",
+        "mobile_menu": "Account menu",
+        "back_to_overview": "Back to overview",
         "menu": {
             "overview": "Overview",
             "balance": "Wallet Balance",
