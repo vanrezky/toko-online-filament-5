@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CategoryResource;
 use App\Http\Resources\FlashsaleResource;
 use App\Http\Resources\ProductSimpleResource;
 use App\Http\Resources\SliderResource;
 use App\Http\Resources\TemplateResource;
+use App\Models\Category;
 use App\Models\Flashsale;
 use App\Models\Product;
 use App\Models\Slider;
@@ -46,23 +48,32 @@ class HomeController extends Controller
             $flashsale = Flashsale::query()
                 ->current()
                 ->with([
-                    'products' => fn ($query) => $query
+                    'products' => fn($query) => $query
                         ->select(['id', 'flashsale_id', 'product_id', 'discount_percentage', 'stock'])
                         ->limit(5),
-                    'products.product' => fn ($query) => $query->select([
-                        'id', 'uuid', 'name', 'slug', 'digital', 'code',
-                        'stock', 'sale_price', 'price', 'min_order', 'fake_sold_count',
+                    'products.product' => fn($query) => $query->select([
+                        'id',
+                        'uuid',
+                        'name',
+                        'slug',
+                        'digital',
+                        'code',
+                        'stock',
+                        'sale_price',
+                        'price',
+                        'min_order',
+                        'fake_sold_count',
                     ]),
                     'products.product.media',
-                    'products.product.flashsaleProducts' => fn ($query) => $query
-                        ->whereHas('flashsale', fn ($query) => $query->current())
+                    'products.product.flashsaleProducts' => fn($query) => $query
+                        ->whereHas('flashsale', fn($query) => $query->current())
                         ->select(['id', 'product_id', 'discount_percentage', 'stock']),
-                    'products.product.wholesales' => fn ($query) => $query
+                    'products.product.wholesales' => fn($query) => $query
                         ->where('min_qty', '<=', 1)
                         ->select(['id', 'product_id', 'min_qty', 'price']),
                 ])
-                ->when($resellerId, fn ($query) => $query->with([
-                    'products.product.resellerPrices' => fn ($query) => $query
+                ->when($resellerId, fn($query) => $query->with([
+                    'products.product.resellerPrices' => fn($query) => $query
                         ->where('reseller_id', $resellerId)
                         ->select(['id', 'product_id', 'reseller_id', 'price']),
                 ]))
@@ -91,15 +102,15 @@ class HomeController extends Controller
             ->active()
             ->with([
                 'media',
-                'flashsaleProducts' => fn ($query) => $query
-                    ->whereHas('flashsale', fn ($query) => $query->current())
+                'flashsaleProducts' => fn($query) => $query
+                    ->whereHas('flashsale', fn($query) => $query->current())
                     ->select(['id', 'product_id', 'discount_percentage', 'stock']),
-                'wholesales' => fn ($query) => $query
+                'wholesales' => fn($query) => $query
                     ->where('min_qty', '<=', 1)
                     ->select(['id', 'product_id', 'min_qty', 'price']),
             ])
-            ->when($resellerId, fn ($query) => $query->with([
-                'resellerPrices' => fn ($query) => $query
+            ->when($resellerId, fn($query) => $query->with([
+                'resellerPrices' => fn($query) => $query
                     ->where('reseller_id', $resellerId)
                     ->select(['id', 'product_id', 'reseller_id', 'price']),
             ]))
@@ -113,7 +124,7 @@ class HomeController extends Controller
             'frontend',
             Slider::CACHE_KEY,
             Slider::CACHE_TTL,
-            fn () => Slider::query()
+            fn() => Slider::query()
                 ->visible()
                 ->ordered()
                 ->with('media')
@@ -121,6 +132,13 @@ class HomeController extends Controller
         );
 
         return Inertia::render('Home/Index', [
+            'categories' => function () {
+                return CacheService::rememberManaged('frontend', 'frontend_categories', 3600, function () {
+                    return CategoryResource::collection(
+                        Category::homepage()->with('media')->get()
+                    );
+                });
+            },
             'products' => ProductSimpleResource::collection($products),
             'filters' => $request->only(['category', 'search']),
             'template' => $template ? TemplateResource::make($template) : null,

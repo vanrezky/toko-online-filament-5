@@ -28,14 +28,22 @@ watch(
 <template>
     <section class="py-10 md:py-14">
         <div class="container mx-auto px-4">
-            <div class="mb-8 flex items-center justify-between md:mb-10">
+            <div class="mb-6 flex items-end justify-between gap-4 md:mb-8">
                 <div>
-                    <h2 class="text-foreground text-xl font-bold md:text-2xl">{{ title }}</h2>
+                    <h2 class="text-foreground text-2xl font-bold tracking-[-0.04em] md:text-3xl">{{ title }}</h2>
                     <p v-if="!filters?.category" class="text-muted-foreground mt-1 text-sm">{{ subtitle }}</p>
                 </div>
+                <Link
+                    :href="route('frontend.products')"
+                    class="text-primary hover:text-primary/75 focus-visible:ring-primary inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none sm:text-sm"
+                >
+                    <span class="hidden sm:inline">{{ t("labels.actions.view_all_products") }}</span>
+                    <span class="sm:hidden">{{ t("labels.actions.view_all") }}</span>
+                    <ChevronRight class="h-4 w-4" aria-hidden="true" />
+                </Link>
             </div>
 
-            <div v-if="allProducts.length > 0" class="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 md:gap-5 lg:grid-cols-5">
+            <div v-if="allProducts.length > 0" class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
                 <ProductCard v-for="product in allProducts" :key="product.uuid || product.id" :product="product" />
             </div>
 
@@ -58,12 +66,6 @@ watch(
                 </div>
             </div>
 
-            <div v-if="allProducts.length > 0" class="flex justify-center pt-8 md:pt-10">
-                <Link :href="route('frontend.products')" class="bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground inline-flex items-center gap-2 rounded-full px-8 py-3 text-sm font-semibold transition-colors">
-                    {{ t("labels.actions.view_more") }}
-                    <ChevronRight class="h-4 w-4" />
-                </Link>
-            </div>
         </div>
     </section>
 </template>

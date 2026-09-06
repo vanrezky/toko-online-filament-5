@@ -33,5 +33,7 @@ describe("ProductCard flashsale pricing", () => {
         expect(wrapper.text()).toContain("70.000");
         expect(wrapper.text()).not.toContain("80.000");
         expect(wrapper.text()).toContain("30%");
+        expect(wrapper.find("span.z-10").classes()).toContain("bg-destructive");
+        expect(wrapper.find(".text-primary.flex.items-center").text()).toContain("0.0");
     });
 });

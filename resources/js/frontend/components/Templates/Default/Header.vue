@@ -1,43 +1,27 @@
 <script setup>
-import Button from "@frontend/components/UI/Button.vue";
-import { Link, usePage, router } from "@inertiajs/vue3";
-import { computed, ref, nextTick } from "vue";
-import { Search, ShoppingCart, User, Menu, X } from "lucide-vue-next";
-import FormInput from "../../UI/FormInput.vue";
+import { Link, router, usePage } from "@inertiajs/vue3";
+import { computed, ref } from "vue";
+import { Menu, Search, ShoppingCart, User, X } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
+import Button from "@frontend/components/UI/Button.vue";
+import FormInput from "../../UI/FormInput.vue";
 import HeaderBrand from "./HeaderBrand.vue";
 import HeaderMobileMenu from "./HeaderMobileMenu.vue";
 
 const page = usePage();
-const settings = computed(() => page.props.settings ?? {});
-const isMobileMenuOpen = ref(false);
-const searchQuery = ref("");
-const isDesktopSearchOpen = ref(false);
-const desktopSearchInput = ref(null);
-const currentUrl = computed(() => page.url);
 const { t } = useI18n();
+const settings = computed(() => page.props.settings ?? {});
+const currentUrl = computed(() => page.url);
+const searchQuery = ref("");
+const isMobileMenuOpen = ref(false);
 
-const toggleDesktopSearch = () => {
-    isDesktopSearchOpen.value = !isDesktopSearchOpen.value;
-    if (isDesktopSearchOpen.value) {
-        nextTick(() => {
-            desktopSearchInput.value?.focus();
-        });
-    }
-};
-
-const cartItemCount = computed(() => usePage().props.cart_total || 0);
-const auth = computed(() => usePage().props.auth);
-const isLoggedIn = computed(() => !!auth.value?.user);
-
+const cartItemCount = computed(() => page.props.cart_total || 0);
+const isLoggedIn = computed(() => Boolean(page.props.auth?.user));
 const searchPlaceholder = computed(() => {
-    const name = settings.value?.site_name?.trim() || "UMKM";
-    return t("labels.header.search_placeholder", { site: name });
-});
+    const siteName = settings.value.site_name?.trim() || "UMKM";
 
-const toggleMobileMenu = () => {
-    isMobileMenuOpen.value = !isMobileMenuOpen.value;
-};
+    return t("labels.header.search_placeholder", { site: siteName });
+});
 
 const isCurrentRoute = (path) => {
     const currentPath = currentUrl.value.split("?")[0];
@@ -46,179 +30,101 @@ const isCurrentRoute = (path) => {
 };
 
 const handleSearch = () => {
-    if (searchQuery.value.trim()) {
-        router.get(
-            route("frontend.products"),
-            { search: searchQuery.value },
-            {
-                preserveState: true,
-                preserveScroll: true,
-            },
-        );
-    }
-};
+    const search = searchQuery.value.trim();
 
-const clearSearch = () => {
-    searchQuery.value = "";
-    router.get(
-        route("frontend.products"),
-        {},
-        {
-            preserveState: true,
-            preserveScroll: true,
-        },
-    );
+    if (!search) return;
+
+    router.get(route("frontend.products"), { search }, { preserveState: true, preserveScroll: true });
 };
 </script>
 
 <template>
-    <header class="border-border sticky top-0 z-50 border-b bg-white shadow-sm">
-        <div class="container mx-auto px-4">
-            <div class="flex h-14 items-center justify-between gap-2 md:h-16">
-                <div class="flex shrink-0 items-center">
-                    <HeaderBrand :logo="settings.logo" :site-name="settings.site_name" />
-                </div>
+    <header class="border-border sticky top-0 z-50 border-b bg-white/95 shadow-[0_8px_24px_-24px_hsl(var(--foreground)/0.45)] backdrop-blur">
+        <div class="mx-auto max-w-[1408px] px-4 md:px-8 xl:px-0">
+            <div class="flex h-14 items-center gap-4 md:gap-6">
+                <HeaderBrand class="shrink-0" :logo="settings.logo" :site-name="settings.site_name" />
 
-                <!-- Mobile Search Bar -->
-                <div class="min-w-0 flex-1 md:hidden">
-                    <FormInput
-                            v-model="searchQuery"
-                            type="text"
-                            :placeholder="searchPlaceholder"
-                            class="py-2"
-                            @keyup.enter="handleSearch"
-                        >
-                        <template #prefix><Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" /></template>
-                    </FormInput>
-                </div>
-
-                <!-- Desktop Nav Links -->
-                <nav class="mx-4 hidden h-full items-center gap-7 md:flex">
+                <nav class="hidden min-w-0 flex-1 items-center justify-center gap-6 lg:flex xl:gap-8" :aria-label="t('labels.header.home')">
                     <Link
-                        :href="route('frontend.home')"
-                        class="relative flex h-full items-center px-1 text-sm font-semibold tracking-[0.08em] transition-colors duration-200 after:absolute after:bottom-3 after:left-0 after:h-0.5 after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 after:ease-out focus-visible:ring-primary/30 focus-visible:ring-2 focus-visible:outline-none"
-                        :class="isCurrentRoute('/') ? 'text-primary after:scale-x-100' : 'text-muted-foreground after:scale-x-0 hover:text-primary hover:after:scale-x-100'"
+                        v-for="item in [
+                            { href: route('frontend.home'), label: t('labels.header.home'), path: '/' },
+                            { href: route('frontend.products'), label: t('labels.header.products'), path: '/products' },
+                            { href: route('frontend.flashsales'), label: t('labels.header.promo'), path: '/flash-sale' },
+                            { href: route('frontend.blog.index'), label: t('labels.header.blog'), path: '/blog' },
+                            { href: route('frontend.contact'), label: t('labels.header.contact'), path: '/contact' },
+                        ]"
+                        :key="item.path"
+                        :href="item.href"
+                        class="relative flex min-h-11 items-center px-1 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-1 after:left-0 after:h-0.5 after:origin-left after:bg-primary after:transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                        :class="isCurrentRoute(item.path) ? 'text-primary after:scale-x-100' : 'text-muted-foreground after:scale-x-0 hover:text-primary hover:after:scale-x-100'"
                     >
-                        {{ t("labels.header.home") }}
-                    </Link>
-                    <Link
-                        :href="route('frontend.products')"
-                        class="relative flex h-full items-center px-1 text-sm font-semibold tracking-[0.08em] transition-colors duration-200 after:absolute after:bottom-3 after:left-0 after:h-0.5 after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 after:ease-out focus-visible:ring-primary/30 focus-visible:ring-2 focus-visible:outline-none"
-                        :class="isCurrentRoute('/products') ? 'text-primary after:scale-x-100' : 'text-muted-foreground after:scale-x-0 hover:text-primary hover:after:scale-x-100'"
-                    >
-                        {{ t("labels.header.products") }}
-                    </Link>
-                    <Link
-                        :href="route('frontend.blog.index')"
-                        class="relative flex h-full items-center px-1 text-sm font-semibold tracking-[0.08em] transition-colors duration-200 after:absolute after:bottom-3 after:left-0 after:h-0.5 after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 after:ease-out focus-visible:ring-primary/30 focus-visible:ring-2 focus-visible:outline-none"
-                        :class="isCurrentRoute('/blog') ? 'text-primary after:scale-x-100' : 'text-muted-foreground after:scale-x-0 hover:text-primary hover:after:scale-x-100'"
-                    >
-                        {{ t("labels.header.blog") }}
-                    </Link>
-                    <Link
-                        :href="route('frontend.contact')"
-                        class="relative flex h-full items-center px-1 text-sm font-semibold tracking-[0.08em] transition-colors duration-200 after:absolute after:bottom-3 after:left-0 after:h-0.5 after:w-full after:origin-left after:bg-primary after:transition-transform after:duration-300 after:ease-out focus-visible:ring-primary/30 focus-visible:ring-2 focus-visible:outline-none"
-                        :class="isCurrentRoute('/contact') ? 'text-primary after:scale-x-100' : 'text-muted-foreground after:scale-x-0 hover:text-primary hover:after:scale-x-100'"
-                    >
-                        {{ t("labels.header.contact") }}
+                        {{ item.label }}
                     </Link>
                 </nav>
 
-                <!-- Action Icons -->
-                <div class="flex items-center space-x-2 md:space-x-4">
-                    <!-- Desktop Search Icon -->
-                    <div class="hidden md:block">
-                        <Button
-                            type="button"
-                            @click="toggleDesktopSearch"
-                            class="text-muted-foreground hover:text-primary p-2 transition-colors"
-                            :class="{ 'text-primary': isDesktopSearchOpen }"
-                            :aria-label="t('labels.header.search_products')"
-                            :aria-expanded="isDesktopSearchOpen"
-                            aria-controls="desktop-search"
-                        >
-                            <Search class="h-5 w-5" />
-                        </Button>
-                    </div>
+                <form class="hidden w-[28rem] max-w-[32vw] shrink-0 lg:block" @submit.prevent="handleSearch">
+                    <FormInput
+                        v-model="searchQuery"
+                        type="search"
+                        :placeholder="searchPlaceholder"
+                        :aria-label="t('labels.header.search_products')"
+                        class="rounded-full border-border bg-secondary/45 py-2.5 pl-10 pr-4 text-sm shadow-none focus-within:bg-white"
+                    >
+                        <template #prefix>
+                            <Search class="text-muted-foreground absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" aria-hidden="true" />
+                        </template>
+                    </FormInput>
+                </form>
 
-                    <!-- User Icon -->
+                <div class="ml-auto flex shrink-0 items-center gap-1 md:gap-2">
                     <Link
                         :href="route('frontend.account')"
-                        class="text-foreground/70 hover:text-primary hidden min-h-11 min-w-11 items-center justify-center p-2 transition-colors md:flex"
+                        class="text-foreground hover:text-primary focus-visible:ring-primary/30 flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:outline-none"
                         :aria-label="isLoggedIn ? t('labels.header.account') : t('labels.header.login')"
                     >
-                        <User class="h-5 w-5" />
+                        <User class="h-5 w-5" aria-hidden="true" />
                     </Link>
-
-                    <!-- Cart Icon -->
                     <Link
                         :href="route('frontend.cart')"
-                        class="text-muted-foreground hover:text-primary relative flex min-h-11 min-w-11 items-center justify-center p-2 transition-colors"
+                        class="text-foreground hover:text-primary focus-visible:ring-primary/30 relative flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:outline-none"
                         :aria-label="t('labels.header.cart')"
                     >
-                        <ShoppingCart class="h-5 w-5" />
+                        <ShoppingCart class="h-5 w-5" aria-hidden="true" />
                         <span
                             v-if="cartItemCount > 0"
-                            class="bg-destructive absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                            class="bg-primary text-primary-foreground absolute top-0 right-0 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold"
                         >
                             {{ cartItemCount > 99 ? "99+" : cartItemCount }}
                         </span>
                     </Link>
-
-                    <!-- Mobile Menu Button -->
                     <Button
                         type="button"
-                        class="text-muted-foreground hover:text-primary -mr-2 p-2 transition-colors md:hidden"
+                        class="text-foreground hover:text-primary -mr-2 rounded-full p-2 md:hidden"
                         :aria-expanded="isMobileMenuOpen"
                         aria-controls="mobile-navigation"
-                        @click="toggleMobileMenu"
+                        :aria-label="isMobileMenuOpen ? t('labels.order.review.close') : t('labels.header.home')"
+                        @click="isMobileMenuOpen = !isMobileMenuOpen"
                     >
-                        <Menu class="h-6 w-6" />
+                        <X v-if="isMobileMenuOpen" class="h-6 w-6" aria-hidden="true" />
+                        <Menu v-else class="h-6 w-6" aria-hidden="true" />
                     </Button>
                 </div>
             </div>
-        </div>
 
-        <!-- Desktop Search Bar (Expandable) -->
-        <Transition
-            enter-active-class="transition-all duration-300 ease-out"
-            enter-from-class="-translate-y-2 opacity-0"
-            enter-to-class="translate-y-0 opacity-100"
-            leave-active-class="transition-all duration-200 ease-in"
-            leave-from-class="translate-y-0 opacity-100"
-            leave-to-class="-translate-y-2 opacity-0"
-        >
-            <div
-                v-if="isDesktopSearchOpen"
-                id="desktop-search"
-                class="border-border hidden border-b bg-background shadow-sm md:block"
-            >
-            <div class="mx-auto mb-4 w-2/3 max-w-4xl px-4 py-6">
-                <div class="group relative flex items-center gap-3 border-b-2 border-border pb-1 transition-colors duration-200 focus-within:border-primary">
-                    <Search class="text-muted-foreground h-5 w-5 shrink-0 transition-colors duration-200 group-focus-within:text-primary" />
-                    <FormInput
-                        ref="desktopSearchInput"
-                        v-model="searchQuery"
-                        type="text"
-                        :placeholder="t('labels.header.search_products')"
-                        borderless
-                        wrapper-class="flex-1"
-                        class="bg-transparent py-3 text-lg placeholder:text-muted-foreground/70"
-                        @keyup.enter="handleSearch"
-                        @keyup.escape="isDesktopSearchOpen = false"
-                    />
-                    <Button
-                        v-if="searchQuery"
-                        @click="clearSearch"
-                        class="text-muted-foreground hover:text-foreground shrink-0"
-                        :aria-label="t('labels.header.search_products')"
-                    >
-                        <X class="h-5 w-5" />
-                    </Button>
-                </div>
-            </div>
+            <form class="pb-3 md:hidden" @submit.prevent="handleSearch">
+                <FormInput
+                    v-model="searchQuery"
+                    type="search"
+                    :placeholder="searchPlaceholder"
+                    :aria-label="t('labels.header.search_products')"
+                    class="rounded-full border-border bg-secondary/45 py-2.5 pl-10 pr-4 text-sm shadow-none"
+                >
+                    <template #prefix>
+                        <Search class="text-muted-foreground absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" aria-hidden="true" />
+                    </template>
+                </FormInput>
+            </form>
         </div>
-        </Transition>
 
         <HeaderMobileMenu
             :is-open="isMobileMenuOpen"

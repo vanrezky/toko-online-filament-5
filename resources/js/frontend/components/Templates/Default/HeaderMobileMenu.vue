@@ -69,6 +69,9 @@ const close = () => emit("close");
                 <Link :href="route('frontend.products')" class="border-border/50 text-foreground border-b py-3 text-sm font-semibold" @click="close">
                     {{ t("labels.header.products") }}
                 </Link>
+                <Link :href="route('frontend.flashsales')" class="border-border/50 text-foreground border-b py-3 text-sm font-semibold" @click="close">
+                    {{ t("labels.header.promo") }}
+                </Link>
                 <Link :href="route('frontend.blog.index')" class="border-border/50 text-foreground border-b py-3 text-sm font-semibold" @click="close">
                     {{ t("labels.header.blog") }}
                 </Link>
