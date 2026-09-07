@@ -32,7 +32,7 @@ onMounted(async () => {
 
 <template>
     <section v-if="vouchers.length > 0" class="py-6 sm:py-8 md:py-10">
-        <div class="container mx-auto px-4">
+        <div class="container mx-auto px-4 md:px-8">
             <!-- Header -->
             <div class="mb-4 flex items-center justify-between gap-3 sm:mb-5">
                 <div>

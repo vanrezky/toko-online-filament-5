@@ -119,7 +119,7 @@ onUnmounted(() => {
 
 <template>
     <section class="border-destructive/15 from-secondary via-background to-background relative overflow-hidden border-y bg-gradient-to-br py-8 md:py-12">
-        <div class="container relative mx-auto px-4">
+        <div class="container relative mx-auto px-8">
             <!-- Header -->
             <div class="mb-6 md:mb-8">
                 <!-- Desktop Header -->

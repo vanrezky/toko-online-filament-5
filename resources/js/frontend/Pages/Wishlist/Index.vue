@@ -23,7 +23,7 @@ const items = computed(() => {
 
 <template>
     <TemplateWrapper :title="t('meta.wishlist.title')">
-        <div class="container mx-auto px-4 md:px-6">
+        <div class="container mx-auto px-4 md:px-8">
             <AccountShell active-destination="wishlist">
                     <div class="mx-auto space-y-8">
                         <header class="flex flex-col justify-between gap-4 md:flex-row md:items-center">

@@ -106,7 +106,7 @@ const isExpired = (dateString) => {
 
 <template>
     <TemplateWrapper :title="t('meta.orders.title')">
-        <div class="container mx-auto px-4 md:px-6">
+        <div class="container mx-auto px-4 md:px-8">
             <AccountShell active-destination="orders">
                 <div class="mx-auto space-y-8">
                     <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">

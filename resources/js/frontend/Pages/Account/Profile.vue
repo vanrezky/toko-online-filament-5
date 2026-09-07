@@ -197,7 +197,7 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
             <div class="bg-primary/5 absolute -top-20 -left-20 h-80 w-80 rounded-full blur-3xl"></div>
             <div class="bg-primary/5 absolute -right-20 -bottom-40 h-96 w-96 rounded-full blur-3xl"></div>
 
-            <div class="container mx-auto px-4">
+            <div class="container mx-auto px-4 md:px-8">
                 <!-- Breadcrumb -->
                 <div class="hidden">
                     <span class="hover:text-foreground cursor-pointer transition-colors" @click="$inertia.get(route('frontend.home'))">{{
