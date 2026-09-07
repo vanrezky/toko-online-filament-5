@@ -23,9 +23,18 @@ const promoLabel = computed(() => getSectionContent(props.template, "hero", "pro
 const promoValue = computed(() => getSectionContent(props.template, "hero", "promo_value", t("labels.home.hero_promo_value")));
 const trustPoints = computed(() => {
     const configured = getSectionContent(props.template, "hero", "trust_points", null);
+    let parsed = configured;
 
-    if (Array.isArray(configured) && configured.length > 0) {
-        return configured.slice(0, 3).map((point, index) => ({
+    if (typeof configured === "string") {
+        try {
+            parsed = JSON.parse(configured);
+        } catch {
+            parsed = null;
+        }
+    }
+
+    if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.slice(0, 3).map((point, index) => ({
             ...point,
             icon: [Truck, ShieldCheck, Headphones][index] || Sparkles,
         }));

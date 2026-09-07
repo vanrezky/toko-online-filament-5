@@ -8,6 +8,7 @@ import { formatCompactNumber, formatCurrency } from "../../lib/utils";
 
 const props = defineProps({
     product: { type: Object, required: true },
+    showDiscount: { type: Boolean, default: true },
     size: {
         type: String,
         default: "normal",
@@ -20,7 +21,7 @@ const { t, locale } = useI18n();
 const formatProductCount = (count) => formatCompactNumber(count, locale.value);
 const pricing = computed(() => props.product.pricing ?? null);
 const isWishlisted = computed(() => page.props.wishlist_product_ids?.includes(props.product.id));
-const isSale = computed(() => (pricing.value?.discount ?? 0) > 0);
+const isSale = computed(() => props.showDiscount && (pricing.value?.discount ?? 0) > 0);
 const displayPrice = computed(() => pricing.value?.final_price ?? props.product.sale_price ?? props.product.price);
 const originalPrice = computed(() => (isSale.value ? pricing.value?.original_price ?? props.product.price : null));
 const discountPercentage = computed(() => {

@@ -16,6 +16,24 @@ const { t } = useI18n();
 const allProducts = ref([...(props.products?.data || [])]);
 const title = computed(() => props.filters?.category || getSectionContent(props.template, "products_grid", "title", "Semua Produk"));
 const subtitle = computed(() => getSectionContent(props.template, "products_grid", "subtitle", "Jelajahi koleksi lengkap produk kami"));
+const limit = computed(() => Math.max(1, Number(getSectionContent(props.template, "products_grid", "limit", 10)) || 10));
+const showLoadMore = computed(() => {
+    const value = getSectionContent(props.template, "products_grid", "show_load_more", "1");
+
+    return ![false, 0, "0", "false"].includes(value);
+});
+const columns = computed(() => {
+    const value = Number(getSectionContent(props.template, "products_grid", "columns", 4));
+
+    return [2, 3, 4, 5].includes(value) ? value : 4;
+});
+const columnClasses = computed(() => ({
+    "lg:grid-cols-2": columns.value === 2,
+    "lg:grid-cols-3": columns.value === 3,
+    "lg:grid-cols-4": columns.value === 4,
+    "lg:grid-cols-5": columns.value === 5,
+}));
+const visibleProducts = computed(() => allProducts.value.slice(0, limit.value));
 
 watch(
     () => props.products?.data,
@@ -34,6 +52,7 @@ watch(
                     <p v-if="!filters?.category" class="text-muted-foreground mt-1 text-sm">{{ subtitle }}</p>
                 </div>
                 <Link
+                    v-if="showLoadMore"
                     :href="route('frontend.products')"
                     class="text-primary hover:text-primary/75 focus-visible:ring-primary inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none sm:text-sm"
                 >
@@ -43,8 +62,8 @@ watch(
                 </Link>
             </div>
 
-            <div v-if="allProducts.length > 0" class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-                <ProductCard v-for="product in allProducts" :key="product.uuid || product.id" :product="product" />
+            <div v-if="visibleProducts.length > 0" class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 xl:grid-cols-6" :class="columnClasses">
+                <ProductCard v-for="product in visibleProducts" :key="product.uuid || product.id" :product="product" />
             </div>
 
             <div v-else class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-50 to-slate-100 py-20 text-center">

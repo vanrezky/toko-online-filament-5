@@ -12,7 +12,13 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-const featuredProducts = computed(() => (Array.isArray(props.products) ? props.products : props.products?.data || []).slice(0, 6));
+const limit = computed(() => Math.max(1, Number(getSectionContent(props.template, "featured_products", "limit", 6)) || 6));
+const showDiscount = computed(() => {
+    const value = getSectionContent(props.template, "featured_products", "show_discount", "1");
+
+    return ![false, 0, "0", "false"].includes(value);
+});
+const featuredProducts = computed(() => (Array.isArray(props.products) ? props.products : props.products?.data || []).slice(0, limit.value));
 const sectionTitle = computed(() => getSectionContent(props.template, "featured_products", "title", "Pilihan Terbaik"));
 const sectionSubtitle = computed(() => getSectionContent(props.template, "featured_products", "subtitle", "Produk pilihan dengan kualitas terbaik untuk Anda"));
 </script>
@@ -37,7 +43,7 @@ const sectionSubtitle = computed(() => getSectionContent(props.template, "featur
 
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-6">
                 <div v-for="product in featuredProducts" :key="product.uuid || product.id" class="min-w-0">
-                    <ProductCard :product="product" />
+                    <ProductCard :product="product" :show-discount="showDiscount" />
                 </div>
             </div>
         </div>

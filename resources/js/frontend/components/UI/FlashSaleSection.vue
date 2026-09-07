@@ -18,6 +18,12 @@ const { t } = useI18n();
 
 const sectionTitle = computed(() => getSectionContent(props.template, "flash_sale", "title", props.flashsales?.name || "Flash Sale"));
 const subtitle = computed(() => getSectionContent(props.template, "flash_sale", "subtitle", "Dapatkan harga spesial dengan periode terbatas"));
+const showTimer = computed(() => {
+    const value = getSectionContent(props.template, "flash_sale", "show_timer", "1");
+
+    return ![false, 0, "0", "false"].includes(value);
+});
+const limit = computed(() => Math.max(1, Number(getSectionContent(props.template, "flash_sale", "limit", 8)) || 8));
 
 const timeLeft = ref({
     hours: "00",
@@ -63,7 +69,7 @@ onUnmounted(() => {
 
 const flashSaleProducts = computed(() => {
     if (!props.flashsales?.products) return [];
-    return props.flashsales.products.map((item) => item.product);
+    return props.flashsales.products.map((item) => item.product).filter(Boolean).slice(0, limit.value);
 });
 
 const scrollContainer = ref(null);
@@ -128,7 +134,7 @@ onUnmounted(() => {
 
                     <div class="flex items-center gap-5">
                         <!-- Countdown Timer -->
-                        <div class="text-foreground flex items-center gap-2.5" role="timer" aria-live="off" aria-label="Berakhir dalam waktu {{ timeLeft.hours }} jam {{ timeLeft.minutes }} menit {{ timeLeft.seconds }} detik">
+                        <div v-if="showTimer" class="text-foreground flex items-center gap-2.5" role="timer" aria-live="off" aria-label="Berakhir dalam waktu {{ timeLeft.hours }} jam {{ timeLeft.minutes }} menit {{ timeLeft.seconds }} detik">
                             <Clock class="text-destructive h-5 w-5" aria-hidden="true" />
                             <span class="text-sm font-semibold">Berakhir dalam:</span>
                             <div class="flex items-center gap-1.5 font-bold" aria-hidden="true">
@@ -182,7 +188,7 @@ onUnmounted(() => {
 
                     <!-- Mobile Timer & Scroll Buttons -->
                     <div class="flex flex-col items-end gap-2">
-                        <div class="flex items-center gap-2" role="timer" aria-live="off" aria-label="Berakhir dalam waktu {{ timeLeft.hours }} jam {{ timeLeft.minutes }} menit {{ timeLeft.seconds }} detik">
+                        <div v-if="showTimer" class="flex items-center gap-2" role="timer" aria-live="off" aria-label="Berakhir dalam waktu {{ timeLeft.hours }} jam {{ timeLeft.minutes }} menit {{ timeLeft.seconds }} detik">
                             <Clock class="text-destructive h-4 w-4" aria-hidden="true" />
                             <div class="flex items-center gap-1 text-xs font-bold" aria-hidden="true">
                                 <span class="bg-destructive text-destructive-foreground rounded px-2 py-0.5 shadow-sm">{{

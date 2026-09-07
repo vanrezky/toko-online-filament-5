@@ -18,6 +18,16 @@ const getNewsletterContent = (key, fallback, legacyValues = []) => {
 const title = computed(() => getNewsletterContent("title", t("labels.home.newsletter_title"), ["Dapatkan Penawaran Spesial"]));
 const subtitle = computed(() => getNewsletterContent("subtitle", t("labels.home.newsletter_description"), ["Daftar newsletter untuk mendapatkan informasi tentang produk baru dan promo menarik."]));
 const buttonText = computed(() => getNewsletterContent("button_text", t("labels.home.newsletter_button"), ["Berlangganan"]));
+const placeholder = computed(() => getNewsletterContent("placeholder", t("labels.home.newsletter_placeholder"), ["Masukkan email Anda"]));
+const backgroundClasses = computed(() => {
+    const style = getNewsletterContent("bg_style", "gradient");
+
+    return {
+        "bg-primary/5": style === "gradient",
+        "bg-primary/10": style === "solid",
+        "bg-background": style === "minimal",
+    };
+});
 
 const submit = () => {
     form.post(route("frontend.newsletter.subscribe"), {
@@ -34,7 +44,7 @@ const submit = () => {
 <template>
     <section class="bg-background py-6 md:py-10" aria-labelledby="newsletter-title">
         <div class="container mx-auto px-4 md:px-8">
-            <div class="relative isolate overflow-hidden rounded-[2rem] border border-primary/10 bg-primary/5 px-6 py-8 sm:px-10 md:py-10 lg:px-12">
+            <div class="relative isolate overflow-hidden rounded-[2rem] border border-primary/10 px-6 py-8 sm:px-10 md:py-10 lg:px-12" :class="backgroundClasses">
                 <div class="pointer-events-none absolute -right-16 -bottom-24 h-72 w-72 rounded-full bg-primary/10" aria-hidden="true"></div>
                 <div class="relative grid items-center gap-8 lg:grid-cols-[1.05fr_1.25fr_.65fr] lg:gap-10">
                     <div class="max-w-xl">
@@ -48,7 +58,7 @@ const submit = () => {
                             <FormInput
                                 v-model="form.email"
                                 type="email"
-                                :placeholder="t('labels.home.newsletter_placeholder')"
+                                :placeholder="placeholder"
                                 :invalid="Boolean(form.errors.email)"
                                 :aria-label="t('labels.footer.newsletter')"
                                 wrapper-class="min-w-0 flex-1"
