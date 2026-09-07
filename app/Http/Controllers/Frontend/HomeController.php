@@ -62,20 +62,26 @@ class HomeController extends Controller
         $sectionContent = fn (?TemplateSection $section, string $key, mixed $default = null) => $section
             ? $this->templateService->getSectionContent($section, $key, $default)
             : $default;
-        $productsLimit = max(
-            1,
-            (int) $sectionContent($featuredSection, 'limit', 6),
-            (int) $sectionContent($productsGridSection, 'limit', 10),
-        );
+        $productLimits = [];
+
+        if ($usesLegacySections || $featuredSection) {
+            $productLimits[] = (int) $sectionContent($featuredSection, 'limit', 6);
+        }
+
+        if ($usesLegacySections || $productsGridSection) {
+            $productLimits[] = (int) $sectionContent($productsGridSection, 'limit', 10);
+        }
+
+        $productsLimit = max(1, ...($productLimits ?: [1]));
         $productsCategoryId = (int) $sectionContent($productsGridSection, 'category_id', 0);
         $flashsaleLimit = max(1, (int) $sectionContent($flashsaleSection, 'limit', 5));
-        $needsProducts = $usesLegacySections || in_array(TemplateSection::TYPE_FEATURED_PRODUCTS, $configuredSectionTypes, true)
-            || in_array(TemplateSection::TYPE_PRODUCTS_GRID, $configuredSectionTypes, true)
-            || $isFlashsaleEnabled;
+        $needsProducts = $usesLegacySections
+            || in_array(TemplateSection::TYPE_FEATURED_PRODUCTS, $configuredSectionTypes, true)
+            || in_array(TemplateSection::TYPE_PRODUCTS_GRID, $configuredSectionTypes, true);
         $needsCategories = $usesLegacySections || in_array(TemplateSection::TYPE_CATEGORY_MENU, $configuredSectionTypes, true);
-        // The registry keeps the existing carousel as a compatibility section
-        // until it is represented by an admin-managed section type.
-        $needsSliders = true;
+        // Only load slider data when the template renders the carousel section.
+        $needsSliders = $usesLegacySections
+            || in_array(TemplateSection::TYPE_HERO_CAROUSEL, $configuredSectionTypes, true);
         $resellerId = auth('customer')->user()?->reseller_id;
 
         $flashsale = null;
@@ -108,7 +114,6 @@ class HomeController extends Controller
                         ->where('min_qty', '<=', 1)
                         ->select(['id', 'product_id', 'min_qty', 'price']),
                 ])
-                ->when($productsCategoryId > 0, fn ($query) => $query->where('category_id', $productsCategoryId))
                 ->when($resellerId, fn ($query) => $query->with([
                     'products.product.resellerPrices' => fn ($query) => $query
                         ->where('reseller_id', $resellerId)
@@ -140,6 +145,7 @@ class HomeController extends Controller
                     'created_at',
                 ])
                 ->active()
+                ->when($productsCategoryId > 0, fn ($query) => $query->where('category_id', $productsCategoryId))
                 ->with([
                     'media',
                     'flashsaleProducts' => fn ($query) => $query

@@ -17,8 +17,17 @@ const initCSRF = async () => {
 };
 
 export const voucherService = {
-    async getVouchers(type = null) {
-        const params = type ? { type } : {};
+    async getVouchers(type = null, limit = null) {
+        const params = {};
+
+        if (type) {
+            params.type = type;
+        }
+
+        if (limit) {
+            params.limit = limit;
+        }
+
         const response = await apiClient.get("/vouchers", { params });
         return response.data;
     },

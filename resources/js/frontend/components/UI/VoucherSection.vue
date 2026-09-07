@@ -20,7 +20,7 @@ const limit = computed(() => Number(getSectionContent(props.template, "vouchers"
 
 onMounted(async () => {
     try {
-        const response = await voucherService.getVouchers();
+        const response = await voucherService.getVouchers(null, limit.value);
         vouchers.value = (response.data || []).slice(0, limit.value);
     } catch (error) {
         console.error("Failed to load vouchers:", error);
