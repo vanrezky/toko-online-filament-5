@@ -75,14 +75,14 @@ const categoryIcon = (category) => categoryIconsBySlug[category.slug] || Sparkle
 </script>
 
 <template>
-    <section class="bg-background py-4 md:py-6" aria-labelledby="popular-categories-title">
+    <section class="bg-background py-3 sm:py-4 md:py-5" aria-labelledby="popular-categories-title">
         <div class="container mx-auto px-4 md:px-8">
-            <div class="mb-4 flex items-center justify-between gap-4">
-                <h2 id="popular-categories-title" class="text-foreground text-xl font-bold tracking-[-0.03em] md:text-2xl">{{ sectionTitle }}</h2>
+            <div class="mb-3 flex items-center justify-between gap-3 md:mb-4 md:gap-4">
+                <h2 id="popular-categories-title" class="text-foreground text-lg font-bold tracking-[-0.03em] sm:text-xl md:text-2xl">{{ sectionTitle }}</h2>
                 <Link
                     v-if="showAll"
                     :href="route('frontend.products')"
-                    class="text-primary hover:text-primary/75 focus-visible:ring-primary inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none sm:text-sm"
+                    class="text-primary hover:text-primary/75 focus-visible:ring-primary inline-flex min-h-10 items-center gap-1 rounded-lg px-1 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none sm:px-2 sm:text-sm"
                 >
                     <span class="hidden sm:inline">{{ t("labels.home.category_view_all") }}</span>
                     <span class="sm:hidden">{{ t("labels.actions.view_all") }}</span>
@@ -90,26 +90,26 @@ const categoryIcon = (category) => categoryIconsBySlug[category.slug] || Sparkle
                 </Link>
             </div>
 
-            <div class="scrollbar-hidden -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:gap-3 md:mx-0 md:grid md:grid-cols-6 md:overflow-visible md:px-0 lg:grid-cols-8 xl:grid-cols-12">
+            <div class="scrollbar-hidden -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:gap-2 md:mx-0 md:grid md:grid-cols-6 md:gap-3 md:overflow-visible md:px-0 lg:grid-cols-8 xl:grid-cols-12">
                 <Link
                     :href="route('frontend.home')"
-                    class="group flex min-w-[5.75rem] flex-1 flex-col items-center justify-center gap-2 rounded-2xl border px-2 py-3 text-center transition-[background-color,border-color,transform] hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none motion-reduce:transform-none motion-reduce:transition-none md:min-w-0"
+                    class="group flex min-w-[4.75rem] flex-1 flex-col items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2 text-center transition-[background-color,border-color,transform] hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none motion-reduce:transform-none motion-reduce:transition-none sm:min-w-[5.25rem] sm:gap-2 sm:px-2 sm:py-2.5 md:min-w-0 md:rounded-2xl md:py-3"
                     :class="!activeCategory ? 'border-primary bg-primary text-primary-foreground shadow-[0_12px_24px_-20px_hsl(var(--primary)/0.9)]' : 'border-border bg-secondary/45 text-foreground hover:border-primary/40 hover:bg-secondary'"
                 >
-                    <span class="flex h-10 w-10 items-center justify-center rounded-full" :class="!activeCategory ? 'bg-white/20' : 'bg-primary/10 text-primary'">
-                        <Grid2X2 class="h-5 w-5" aria-hidden="true" />
+                    <span class="flex h-8 w-8 items-center justify-center rounded-full sm:h-9 sm:w-9 md:h-10 md:w-10" :class="!activeCategory ? 'bg-white/20' : 'bg-primary/10 text-primary'">
+                        <Grid2X2 class="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
                     </span>
-                    <span class="max-w-full truncate text-[11px] font-semibold">{{ t("labels.filters.all_categories") }}</span>
+                    <span class="max-w-full truncate text-[10px] font-semibold sm:text-[11px]">{{ t("labels.filters.all_categories") }}</span>
                 </Link>
 
                 <Link
                     v-for="category in allCategories"
                     :key="category.id || category.slug"
                     :href="route('frontend.home', { category: category.slug })"
-                    class="group flex min-w-[5.75rem] flex-1 flex-col items-center justify-center gap-2 rounded-2xl border px-2 py-3 text-center transition-[background-color,border-color,transform] hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none motion-reduce:transform-none motion-reduce:transition-none md:min-w-0"
+                    class="group flex min-w-[4.75rem] flex-1 flex-col items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2 text-center transition-[background-color,border-color,transform] hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none motion-reduce:transform-none motion-reduce:transition-none sm:min-w-[5.25rem] sm:gap-2 sm:px-2 sm:py-2.5 md:min-w-0 md:rounded-2xl md:py-3"
                     :class="activeCategory === category.slug ? 'border-primary bg-primary text-primary-foreground shadow-[0_12px_24px_-20px_hsl(var(--primary)/0.9)]' : 'border-border bg-secondary/45 text-foreground hover:border-primary/40 hover:bg-secondary'"
                 >
-                    <span class="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full" :class="activeCategory === category.slug ? 'bg-white/20' : 'bg-primary/10 text-primary'">
+                    <span class="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full sm:h-9 sm:w-9 md:h-10 md:w-10" :class="activeCategory === category.slug ? 'bg-white/20' : 'bg-primary/10 text-primary'">
                         <img
                             v-if="hasCategoryImage(category)"
                             :src="categoryImageUrl(category)"
@@ -118,9 +118,9 @@ const categoryIcon = (category) => categoryIconsBySlug[category.slug] || Sparkle
                             loading="lazy"
                             @error="handleCategoryImageError(category)"
                         />
-                        <component v-else :is="categoryIcon(category)" class="h-5 w-5" aria-hidden="true" />
+                        <component v-else :is="categoryIcon(category)" class="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
                     </span>
-                    <span class="max-w-full truncate text-[11px] font-semibold">{{ category.name }}</span>
+                    <span class="max-w-full truncate text-[10px] font-semibold sm:text-[11px]">{{ category.name }}</span>
                 </Link>
             </div>
         </div>
