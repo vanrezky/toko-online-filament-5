@@ -171,7 +171,12 @@
         "all_viewed": "Anda telah melihat semua produk",
         "empty_title": "Belum Ada Produk",
         "empty_description": "Sepertinya belum ada produk yang tersedia saat ini. Yuk, cek kembali nanti!",
-        "filter_and_sort": "Filter"
+        "filter_and_sort": "Filter",
+        "description": "Temukan produk berkualitas dengan harga terbaik untuk kebutuhan Anda.",
+        "result_count": "Menampilkan {from}–{to} dari {total} produk",
+        "page_size": "Per halaman",
+        "pagination": "Navigasi halaman produk",
+        "filter_description": "Atur filter untuk menemukan produk yang sesuai dengan kebutuhan Anda."
     },
     "messages": {
         "success": {
@@ -522,6 +527,8 @@
             "continue_shopping": "Lanjut Belanja",
             "explore_products": "Jelajahi Produk",
             "filter": "Filter",
+            "apply_filters": "Terapkan Filter",
+            "close": "Tutup",
             "home": "Beranda",
             "load_more": "Lihat Lebih Banyak",
             "show_less": "Tampilkan Lebih Sedikit",
@@ -576,7 +583,17 @@
             "active": "Filter Aktif",
             "price_under": "<{amount}",
             "price_between": "{min}-{max}",
-            "price_over": ">{amount}"
+            "price_over": ">{amount}",
+            "rating_minimum": "Rating Minimum",
+            "rating_chip": "{rating} bintang ke atas",
+            "promotions": "Promo",
+            "promo_discount": "Produk diskon",
+            "promo_new": "Produk baru",
+            "promo_flash_sale": "Flash sale",
+            "remove": "Hapus filter {label}",
+            "variant_color": "Warna",
+            "variant_size": "Ukuran",
+            "variant_gender": "Gender"
         },
 
         "footer": {

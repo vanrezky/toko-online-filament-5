@@ -1,5 +1,8 @@
 {
     "meta": {
+        "products": {
+            "title": "Product List"
+        },
         "blog": {
             "title": "Blog",
             "description": "Discover tips, inspiration, and curated information for your everyday life."
@@ -39,6 +42,8 @@
         "continue_shopping": "Continue Shopping",
         "explore_products": "Explore Products",
         "filter": "Filter",
+        "apply_filters": "Apply Filters",
+        "close": "Close",
         "home": "Home",
         "load_more": "Load More",
         "loading": "Loading...",
@@ -178,7 +183,16 @@
         "active": "Active Filters",
         "price_under": "<{amount}",
         "price_between": "{min}-{max}",
-        "price_over": ">{amount}"
+        "price_over": ">{amount}",
+        "rating_minimum": "Minimum Rating",
+        "rating_chip": "{rating} stars and up",
+        "availability": "Availability",
+        "in_stock": "In stock",
+        "promotions": "Promotions",
+        "promo_discount": "Discounted products",
+        "promo_new": "New products",
+        "promo_flash_sale": "Flash sale",
+        "remove": "Remove {label} filter"
     },
     "footer": {
         "customer_service": "Customer Service",
@@ -850,7 +864,12 @@
         "all_viewed": "You have seen all products",
         "empty_title": "No Products Yet",
         "empty_description": "There seems to be no products available right now. Please check back later!",
-        "filter_and_sort": "Filter"
+        "filter_and_sort": "Filter",
+        "description": "Discover quality products at the best prices for your everyday needs.",
+        "result_count": "Showing {from}–{to} of {total} products",
+        "page_size": "Per page",
+        "pagination": "Product page navigation",
+        "filter_description": "Set filters to find products that match your needs."
     },
     "vouchers": {
         "heading": "Vouchers & Promos",
@@ -967,7 +986,54 @@
     },
     "labels": {
         "actions": {
-            "loading": "Loading..."
+            "filter": "Filter",
+            "apply_filters": "Apply Filters",
+            "close": "Close",
+            "loading": "Loading...",
+            "reset": "Reset",
+            "reset_filters": "Reset Filters"
+        },
+        "form": {
+            "search": "Search",
+            "sort": "Sort",
+            "category": "Category",
+            "price": "Price"
+        },
+        "sort": {
+            "newest": "Newest",
+            "price_low_high": "Price: Low to High",
+            "price_high_low": "Price: High to Low",
+            "name_asc": "Name: A-Z",
+            "name_desc": "Name: Z-A"
+        },
+        "filters": {
+            "all": "All",
+            "all_categories": "All Categories",
+            "active": "Active Filters",
+            "price_under": "<{amount}",
+            "price_between": "{min}-{max}",
+            "price_over": ">{amount}",
+            "rating_minimum": "Minimum Rating",
+            "rating_chip": "{rating} stars and up",
+            "promotions": "Promotions",
+            "promo_discount": "Discounted products",
+            "promo_new": "New products",
+            "promo_flash_sale": "Flash sale",
+            "remove": "Remove {label} filter",
+            "variant_color": "Color",
+            "variant_size": "Size",
+            "variant_gender": "Gender"
+        },
+        "products": {
+            "default_title": "All Products",
+            "not_found": "No products found",
+            "adjust_filters": "Try changing your filters or search keywords.",
+            "filter_and_sort": "Filter",
+            "description": "Discover quality products at the best prices for your everyday needs.",
+            "result_count": "Showing {from}–{to} of {total} products",
+            "page_size": "Per page",
+            "pagination": "Product page navigation",
+            "filter_description": "Set filters to find products that match your needs."
         },
         "orders": {
             "heading": "My Orders",

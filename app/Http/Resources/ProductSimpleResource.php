@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources;
 
+use App\Services\FlashsalePricingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Str;
 
 class ProductSimpleResource extends JsonResource
 {
@@ -15,7 +15,7 @@ class ProductSimpleResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $pricing = app(\App\Services\FlashsalePricingService::class)->resolve($this->resource, null, 1);
+        $pricing = app(FlashsalePricingService::class)->resolve($this->resource, null, 1);
         $customer = auth('customer')->user();
         $resellerId = $customer?->reseller_id;
 
@@ -39,6 +39,7 @@ class ProductSimpleResource extends JsonResource
             'digital' => $this->digital,
             'code' => $this->code,
             'stock' => $this->stock,
+            'is_new' => $this->created_at?->gte(now()->subDays(30)) ?? false,
             'sale_price' => $this->sale_price,
             'price' => $targetPrice,
             'discount_percentage' => $discountPercentage,
