@@ -19,6 +19,7 @@ class VoucherService
     public function getPublicVouchers(?string $type = null): Collection
     {
         $query = Voucher::query()
+            ->with('media')
             ->active()
             ->public()
             ->valid()
@@ -34,13 +35,15 @@ class VoucherService
         return $query->get();
     }
 
-    public function getCachedPublicVouchers(): Collection
+    public function getCachedPublicVouchers(?string $type = null): Collection
     {
+        $cacheKey = self::CACHE_PREFIX.'public'.($type ? "_{$type}" : '');
+
         return CacheService::rememberManaged(
             'voucher',
-            self::CACHE_PREFIX.'public',
+            $cacheKey,
             self::CACHE_TTL,
-            fn () => $this->getPublicVouchers()
+            fn () => $this->getPublicVouchers($type)
         );
     }
 
@@ -192,7 +195,9 @@ class VoucherService
 
     public function clearCache(): void
     {
-        CacheService::forgetManaged('voucher', self::CACHE_PREFIX.'public');
+        foreach (['public', 'public_shipping', 'public_product'] as $suffix) {
+            CacheService::forgetManaged('voucher', self::CACHE_PREFIX.$suffix);
+        }
     }
 
     protected function getUserUsageCount(Voucher $voucher, Customer $customer): int

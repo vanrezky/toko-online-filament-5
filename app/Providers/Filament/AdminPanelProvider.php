@@ -42,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Orange,
             ])
             ->font('Karla')
-            ->navigationGroups(['Operasional', 'Katalog', 'Pemasaran', 'Sistem', 'Platform'])
+            ->navigationGroups(['Operasional', 'Katalog', 'Pemasaran', 'Pengaturan', 'Platform'])
             ->favicon(settings('favicon'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverClusters(in: app_path('Filament/Clusters'), for: 'App\\Filament\\Clusters')

@@ -18,6 +18,12 @@ const { t } = useI18n();
 
 const sectionTitle = computed(() => getSectionContent(props.template, "flash_sale", "title", props.flashsales?.name || "Flash Sale"));
 const subtitle = computed(() => getSectionContent(props.template, "flash_sale", "subtitle", "Dapatkan harga spesial dengan periode terbatas"));
+const showTimer = computed(() => {
+    const value = getSectionContent(props.template, "flash_sale", "show_timer", "1");
+
+    return ![false, 0, "0", "false"].includes(value);
+});
+const limit = computed(() => Math.max(1, Number(getSectionContent(props.template, "flash_sale", "limit", 8)) || 8));
 
 const timeLeft = ref({
     hours: "00",
@@ -63,7 +69,7 @@ onUnmounted(() => {
 
 const flashSaleProducts = computed(() => {
     if (!props.flashsales?.products) return [];
-    return props.flashsales.products.map((item) => item.product);
+    return props.flashsales.products.map((item) => item.product).filter(Boolean).slice(0, limit.value);
 });
 
 const scrollContainer = ref(null);
@@ -113,7 +119,7 @@ onUnmounted(() => {
 
 <template>
     <section class="border-destructive/15 from-secondary via-background to-background relative overflow-hidden border-y bg-gradient-to-br py-8 md:py-12">
-        <div class="container relative mx-auto px-4">
+        <div class="container relative mx-auto px-8">
             <!-- Header -->
             <div class="mb-6 md:mb-8">
                 <!-- Desktop Header -->
@@ -128,7 +134,7 @@ onUnmounted(() => {
 
                     <div class="flex items-center gap-5">
                         <!-- Countdown Timer -->
-                        <div class="text-foreground flex items-center gap-2.5" role="timer" aria-live="off" aria-label="Berakhir dalam waktu {{ timeLeft.hours }} jam {{ timeLeft.minutes }} menit {{ timeLeft.seconds }} detik">
+                        <div v-if="showTimer" class="text-foreground flex items-center gap-2.5" role="timer" aria-live="off" aria-label="Berakhir dalam waktu {{ timeLeft.hours }} jam {{ timeLeft.minutes }} menit {{ timeLeft.seconds }} detik">
                             <Clock class="text-destructive h-5 w-5" aria-hidden="true" />
                             <span class="text-sm font-semibold">Berakhir dalam:</span>
                             <div class="flex items-center gap-1.5 font-bold" aria-hidden="true">
@@ -182,7 +188,7 @@ onUnmounted(() => {
 
                     <!-- Mobile Timer & Scroll Buttons -->
                     <div class="flex flex-col items-end gap-2">
-                        <div class="flex items-center gap-2" role="timer" aria-live="off" aria-label="Berakhir dalam waktu {{ timeLeft.hours }} jam {{ timeLeft.minutes }} menit {{ timeLeft.seconds }} detik">
+                        <div v-if="showTimer" class="flex items-center gap-2" role="timer" aria-live="off" aria-label="Berakhir dalam waktu {{ timeLeft.hours }} jam {{ timeLeft.minutes }} menit {{ timeLeft.seconds }} detik">
                             <Clock class="text-destructive h-4 w-4" aria-hidden="true" />
                             <div class="flex items-center gap-1 text-xs font-bold" aria-hidden="true">
                                 <span class="bg-destructive text-destructive-foreground rounded px-2 py-0.5 shadow-sm">{{
@@ -222,23 +228,11 @@ onUnmounted(() => {
 
             <!-- Scrollable Container with Fade Edges -->
             <div class="relative">
-                <!-- Left Fade -->
-                <div
-                    class="from-secondary pointer-events-none absolute top-0 left-0 z-10 h-full w-8 bg-gradient-to-r to-transparent transition-opacity duration-300 md:w-12"
-                    :class="canScrollLeft ? 'opacity-100' : 'opacity-0'"
-                ></div>
-
-                <!-- Right Fade -->
-                <div
-                    class="from-secondary pointer-events-none absolute top-0 right-0 z-10 h-full w-8 bg-gradient-to-l to-transparent transition-opacity duration-300 md:w-12"
-                    :class="canScrollRight ? 'opacity-100' : 'opacity-0'"
-                ></div>
-
                 <div
                     ref="scrollContainer"
-                    class="scrollbar-hidden -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 sm:gap-4 md:gap-5 lg:grid lg:snap-none lg:grid-cols-5 lg:gap-5 lg:overflow-visible"
+                    class="flash-sale-products-grid scrollbar-hidden -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 sm:gap-4 md:gap-5 lg:grid lg:snap-none lg:grid-cols-6 lg:gap-5 lg:overflow-visible"
                 >
-                    <div v-for="product in flashSaleProducts" :key="product.uuid || product.id" class="w-44 shrink-0 snap-start md:w-64 lg:shrink-0">
+                    <div v-for="product in flashSaleProducts" :key="product.uuid || product.id" class="flash-sale-product w-44 shrink-0 snap-start md:w-64 lg:w-auto lg:shrink-0">
                         <ProductCard :product="product" />
                     </div>
 
@@ -274,3 +268,19 @@ onUnmounted(() => {
         </div>
     </section>
 </template>
+
+<style scoped>
+@media (min-width: 1024px) {
+    .flash-sale-products-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 1.25rem;
+        overflow: visible;
+        scroll-snap-type: none;
+    }
+
+    .flash-sale-product {
+        width: auto;
+    }
+}
+</style>

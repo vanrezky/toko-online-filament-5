@@ -100,7 +100,7 @@ const applyVoucher = () => {
         :class="[
             hasBackgroundImage ? 'h-full min-h-[280px]' : 'bg-white shadow-sm ring-1 ring-gray-200/50',
             isApplied ? 'ring-2 ring-primary' : '',
-            variant === 'compact' ? 'p-4' : 'p-5',
+            variant === 'compact' ? 'p-3 sm:p-4' : 'p-4 sm:p-5',
         ]"
     >
         <!-- Background Image -->
@@ -114,7 +114,7 @@ const applyVoucher = () => {
             <div>
                 <!-- Type Badge -->
                 <div
-                    class="mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
+                    class="mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold sm:mb-3 sm:px-3 sm:py-1"
                     :class="hasBackgroundImage ? 'bg-white/20 text-white backdrop-blur-sm' : 'bg-primary/10 text-primary'"
                 >
                     <component :is="typeIcon" class="h-3.5 w-3.5" />
@@ -131,12 +131,12 @@ const applyVoucher = () => {
                 </div>
 
                 <!-- Discount Value -->
-                <h3 class="mb-1 text-2xl font-bold" :class="hasBackgroundImage ? '' : 'text-primary'">
+                <h3 class="mb-1 text-xl font-bold sm:text-2xl" :class="hasBackgroundImage ? '' : 'text-primary'">
                     {{ voucher.formatted_discount }}
                 </h3>
 
                 <!-- Name -->
-                <p class="mb-2 font-semibold" :class="variant === 'compact' ? 'text-sm' : 'text-base'">
+                <p class="mb-1 font-semibold sm:mb-2" :class="variant === 'compact' ? 'text-sm' : 'text-base'">
                     {{ voucher.name }}
                 </p>
 
@@ -146,15 +146,15 @@ const applyVoucher = () => {
                 </p>
 
                 <!-- Min Purchase -->
-                <p class="mb-3 text-xs opacity-70">{{ t('labels.voucher.min_purchase', { amount: voucher.min_purchase_formatted }) }}</p>
+                <p class="mb-2 text-xs opacity-70 sm:mb-3">{{ t('labels.voucher.min_purchase', { amount: voucher.min_purchase_formatted }) }}</p>
             </div>
 
             <!-- Code & Actions -->
             <div>
                 <!-- Code Input -->
-                <div class="mb-3 flex items-center gap-2">
+                <div class="mb-2 flex items-center gap-2 sm:mb-3">
                     <div
-                        class="flex flex-1 items-center justify-between rounded-xl border-2 px-4 py-2.5"
+                        class="flex flex-1 items-center justify-between rounded-lg border-2 px-3 py-2 sm:rounded-xl sm:px-4 sm:py-2.5"
                         :class="hasBackgroundImage ? 'border-white/30 bg-white/10 text-white' : 'border-gray-200 bg-gray-50'"
                     >
                         <span class="font-mono font-bold tracking-wider" :class="hasBackgroundImage ? 'text-white' : 'text-gray-900'">
@@ -182,7 +182,7 @@ const applyVoucher = () => {
                 </div>
 
                 <!-- Meta Info -->
-                <div class="mb-3 flex items-center gap-4 text-xs opacity-70">
+                <div class="mb-2 flex items-center gap-2 text-xs opacity-70 sm:mb-3 sm:gap-4">
                     <div class="flex items-center gap-1">
                         <Clock class="h-3.5 w-3.5" />
                         <span>{{ timeRemaining }}</span>
@@ -198,7 +198,7 @@ const applyVoucher = () => {
                     v-if="showApplyButton"
                     @click="applyVoucher"
                     :disabled="voucher.is_fully_used || isApplying"
-                    class="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all duration-200"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all duration-200 sm:py-3"
                     :class="
                         isApplied
                             ? 'bg-green-500 text-white hover:bg-green-600'

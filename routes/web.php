@@ -43,6 +43,9 @@ Route::get('/login', function () {
 
 Route::name('frontend.')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::middleware(['auth', 'can:view,template'])
+        ->get('/template-preview/{template:uuid}', [HomeController::class, 'preview'])
+        ->name('template-preview');
 
     // Guest routes for customers - login only (disabled for fully private)
     Route::middleware('auth.customer.guest')->group(function () {

@@ -25,7 +25,7 @@ const isAlreadyUnsubscribed = props.status === "already_unsubscribed";
         description="Kelola langganan newsletter Anda"
     >
         <section class="py-12">
-            <div class="container mx-auto px-4">
+            <div class="container mx-auto px-4 md:px-8">
                 <div class="mx-auto max-w-lg">
                     <div class="rounded-2xl bg-white p-8 shadow-lg md:p-10">
                         <!-- Success Unsubscribe -->

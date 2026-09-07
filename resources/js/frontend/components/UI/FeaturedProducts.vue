@@ -1,135 +1,49 @@
 <script setup>
-import Button from "@frontend/components/UI/Button.vue";
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { computed } from "vue";
 import ProductCard from "./ProductCard.vue";
-import { ChevronRight, ChevronLeft } from "lucide-vue-next";
+import { ChevronRight } from "lucide-vue-next";
 import { Link } from "@inertiajs/vue3";
+import { useI18n } from "vue-i18n";
 import { getSectionContent } from "../../lib/utils";
 
 const props = defineProps({
-    products: {
-        type: [Array, Object],
-        default: () => [],
-    },
+    products: { type: [Array, Object], default: () => [] },
     template: { type: Object, default: null },
-    showViewAll: {
-        type: Boolean,
-        default: true,
-    },
 });
 
-const featuredProducts = computed(() => (Array.isArray(props.products) ? props.products : props.products?.data || []).slice(0, 4));
+const { t } = useI18n();
+const limit = computed(() => Math.max(1, Number(getSectionContent(props.template, "featured_products", "limit", 6)) || 6));
+const showDiscount = computed(() => {
+    const value = getSectionContent(props.template, "featured_products", "show_discount", "1");
+
+    return ![false, 0, "0", "false"].includes(value);
+});
+const featuredProducts = computed(() => (Array.isArray(props.products) ? props.products : props.products?.data || []).slice(0, limit.value));
 const sectionTitle = computed(() => getSectionContent(props.template, "featured_products", "title", "Pilihan Terbaik"));
-const sectionSubtitle = computed(() => getSectionContent(props.template, "featured_products", "subtitle", "Produk paling diminati pelanggan kami"));
-
-const scrollContainer = ref(null);
-const canScrollLeft = ref(false);
-const canScrollRight = ref(true);
-
-const checkScroll = () => {
-    if (scrollContainer.value) {
-        const { scrollLeft, scrollWidth, clientWidth } = scrollContainer.value;
-        canScrollLeft.value = scrollLeft > 0;
-        canScrollRight.value = scrollLeft < scrollWidth - clientWidth - 10;
-    }
-};
-
-const scroll = (direction) => {
-    if (scrollContainer.value) {
-        const scrollAmount = 280;
-        scrollContainer.value.scrollBy({
-            left: direction === "left" ? -scrollAmount : scrollAmount,
-            behavior: "smooth",
-        });
-    }
-};
-
-onMounted(() => {
-    if (scrollContainer.value) {
-        scrollContainer.value.addEventListener("scroll", checkScroll);
-        checkScroll();
-    }
-});
-
-onUnmounted(() => {
-    if (scrollContainer.value) {
-        scrollContainer.value.removeEventListener("scroll", checkScroll);
-    }
-});
+const sectionSubtitle = computed(() => getSectionContent(props.template, "featured_products", "subtitle", "Produk pilihan dengan kualitas terbaik untuk Anda"));
 </script>
 
 <template>
-    <section v-if="featuredProducts.length" class="py-8 md:py-12">
-        <div class="container mx-auto px-4">
-            <!-- Header -->
-            <div class="mb-6 flex items-center justify-between">
+    <section v-if="featuredProducts.length" class="bg-background py-6 md:py-10" aria-labelledby="featured-products-title">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="mb-5 flex items-end justify-between gap-4">
                 <div>
-                    <h2 class="text-xl font-bold text-foreground md:text-2xl">{{ sectionTitle }}</h2>
-                    <p v-if="sectionSubtitle" class="mt-1 text-sm text-muted-foreground">{{ sectionSubtitle }}</p>
+                    <h2 id="featured-products-title" class="text-foreground text-2xl font-bold tracking-[-0.04em]">{{ sectionTitle }}</h2>
+                    <p v-if="sectionSubtitle" class="text-muted-foreground mt-1 text-sm">{{ sectionSubtitle }}</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <Button
-                        @click="scroll('left')"
-                        :disabled="!canScrollLeft"
-                        :icon="ChevronLeft"
-                        size="icon"
-                        class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 text-foreground shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40 hover:disabled:shadow-md"
-                        aria-label="Scroll left"
-                    />
-                    <Button
-                        @click="scroll('right')"
-                        :disabled="!canScrollRight"
-                        :icon="ChevronRight"
-                        size="icon"
-                        class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-                        aria-label="Scroll right"
-                    />
-                </div>
+                <Link
+                    :href="route('frontend.products')"
+                    class="text-primary hover:text-primary/75 focus-visible:ring-primary inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none sm:text-sm"
+                >
+                    <span class="hidden sm:inline">{{ t("labels.home.featured_view_all") }}</span>
+                    <span class="sm:hidden">{{ t("labels.actions.view_all") }}</span>
+                    <ChevronRight class="h-4 w-4" aria-hidden="true" />
+                </Link>
             </div>
 
-            <!-- Scrollable Container with Fade Edges -->
-            <div class="relative">
-                <!-- Left Fade -->
-                <div
-                    class="pointer-events-none absolute left-0 top-0 z-10 h-full w-8 bg-gradient-to-r from-white to-transparent transition-opacity duration-300"
-                    :class="canScrollLeft ? 'opacity-100' : 'opacity-0'"
-                ></div>
-
-                <!-- Right Fade -->
-                <div
-                    class="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-white to-transparent transition-opacity duration-300"
-                    :class="canScrollRight ? 'opacity-100' : 'opacity-0'"
-                ></div>
-
-                <div ref="scrollContainer" class="scrollbar-hidden -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 sm:gap-4 md:gap-5">
-                    <div v-for="product in featuredProducts" :key="product.uuid || product.id" class="w-44 flex-shrink-0 snap-start md:w-64">
-                        <ProductCard :product="product" />
-                    </div>
-
-                    <!-- View All Card (if enabled) -->
-                    <div v-if="showViewAll" class="w-44 flex-shrink-0 snap-start md:w-64">
-                        <Link
-                            :href="route('frontend.products')"
-                            class="group relative flex h-full min-h-[320px] flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-gradient-to-br from-slate-50 to-white transition-all duration-300 hover:border-primary hover:shadow-lg md:min-h-[360px]"
-                        >
-                            <!-- Decorative Circle -->
-                            <div
-                                class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/5 transition-transform duration-500 group-hover:scale-150"
-                            ></div>
-                            <div
-                                class="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-primary/5 transition-transform duration-500 group-hover:scale-150"
-                            ></div>
-
-                            <div class="relative z-10 mb-3 text-5xl transition-transform duration-300 group-hover:scale-110">📦</div>
-                            <span class="relative z-10 mb-1 text-sm font-semibold text-foreground">Lihat Semua</span>
-                            <span class="relative z-10 text-xs text-muted-foreground">{{ featuredProducts.length }}+ Produk</span>
-                            <div
-                                class="relative z-10 mt-3 rounded-full bg-primary/10 px-4 py-1 text-xs font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground"
-                            >
-                                Jelajahi →
-                            </div>
-                        </Link>
-                    </div>
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-6">
+                <div v-for="product in featuredProducts" :key="product.uuid || product.id" class="min-w-0">
+                    <ProductCard :product="product" :show-discount="showDiscount" />
                 </div>
             </div>
         </div>

@@ -67,7 +67,7 @@ const setFilter = (filter) => {
 <template>
     <TemplateWrapper :title="t('meta.vouchers.title')">
         <div class="min-h-screen bg-secondary/30 py-8 md:py-12">
-            <div class="container mx-auto px-4">
+            <div class="container mx-auto px-4 md:px-8">
                 <!-- Header -->
                 <div class="mb-8 text-center">
                     <h1 class="mb-2 text-3xl font-bold text-foreground md:text-4xl">{{ t('labels.vouchers.heading') }}</h1>

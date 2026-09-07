@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-08
+goal: Give administrators one consistent Pengaturan navigation group without
+  changing menu routes, permissions, icons, or behavior.

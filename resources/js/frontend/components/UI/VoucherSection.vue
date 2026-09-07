@@ -20,7 +20,7 @@ const limit = computed(() => Number(getSectionContent(props.template, "vouchers"
 
 onMounted(async () => {
     try {
-        const response = await voucherService.getVouchers();
+        const response = await voucherService.getVouchers(null, limit.value);
         vouchers.value = (response.data || []).slice(0, limit.value);
     } catch (error) {
         console.error("Failed to load vouchers:", error);
@@ -31,17 +31,17 @@ onMounted(async () => {
 </script>
 
 <template>
-    <section v-if="vouchers.length > 0" class="py-8 md:py-12">
-        <div class="container mx-auto px-4">
+    <section v-if="vouchers.length > 0" class="py-6 sm:py-8 md:py-10">
+        <div class="container mx-auto px-4 md:px-8">
             <!-- Header -->
-            <div class="mb-6 flex items-center justify-between">
+            <div class="mb-4 flex items-center justify-between gap-3 sm:mb-5">
                 <div>
-                    <h2 class="text-xl font-bold text-foreground md:text-2xl">{{ title }}</h2>
+                    <h2 class="text-lg font-bold text-foreground sm:text-xl md:text-2xl">{{ title }}</h2>
                     <p v-if="subtitle" class="mt-1 text-sm text-muted-foreground">{{ subtitle }}</p>
                 </div>
                 <Link
                     :href="route('frontend.vouchers')"
-                    class="flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary/80"
+                    class="inline-flex min-h-10 shrink-0 items-center gap-1 rounded-lg px-1 text-xs font-semibold text-primary transition-colors hover:text-primary/80 sm:px-2 sm:text-sm"
                 >
                     <span>Lihat Semua</span>
                     <ChevronRight class="h-4 w-4" />
@@ -49,8 +49,15 @@ onMounted(async () => {
             </div>
 
             <!-- Voucher Grid -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <VoucherCard v-for="voucher in vouchers" :key="voucher.id" :voucher="voucher" :show-apply-button="true" :show-copy-button="true" />
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+                <VoucherCard
+                    v-for="voucher in vouchers"
+                    :key="voucher.id"
+                    :voucher="voucher"
+                    variant="compact"
+                    :show-apply-button="true"
+                    :show-copy-button="true"
+                />
             </div>
         </div>
     </section>

@@ -1,150 +1,173 @@
 <script setup>
-import Button from "@frontend/components/UI/Button.vue";
-import { Link, useForm, usePage } from "@inertiajs/vue3";
-import { computed } from "vue";
-import { Instagram, Facebook, Twitter, Mail } from "lucide-vue-next";
-import { toast } from "vue-sonner";
-import PromotionBanner from "../../UI/PromotionBanner.vue";
+import { Link, usePage } from "@inertiajs/vue3";
+import { computed, ref, watch } from "vue";
+import { Facebook, Instagram, Mail, MapPin, MessageCircle, Phone, Twitter } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
-import FormInput from "../../UI/FormInput.vue";
+import PromotionBanner from "../../UI/PromotionBanner.vue";
 
 const { t } = useI18n();
-
-const { props } = usePage();
-const settings = computed(() => props.settings);
+const page = usePage();
+const settings = computed(() => page.props.settings ?? {});
 const currentYear = new Date().getFullYear();
+const logoError = ref(false);
 
-const newsletterForm = useForm({
-    email: "",
+watch(() => settings.value.logo, () => {
+    logoError.value = false;
 });
 
-const submitNewsletter = () => {
-    newsletterForm.post(route("frontend.newsletter.subscribe"), {
-        preserveScroll: true,
-        onSuccess: () => {
-            toast.success(t('messages.success.subscribed'));
-            newsletterForm.reset();
-        },
-        onError: (errors) => {
-            const message = errors.email || t('messages.error.generic');
-            toast.error(message);
-        },
-    });
-};
-
-const customerServiceLinks = [
-  { name: t('labels.footer.contact_us'), href: route('frontend.contact') },
-  { name: t('labels.footer.faq'), href: route('frontend.faq') },
-  { name: t('labels.footer.shipping_info'), href: '#' },
-  { name: t('labels.footer.returns_exchanges'), href: '#' },
-  { name: t('labels.footer.track_order'), href: '#' },
-];
-
-const companyLinks = computed(() => {
-  const links = [...(usePage().props.menu?.footer || [])];
-  const blogHref = route('frontend.blog.index');
-
-  return links.some((link) => link.href === blogHref)
-    ? links
-    : [...links, { name: t('labels.footer.blog'), href: blogHref }];
-});
 const footerPromos = computed(() => {
-  const promos = usePage().props.promotions;
-  return (Array.isArray(promos) ? promos : promos?.data || []).filter(p => p.position === 'footer');
+    const promos = page.props.promotions;
+    return (Array.isArray(promos) ? promos : promos?.data || []).filter((promo) => promo.position === "footer");
 });
+
+const socialLinks = computed(() => [
+    { key: "instagram", label: "Instagram", icon: Instagram, href: settings.value.instagram },
+    { key: "facebook", label: "Facebook", icon: Facebook, href: settings.value.facebook },
+    { key: "twitter", label: "X", icon: Twitter, href: settings.value.twitter },
+].filter((link) => link.href));
+
+const shoppingLinks = computed(() => [
+    { name: t("labels.footer.all_products"), href: route("frontend.products") },
+    { name: t("labels.footer.categories"), href: route("frontend.products") },
+    { name: t("labels.footer.promotions"), href: route("frontend.flashsales") },
+    { name: t("labels.footer.best_sellers"), href: route("frontend.products") },
+    { name: t("labels.footer.new_products"), href: route("frontend.products") },
+]);
+
+const helpLinks = computed(() => [
+    { name: t("labels.footer.help_center"), href: route("frontend.contact") },
+    { name: t("labels.footer.how_to_shop"), href: route("frontend.faq") },
+    { name: t("labels.footer.shipping_info"), href: route("frontend.products") },
+    { name: t("labels.footer.returns_exchanges"), href: route("frontend.faq") },
+    { name: t("labels.footer.privacy_policy"), href: route("frontend.page.show", "privacy-policy") },
+    { name: t("labels.footer.terms_conditions"), href: route("frontend.page.show", "terms-and-conditions") },
+]);
+
+const aboutLinks = computed(() => {
+    const links = [...(page.props.menu?.footer || [])].map((link) => ({ name: link.name, href: link.href }));
+    const additions = [
+        { name: t("labels.footer.blog"), href: route("frontend.blog.index") },
+        { name: t("labels.footer.contact_us"), href: route("frontend.contact") },
+    ];
+
+    return [...links, ...additions].filter((link, index, collection) => collection.findIndex((item) => item.name === link.name) === index);
+});
+
+const whatsappHref = computed(() => {
+    const digits = String(settings.value.wa_phone || "").replace(/\D/g, "");
+    return digits ? `https://wa.me/${digits}` : "";
+});
+
+const paymentMethods = [
+    { key: "bca", name: "BCA", src: "/assets/images/payment/bca.svg" },
+    { key: "bri", name: "BRI", src: "/assets/images/payment/bri.svg" },
+    { key: "mandiri", name: "Mandiri", src: "/assets/images/payment/mandiri.svg" },
+    { key: "bni", name: "BNI", src: "/assets/images/payment/bni.svg" },
+    { key: "dana", name: "DANA", src: "/assets/images/payment/dana.svg" },
+    { key: "ovo", name: "OVO", src: "/assets/images/payment/ovo.svg" },
+    { key: "gopay", name: "GoPay", src: "/assets/images/payment/gopay.svg" },
+    { key: "visa", name: "Visa", src: "/assets/images/payment/visa.svg" },
+    { key: "mastercard", name: "Mastercard", src: "/assets/images/payment/mastercard.svg" },
+];
 </script>
 
 <template>
-    <footer class="border-t border-border bg-background pb-8 pt-16">
-        <!-- Promotions: Footer Position (New Section) -->
-        <div v-if="footerPromos.length > 0" class="container mx-auto px-4 md:px-6 mb-12">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <PromotionBanner v-for="promo in footerPromos" :key="promo.id" :promotion="promo" class="aspect-[16/7] md:aspect-[21/9]" />
-          </div>
+    <footer class="border-border bg-secondary/20 border-t pb-6 pt-8 md:pb-8 md:pt-12">
+        <div v-if="footerPromos.length > 0" class="container mx-auto mb-8 px-4 md:mb-10 md:px-8">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <PromotionBanner v-for="promo in footerPromos" :key="promo.id" :promotion="promo" class="aspect-[16/7] md:aspect-[21/9]" />
+            </div>
         </div>
-        <div class="container mx-auto px-4 md:px-6">
-            <div class="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-                <!-- Brand Section -->
-                <div class="space-y-6">
-                    <Link :href="route('frontend.home')" class="block">
-                        <img v-if="settings.logo" :src="settings.logo" alt="Logo" class="h-10 w-auto" />
-                        <span v-else class="font-display text-3xl leading-none text-foreground">{{ settings.site_name }}</span>
+
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="grid grid-cols-2 gap-x-5 gap-y-9 sm:gap-x-8 md:grid-cols-4 md:gap-y-12 lg:grid-cols-[1.35fr_.8fr_.8fr_.8fr_1.25fr]">
+                <div class="col-span-2 space-y-4 md:col-span-4 md:space-y-5 lg:col-span-1">
+                    <Link :href="route('frontend.home')" class="inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30">
+                        <img v-if="settings.logo && !logoError" :src="settings.logo" :alt="settings.site_name" class="h-11 w-auto max-w-[12rem] object-contain" @error="logoError = true" />
+                        <span v-else class="font-display text-primary text-3xl leading-none">{{ settings.site_name }}</span>
                     </Link>
-                    <p class="text-muted-foreground max-w-xs text-sm leading-relaxed">
-                        {{ settings.site_description }}
-                    </p>
-                    <div class="flex space-x-5">
-                        <a href="#" class="text-muted-foreground transition-colors hover:text-foreground">
-                            <Instagram class="h-5 w-5" />
-                        </a>
-                        <a href="#" class="text-muted-foreground transition-colors hover:text-foreground">
-                            <Facebook class="h-5 w-5" />
-                        </a>
-                        <a href="#" class="text-muted-foreground transition-colors hover:text-foreground">
-                            <Twitter class="h-5 w-5" />
+                    <p class="text-muted-foreground max-w-xs text-sm leading-6">{{ settings.site_description }}</p>
+                    <div v-if="socialLinks.length" class="flex items-center gap-3 pt-1">
+                        <a
+                            v-for="social in socialLinks"
+                            :key="social.key"
+                            :href="social.href"
+                            :aria-label="social.label"
+                            target="_blank"
+                            rel="noreferrer"
+                            class="text-muted-foreground focus-visible:ring-primary rounded-full p-1 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2"
+                        >
+                            <component :is="social.icon" class="h-[18px] w-[18px]" aria-hidden="true" />
                         </a>
                     </div>
                 </div>
 
-                <!-- Customer Service -->
-                <div>
-                    <h3 class="mb-6 text-xs font-semibold tracking-[0.12em] text-foreground uppercase">{{ t('labels.footer.customer_service') }}</h3>
-                    <ul class="space-y-4">
-                        <li v-for="link in customerServiceLinks" :key="link.name">
-                            <Link :href="link.href" class="text-muted-foreground text-sm transition-colors hover:text-foreground">{{ link.name }}</Link>
+                <div class="col-span-1">
+                    <h2 class="text-foreground mb-4 text-sm font-bold md:mb-5">{{ t("labels.footer.shopping") }}</h2>
+                    <ul class="space-y-2.5 md:space-y-3">
+                        <li v-for="link in shoppingLinks" :key="link.name">
+                            <Link :href="link.href" class="text-muted-foreground focus-visible:ring-primary rounded-sm text-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2">{{ link.name }}</Link>
                         </li>
                     </ul>
                 </div>
 
-                <!-- Pages -->
-                <div>
-                    <h3 class="mb-6 text-xs font-semibold tracking-[0.12em] text-foreground uppercase">{{ t('labels.footer.pages') }}</h3>
-                    <ul class="space-y-4">
-                        <li v-for="link in companyLinks" :key="link.name">
-                            <Link :href="link.href" class="text-muted-foreground text-sm transition-colors hover:text-foreground">{{ link.name }}</Link>
+                <div class="col-span-1">
+                    <h2 class="text-foreground mb-4 text-sm font-bold md:mb-5">{{ t("labels.footer.help") }}</h2>
+                    <ul class="space-y-2.5 md:space-y-3">
+                        <li v-for="link in helpLinks" :key="link.name">
+                            <Link :href="link.href" class="text-muted-foreground focus-visible:ring-primary rounded-sm text-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2">{{ link.name }}</Link>
                         </li>
                     </ul>
                 </div>
 
-                <!-- Newsletter -->
-                <div>
-                    <h3 class="mb-6 text-xs font-semibold tracking-[0.12em] text-foreground uppercase">{{ t('labels.footer.newsletter') }}</h3>
-                    <p class="text-muted-foreground mb-6 text-sm">{{ t('labels.footer.newsletter_description') }}</p>
-                    <form class="space-y-3" @submit.prevent="submitNewsletter">
-                        <FormInput
-                                v-model="newsletterForm.email"
-                                type="email"
-                                :placeholder="t('placeholders.email')"
-                                :invalid="Boolean(newsletterForm.errors.email)"
-                                class="rounded-md border-border bg-secondary/40"
-                            >
-                            <template #suffix><Button
-                                type="submit"
-                                :disabled="newsletterForm.processing"
-                                class="absolute right-0 top-0 h-full px-4 text-foreground hover:text-primary disabled:opacity-50"
-                            >
-                                <Mail class="h-5 w-5" />
-                            </Button></template>
-                        </FormInput>
-                        <p v-if="newsletterForm.errors.email" class="text-destructive text-xs">
-                            {{ newsletterForm.errors.email }}
-                        </p>
-                    </form>
+                <div class="col-span-1">
+                    <h2 class="text-foreground mb-4 text-sm font-bold md:mb-5">{{ t("labels.footer.about_us") }}</h2>
+                    <ul class="space-y-2.5 md:space-y-3">
+                        <li v-for="link in aboutLinks" :key="link.name">
+                            <Link :href="link.href" class="text-muted-foreground focus-visible:ring-primary rounded-sm text-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2">{{ link.name }}</Link>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-span-2 md:col-span-4 lg:col-span-1">
+                    <h2 class="text-foreground mb-4 text-sm font-bold md:mb-5">{{ t("labels.footer.contact_us") }}</h2>
+                    <div class="grid gap-3.5 sm:grid-cols-2 md:gap-4 lg:grid-cols-1">
+                        <a v-if="whatsappHref" :href="whatsappHref" target="_blank" rel="noreferrer" class="flex items-start gap-3 text-sm transition-colors hover:text-primary">
+                            <MessageCircle class="text-primary mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                            <span><span class="text-foreground block font-medium">{{ t("labels.footer.live_chat") }}</span><span class="text-muted-foreground block text-xs">{{ t("labels.footer.live_chat_hours") }}</span></span>
+                        </a>
+                        <a v-if="settings.email" :href="`mailto:${settings.email}`" class="flex items-start gap-3 text-sm transition-colors hover:text-primary">
+                            <Mail class="text-primary mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                            <span><span class="text-foreground block font-medium">{{ settings.email }}</span><span class="text-muted-foreground block text-xs">{{ t("labels.footer.email_response") }}</span></span>
+                        </a>
+                        <a v-if="settings.phone" :href="`tel:${settings.phone}`" class="flex items-start gap-3 text-sm transition-colors hover:text-primary">
+                            <Phone class="text-primary mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                            <span><span class="text-foreground block font-medium">{{ settings.phone }}</span><span class="text-muted-foreground block text-xs">{{ t("labels.footer.phone_hours") }}</span></span>
+                        </a>
+                        <div v-if="settings.address" class="flex items-start gap-3 text-sm">
+                            <MapPin class="text-primary mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                            <span class="text-muted-foreground leading-5">{{ settings.address }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Bottom Bar -->
-            <div
-                class="text-muted-foreground mt-16 flex flex-col items-center justify-between space-y-4 border-t border-border pt-8 text-xs md:flex-row md:space-y-0"
-            >
-                <p>&copy; {{ currentYear }} {{ settings.site_name }}. {{ t('labels.footer.all_rights_reserved') }}</p>
-                <div class="flex space-x-6">
-                    <span>{{ t('labels.footer.secure_payment') }}</span>
-                    <div class="flex space-x-3 opacity-50 grayscale">
-                        <img src="https://cdn-icons-png.flaticon.com/512/196/196578.png" alt="Visa" class="h-4 w-auto" />
-                        <img src="https://cdn-icons-png.flaticon.com/512/196/196561.png" alt="Mastercard" class="h-4 w-auto" />
-                        <img src="https://cdn-icons-png.flaticon.com/512/196/196566.png" alt="PayPal" class="h-4 w-auto" />
-                    </div>
+            <div class="text-muted-foreground mt-10 flex flex-col gap-5 border-t border-border pt-5 text-xs md:mt-12 md:flex-row md:items-center md:justify-between md:pt-6">
+                <p class="max-w-full leading-5">&copy; {{ currentYear }} {{ settings.site_name }}. {{ t("labels.footer.all_rights_reserved") }}</p>
+                <div class="flex flex-wrap items-center gap-x-2.5 gap-y-2 md:justify-end">
+                    <span class="mr-1 w-full sm:w-auto">{{ t("labels.footer.secure_payment") }}</span>
+                    <span
+                        v-for="method in paymentMethods"
+                        :key="method.key"
+                        class="inline-flex h-7 w-14 items-center justify-center rounded-sm bg-white/80 px-1.5 py-1"
+                    >
+                        <img
+                            :src="method.src"
+                            :alt="method.name"
+                            class="max-h-5 w-auto max-w-full object-contain"
+                            loading="lazy"
+                        />
+                    </span>
                 </div>
             </div>
         </div>

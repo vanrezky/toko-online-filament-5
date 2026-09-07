@@ -3,7 +3,7 @@
 return [
     'title' => 'Operasional Pembayaran',
     'navigation_label' => 'Operasional Pembayaran',
-    'navigation_group' => 'Sistem',
+    'navigation_group' => 'Pengaturan',
 
     'sections' => [
         'customer_balance' => 'Saldo Pelanggan',

@@ -37,7 +37,7 @@ class TemplateSectionResource extends Resource
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-squares-2x2';
     protected static ?string $navigationLabel = 'Template Sections';
-    protected static string | \UnitEnum | null $navigationGroup = 'Sistem';
+    protected static string | \UnitEnum | null $navigationGroup = 'Pengaturan';
     protected static ?string $slug = 'template-sections';
     protected static ?int $navigationSort = 99;
 

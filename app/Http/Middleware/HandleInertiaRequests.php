@@ -50,12 +50,19 @@ class HandleInertiaRequests extends Middleware
                     'site_name' => $settings->site_name ?? '',
                     'is_private_store' => (bool) ($settings->is_private_store ?? false),
                     'term_agreement' => (bool) ($settings->term_agreement ?? false),
-                    'site_description' => $settings->site_description ?? '',
-                    'site_keywords' => $settings->site_keywords ?? '',
-                    'social_title' => $settings->social_title ?? '',
-                    'social_description' => $settings->social_description ?? '',
-                    'social_image' => $settings->social_image ? getUrlImage($settings->social_image) : '',
-                ];
+                'site_description' => $settings->site_description ?? '',
+                'site_keywords' => $settings->site_keywords ?? '',
+                'social_title' => $settings->social_title ?? '',
+                'social_description' => $settings->social_description ?? '',
+                'social_image' => $settings->social_image ? getUrlImage($settings->social_image) : '',
+                'email' => $settings->email ?? '',
+                'phone' => $settings->phone ?? '',
+                'wa_phone' => $settings->wa_phone ?? '',
+                'address' => $settings->address ?? '',
+                'instagram' => $settings->instagram ?? '',
+                'facebook' => $settings->facebook ?? '',
+                'twitter' => $settings->twitter ?? '',
+            ];
             },
             'flash' => [
                 'success' => $request->session()->get('success'),
@@ -108,13 +115,6 @@ class HandleInertiaRequests extends Middleware
                             'href' => route('frontend.page.show', $page->slug),
                         ]),
                     ];
-                });
-            },
-            'categories' => function () {
-                return CacheService::rememberManaged('frontend', 'frontend_categories', 3600, function () {
-                    return CategoryResource::collection(
-                        Category::homepage()->with('media')->get()
-                    );
                 });
             },
             'colorScheme' => fn () => $this->templateService->getColorScheme(),

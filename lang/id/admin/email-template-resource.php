@@ -3,7 +3,7 @@
 return [
 
     'navigation_label' => 'Template Email',
-    'navigation_group' => 'Sistem',
+    'navigation_group' => 'Pengaturan',
 
     'model_label' => 'Template Email',
     'plural_model_label' => 'Template Email',

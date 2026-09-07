@@ -192,7 +192,23 @@
         "faq": "FAQ",
         "shipping_info": "Shipping Info",
         "track_order": "Track Order",
-        "returns_exchanges": "Returns & Exchanges"
+    "returns_exchanges": "Returns & Exchanges",
+    "shopping": "Shop",
+    "all_products": "All Products",
+    "categories": "Categories",
+    "promotions": "Promotions",
+    "best_sellers": "Best Sellers",
+    "new_products": "New Arrivals",
+    "help": "Help",
+    "help_center": "Help Center",
+    "how_to_shop": "How to Shop",
+    "privacy_policy": "Privacy Policy",
+    "terms_conditions": "Terms & Conditions",
+    "about_us": "About Us",
+    "live_chat": "Live Chat",
+    "live_chat_hours": "Every day, 08:00 - 22:00",
+    "email_response": "Response within 24 hours",
+    "phone_hours": "Mon - Fri, 08:00 - 17:00"
     },
     "form": {
         "full_name": "Full Name",
@@ -400,6 +416,8 @@
         "carousel": {
             "previous": "Previous slide",
             "next": "Next slide",
+            "navigation": "Promotion navigation",
+            "go_to_slide": "Go to slide {index}",
             "preview": {
                 "action": "Explore products",
                 "modest_wear_eyebrow": "Modest wear",
@@ -412,12 +430,6 @@
                 "essentials_title": "Small things that make the day better",
                 "essentials_description": "Explore practical choices that complete your routine."
             }
-        },
-        "home_story": {
-            "eyebrow": "For every day",
-            "title": "Find collections that feel right for you",
-            "description": "From pieces that accompany your routine to essentials that help you get things done, explore collections that fit the way you live.",
-            "action": "View collection"
         },
         "actions": {
             "register": "Register",
@@ -796,6 +808,35 @@
         "default_title": "Considered choices for your everyday life",
         "default_subtitle": "Explore collections selected for your moments, needs, and the way you move through the day."
     },
+  "home": {
+        "hero_eyebrow": "THE BEST PICKS FOR TODAY",
+        "hero_secondary_action": "View Promotions",
+        "hero_promo_label": "Up to",
+        "hero_promo_value": "50% off",
+        "category_title": "Popular Categories",
+        "category_view_all": "View All Categories",
+        "promo_action": "View Products",
+    "featured_view_all": "View All Products",
+    "newsletter_eyebrow": "JOIN OUR COMMUNITY",
+    "newsletter_title": "Get the Latest Product Updates and Great Deals",
+    "newsletter_description": "Be the first to know about new collections, exclusive offers, and shopping inspiration from Bristol Shop.",
+    "newsletter_button": "Subscribe Now",
+    "newsletter_placeholder": "Enter your email address",
+        "newsletter_note": "We respect your privacy. No spam, only useful updates.",
+        "template_preview": "Template preview — these changes are not published yet.",
+        "promotions_label": "Homepage promotions",
+        "trust": {
+            "services_label": "Store services",
+            "shipping_title": "Fast Delivery",
+            "shipping_description": "Your order arrives safely and on time",
+            "original_title": "Original Products",
+            "original_description": "100% original product guarantee",
+            "support_title": "Customer Support",
+            "support_description": "Ready to help whenever you need us",
+            "secure_title": "Secure Payment",
+            "secure_description": "Safe transactions with trusted encryption"
+        }
+    },
     "orders": {
         "heading": "My Orders",
         "description": "Track the status and details of every order.",
@@ -939,6 +980,24 @@
         },
         "product": {
             "no_image": "Image unavailable"
+        },
+        "header": {
+            "home": "Home",
+            "products": "Products",
+            "promo": "Promo",
+            "blog": "Blog",
+            "cart": "Cart",
+            "contact": "Contact",
+            "wishlist": "Wishlist",
+            "account": "My Account",
+            "login": "Sign In",
+            "search_placeholder": "Search in {site}..",
+            "search_products": "Type product you are looking for..."
+        },
+        "mobile_promo": {
+            "title": "Get Exclusive Offers!",
+            "description": "Sign in or register now to enjoy special offers.",
+            "action": "Sign In / Register"
         },
         "order": {
             "payment_deadline": "Payment deadline",
