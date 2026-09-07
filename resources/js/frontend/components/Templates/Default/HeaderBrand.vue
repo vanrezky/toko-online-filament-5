@@ -8,6 +8,7 @@ const props = defineProps({
 });
 
 const hasLogoError = ref(false);
+const isLogoLoaded = ref(false);
 const displayName = computed(() => props.siteName.trim() || "UMKM");
 const initials = computed(() => {
     const words = displayName.value.split(/\s+/).filter(Boolean);
@@ -19,6 +20,7 @@ watch(
     () => props.logo,
     () => {
         hasLogoError.value = false;
+        isLogoLoaded.value = false;
     },
 );
 </script>
@@ -34,13 +36,15 @@ watch(
             :alt="displayName"
             decoding="async"
             class="h-8 w-auto max-w-[8rem] object-contain md:h-10 md:max-w-[12rem]"
+            :class="isLogoLoaded ? '' : 'absolute opacity-0'"
+            @load="isLogoLoaded = true"
             @error="hasLogoError = true"
         />
-        <template v-else>
+        <template v-if="!logo || hasLogoError || !isLogoLoaded">
             <span class="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold md:hidden">
                 {{ initials }}
             </span>
-            <span class="font-display text-primary hidden max-w-[12rem] truncate text-2xl leading-none md:inline">
+            <span class="font-display text-primary hidden max-w-[12rem] truncate text-lg leading-none md:inline">
                 {{ displayName }}
             </span>
         </template>

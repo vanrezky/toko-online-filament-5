@@ -1,42 +1,26 @@
 import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
-import Footer from '../../resources/js/frontend/components/Templates/Default/Footer.vue';
+import NewsletterSection from '../../resources/js/frontend/components/UI/NewsletterSection.vue';
 
-describe('Footer Newsletter Form', () => {
+describe('Homepage Newsletter Form', () => {
     it('renders newsletter form', () => {
-        const wrapper = mount(Footer, {
-            global: {
-                stubs: {
-                    PromotionBanner: true,
-                },
-            },
-        });
+        const wrapper = mount(NewsletterSection);
 
-        expect(wrapper.find('input[type="email"]').exists()).toBe(true);
-        expect(wrapper.find('button[type="submit"]').exists()).toBe(true);
+        const control = wrapper.find('[data-newsletter-control]');
+
+        expect(control.find('input[type="email"]').exists()).toBe(true);
+        expect(control.find('button[type="submit"]').exists()).toBe(true);
     });
 
     it('has email input with correct placeholder', () => {
-        const wrapper = mount(Footer, {
-            global: {
-                stubs: {
-                    PromotionBanner: true,
-                },
-            },
-        });
+        const wrapper = mount(NewsletterSection);
 
         const input = wrapper.find('input[type="email"]');
-        expect(input.attributes('placeholder')).toBe('email@example.com');
+        expect(input.attributes('placeholder')).toBe('Enter your email address');
     });
 
     it('can type email into input', async () => {
-        const wrapper = mount(Footer, {
-            global: {
-                stubs: {
-                    PromotionBanner: true,
-                },
-            },
-        });
+        const wrapper = mount(NewsletterSection);
 
         const input = wrapper.find('input[type="email"]');
         await input.setValue('test@example.com');

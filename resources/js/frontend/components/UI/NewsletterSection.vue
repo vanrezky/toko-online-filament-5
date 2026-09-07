@@ -1,21 +1,23 @@
 <script setup>
 import { computed } from "vue";
 import { useForm } from "@inertiajs/vue3";
+import { Bell, Leaf, LockKeyhole, Mail, Send, Sparkles } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
 import { getSectionContent } from "../../lib/utils";
 import Button from "./Button.vue";
 import FormInput from "./FormInput.vue";
 
-const props = defineProps({
-    template: { type: Object, default: null },
-});
-
+const props = defineProps({ template: { type: Object, default: null } });
 const { t } = useI18n();
 const form = useForm({ email: "" });
-const title = computed(() => getSectionContent(props.template, "newsletter", "title", "Dapatkan Penawaran Spesial"));
-const subtitle = computed(() => getSectionContent(props.template, "newsletter", "subtitle", "Daftar newsletter untuk mendapatkan informasi tentang produk baru dan promo menarik."));
-const buttonText = computed(() => getSectionContent(props.template, "newsletter", "button_text", "Berlangganan"));
+const getNewsletterContent = (key, fallback, legacyValues = []) => {
+    const content = getSectionContent(props.template, "newsletter", key, "");
+    return !content || legacyValues.includes(content) ? fallback : content;
+};
+const title = computed(() => getNewsletterContent("title", t("labels.home.newsletter_title"), ["Dapatkan Penawaran Spesial"]));
+const subtitle = computed(() => getNewsletterContent("subtitle", t("labels.home.newsletter_description"), ["Daftar newsletter untuk mendapatkan informasi tentang produk baru dan promo menarik."]));
+const buttonText = computed(() => getNewsletterContent("button_text", t("labels.home.newsletter_button"), ["Berlangganan"]));
 
 const submit = () => {
     form.post(route("frontend.newsletter.subscribe"), {
@@ -24,36 +26,63 @@ const submit = () => {
             toast.success(t("messages.success.subscribed"));
             form.reset();
         },
-        onError: (errors) => {
-            toast.error(errors.email || t("messages.error.generic"));
-        },
+        onError: (errors) => toast.error(errors.email || t("messages.error.generic")),
     });
 };
 </script>
 
 <template>
-    <section class="from-primary/5 via-primary/10 to-primary/5 relative overflow-hidden bg-gradient-to-r py-10 md:py-14">
-        <div class="bg-primary/10 absolute -top-20 -left-20 h-64 w-64 rounded-full blur-3xl"></div>
-        <div class="bg-primary/10 absolute -right-20 -bottom-20 h-64 w-64 rounded-full blur-3xl"></div>
+    <section class="bg-background py-6 md:py-10" aria-labelledby="newsletter-title">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="relative isolate overflow-hidden rounded-[2rem] border border-primary/10 bg-primary/5 px-6 py-8 sm:px-10 md:py-10 lg:px-12">
+                <div class="pointer-events-none absolute -right-16 -bottom-24 h-72 w-72 rounded-full bg-primary/10" aria-hidden="true"></div>
+                <div class="relative grid items-center gap-8 lg:grid-cols-[1.05fr_1.25fr_.65fr] lg:gap-10">
+                    <div class="max-w-xl">
+                        <p class="text-primary mb-3 text-xs font-bold tracking-[0.14em] uppercase">{{ t("labels.home.newsletter_eyebrow") }}</p>
+                        <h2 id="newsletter-title" class="text-foreground max-w-[19ch] text-3xl leading-[1.05] font-bold tracking-[-0.045em] md:text-4xl">{{ title }}</h2>
+                        <p class="text-muted-foreground mt-4 max-w-lg text-sm leading-6 md:text-base">{{ subtitle }}</p>
+                    </div>
 
-        <div class="container mx-auto px-4">
-            <div class="relative z-10 mx-auto max-w-lg text-center">
-                <div class="from-primary to-primary/80 shadow-primary/30 mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="text-primary-foreground h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                    </svg>
+                    <form class="relative" @submit.prevent="submit">
+                        <div data-newsletter-control class="flex flex-col overflow-hidden rounded-xl border border-white/70 bg-white shadow-sm sm:flex-row">
+                            <FormInput
+                                v-model="form.email"
+                                type="email"
+                                :placeholder="t('labels.home.newsletter_placeholder')"
+                                :invalid="Boolean(form.errors.email)"
+                                :aria-label="t('labels.footer.newsletter')"
+                                wrapper-class="min-w-0 flex-1"
+                                class="rounded-none border-0 bg-transparent py-3.5 pl-11 shadow-none focus-visible:border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            >
+                                <template #prefix>
+                                    <Mail class="text-muted-foreground absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2" aria-hidden="true" />
+                                </template>
+                            </FormInput>
+                            <Button type="submit" :loading="form.processing" variant="primary" class="min-h-12 rounded-none border-0 px-3 text-sm font-bold whitespace-nowrap sm:w-44 sm:shrink-0 sm:border-l sm:border-primary-foreground/20">
+                                {{ buttonText }}
+                                <Send class="h-4 w-4" aria-hidden="true" />
+                            </Button>
+                        </div>
+                        <p v-if="form.errors.email" class="text-destructive mt-2 text-xs">{{ form.errors.email }}</p>
+                        <p v-else class="text-muted-foreground mt-3 flex items-center gap-1.5 text-xs">
+                            <LockKeyhole class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            {{ t("labels.home.newsletter_note") }}
+                        </p>
+                    </form>
+
+                    <div class="relative hidden min-h-40 items-center justify-center lg:flex" aria-hidden="true">
+                        <div class="absolute right-2 top-0 text-primary/30"><Sparkles class="h-5 w-5" /></div>
+                        <div class="relative flex h-36 w-44 items-center justify-center rounded-[2rem] bg-primary/10">
+                            <Leaf class="absolute -bottom-3 -left-5 h-16 w-16 -rotate-12 text-primary/70" stroke-width="1.4" />
+                            <div class="relative flex h-24 w-32 items-center justify-center rounded-xl border-2 border-primary/60 bg-primary/15 shadow-sm">
+                                <Mail class="h-12 w-12 text-primary" stroke-width="1.4" />
+                            </div>
+                            <div class="absolute -right-5 -top-5 flex h-12 w-12 items-center justify-center rounded-full bg-white text-primary shadow-md">
+                                <Bell class="h-6 w-6" aria-hidden="true" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <h2 class="text-foreground mb-3 text-2xl font-bold md:text-3xl">{{ title }}</h2>
-                <p class="text-muted-foreground mb-6 text-sm">{{ subtitle }}</p>
-
-                <form class="flex flex-col gap-3 sm:flex-row" @submit.prevent="submit">
-                    <FormInput v-model="form.email" type="email" :placeholder="t('placeholders.email')" :invalid="Boolean(form.errors.email)" wrapper-class="flex-grow" class="border-white/50 bg-white px-5 py-3.5 shadow-lg" />
-                    <Button type="submit" :loading="form.processing" class="from-primary to-primary/90 text-primary-foreground shadow-primary/30 hover:shadow-primary/40 rounded-xl bg-gradient-to-r px-8 py-3.5 text-sm font-semibold shadow-lg transition-all duration-300 hover:shadow-xl">
-                        {{ buttonText }}
-                    </Button>
-                </form>
-                <p v-if="form.errors.email" class="text-destructive mt-2 text-xs">{{ form.errors.email }}</p>
             </div>
         </div>
     </section>

@@ -4,13 +4,13 @@ import { usePage } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import HeroSection from "../../components/UI/HeroSection.vue";
 import HeroCarousel from "../../components/UI/HeroCarousel.vue";
-import StoreStorySection from "../../components/UI/StoreStorySection.vue";
 import FlashSaleSection from "../../components/UI/FlashSaleSection.vue";
 import FeaturedProducts from "../../components/UI/FeaturedProducts.vue";
 import CategoryMenu from "../../components/UI/CategoryMenu.vue";
 import VoucherSection from "../../components/UI/VoucherSection.vue";
 import HomeProductsSection from "../../components/UI/HomeProductsSection.vue";
 import NewsletterSection from "../../components/UI/NewsletterSection.vue";
+import HomeTrustStrip from "../../components/UI/HomeTrustStrip.vue";
 
 const props = defineProps({
     products: { type: Object, default: () => ({ data: [] }) },
@@ -38,11 +38,11 @@ const colorScheme = computed(() => page.props.colorScheme);
         <HeroSection :template="template" />
         <FlashSaleSection v-if="flashsales" :flashsales="flashsales" :template="template" />
         <CategoryMenu :categories="categories" :active-category="filters?.category" />
-        <HomeProductsSection :products="products" :filters="filters" :template="template" />
-        <StoreStorySection :template="template" :categories="categories" />
         <HeroCarousel :template="template" :slides="sliders" />
         <FeaturedProducts v-if="!filters?.category" :products="products" :template="template" />
+        <HomeProductsSection :products="products" :filters="filters" :template="template" />
         <VoucherSection :template="template" />
         <NewsletterSection :template="template" />
+        <HomeTrustStrip />
     </TemplateWrapper>
 </template>

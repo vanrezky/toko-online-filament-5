@@ -222,18 +222,6 @@ onUnmounted(() => {
 
             <!-- Scrollable Container with Fade Edges -->
             <div class="relative">
-                <!-- Left Fade -->
-                <div
-                    class="from-secondary pointer-events-none absolute top-0 left-0 z-10 h-full w-8 bg-gradient-to-r to-transparent transition-opacity duration-300 md:w-12"
-                    :class="canScrollLeft ? 'opacity-100' : 'opacity-0'"
-                ></div>
-
-                <!-- Right Fade -->
-                <div
-                    class="from-secondary pointer-events-none absolute top-0 right-0 z-10 h-full w-8 bg-gradient-to-l to-transparent transition-opacity duration-300 md:w-12"
-                    :class="canScrollRight ? 'opacity-100' : 'opacity-0'"
-                ></div>
-
                 <div
                     ref="scrollContainer"
                     class="scrollbar-hidden -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 sm:gap-4 md:gap-5 lg:grid lg:snap-none lg:grid-cols-5 lg:gap-5 lg:overflow-visible"
