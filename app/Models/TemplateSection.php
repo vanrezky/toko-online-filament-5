@@ -23,42 +23,58 @@ class TemplateSection extends Model
     ];
 
     protected $casts = [
-        'is_active'      => 'boolean',
+        'is_active' => 'boolean',
         'order_priority' => 'integer',
     ];
 
-    const TYPE_HERO              = 'hero';
-    const TYPE_CATEGORY_MENU     = 'category_menu';
-    const TYPE_FEATURED_PRODUCTS  = 'featured_products';
-    const TYPE_FLASH_SALE       = 'flash_sale';
-    const TYPE_PRODUCTS_GRID    = 'products_grid';
-    const TYPE_NEWSLETTER       = 'newsletter';
-    const TYPE_STORIES          = 'stories';
-    const TYPE_BANNER           = 'banner';
-    const TYPE_GALLERY          = 'gallery';
-    const TYPE_CTA             = 'cta';
-    const TYPE_TESTIMONIALS     = 'testimonials';
-    const TYPE_FAQ             = 'faq';
-    const TYPE_CONTACT           = 'contact';
-    const TYPE_CUSTOM          = 'custom';
+    const TYPE_HERO = 'hero';
+
+    const TYPE_CATEGORY_MENU = 'category_menu';
+
+    const TYPE_HERO_CAROUSEL = 'hero_carousel';
+
+    const TYPE_FEATURED_PRODUCTS = 'featured_products';
+
+    const TYPE_FLASH_SALE = 'flash_sale';
+
+    const TYPE_PRODUCTS_GRID = 'products_grid';
+
+    const TYPE_NEWSLETTER = 'newsletter';
+
+    const TYPE_STORIES = 'stories';
+
+    const TYPE_BANNER = 'banner';
+
+    const TYPE_GALLERY = 'gallery';
+
+    const TYPE_CTA = 'cta';
+
+    const TYPE_TESTIMONIALS = 'testimonials';
+
+    const TYPE_FAQ = 'faq';
+
+    const TYPE_CONTACT = 'contact';
+
+    const TYPE_CUSTOM = 'custom';
 
     public static function types(): array
     {
         return [
-            self::TYPE_HERO              => 'Hero / Header',
-            self::TYPE_CATEGORY_MENU     => 'Menu Kategori',
+            self::TYPE_HERO => 'Hero / Header',
+            self::TYPE_CATEGORY_MENU => 'Menu Kategori',
+            self::TYPE_HERO_CAROUSEL => 'Slider / Carousel',
             self::TYPE_FEATURED_PRODUCTS => 'Pilihan Terbaik',
-            self::TYPE_FLASH_SALE       => 'Flash Sale',
-            self::TYPE_PRODUCTS_GRID     => 'Semua Produk',
-            self::TYPE_NEWSLETTER       => 'Newsletter',
-            self::TYPE_STORIES          => 'Stories / Highlights',
-            self::TYPE_BANNER           => 'Banner',
-            self::TYPE_GALLERY          => 'Gallery',
-            self::TYPE_CTA              => 'Call to Action (CTA)',
-            self::TYPE_TESTIMONIALS     => 'Testimonials',
-            self::TYPE_FAQ              => 'FAQ',
-            self::TYPE_CONTACT          => 'Contact',
-            self::TYPE_CUSTOM           => 'Custom',
+            self::TYPE_FLASH_SALE => 'Flash Sale',
+            self::TYPE_PRODUCTS_GRID => 'Semua Produk',
+            self::TYPE_NEWSLETTER => 'Newsletter',
+            self::TYPE_STORIES => 'Stories / Highlights',
+            self::TYPE_BANNER => 'Banner',
+            self::TYPE_GALLERY => 'Gallery',
+            self::TYPE_CTA => 'Call to Action (CTA)',
+            self::TYPE_TESTIMONIALS => 'Testimonials',
+            self::TYPE_FAQ => 'FAQ',
+            self::TYPE_CONTACT => 'Contact',
+            self::TYPE_CUSTOM => 'Custom',
         ];
     }
 

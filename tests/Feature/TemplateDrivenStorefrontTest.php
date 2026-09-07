@@ -14,6 +14,11 @@ class TemplateDrivenStorefrontTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_template_section_types_expose_slider_carousel(): void
+    {
+        $this->assertSame('Slider / Carousel', TemplateSection::types()[TemplateSection::TYPE_HERO_CAROUSEL]);
+    }
+
     public function test_template_service_maps_admin_text_color_to_foreground(): void
     {
         $colors = app(TemplateService::class)->normalizeColorScheme([

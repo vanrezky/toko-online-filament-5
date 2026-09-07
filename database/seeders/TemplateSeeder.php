@@ -100,7 +100,17 @@ class TemplateSeeder extends Seeder
             'show_all' => '1',
         ]);
 
-        // Section 3 — Pilihan Terbaik (Featured Products)
+        // Section 3 — Slider / Carousel
+        $this->createSection($template, [
+            'name' => 'Slider / Carousel',
+            'type' => TemplateSection::TYPE_HERO_CAROUSEL,
+            'description' => 'Carousel promosi yang menggunakan data slider aktif dari katalog promosi.',
+            'icon' => 'heroicon-o-photo',
+            'is_active' => true,
+            'order_priority' => 3,
+        ]);
+
+        // Section 4 — Pilihan Terbaik (Featured Products)
         $featured = $this->createSection($template, [
             'name' => 'Pilihan Terbaik',
             'type' => 'featured_products',
@@ -124,7 +134,7 @@ class TemplateSeeder extends Seeder
             'show_discount' => '1',
         ]);
 
-        // Section 4 — Flash Sale
+        // Section 5 — Flash Sale
         $flashSale = $this->createSection($template, [
             'name' => 'Flash Sale',
             'type' => 'flash_sale',
@@ -148,7 +158,7 @@ class TemplateSeeder extends Seeder
             'limit' => '8',
         ]);
 
-        // Section 5 — Semua Produk
+        // Section 6 — Semua Produk
         $allProducts = $this->createSection($template, [
             'name' => 'Semua Produk',
             'type' => 'products_grid',
@@ -184,7 +194,7 @@ class TemplateSeeder extends Seeder
             'show_load_more' => '1',
         ]);
 
-        // Section 6 — Newsletter
+        // Section 7 — Newsletter
         $newsletter = $this->createSection($template, [
             'name' => 'Newsletter',
             'type' => 'newsletter',
