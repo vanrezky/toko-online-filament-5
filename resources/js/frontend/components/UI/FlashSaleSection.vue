@@ -230,9 +230,9 @@ onUnmounted(() => {
             <div class="relative">
                 <div
                     ref="scrollContainer"
-                    class="scrollbar-hidden -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 sm:gap-4 md:gap-5 lg:grid lg:snap-none lg:grid-cols-5 lg:gap-5 lg:overflow-visible"
+                    class="flash-sale-products-grid scrollbar-hidden -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 sm:gap-4 md:gap-5 lg:grid lg:snap-none lg:grid-cols-6 lg:gap-5 lg:overflow-visible"
                 >
-                    <div v-for="product in flashSaleProducts" :key="product.uuid || product.id" class="w-44 shrink-0 snap-start md:w-64 lg:shrink-0">
+                    <div v-for="product in flashSaleProducts" :key="product.uuid || product.id" class="flash-sale-product w-44 shrink-0 snap-start md:w-64 lg:w-auto lg:shrink-0">
                         <ProductCard :product="product" />
                     </div>
 
@@ -268,3 +268,19 @@ onUnmounted(() => {
         </div>
     </section>
 </template>
+
+<style scoped>
+@media (min-width: 1024px) {
+    .flash-sale-products-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 1.25rem;
+        overflow: visible;
+        scroll-snap-type: none;
+    }
+
+    .flash-sale-product {
+        width: auto;
+    }
+}
+</style>
