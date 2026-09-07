@@ -1,313 +1,342 @@
 <script setup>
 import Button from "@frontend/components/UI/Button.vue";
-import { ref, watch, computed } from "vue";
-import { router } from "@inertiajs/vue3";
+import { computed, ref, watch } from "vue";
+import { Link, router } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import PageShell from "../../components/PageShell.vue";
 import FormInput from "../../components/UI/FormInput.vue";
-import FormRadio from "../../components/UI/FormRadio.vue";
 import FormSelect from "../../components/UI/FormSelect.vue";
 import ProductCard from "../../components/UI/ProductCard.vue";
+import ProductFilters from "../../components/UI/ProductFilters.vue";
 import Card from "../../components/UI/Card.vue";
-import { Search, X, Loader2, SlidersHorizontal } from "lucide-vue-next";
-import debounce from "lodash/debounce";
+import { SlidersHorizontal, X, ChevronLeft, ChevronRight, Loader2 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { formatCompactNumber } from "../../lib/utils";
 
 const { t, locale } = useI18n();
 
 const props = defineProps({
-    products: Object,
-    categories: Array,
-    filters: Object,
+    products: { type: Object, default: () => ({ data: [], meta: {}, links: {} }) },
+    categories: { type: Array, default: () => [] },
+    filters: { type: Object, default: () => ({}) },
 });
 
-const search = ref(props.filters.search || "");
-const selectedCategory = ref(props.filters.category || "");
-const selectedSort = ref(props.filters.sort || "newest");
-const priceMin = ref(props.filters.price_min || "");
-const priceMax = ref(props.filters.price_max || "");
+const variantKeys = ["color", "size", "gender"];
 const isFilterOpen = ref(false);
-const isLoadingMore = ref(false);
-const allProducts = ref([...props.products.data]);
+const isLoading = ref(false);
+
+const toList = (value) => {
+    if (Array.isArray(value)) {
+        return value.flatMap((item) => String(item).split(",")).map((item) => item.trim()).filter(Boolean);
+    }
+
+    return value === null || value === undefined || value === "" ? [] : String(value).split(",").map((item) => item.trim()).filter(Boolean);
+};
+
+const createFilterState = (source = {}) => ({
+    search: source.search || "",
+    categories: toList(source.category),
+    sort: source.sort || "newest",
+    price_min: source.price_min ?? "",
+    price_max: source.price_max ?? "",
+    rating_min: source.rating_min ?? "",
+    promos: toList(source.promo),
+    per_page: Number(source.per_page || 12),
+    variant_color: toList(source.variant_color),
+    variant_size: toList(source.variant_size),
+    variant_gender: toList(source.variant_gender),
+});
+
+const cloneState = (state) => JSON.parse(JSON.stringify(state));
+const appliedFilters = ref(createFilterState(props.filters));
+const draftFilters = ref(createFilterState(props.filters));
 
 watch(
-    () => props.products.data,
-    (newData) => {
-        if (!isLoadingMore.value) {
-            allProducts.value = [...newData];
+    () => props.filters,
+    (nextFilters) => {
+        appliedFilters.value = createFilterState(nextFilters);
+        if (!isFilterOpen.value) {
+            draftFilters.value = cloneState(appliedFilters.value);
         }
     },
+    { deep: true },
 );
 
-watch([search, selectedCategory, selectedSort, priceMin, priceMax], () => {
-    applyFilters();
+const formatPrice = (amount) => "Rp" + formatCompactNumber(amount, locale.value).replace(/\+$/, "");
+const categoryName = (slug) => props.categories.find((category) => category.slug === slug)?.name || slug;
+
+const activeFilterChips = computed(() => {
+    const state = appliedFilters.value;
+    const chips = [];
+
+    if (state.search) chips.push({ key: "search", value: state.search, label: '"' + state.search + '"' });
+    state.categories.forEach((value) => chips.push({ key: "categories", value, label: categoryName(value) }));
+    if (state.price_min || state.price_max) {
+        chips.push({ key: "price", value: "price", label: formatPrice(state.price_min || 0) + " - " + (state.price_max ? formatPrice(state.price_max) : "∞") });
+    }
+    if (state.rating_min) chips.push({ key: "rating_min", value: state.rating_min, label: t("labels.filters.rating_chip", { rating: state.rating_min }) });
+    state.promos.forEach((value) => chips.push({ key: "promos", value, label: t("labels.filters.promo_" + value) }));
+
+    variantKeys.forEach((key) => {
+        (state["variant_" + key] || []).forEach((value) => {
+            chips.push({ key: "variant_" + key, value, label: value });
+        });
+    });
+
+    return chips;
 });
 
-const hasActiveFilters = computed(() => Boolean(search.value || selectedCategory.value || selectedSort.value !== "newest" || priceMin.value || priceMax.value));
+const hasActiveFilters = computed(() => activeFilterChips.value.length > 0);
+const totalProducts = computed(() => props.products?.meta?.total ?? props.products?.total ?? 0);
+const pageLinks = computed(() => (props.products?.meta?.links || []).filter((link) => /^\d+$/.test(String(link.label).replace(/&hellip;|<[^>]+>/g, ""))));
+const previousPage = computed(() => props.products?.links?.prev || null);
+const nextPage = computed(() => props.products?.links?.next || null);
+const rangeStart = computed(() => props.products?.meta?.from || 0);
+const rangeEnd = computed(() => props.products?.meta?.to || 0);
 
-const applyFilters = debounce(() => {
-    if (priceMin.value && parseFloat(priceMin.value) < 0) {
-        priceMin.value = "";
-    }
-    if (priceMax.value && parseFloat(priceMax.value) < 0) {
-        priceMax.value = "";
-    }
+const buildQuery = (state) => {
+    const query = {};
+    const compactList = (values) => values.length === 1 ? values[0] : values;
 
-    router.get(
-        route("frontend.products"),
-        {
-            search: search.value || null,
-            category: selectedCategory.value || null,
-            sort: selectedSort.value,
-            price_min: priceMin.value || null,
-            price_max: priceMax.value || null,
+    if (state.search) query.search = state.search;
+    if (state.categories.length) query.category = compactList(state.categories);
+    if (state.sort !== "newest") query.sort = state.sort;
+    if (state.price_min) query.price_min = state.price_min;
+    if (state.price_max) query.price_max = state.price_max;
+    if (state.rating_min) query.rating_min = state.rating_min;
+    if (state.promos.length) query.promo = compactList(state.promos);
+    if (Number(state.per_page) !== 12) query.per_page = Number(state.per_page);
+
+    variantKeys.forEach((key) => {
+        if (state["variant_" + key]?.length) {
+            query["variant_" + key] = compactList(state["variant_" + key]);
+        }
+    });
+
+    return query;
+};
+
+const applyFilters = () => {
+    const state = cloneState(draftFilters.value);
+    appliedFilters.value = state;
+    isLoading.value = true;
+
+    router.get(route("frontend.products"), buildQuery(state), {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+        onStart: () => {
+            isLoading.value = true;
         },
-        {
-            preserveState: true,
-            preserveScroll: true,
-            replace: true,
-            onStart: () => {
-                isLoadingMore.value = false;
-            },
+        onFinish: () => {
+            isLoading.value = false;
         },
-    );
-}, 300);
+    });
+};
 
-const loadMore = () => {
-    if (props.products.links.next && !isLoadingMore.value) {
-        isLoadingMore.value = true;
-        router.get(
-            props.products.links.next,
-            {
-                search: search.value,
-                category: selectedCategory.value,
-                sort: selectedSort.value,
-                price_min: priceMin.value,
-                price_max: priceMax.value,
-            },
-            {
-                preserveState: true,
-                preserveScroll: true,
-                only: ["products"],
-                onSuccess: (page) => {
-                    allProducts.value = [...allProducts.value, ...page.props.products.data];
-                    isLoadingMore.value = false;
-                },
-                onFinish: () => {
-                    isLoadingMore.value = false;
-                },
-            },
-        );
-    }
+const updateSort = (value) => {
+    draftFilters.value = { ...draftFilters.value, sort: value || "newest" };
+    applyFilters();
+};
+
+const handleFilterChange = () => {
+    if (!isFilterOpen.value) applyFilters();
+};
+
+const openMobileFilters = () => {
+    draftFilters.value = cloneState(appliedFilters.value);
+    isFilterOpen.value = true;
+};
+
+const applyMobileFilters = () => {
+    applyFilters();
+    isFilterOpen.value = false;
 };
 
 const resetFilters = () => {
-    search.value = "";
-    selectedCategory.value = "";
-    selectedSort.value = "newest";
-    priceMin.value = "";
-    priceMax.value = "";
+    draftFilters.value = createFilterState();
+    applyFilters();
+    isFilterOpen.value = false;
+};
 
+const removeChip = (chip) => {
+    const next = cloneState(appliedFilters.value);
+
+    if (chip.key === "price") {
+        next.price_min = "";
+        next.price_max = "";
+    } else if (chip.key === "rating_min" || chip.key === "search") {
+        next[chip.key] = "";
+    } else {
+        next[chip.key] = (next[chip.key] || []).filter((value) => value !== chip.value);
+    }
+
+    draftFilters.value = next;
     applyFilters();
 };
 
-const totalProducts = computed(() => props.products.total || allProducts.value.length);
-const formatPriceRange = (amount) => `Rp${formatCompactNumber(amount, locale.value).replace(/\+$/, "")}`;
+const goToPage = (url) => {
+    if (!url || isLoading.value) return;
 
-const priceRanges = computed(() => [
-    { key: "under_25", min: "", max: 25000, label: t("labels.filters.price_under", { amount: formatPriceRange(25000) }) },
-    { key: "25_50", min: 25000, max: 50000, label: t("labels.filters.price_between", { min: formatPriceRange(25000), max: formatPriceRange(50000) }) },
-    { key: "50_100", min: 50000, max: 100000, label: t("labels.filters.price_between", { min: formatPriceRange(50000), max: formatPriceRange(100000) }) },
-    { key: "over_100", min: 100000, max: "", label: t("labels.filters.price_over", { amount: formatPriceRange(100000) }) },
-]);
-
-const selectedPriceRange = computed(() => {
-    return priceRanges.value.find((range) => String(range.min) === String(priceMin.value) && String(range.max) === String(priceMax.value))?.key || "";
-});
-
-const selectPriceRange = (range) => {
-    priceMin.value = range.min;
-    priceMax.value = range.max;
+    isLoading.value = true;
+    router.get(url, {}, {
+        preserveState: true,
+        preserveScroll: true,
+        onFinish: () => {
+            isLoading.value = false;
+        },
+    });
 };
+
+const pageSize = computed({
+    get: () => props.filters.per_page || 12,
+    set: (value) => {
+        draftFilters.value = { ...draftFilters.value, per_page: Number(value) };
+        applyFilters();
+    },
+});
 </script>
 
 <template>
     <TemplateWrapper :shell="false" :title="t('meta.products.title')">
-        <PageShell container :title="t('labels.products.default_title')" class="pb-12 md:pb-16">
-            <template #actions>
-                <Button
-                    @click="isFilterOpen = !isFilterOpen"
-                    :aria-expanded="isFilterOpen"
-                    aria-controls="product-filters"
-                    class="border-border flex items-center justify-center gap-2 rounded-lg border bg-white px-4 py-2.5 text-sm font-medium md:hidden"
-                >
-                    <SlidersHorizontal class="h-4 w-4" />
-                    {{ t("labels.actions.filter") }}
+        <PageShell container :title="t('labels.products.default_title')" :description="t('labels.products.description')" class="pb-12 md:pb-16">
+            <div class="mb-5 flex flex-col gap-4">
+                <div v-if="hasActiveFilters" class="flex flex-wrap items-center gap-2 rounded-2xl bg-white p-3 shadow-sm">
+                    <span class="text-xs font-semibold text-foreground">{{ t("labels.filters.active") }}:</span>
                     <span
-                        v-if="hasActiveFilters"
-                        class="bg-primary text-primary-foreground flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
-                        >!</span
+                        v-for="chip in activeFilterChips"
+                        :key="chip.key + '-' + chip.value"
+                        class="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium"
                     >
-                </Button>
-            </template>
-            <div>
-                <div class="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
-                    <!-- Filters Sidebar -->
-                    <Card
-                        id="product-filters"
-                        as="aside"
-                        :class="['rounded-2xl border p-5 shadow-sm lg:sticky lg:top-20 lg:self-start', isFilterOpen ? 'block' : 'hidden md:block']"
-                    >
-                        <div class="mb-6 flex items-center justify-between">
-                            <h3 class="text-lg font-semibold">{{ t("labels.products.filter_and_sort") }}</h3>
-                            <Button v-if="hasActiveFilters" @click="resetFilters" class="text-primary text-xs font-medium hover:underline">
-                                {{ t("labels.actions.reset") }}
-                            </Button>
-                        </div>
+                        {{ chip.label }}
+                        <button type="button" class="hover:text-primary/60" :aria-label="t('labels.filters.remove', { label: chip.label })" @click="removeChip(chip)">
+                            <X class="h-3 w-3" aria-hidden="true" />
+                        </button>
+                    </span>
+                    <button type="button" class="text-primary ml-auto text-xs font-medium underline" @click="resetFilters">
+                        {{ t("labels.actions.reset_filters") }}
+                    </button>
+                </div>
+            </div>
 
-                        <!-- Search -->
-                        <div class="mb-6">
-                            <label class="mb-2 block text-sm font-medium">{{ t("labels.form.search") }}</label>
-                            <FormInput v-model="search" type="text" :placeholder="t('placeholders.search_products')" class="py-2.5">
-                                <template #prefix><Search class="text-muted-foreground absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" /></template>
-                                <template #suffix
-                                    ><Button
-                                        v-if="search"
-                                        @click="search = ''"
-                                        class="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-                                    >
-                                        <X class="h-4 w-4" /></button
-                                ></template>
-                            </FormInput>
-                        </div>
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
+                <Card as="aside" class="hidden rounded-2xl border p-5 shadow-sm lg:sticky lg:top-20 lg:block lg:self-start">
+                    <div class="mb-5 flex items-center justify-between">
+                        <h2 class="text-lg font-bold text-foreground">{{ t("labels.products.filter_and_sort") }}</h2>
+                        <button v-if="hasActiveFilters" type="button" class="text-primary text-xs font-medium hover:underline" @click="resetFilters">
+                            {{ t("labels.actions.reset") }}
+                        </button>
+                    </div>
+                    <ProductFilters v-model="draftFilters" id-prefix="desktop-filter" :categories="categories" @change="handleFilterChange" />
+                </Card>
 
-                        <!-- Sort -->
-                        <div class="mb-6">
-                            <label class="mb-2 block text-sm font-medium">{{ t("labels.form.sort") }}</label>
-                            <FormSelect v-model="selectedSort" class="cursor-pointer">
+                <section aria-live="polite" class="min-w-0">
+                    <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+                        <p class="text-sm text-muted-foreground">
+                            {{ t("labels.products.result_count", { from: rangeStart, to: rangeEnd, total: totalProducts }) }}
+                        </p>
+                        <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                            <button
+                                type="button"
+                                class="border-primary bg-primary/5 text-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold lg:hidden"
+                                :aria-expanded="isFilterOpen"
+                                aria-controls="mobile-product-filters"
+                                @click="openMobileFilters"
+                            >
+                                <SlidersHorizontal class="h-4 w-4" aria-hidden="true" />
+                                {{ t("labels.actions.filter") }}
+                                <span v-if="hasActiveFilters" class="bg-primary text-primary-foreground flex h-5 w-5 items-center justify-center rounded-full text-[10px]">
+                                    {{ activeFilterChips.length }}
+                                </span>
+                            </button>
+                            <label class="sr-only" for="product-sort">{{ t("labels.form.sort") }}</label>
+                            <FormSelect id="product-sort" :model-value="draftFilters.sort || 'newest'" class="w-40 sm:w-44" @update:model-value="updateSort">
                                 <option value="newest">{{ t("labels.sort.newest") }}</option>
                                 <option value="price_low">{{ t("labels.sort.price_low_high") }}</option>
                                 <option value="price_high">{{ t("labels.sort.price_high_low") }}</option>
                                 <option value="name_asc">{{ t("labels.sort.name_asc") }}</option>
                                 <option value="name_desc">{{ t("labels.sort.name_desc") }}</option>
                             </FormSelect>
+                            <label class="sr-only" for="product-page-size">{{ t("labels.products.page_size") }}</label>
+                            <FormSelect id="product-page-size" v-model="pageSize" class="w-32">
+                                <option :value="12">12</option>
+                                <option :value="24">24</option>
+                                <option :value="36">36</option>
+                            </FormSelect>
                         </div>
+                    </div>
 
-                        <!-- Category Filter -->
-                        <div class="mb-6">
-                            <h4 class="mb-3 text-sm font-semibold">{{ t("labels.form.category") }}</h4>
-                            <div class="space-y-2">
-                                <label class="flex cursor-pointer items-center gap-2">
-                                    <FormRadio v-model="selectedCategory" value="" />
-                                    <span class="text-sm">{{ t("labels.filters.all_categories") }}</span>
-                                </label>
-                                <label v-for="category in categories" :key="category.id" class="flex cursor-pointer items-center gap-2">
-                                    <FormRadio v-model="selectedCategory" :value="category.slug" />
-                                    <span class="text-sm">{{ category.name }}</span>
-                                </label>
-                            </div>
-                        </div>
+                    <div v-if="products.data?.length" class="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                        <ProductCard v-for="product in products.data" :key="product.uuid || product.id" :product="product" />
+                    </div>
 
-                        <!-- Price Filter -->
-                        <div class="mb-6">
-                            <h4 class="mb-3 text-sm font-semibold">{{ t("labels.form.price") }}</h4>
-                            <div class="flex items-center gap-2">
-                                <FormInput v-model="priceMin" type="number" min="0" :placeholder="t('placeholders.price_min')" class="py-2" />
-                                <span class="text-muted-foreground">-</span>
-                                <FormInput v-model="priceMax" type="number" min="0" :placeholder="t('placeholders.price_max')" class="py-2" />
-                            </div>
-                            <div class="mt-3 grid grid-cols-2 gap-2">
-                                <Button
-                                    v-for="range in priceRanges"
-                                    :key="range.key"
-                                    type="button"
-                                    @click="selectPriceRange(range)"
-                                    class="border-border text-muted-foreground hover:border-primary hover:text-primary rounded-md border px-1.5 py-1.5 text-xs transition-colors"
-                                    :class="{ 'border-primary bg-primary/10 text-primary font-semibold': selectedPriceRange === range.key }"
-                                >
-                                    {{ range.label }}
-                                </Button>
-                            </div>
-                        </div>
-
-                        <!-- Active Filters Tags -->
-                        <div v-if="hasActiveFilters" class="border-border mt-4 border-t pt-4">
-                            <h4 class="mb-3 text-sm font-semibold">{{ t("labels.filters.active") }}</h4>
-                            <div class="flex flex-wrap gap-2">
-                                <span
-                                    v-if="search"
-                                    class="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium"
-                                >
-                                    "{{ search }}"
-                                    <Button @click="search = ''" class="hover:text-primary/70">
-                                        <X class="h-3 w-3" />
-                                    </Button>
-                                </span>
-                                <span
-                                    v-if="selectedCategory"
-                                    class="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium"
-                                >
-                                    {{ categories.find((c) => c.slug === selectedCategory)?.name }}
-                                    <Button @click="selectedCategory = ''" class="hover:text-primary/70">
-                                        <X class="h-3 w-3" />
-                                    </Button>
-                                </span>
-                                <span
-                                    v-if="priceMin || priceMax"
-                                    class="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium"
-                                >
-                                    Rp{{ priceMin || "0" }} - Rp{{ priceMax || "∞" }}
-                                    <Button
-                                        @click="
-                                            priceMin = '';
-                                            priceMax = '';
-                                        "
-                                        class="hover:text-primary/70"
-                                    >
-                                        <X class="h-3 w-3" />
-                                    </Button>
-                                </span>
-                            </div>
-                        </div>
-                    </Card>
-
-                    <!-- Product Grid -->
-                    <div aria-live="polite">
-                        <div v-if="allProducts.length > 0" class="grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-x-5 sm:gap-y-8 lg:grid-cols-4">
-                            <ProductCard v-for="product in allProducts" :key="product.uuid || product.id" :product="product" />
-                        </div>
-
-                        <div v-else class="rounded-2xl border border-dashed border-border bg-white px-6 py-20 text-center">
+                    <div v-else class="relative overflow-hidden rounded-3xl border border-dashed border-border bg-white py-20 text-center">
+                        <div class="relative z-10">
                             <div class="mb-4 text-6xl">📭</div>
-                            <h3 class="text-foreground mb-2 text-xl font-bold">{{ t("labels.products.not_found") }}</h3>
+                            <h2 class="text-foreground mb-2 text-xl font-bold">{{ t("labels.products.not_found") }}</h2>
                             <p class="text-muted-foreground mb-6 text-sm">{{ t("labels.products.adjust_filters") }}</p>
-                            <Button
-                                @click="resetFilters"
-                                class="bg-primary text-primary-foreground hover:bg-primary/90 inline-block rounded-full px-6 py-3 text-sm font-semibold transition-colors"
-                            >
+                            <Button type="button" class="bg-primary text-primary-foreground rounded-full px-6 py-3 text-sm font-semibold" @click="resetFilters">
                                 {{ t("labels.actions.reset_filters") }}
                             </Button>
                         </div>
-
-                        <!-- Load More -->
-                        <div v-if="products.links.next" class="flex justify-center pt-10 sm:pt-12">
-                            <Button
-                                @click="loadMore"
-                                :disabled="isLoadingMore"
-                                variant="outline"
-                                class="flex min-w-[200px] items-center justify-center gap-2 rounded-full disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <Loader2 v-if="isLoadingMore" class="h-4 w-4 animate-spin" />
-                                <span>{{ isLoadingMore ? t("labels.actions.loading") : t("labels.actions.load_more") }}</span>
-                            </Button>
-                        </div>
-                        <div v-else-if="allProducts.length > 0" class="pt-12 text-center">
-                            <p class="text-muted-foreground text-sm">{{ t("labels.products.all_viewed") }}</p>
-                        </div>
                     </div>
-                </div>
+
+                    <div v-if="products.data?.length && (pageLinks.length > 1 || previousPage || nextPage)" class="mt-10 flex flex-wrap items-center justify-center gap-2" :aria-label="t('labels.products.pagination')">
+                        <button
+                            type="button"
+                            class="border-border text-foreground inline-flex h-10 w-10 items-center justify-center rounded-xl border disabled:cursor-not-allowed disabled:opacity-40"
+                            :disabled="!previousPage || isLoading"
+                            @click="goToPage(previousPage)"
+                        >
+                            <ChevronLeft class="h-4 w-4" aria-hidden="true" />
+                        </button>
+                        <Link
+                            v-for="link in pageLinks"
+                            :key="link.label"
+                            :href="link.url || '#'"
+                            preserve-scroll
+                            class="inline-flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm transition-colors"
+                            :class="link.active ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-foreground hover:border-primary hover:text-primary'"
+                        >
+                            {{ link.label }}
+                        </Link>
+                        <button
+                            type="button"
+                            class="border-border text-foreground inline-flex h-10 w-10 items-center justify-center rounded-xl border disabled:cursor-not-allowed disabled:opacity-40"
+                            :disabled="!nextPage || isLoading"
+                            @click="goToPage(nextPage)"
+                        >
+                            <ChevronRight class="h-4 w-4" aria-hidden="true" />
+                        </button>
+                    </div>
+                    <div v-if="isLoading" class="text-primary mt-5 flex items-center justify-center gap-2 text-sm">
+                        <Loader2 class="h-4 w-4 animate-spin" aria-hidden="true" /> {{ t("labels.actions.loading") }}
+                    </div>
+                </section>
             </div>
         </PageShell>
+
+        <div v-if="isFilterOpen" id="mobile-product-filters" class="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" :aria-label="t('labels.products.filter_and_sort')">
+            <button type="button" class="absolute inset-0 bg-foreground/40" :aria-label="t('labels.actions.close')" @click="isFilterOpen = false"></button>
+            <div class="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-3xl bg-background px-5 pb-5 pt-4 shadow-2xl">
+                <div class="mx-auto mb-4 h-1.5 w-12 rounded-full bg-border"></div>
+                <div class="mb-5 flex items-start justify-between border-b border-border pb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-foreground">{{ t("labels.products.filter_and_sort") }}</h2>
+                        <p class="text-muted-foreground mt-1 text-sm">{{ t("labels.products.filter_description") }}</p>
+                    </div>
+                    <button type="button" class="text-foreground rounded-full p-2" :aria-label="t('labels.actions.close')" @click="isFilterOpen = false">
+                        <X class="h-5 w-5" aria-hidden="true" />
+                    </button>
+                </div>
+                <ProductFilters v-model="draftFilters" id-prefix="mobile-filter" :categories="categories" />
+                <div class="mt-6 grid grid-cols-2 gap-3 border-t border-border pt-4">
+                    <Button type="button" variant="outline" class="rounded-xl" @click="resetFilters">{{ t("labels.actions.reset_filters") }}</Button>
+                    <Button type="button" class="bg-primary text-primary-foreground rounded-xl" @click="applyMobileFilters">
+                        {{ t("labels.actions.apply_filters") }}
+                    </Button>
+                </div>
+            </div>
+        </div>
     </TemplateWrapper>
 </template>
