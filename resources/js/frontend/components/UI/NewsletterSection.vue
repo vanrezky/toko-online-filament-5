@@ -11,14 +11,14 @@ import FormInput from "./FormInput.vue";
 const props = defineProps({ template: { type: Object, default: null } });
 const { t } = useI18n();
 const form = useForm({ email: "" });
-const getNewsletterContent = (key, fallback, legacyValues = []) => {
+const getNewsletterContent = (key, fallback) => {
     const content = getSectionContent(props.template, "newsletter", key, "");
-    return !content || legacyValues.includes(content) ? fallback : content;
+    return content || fallback;
 };
-const title = computed(() => getNewsletterContent("title", t("labels.home.newsletter_title"), ["Dapatkan Penawaran Spesial"]));
-const subtitle = computed(() => getNewsletterContent("subtitle", t("labels.home.newsletter_description"), ["Daftar newsletter untuk mendapatkan informasi tentang produk baru dan promo menarik."]));
-const buttonText = computed(() => getNewsletterContent("button_text", t("labels.home.newsletter_button"), ["Berlangganan"]));
-const placeholder = computed(() => getNewsletterContent("placeholder", t("labels.home.newsletter_placeholder"), ["Masukkan email Anda"]));
+const title = computed(() => getNewsletterContent("title", t("labels.home.newsletter_title")));
+const subtitle = computed(() => getNewsletterContent("subtitle", t("labels.home.newsletter_description")));
+const buttonText = computed(() => getNewsletterContent("button_text", t("labels.home.newsletter_button")));
+const placeholder = computed(() => getNewsletterContent("placeholder", t("labels.home.newsletter_placeholder")));
 const backgroundClasses = computed(() => {
     const style = getNewsletterContent("bg_style", "gradient");
 
