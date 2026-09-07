@@ -163,6 +163,8 @@ jobs:
             R2_BUCKET=${{ secrets.R2_BUCKET }}
             R2_ENDPOINT=${{ secrets.R2_ENDPOINT }}
             R2_URL=${{ secrets.R2_URL }}
+
+            REDIS_CLIENT=${{ secrets.REDIS_CLIENT || 'predis' }}
             ENVEOF
 
             echo "=== Creating required directories ==="
