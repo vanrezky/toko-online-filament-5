@@ -110,7 +110,17 @@ class TemplateSeeder extends Seeder
             'order_priority' => 3,
         ]);
 
-        // Section 4 — Pilihan Terbaik (Featured Products)
+        // Section 4 — Voucher
+        $this->createSection($template, [
+            'name' => 'Voucher',
+            'type' => TemplateSection::TYPE_VOUCHERS,
+            'description' => 'Daftar voucher aktif yang dapat digunakan pelanggan saat checkout.',
+            'icon' => 'heroicon-o-ticket',
+            'is_active' => true,
+            'order_priority' => 4,
+        ]);
+
+        // Section 5 — Pilihan Terbaik (Featured Products)
         $featured = $this->createSection($template, [
             'name' => 'Pilihan Terbaik',
             'type' => 'featured_products',
@@ -134,7 +144,7 @@ class TemplateSeeder extends Seeder
             'show_discount' => '1',
         ]);
 
-        // Section 5 — Flash Sale
+        // Section 6 — Flash Sale
         $flashSale = $this->createSection($template, [
             'name' => 'Flash Sale',
             'type' => 'flash_sale',
@@ -158,7 +168,7 @@ class TemplateSeeder extends Seeder
             'limit' => '8',
         ]);
 
-        // Section 6 — Semua Produk
+        // Section 7 — Semua Produk
         $allProducts = $this->createSection($template, [
             'name' => 'Semua Produk',
             'type' => 'products_grid',
@@ -194,7 +204,7 @@ class TemplateSeeder extends Seeder
             'show_load_more' => '1',
         ]);
 
-        // Section 7 — Newsletter
+        // Section 8 — Newsletter
         $newsletter = $this->createSection($template, [
             'name' => 'Newsletter',
             'type' => 'newsletter',

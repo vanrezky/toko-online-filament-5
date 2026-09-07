@@ -33,6 +33,8 @@ class TemplateSection extends Model
 
     const TYPE_HERO_CAROUSEL = 'hero_carousel';
 
+    const TYPE_VOUCHERS = 'vouchers';
+
     const TYPE_FEATURED_PRODUCTS = 'featured_products';
 
     const TYPE_FLASH_SALE = 'flash_sale';
@@ -63,6 +65,7 @@ class TemplateSection extends Model
             self::TYPE_HERO => 'Hero / Header',
             self::TYPE_CATEGORY_MENU => 'Menu Kategori',
             self::TYPE_HERO_CAROUSEL => 'Slider / Carousel',
+            self::TYPE_VOUCHERS => 'Voucher',
             self::TYPE_FEATURED_PRODUCTS => 'Pilihan Terbaik',
             self::TYPE_FLASH_SALE => 'Flash Sale',
             self::TYPE_PRODUCTS_GRID => 'Semua Produk',
