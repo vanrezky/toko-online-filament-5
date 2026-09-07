@@ -205,9 +205,10 @@ jobs:
             sudo -u www-data php artisan icons:cache
             sudo -u www-data php artisan filament:optimize
 
-            echo "=== Restarting Horizon ==="
-            sudo -u www-data php artisan horizon:terminate
-            sudo supervisorctl restart laravel-horizon-dev:*
+            # Horizon is temporarily disabled until Redis is available on the development server.
+            # echo "=== Restarting Horizon ==="
+            # sudo -u www-data php artisan horizon:terminate
+            # sudo supervisorctl restart laravel-horizon-dev:*
 
             echo "=== Deployment complete! ==="
 

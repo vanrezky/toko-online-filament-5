@@ -204,8 +204,10 @@ jobs:
             sudo -u www-data php artisan icons:cache
             sudo -u www-data php artisan filament:optimize
 
-            echo "=== Restarting queue workers ==="
-            sudo -u www-data php artisan queue:restart
+            # Queue workers are temporarily disabled until Redis is available on the server.
+            # This production workflow does not use Horizon; it only restarts the standard queue workers.
+            # echo "=== Restarting queue workers ==="
+            # sudo -u www-data php artisan queue:restart
 
             echo "=== Deployment complete! ==="
 
