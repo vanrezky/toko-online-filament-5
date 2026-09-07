@@ -142,7 +142,8 @@
     "newsletter_description": "Jadilah yang pertama tahu tentang koleksi terbaru, penawaran eksklusif, dan inspirasi belanja langsung dari Bristol Shop.",
     "newsletter_button": "Langganan Sekarang",
     "newsletter_placeholder": "Masukkan alamat email Anda",
-    "newsletter_note": "Kami menghormati privasi Anda. Tidak ada spam, hanya informasi penting.",
+        "newsletter_note": "Kami menghormati privasi Anda. Tidak ada spam, hanya informasi penting.",
+        "template_preview": "Pratinjau template — perubahan ini belum dipublikasikan.",
         "promotions_label": "Promosi beranda",
         "trust": {
             "services_label": "Layanan toko",

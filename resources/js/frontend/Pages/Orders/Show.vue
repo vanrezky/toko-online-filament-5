@@ -228,7 +228,7 @@ const statusDates = computed(() => {
 <template>
     <TemplateWrapper :shell="false" :title="t('meta.order_detail.title')">
         <PageShell>
-            <div class="container mx-auto px-4 md:px-6">
+            <div class="container mx-auto px-4 md:px-8">
                 <div class="mx-auto max-w-5xl space-y-8">
                     <!-- Header -->
                     <div class="flex flex-col gap-6 border-b border-border pb-8 md:flex-row md:items-center md:justify-between">

@@ -39,7 +39,7 @@
                 </div>
 
                 <a
-                    href="{{ \App\Filament\Resources\TemplateSectionResource::getUrl('create') }}?template_id={{ $this->templateRecord->id }}"
+                    href="{{ \App\Filament\Resources\TemplateSections\TemplateSectionResource::getUrl('create') }}?template_id={{ $this->templateRecord->id }}"
                     class="fi-btn fi-btn-size-md inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
                 >
                     <x-heroicon-o-plus class="h-4 w-4" />
@@ -116,7 +116,7 @@
                             {{-- Actions --}}
                             <div class="flex-shrink-0 flex items-center gap-2">
                                 <a
-                                    href="{{ \App\Filament\Resources\TemplateSectionResource::getUrl('edit', ['record' => $section['uuid']]) }}"
+                                    href="{{ \App\Filament\Resources\TemplateSections\TemplateSectionResource::getUrl('edit', ['record' => $section['uuid']]) }}"
                                     class="inline-flex items-center gap-1 rounded-md bg-gray-100 dark:bg-gray-800 px-2.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                                     title="Edit Section"
                                 >

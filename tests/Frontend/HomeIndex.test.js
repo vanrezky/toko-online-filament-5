@@ -59,4 +59,22 @@ describe("Homepage composition", () => {
         expect(sections).not.toContain("featured-products");
         expect(sections).toContain("all-products");
     });
+
+    it("follows active template order and skips inactive or unknown sections", () => {
+        const wrapper = mountHome({
+            template: {
+                sections: [
+                    { uuid: "products", type: "products_grid", is_active: true, contents: {} },
+                    { uuid: "unknown", type: "unsupported", is_active: true, contents: {} },
+                    { uuid: "newsletter", type: "newsletter", is_active: false, contents: {} },
+                    { uuid: "hero", type: "hero", is_active: true, contents: {} },
+                ],
+            },
+        });
+        const sections = wrapper.findAll("[data-home-section]").map((section) => section.attributes("data-home-section"));
+
+        expect(sections.slice(0, 2)).toEqual(["all-products", "hero"]);
+        expect(sections).not.toContain("newsletter");
+        expect(sections).not.toContain("unsupported");
+    });
 });

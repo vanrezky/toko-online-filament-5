@@ -25,8 +25,16 @@ class VoucherController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $type = $request->get('type');
-        $vouchers = $this->voucherService->getPublicVouchers($type);
+        $validated = $request->validate([
+            'type' => ['nullable', 'in:shipping,product'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:24'],
+        ]);
+
+        $vouchers = $this->voucherService->getCachedPublicVouchers($validated['type'] ?? null);
+
+        if (isset($validated['limit'])) {
+            $vouchers = $vouchers->take((int) $validated['limit']);
+        }
 
         return response()->json([
             'success' => true,

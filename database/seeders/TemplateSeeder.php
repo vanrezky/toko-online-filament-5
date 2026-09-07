@@ -18,18 +18,18 @@ class TemplateSeeder extends Seeder
         $default = Template::updateOrCreate(
             ['code' => 'default'],
             [
-                'name'         => 'Default',
-                'description'  => 'Template default toko online dengan tampilan modern, warm orange theme, sesuai design system.',
+                'name' => 'Default',
+                'description' => 'Template default toko online dengan tampilan modern, warm orange theme, sesuai design system.',
                 'color_scheme' => [
-                    'primary'     => '#F97316',
-                    'secondary'   => '#F5F3FC',
-                    'accent'      => '#FB923C',
+                    'primary' => '#F97316',
+                    'secondary' => '#F5F3FC',
+                    'accent' => '#FB923C',
                     'destructive' => '#F43F5E',
-                    'background'  => '#FCFCFE',
-                    'foreground'  => '#2D1B0E',
+                    'background' => '#FCFCFE',
+                    'foreground' => '#2D1B0E',
                 ],
                 'thumbnail' => 'https://placehold.co/800x500/F97316/FFFFFF?text=Default+Template',
-                'is_active'    => true,
+                'is_active' => true,
             ]
         );
 
@@ -40,11 +40,11 @@ class TemplateSeeder extends Seeder
     {
         // Section 1 — Hero
         $hero = $this->createSection($template, [
-            'name'           => 'Hero Banner',
-            'type'           => 'hero',
-            'description'    => 'Banner utama halaman beranda dengan headline, subheadline, dan CTA.',
-            'icon'           => 'heroicon-o-photo',
-            'is_active'      => true,
+            'name' => 'Hero Banner',
+            'type' => 'hero',
+            'description' => 'Banner utama halaman beranda dengan headline, subheadline, dan CTA.',
+            'icon' => 'heroicon-o-photo',
+            'is_active' => true,
             'order_priority' => 1,
         ]);
 
@@ -55,24 +55,38 @@ class TemplateSeeder extends Seeder
             ['key' => 'overlay_color',  'label' => 'Warna Overlay',      'type' => 'color',    'default_value' => '#2D1B0E80',                  'is_required' => false, 'order_priority' => 4],
             ['key' => 'button_text',    'label' => 'Teks Tombol',        'type' => 'text',     'placeholder' => 'Belanja Sekarang',                  'is_required' => false, 'order_priority' => 5],
             ['key' => 'button_link',    'label' => 'Link Tombol',        'type' => 'url',      'placeholder' => '/products',                         'is_required' => false, 'order_priority' => 6],
+            ['key' => 'eyebrow',        'label' => 'Label Atas',          'type' => 'text',     'default_value' => 'PILIHAN TERBAIK UNTUK HARI INI', 'is_required' => false, 'order_priority' => 7],
+            ['key' => 'badge',          'label' => 'Badge Promo',         'type' => 'text',     'default_value' => 'PROMO',                         'is_required' => false, 'order_priority' => 8],
+            ['key' => 'secondary_text', 'label' => 'Teks Tombol Sekunder', 'type' => 'text',    'default_value' => 'Lihat Promo',                   'is_required' => false, 'order_priority' => 9],
+            ['key' => 'secondary_link', 'label' => 'Link Tombol Sekunder', 'type' => 'url',     'default_value' => '/vouchers',                     'is_required' => false, 'order_priority' => 10],
+            ['key' => 'promo_label',    'label' => 'Label Nilai Promo',   'type' => 'text',     'default_value' => 'HEMAT',                          'is_required' => false, 'order_priority' => 11],
+            ['key' => 'promo_value',    'label' => 'Nilai Promo',         'type' => 'text',     'default_value' => '70%',                            'is_required' => false, 'order_priority' => 12],
+            ['key' => 'trust_points',   'label' => 'Poin Kepercayaan',    'type' => 'textarea', 'default_value' => '[{"title":"Pengiriman Cepat","description":"Pesanan diproses dengan cepat."},{"title":"Produk Original","description":"Kualitas produk terjamin."},{"title":"Dukungan Pelanggan","description":"Kami siap membantu Anda."}]', 'is_required' => false, 'order_priority' => 13],
         ]);
 
         $this->createContents($hero, [
-            'title'         => 'Belanja Hemat, Belanja Mudah',
-            'subtitle'      => 'Temukan ribuan produk berkualitas dengan harga terbaik. Pengiriman cepat ke seluruh Indonesia.',
-            'image_url'     => 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1400',
+            'title' => 'Belanja Hemat, Belanja Mudah',
+            'subtitle' => 'Temukan ribuan produk berkualitas dengan harga terbaik. Pengiriman cepat ke seluruh Indonesia.',
+            'image_url' => 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1400',
             'overlay_color' => '#2D1B0E80',
-            'button_text'   => 'Belanja Sekarang',
-            'button_link'   => '/products',
+            'button_text' => 'Belanja Sekarang',
+            'button_link' => '/products',
+            'eyebrow' => 'PILIHAN TERBAIK UNTUK HARI INI',
+            'badge' => 'PROMO',
+            'secondary_text' => 'Lihat Promo',
+            'secondary_link' => '/vouchers',
+            'promo_label' => 'HEMAT',
+            'promo_value' => '70%',
+            'trust_points' => '[{"title":"Pengiriman Cepat","description":"Pesanan diproses dengan cepat."},{"title":"Produk Original","description":"Kualitas produk terjamin."},{"title":"Dukungan Pelanggan","description":"Kami siap membantu Anda."}]',
         ]);
 
         // Section 2 — Category Menu
         $categoryMenu = $this->createSection($template, [
-            'name'           => 'Menu Kategori',
-            'type'           => 'category_menu',
-            'description'    => 'Menu horizontal scrollable untuk filter kategori produk.',
-            'icon'           => 'heroicon-o-squares-2x2',
-            'is_active'      => true,
+            'name' => 'Menu Kategori',
+            'type' => 'category_menu',
+            'description' => 'Menu horizontal scrollable untuk filter kategori produk.',
+            'icon' => 'heroicon-o-squares-2x2',
+            'is_active' => true,
             'order_priority' => 2,
         ]);
 
@@ -82,17 +96,37 @@ class TemplateSeeder extends Seeder
         ]);
 
         $this->createContents($categoryMenu, [
-            'title'      => 'Kategori',
-            'show_all'  => '1',
+            'title' => 'Kategori',
+            'show_all' => '1',
         ]);
 
-        // Section 3 — Pilihan Terbaik (Featured Products)
+        // Section 3 — Slider / Carousel
+        $this->createSection($template, [
+            'name' => 'Slider / Carousel',
+            'type' => TemplateSection::TYPE_HERO_CAROUSEL,
+            'description' => 'Carousel promosi yang menggunakan data slider aktif dari katalog promosi.',
+            'icon' => 'heroicon-o-photo',
+            'is_active' => true,
+            'order_priority' => 3,
+        ]);
+
+        // Section 4 — Voucher
+        $this->createSection($template, [
+            'name' => 'Voucher',
+            'type' => TemplateSection::TYPE_VOUCHERS,
+            'description' => 'Daftar voucher aktif yang dapat digunakan pelanggan saat checkout.',
+            'icon' => 'heroicon-o-ticket',
+            'is_active' => true,
+            'order_priority' => 4,
+        ]);
+
+        // Section 5 — Pilihan Terbaik (Featured Products)
         $featured = $this->createSection($template, [
-            'name'           => 'Pilihan Terbaik',
-            'type'           => 'featured_products',
-            'description'    => 'Tampilkan produk-produk pilihan/terlaris dalam carousel horizontal.',
-            'icon'           => 'heroicon-o-sparkles',
-            'is_active'      => true,
+            'name' => 'Pilihan Terbaik',
+            'type' => 'featured_products',
+            'description' => 'Tampilkan produk-produk pilihan/terlaris dalam carousel horizontal.',
+            'icon' => 'heroicon-o-sparkles',
+            'is_active' => true,
             'order_priority' => 3,
         ]);
 
@@ -104,19 +138,19 @@ class TemplateSeeder extends Seeder
         ]);
 
         $this->createContents($featured, [
-            'title'         => 'Pilihan Terbaik',
-            'subtitle'      => 'Produk paling diminati pelanggan kami',
-            'limit'         => '4',
+            'title' => 'Pilihan Terbaik',
+            'subtitle' => 'Produk paling diminati pelanggan kami',
+            'limit' => '4',
             'show_discount' => '1',
         ]);
 
-        // Section 4 — Flash Sale
+        // Section 6 — Flash Sale
         $flashSale = $this->createSection($template, [
-            'name'           => 'Flash Sale',
-            'type'           => 'flash_sale',
-            'description'    => 'Section promo dengan countdown timer dan produk-produk diskon.',
-            'icon'           => 'heroicon-o-bolt',
-            'is_active'      => true,
+            'name' => 'Flash Sale',
+            'type' => 'flash_sale',
+            'description' => 'Section promo dengan countdown timer dan produk-produk diskon.',
+            'icon' => 'heroicon-o-bolt',
+            'is_active' => true,
             'order_priority' => 4,
         ]);
 
@@ -128,19 +162,19 @@ class TemplateSeeder extends Seeder
         ]);
 
         $this->createContents($flashSale, [
-            'title'         => 'Flash Sale',
-            'subtitle'      => 'Diskon s/d 70% untuk produk pilihan',
-            'show_timer'    => '1',
-            'limit'         => '8',
+            'title' => 'Flash Sale',
+            'subtitle' => 'Diskon s/d 70% untuk produk pilihan',
+            'show_timer' => '1',
+            'limit' => '8',
         ]);
 
-        // Section 5 — Semua Produk
+        // Section 7 — Semua Produk
         $allProducts = $this->createSection($template, [
-            'name'           => 'Semua Produk',
-            'type'           => 'products_grid',
-            'description'    => 'Grid produk lengkap dengan header dan pagination/load more.',
-            'icon'           => 'heroicon-o-shopping-bag',
-            'is_active'      => true,
+            'name' => 'Semua Produk',
+            'type' => 'products_grid',
+            'description' => 'Grid produk lengkap dengan header dan pagination/load more.',
+            'icon' => 'heroicon-o-shopping-bag',
+            'is_active' => true,
             'order_priority' => 5,
         ]);
 
@@ -162,21 +196,21 @@ class TemplateSeeder extends Seeder
         ]);
 
         $this->createContents($allProducts, [
-            'title'          => 'Semua Produk',
-            'subtitle'       => 'Jelajahi koleksi lengkap produk kami',
-            'category_id'    => '0',
-            'limit'          => '10',
-            'columns'        => '4',
+            'title' => 'Semua Produk',
+            'subtitle' => 'Jelajahi koleksi lengkap produk kami',
+            'category_id' => '0',
+            'limit' => '10',
+            'columns' => '4',
             'show_load_more' => '1',
         ]);
 
-        // Section 6 — Newsletter
+        // Section 8 — Newsletter
         $newsletter = $this->createSection($template, [
-            'name'           => 'Newsletter',
-            'type'           => 'newsletter',
-            'description'    => 'Section email subscription dengan form dan deskripsi promo.',
-            'icon'           => 'heroicon-o-envelope',
-            'is_active'      => true,
+            'name' => 'Newsletter',
+            'type' => 'newsletter',
+            'description' => 'Section email subscription dengan form dan deskripsi promo.',
+            'icon' => 'heroicon-o-envelope',
+            'is_active' => true,
             'order_priority' => 6,
         ]);
 
@@ -196,11 +230,11 @@ class TemplateSeeder extends Seeder
         ]);
 
         $this->createContents($newsletter, [
-            'title'         => 'Dapatkan Penawaran Spesial',
-            'subtitle'      => 'Daftar newsletter untuk mendapatkan informasi tentang produk baru dan promo menarik.',
-            'button_text'   => 'Berlangganan',
-            'placeholder'   => 'Masukkan email Anda',
-            'bg_style'      => 'gradient',
+            'title' => 'Dapatkan Penawaran Spesial',
+            'subtitle' => 'Daftar newsletter untuk mendapatkan informasi tentang produk baru dan promo menarik.',
+            'button_text' => 'Berlangganan',
+            'placeholder' => 'Masukkan email Anda',
+            'bg_style' => 'gradient',
         ]);
     }
 
@@ -229,8 +263,8 @@ class TemplateSeeder extends Seeder
             if (isset($fieldMap[$key])) {
                 TemplateSectionContent::create([
                     'section_id' => $section->id,
-                    'field_id'   => $fieldMap[$key],
-                    'value'      => $value,
+                    'field_id' => $fieldMap[$key],
+                    'value' => $value,
                 ]);
             }
         }

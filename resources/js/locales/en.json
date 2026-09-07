@@ -820,7 +820,8 @@
     "newsletter_description": "Be the first to know about new collections, exclusive offers, and shopping inspiration from Bristol Shop.",
     "newsletter_button": "Subscribe Now",
     "newsletter_placeholder": "Enter your email address",
-    "newsletter_note": "We respect your privacy. No spam, only useful updates.",
+        "newsletter_note": "We respect your privacy. No spam, only useful updates.",
+        "template_preview": "Template preview — these changes are not published yet.",
         "promotions_label": "Homepage promotions",
         "trust": {
             "services_label": "Store services",
