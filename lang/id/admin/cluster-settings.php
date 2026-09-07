@@ -2,5 +2,5 @@
 
 return [
     'navigation_label' => 'Pengaturan Website',
-    'navigation_group' => 'Sistem',
+    'navigation_group' => 'Pengaturan',
 ];
