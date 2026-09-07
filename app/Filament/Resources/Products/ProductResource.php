@@ -27,6 +27,7 @@ use Filament\Actions\ViewAction;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -139,6 +140,10 @@ class ProductResource extends Resource
                                     ->schema([
                                         Repeater::make('image_urls')
                                             ->hiddenLabel()
+                                            ->table([
+                                                TableColumn::make(__('admin/product-resource.fields.image_url')),
+                                            ])
+                                            ->compact()
                                             ->schema([
                                                 TextInput::make('url')
                                                     ->label(__('admin/product-resource.fields.image_url'))

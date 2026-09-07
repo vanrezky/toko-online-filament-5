@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-07
+goal: Allow admins to manage up to five product image links in a denser layout
+  without changing validation or data behavior.
