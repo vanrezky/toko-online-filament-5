@@ -708,6 +708,11 @@
             "search_placeholder": "Cari di {site}..",
             "search_products": "Ketik produk yang Anda cari..."
         },
+        "mobile_promo": {
+            "title": "Dapatkan Promo Eksklusif!",
+            "description": "Masuk atau daftar sekarang untuk menikmati penawaran spesial.",
+            "action": "Masuk / Daftar"
+        },
         "products": {
             "default_title": "Semua Produk",
             "available_count": "{count} produk tersedia",

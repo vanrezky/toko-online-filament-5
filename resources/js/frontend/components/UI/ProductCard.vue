@@ -78,15 +78,22 @@ const toggleWishlist = (event) => {
             class="group border-border bg-background hover:border-primary/50 focus-visible:ring-primary relative flex h-full flex-col overflow-hidden rounded-xl border transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-[0_18px_32px_-24px_hsl(var(--foreground)/0.6)] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none motion-reduce:transition-none"
             :class="sizeClasses"
         >
-            <div class="bg-secondary/35 relative aspect-square overflow-hidden p-1.5 sm:p-2">
-                <div class="bg-secondary relative h-full w-full overflow-hidden rounded-lg">
+            <div
+                class="relative aspect-square overflow-hidden"
+                :class="product.thumbnail ? 'bg-transparent p-1.5 sm:p-2' : 'bg-secondary/35 p-1.5 sm:p-2'"
+            >
+                <div
+                    class="relative h-full w-full overflow-hidden"
+                    :class="product.thumbnail ? 'rounded-lg bg-transparent' : 'rounded-lg bg-secondary'"
+                >
                     <img
                         v-if="product.thumbnail"
                         :src="product.thumbnail"
                         :alt="product.name"
                         loading="lazy"
                         decoding="async"
-                        class="h-full w-full object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-[1.05] motion-reduce:transition-none sm:p-3"
+                        class="h-full w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.05] motion-reduce:transition-none"
+                        :class="product.thumbnail ? 'rounded-lg p-0' : 'p-2 sm:p-3'"
                     />
                     <div v-else class="text-muted-foreground flex h-full w-full flex-col items-center justify-center gap-2" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25">

@@ -40,10 +40,10 @@ const trustPoints = computed(() => {
 </script>
 
 <template>
-    <section class="bg-background py-4 md:py-5 lg:py-6">
+    <section class="bg-background py-4 md:py-6">
         <div class="container mx-auto px-4 md:px-8">
-            <div class="hero-layout overflow-hidden rounded-[2rem] bg-secondary shadow-[0_20px_50px_-38px_hsl(var(--foreground)/0.45)]">
-                <div class="relative isolate min-h-[31rem] overflow-hidden sm:min-h-[34rem] lg:min-h-[30rem]">
+            <div class="hero-layout overflow-hidden rounded-2xl bg-secondary shadow-[0_20px_50px_-38px_hsl(var(--foreground)/0.45)]">
+                <div class="relative isolate min-h-[28rem] overflow-hidden sm:min-h-[28rem] lg:min-h-[24rem]">
                     <img
                         v-if="imageUrl"
                         :src="imageUrl"
@@ -58,14 +58,14 @@ const trustPoints = computed(() => {
                         <div class="absolute -right-20 -bottom-32 h-72 w-72 rounded-full bg-primary/10 blur-3xl"></div>
                     </div>
 
-                    <div class="relative z-10 flex h-full min-h-[31rem] flex-col justify-end p-6 sm:min-h-[34rem] sm:p-10 lg:min-h-[30rem] lg:max-w-3xl lg:p-14">
-                        <p class="mb-4 text-xs font-bold tracking-[0.14em] text-white/80 uppercase" :class="!imageUrl && 'text-primary'">{{ eyebrow }}</p>
+                    <div class="relative z-10 flex h-full min-h-[28rem] flex-col justify-center p-6 sm:min-h-[28rem] sm:p-8 lg:min-h-[24rem] lg:max-w-3xl lg:p-10">
+                        <p class="mb-3 text-xs font-bold tracking-[0.14em] text-white/80 uppercase" :class="!imageUrl && 'text-primary'">{{ eyebrow }}</p>
                         <h1 class="max-w-[14ch] text-4xl leading-[0.98] font-bold tracking-[-0.045em] text-balance sm:text-5xl lg:text-[3.7rem]" :class="imageUrl ? 'text-white' : 'text-foreground'">
                             {{ title }}
                         </h1>
-                        <p class="mt-5 max-w-md text-sm leading-6 sm:text-base" :class="imageUrl ? 'text-white/80' : 'text-muted-foreground'">{{ subtitle }}</p>
+                        <p class="mt-4 max-w-md text-sm leading-6 sm:text-base" :class="imageUrl ? 'text-white/80' : 'text-muted-foreground'">{{ subtitle }}</p>
 
-                        <div class="mt-7 flex flex-wrap gap-3">
+                        <div class="mt-6 flex flex-wrap gap-3">
                             <Link
                                 :href="primaryLink"
                                 class="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary inline-flex min-h-11 items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold shadow-[0_12px_24px_-16px_hsl(var(--primary)/0.9)] transition-colors focus-visible:ring-2 focus-visible:outline-none motion-reduce:transition-none"
@@ -90,10 +90,10 @@ const trustPoints = computed(() => {
                     </div>
                 </div>
 
-                <aside class="bg-secondary/80 flex items-center p-6 sm:p-10 lg:p-9" :aria-label="t('labels.home.trust.services_label')">
+                <aside class="bg-secondary/80 flex items-center p-6 sm:p-8 lg:p-7" :aria-label="t('labels.home.trust.services_label')">
                     <div class="w-full">
-                        <p class="text-primary mb-6 text-xs font-bold tracking-[0.14em] uppercase">{{ t("labels.home.trust.services_label") }}</p>
-                        <div class="space-y-6">
+                        <p class="text-primary mb-4 text-xs font-bold tracking-[0.14em] uppercase">{{ t("labels.home.trust.services_label") }}</p>
+                        <div class="space-y-5">
                             <div v-for="point in trustPoints" :key="point.title" class="flex items-start gap-3">
                                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/75 text-primary">
                                     <component :is="point.icon" class="h-5 w-5" aria-hidden="true" />

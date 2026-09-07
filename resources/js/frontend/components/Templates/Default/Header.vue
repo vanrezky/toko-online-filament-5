@@ -99,7 +99,7 @@ const handleSearch = () => {
                     </Link>
                     <Button
                         type="button"
-                        class="text-foreground hover:text-primary -mr-2 rounded-full p-2 md:hidden"
+                        class="text-foreground hover:text-primary -mr-2 rounded-full p-2 lg:hidden"
                         :aria-expanded="isMobileMenuOpen"
                         aria-controls="mobile-navigation"
                         :aria-label="isMobileMenuOpen ? t('labels.order.review.close') : t('labels.header.home')"
@@ -111,7 +111,7 @@ const handleSearch = () => {
                 </div>
             </div>
 
-            <form class="pb-3 md:hidden" @submit.prevent="handleSearch">
+            <form class="pb-3 lg:hidden" @submit.prevent="handleSearch">
                 <FormInput
                     v-model="searchQuery"
                     type="search"

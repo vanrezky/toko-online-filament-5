@@ -72,16 +72,16 @@ const paymentMethods = [
 </script>
 
 <template>
-    <footer class="border-border bg-secondary/20 border-t pb-8 pt-10 md:pt-14">
-        <div v-if="footerPromos.length > 0" class="container mx-auto mb-10 px-4 md:px-8">
+    <footer class="border-border bg-secondary/20 border-t pb-6 pt-8 md:pb-8 md:pt-12">
+        <div v-if="footerPromos.length > 0" class="container mx-auto mb-8 px-4 md:mb-10 md:px-8">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <PromotionBanner v-for="promo in footerPromos" :key="promo.id" :promotion="promo" class="aspect-[16/7] md:aspect-[21/9]" />
             </div>
         </div>
 
         <div class="container mx-auto px-4 md:px-8">
-            <div class="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-x-8 md:gap-y-12 lg:grid-cols-[1.35fr_.8fr_.8fr_.8fr_1.25fr]">
-                <div class="space-y-5">
+            <div class="grid grid-cols-2 gap-x-5 gap-y-9 sm:gap-x-8 md:grid-cols-4 md:gap-y-12 lg:grid-cols-[1.35fr_.8fr_.8fr_.8fr_1.25fr]">
+                <div class="col-span-2 space-y-4 md:col-span-4 md:space-y-5 lg:col-span-1">
                     <Link :href="route('frontend.home')" class="inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30">
                         <img v-if="settings.logo && !logoError" :src="settings.logo" :alt="settings.site_name" class="h-11 w-auto max-w-[12rem] object-contain" @error="logoError = true" />
                         <span v-else class="font-display text-primary text-3xl leading-none">{{ settings.site_name }}</span>
@@ -102,36 +102,36 @@ const paymentMethods = [
                     </div>
                 </div>
 
-                <div>
-                    <h2 class="text-foreground mb-5 text-sm font-bold">{{ t("labels.footer.shopping") }}</h2>
-                    <ul class="space-y-3">
+                <div class="col-span-1">
+                    <h2 class="text-foreground mb-4 text-sm font-bold md:mb-5">{{ t("labels.footer.shopping") }}</h2>
+                    <ul class="space-y-2.5 md:space-y-3">
                         <li v-for="link in shoppingLinks" :key="link.name">
                             <Link :href="link.href" class="text-muted-foreground focus-visible:ring-primary rounded-sm text-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2">{{ link.name }}</Link>
                         </li>
                     </ul>
                 </div>
 
-                <div>
-                    <h2 class="text-foreground mb-5 text-sm font-bold">{{ t("labels.footer.help") }}</h2>
-                    <ul class="space-y-3">
+                <div class="col-span-1">
+                    <h2 class="text-foreground mb-4 text-sm font-bold md:mb-5">{{ t("labels.footer.help") }}</h2>
+                    <ul class="space-y-2.5 md:space-y-3">
                         <li v-for="link in helpLinks" :key="link.name">
                             <Link :href="link.href" class="text-muted-foreground focus-visible:ring-primary rounded-sm text-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2">{{ link.name }}</Link>
                         </li>
                     </ul>
                 </div>
 
-                <div>
-                    <h2 class="text-foreground mb-5 text-sm font-bold">{{ t("labels.footer.about_us") }}</h2>
-                    <ul class="space-y-3">
+                <div class="col-span-1">
+                    <h2 class="text-foreground mb-4 text-sm font-bold md:mb-5">{{ t("labels.footer.about_us") }}</h2>
+                    <ul class="space-y-2.5 md:space-y-3">
                         <li v-for="link in aboutLinks" :key="link.name">
                             <Link :href="link.href" class="text-muted-foreground focus-visible:ring-primary rounded-sm text-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2">{{ link.name }}</Link>
                         </li>
                     </ul>
                 </div>
 
-                <div>
-                    <h2 class="text-foreground mb-5 text-sm font-bold">{{ t("labels.footer.contact_us") }}</h2>
-                    <div class="space-y-3.5">
+                <div class="col-span-2 md:col-span-4 lg:col-span-1">
+                    <h2 class="text-foreground mb-4 text-sm font-bold md:mb-5">{{ t("labels.footer.contact_us") }}</h2>
+                    <div class="grid gap-3.5 sm:grid-cols-2 md:gap-4 lg:grid-cols-1">
                         <a v-if="whatsappHref" :href="whatsappHref" target="_blank" rel="noreferrer" class="flex items-start gap-3 text-sm transition-colors hover:text-primary">
                             <MessageCircle class="text-primary mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
                             <span><span class="text-foreground block font-medium">{{ t("labels.footer.live_chat") }}</span><span class="text-muted-foreground block text-xs">{{ t("labels.footer.live_chat_hours") }}</span></span>
@@ -152,10 +152,10 @@ const paymentMethods = [
                 </div>
             </div>
 
-            <div class="text-muted-foreground mt-12 flex flex-col gap-5 border-t border-border pt-6 text-xs md:flex-row md:items-center md:justify-between">
-                <p>&copy; {{ currentYear }} {{ settings.site_name }}. {{ t("labels.footer.all_rights_reserved") }}</p>
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-2 md:justify-end">
-                    <span class="mr-1">{{ t("labels.footer.secure_payment") }}</span>
+            <div class="text-muted-foreground mt-10 flex flex-col gap-5 border-t border-border pt-5 text-xs md:mt-12 md:flex-row md:items-center md:justify-between md:pt-6">
+                <p class="max-w-full leading-5">&copy; {{ currentYear }} {{ settings.site_name }}. {{ t("labels.footer.all_rights_reserved") }}</p>
+                <div class="flex flex-wrap items-center gap-x-2.5 gap-y-2 md:justify-end">
+                    <span class="mr-1 w-full sm:w-auto">{{ t("labels.footer.secure_payment") }}</span>
                     <span
                         v-for="method in paymentMethods"
                         :key="method.key"

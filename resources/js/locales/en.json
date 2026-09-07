@@ -991,6 +991,11 @@
             "search_placeholder": "Search in {site}..",
             "search_products": "Type product you are looking for..."
         },
+        "mobile_promo": {
+            "title": "Get Exclusive Offers!",
+            "description": "Sign in or register now to enjoy special offers.",
+            "action": "Sign In / Register"
+        },
         "order": {
             "payment_deadline": "Payment deadline",
             "payment_countdown": "Time remaining: {time}"
