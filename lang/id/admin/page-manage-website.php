@@ -3,7 +3,7 @@
 return [
     'title' => 'Website',
     'navigation_label' => 'Website',
-    'navigation_group' => 'Sistem',
+    'navigation_group' => 'Pengaturan',
 
     'tabs' => [
         'storefront' => 'Storefront',

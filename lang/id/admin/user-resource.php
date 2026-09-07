@@ -3,7 +3,7 @@
 return [
 
     'navigation_label' => 'Pengguna',
-    'navigation_group' => 'Sistem',
+    'navigation_group' => 'Pengaturan',
 
     'model_label' => 'Pengguna',
     'plural_model_label' => 'Pengguna',
