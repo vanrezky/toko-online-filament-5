@@ -756,6 +756,8 @@
         },
         "account": {
             "heading": "Akun Saya",
+            "mobile_menu": "Menu Akun",
+            "back_to_overview": "Kembali ke Ringkasan",
             "menu": {
                 "overview": "Ringkasan",
                 "balance": "Saldo Dompet",

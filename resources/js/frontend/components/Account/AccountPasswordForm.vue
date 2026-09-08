@@ -24,10 +24,6 @@ const submit = () => form.patch(route("frontend.account.password.update"), { pre
 
 <template>
     <section class="border-border bg-background rounded-2xl border p-6 shadow-sm md:p-8">
-        <div class="mb-8">
-            <h2 class="text-foreground text-xl font-bold">{{ t("labels.account.password_heading") }}</h2>
-            <p class="text-muted-foreground mt-1 text-sm">{{ t("labels.account.password_description") }}</p>
-        </div>
         <form class="max-w-xl space-y-6" @submit.prevent="submit">
             <label class="text-foreground block space-y-2 text-sm font-semibold"
                 >{{ t("labels.account.current_password")
