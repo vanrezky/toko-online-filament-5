@@ -15,6 +15,7 @@ final class CacheService
         'regional' => 'Regional',
         'voucher' => 'Voucher',
         'product-stats' => 'Product statistics',
+        'product-catalog' => 'Product catalog',
         'frontend' => 'Frontend content',
         'shipping' => 'Shipping',
     ];

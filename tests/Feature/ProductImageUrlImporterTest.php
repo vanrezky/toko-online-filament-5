@@ -57,7 +57,17 @@ class ProductImageUrlImporterTest extends TestCase
 
         $this->assertNotEmpty($productResponse['thumbnail']);
         $this->assertCount(1, $productResponse['images']);
+        $this->assertCount(1, $productResponse['image_thumbnails']);
+        $this->assertSame($media->getUrl(), $productResponse['images'][0]);
+        $this->assertSame($media->getUrl('thumb'), $productResponse['image_thumbnails'][0]);
         $this->assertNotEmpty($simpleResponse['thumbnail']);
+
+        $media->generated_conversions = [];
+        $media->save();
+
+        $fallbackResponse = (new ProductResource($product->fresh()))->resolve();
+
+        $this->assertSame($fallbackResponse['images'][0], $fallbackResponse['image_thumbnails'][0]);
     }
 
     public function test_it_rejects_malformed_private_unavailable_and_non_image_urls_without_adding_media(): void
