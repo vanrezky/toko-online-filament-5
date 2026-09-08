@@ -14,6 +14,7 @@ import {
     ShieldCheck,
     Truck,
     RefreshCw,
+    ChevronLeft,
     ChevronRight,
     ChevronDown,
     ChevronUp,
@@ -56,10 +57,34 @@ const { t, locale } = useI18n();
 
 const formatProductCount = (count) => formatCompactNumber(count, locale.value);
 const localeCode = computed(() => (locale.value === "id" ? "id-ID" : "en-US"));
-const selectedImageNumber = computed(() => {
-    const imageIndex = props.product.images?.indexOf(selectedImage.value) ?? -1;
-    return imageIndex >= 0 ? imageIndex + 1 : 1;
+const galleryImages = computed(() => {
+    const images = Array.isArray(props.product.images) ? props.product.images.filter(Boolean) : [];
+
+    if (props.product.thumbnail && !images.includes(props.product.thumbnail)) {
+        return [props.product.thumbnail, ...images];
+    }
+
+    return images.length ? images : props.product.thumbnail ? [props.product.thumbnail] : [];
 });
+const selectedImageIndex = computed(() => {
+    const imageIndex = galleryImages.value.indexOf(selectedImage.value);
+
+    return imageIndex >= 0 ? imageIndex : 0;
+});
+const selectedImageNumber = computed(() => {
+    return selectedImageIndex.value + 1;
+});
+
+const selectGalleryImage = (image) => {
+    selectedImage.value = image;
+};
+
+const cycleGalleryImage = (direction) => {
+    if (galleryImages.value.length < 2) return;
+
+    const nextIndex = (selectedImageIndex.value + direction + galleryImages.value.length) % galleryImages.value.length;
+    selectedImage.value = galleryImages.value[nextIndex];
+};
 
 const openImageZoom = async () => {
     isImageZoomOpen.value = true;
@@ -269,7 +294,7 @@ onMounted(() => {
                 thumbnailObserver.unobserve(entry.target);
             });
         },
-        { root: galleryThumbnails.value, rootMargin: "0px 120px" },
+    { root: galleryThumbnails.value, rootMargin: "120px 0px" },
     );
 
     thumbnailElements.value.forEach((element) => thumbnailObserver.observe(element));
@@ -319,7 +344,7 @@ const buyNow = async () => {
 
 <template>
     <TemplateWrapper :shell="false" :title="seoTitle" :description="seoDescription" :keywords="seoKeywords" :social-image="product.thumbnail">
-        <PageShell container class="pb-24 sm:pb-0">
+        <PageShell container class="pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-0">
                 <nav class="text-muted-foreground mb-6 hidden items-center gap-2 text-xs sm:mb-8 sm:flex">
                     <Link :href="route('frontend.home')" class="hover:text-foreground transition-colors">{{ t("labels.breadcrumb.home") }}</Link>
                     <ChevronRight class="h-3 w-3" />
@@ -338,38 +363,18 @@ const buyNow = async () => {
 
                 <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start lg:gap-12">
                     <div class="space-y-3 lg:sticky lg:top-20 lg:self-start">
-                        <Button
-                            ref="imageZoomTrigger"
-                            @click="openImageZoom"
-                            :aria-label="t('labels.product.view_image', { number: selectedImageNumber })"
-                            aria-haspopup="dialog"
-                            class="border-border group relative block aspect-square w-full overflow-hidden rounded-2xl border bg-white p-0 shadow-md transition-shadow hover:shadow-lg focus-visible:ring-offset-4 lg:max-w-[560px]"
-                        >
-                            <img
-                                :src="selectedImage || 'https://placehold.co/800x1000?text=No+Image'"
-                                :alt="product.name"
-                                fetchpriority="high"
-                                decoding="async"
-                                class="h-full w-full object-cover"
-                            />
-                            <span
-                                class="text-foreground pointer-events-none absolute right-4 bottom-4 hidden h-10 w-10 items-center justify-center rounded-full bg-white/95 opacity-0 shadow-sm transition-all duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 sm:flex"
-                                aria-hidden="true"
+                        <div class="flex w-full items-start gap-3">
+                            <div
+                                v-if="galleryImages.length > 1"
+                                ref="galleryThumbnails"
+                                class="flex max-h-[28rem] w-14 shrink-0 flex-col gap-2 overflow-y-auto pb-1 [scrollbar-width:none] sm:w-20 sm:gap-3 [&::-webkit-scrollbar]:hidden"
                             >
-                                <ZoomIn class="h-5 w-5" />
-                            </span>
-                        </Button>
-                        <div
-                            v-if="product.images && product.images.length > 1"
-                            ref="galleryThumbnails"
-                            class="flex [scrollbar-width:none] gap-2 overflow-x-auto pb-1 sm:gap-3 [&::-webkit-scrollbar]:hidden"
-                        >
                             <Button
-                                v-for="(image, index) in product.images"
+                                v-for="(image, index) in galleryImages"
                                 :key="index"
                                 :ref="(element) => setThumbnailElement(element?.$el || element, index)"
                                 :data-index="index"
-                                @click="selectedImage = image"
+                                @click="selectGalleryImage(image)"
                                 :aria-label="t('labels.product.view_image', { number: index + 1 })"
                                 :aria-pressed="selectedImage === image"
                                 class="border-border h-16 w-16 shrink-0 overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow-md sm:h-20 sm:w-20 sm:rounded-xl"
@@ -390,6 +395,46 @@ const buyNow = async () => {
                                 />
                             </Button>
                         </div>
+                            <div class="relative min-w-0 flex-1 lg:max-w-[560px]">
+                                <Button
+                                    ref="imageZoomTrigger"
+                                    @click="openImageZoom"
+                                    :aria-label="t('labels.product.view_image', { number: selectedImageNumber })"
+                                    aria-haspopup="dialog"
+                                    class="border-border group relative block aspect-square w-full overflow-hidden rounded-2xl border bg-white p-0 shadow-md transition-shadow hover:shadow-lg focus-visible:ring-offset-4"
+                                >
+                                    <img
+                                        :src="selectedImage || 'https://placehold.co/800x1000?text=No+Image'"
+                                        :alt="product.name"
+                                        fetchpriority="high"
+                                        decoding="async"
+                                        class="h-full w-full object-cover"
+                                    />
+                                    <span
+                                        class="text-foreground pointer-events-none absolute right-4 bottom-4 hidden h-10 w-10 items-center justify-center rounded-full bg-white/95 opacity-0 shadow-sm transition-all duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 sm:flex"
+                                        aria-hidden="true"
+                                    >
+                                        <ZoomIn class="h-5 w-5" />
+                                    </span>
+                                </Button>
+                                <template v-if="galleryImages.length > 1">
+                                    <Button
+                                        @click.stop="cycleGalleryImage(-1)"
+                                        :icon="ChevronLeft"
+                                        size="icon"
+                                        :aria-label="t('labels.carousel.previous')"
+                                        class="absolute top-1/2 left-3 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-foreground shadow-md hover:bg-white focus-visible:ring-2 focus-visible:ring-white sm:left-5"
+                                    />
+                                    <Button
+                                        @click.stop="cycleGalleryImage(1)"
+                                        :icon="ChevronRight"
+                                        size="icon"
+                                        :aria-label="t('labels.carousel.next')"
+                                        class="absolute top-1/2 right-3 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-foreground shadow-md hover:bg-white focus-visible:ring-2 focus-visible:ring-white sm:right-5"
+                                    />
+                                </template>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="space-y-4 sm:space-y-6">
@@ -407,7 +452,7 @@ const buyNow = async () => {
                                     {{ t("labels.product.weight_unit", { weight: ((product.weight || 0) / 1000).toFixed(2) }) }}</span
                                 >
                             </div>
-                            <h1 class="text-foreground text-2xl font-bold md:text-3xl">
+                            <h1 class="text-foreground text-xl leading-7 font-bold sm:text-2xl md:text-3xl">
                                 {{ product.name }}
                             </h1>
                             <div v-if="ratingData" class="border-border flex flex-wrap items-center gap-2.5 border-b pb-4 text-sm">
@@ -429,14 +474,14 @@ const buyNow = async () => {
 
                             <div class="flex flex-wrap items-center gap-3">
                                 <template v-if="isSale && !activeWholesale">
-                                    <span class="text-primary text-3xl font-bold">{{ formatCurrency(displayPrice, localeCode) }}</span>
-                                    <span class="text-muted-foreground text-lg line-through">{{ formatCurrency(displayOriginalPrice, localeCode) }}</span>
-                                    <span v-if="activeFlashsale || product.discount_percentage" class="rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white">
+                                    <span class="text-primary text-2xl font-bold sm:text-3xl">{{ formatCurrency(displayPrice, localeCode) }}</span>
+                                    <span class="text-muted-foreground text-base line-through sm:text-lg">{{ formatCurrency(displayOriginalPrice, localeCode) }}</span>
+                                    <span v-if="activeFlashsale || product.discount_percentage" class="rounded-full bg-red-500 px-2 py-0.5 text-[10px] leading-4 font-bold text-white sm:px-3 sm:py-1 sm:text-xs">
                                         {{ t("labels.product.discount_off", { discount: activeFlashsale?.discount_percentage ?? product.discount_percentage }) }}
                                     </span>
                                 </template>
                                 <template v-else>
-                                    <span class="text-primary text-3xl font-bold">{{ formatCurrency(displayPrice, localeCode) }}</span>
+                                    <span class="text-primary text-2xl font-bold sm:text-3xl">{{ formatCurrency(displayPrice, localeCode) }}</span>
                                 </template>
                             </div>
 
@@ -513,8 +558,8 @@ const buyNow = async () => {
                                             id="product-quantity"
                                             v-model="quantity"
                                             readonly
-                                            wrapper-class="w-14"
-                                            class="h-11 rounded-none border-x border-y-0 bg-transparent px-0 text-center font-semibold"
+                                            wrapper-class="flex w-14 items-center justify-center"
+                                            class="h-11 w-full appearance-none rounded-none border-x border-y-0 bg-transparent px-0 text-center font-semibold leading-5"
                                         />
                                         <Button
                                             @click="updateQuantity(1)"
@@ -706,7 +751,7 @@ const buyNow = async () => {
                                     >{{ t("labels.product.stars", { rating }) }} ({{ formatProductCount(ratingData.summary.distribution?.[rating] || 0) }})</template
                                 >
                             </Button>
-                        </div>
+                            </div>
                         <div class="mt-6 grid gap-3 md:grid-cols-2">
                             <article v-for="review in reviews" :key="review.id" class="border-border rounded-lg border p-3.5">
                                 <div class="flex items-start justify-between gap-3">
