@@ -30,6 +30,7 @@ class TermsAgreementRegistrationTest extends TestCase
     {
         $settings = app(GeneralSettings::class);
         $settings->term_agreement = $enabled;
+        $settings->registration = true;
         $settings->save();
     }
 

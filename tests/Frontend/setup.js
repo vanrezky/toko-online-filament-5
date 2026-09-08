@@ -64,13 +64,13 @@ vi.mock("@inertiajs/vue3", async () => {
     const actual = await vi.importActual("@inertiajs/vue3");
     return {
         ...actual,
-        usePage: () => ({
+        usePage: vi.fn(() => ({
             props: {
-                settings: { site_name: "Test Store", logo: null, term_agreement: true },
+                settings: { site_name: "Test Store", logo: null, registration: true, social_login_enabled: true, term_agreement: true },
                 menu: { footer: [] },
                 promotions: { data: [] },
             },
-        }),
+        })),
         useForm: (data) => ({
             ...data,
             errors: {},

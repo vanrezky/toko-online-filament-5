@@ -19,7 +19,7 @@ class RegisterController extends Controller
 
     public function __invoke(Request $request)
     {
-        if (settings('is_private_store', false)) {
+        if ($this->registrationIsClosed()) {
             return redirect()->route('frontend.registration-closed');
         }
 
@@ -30,7 +30,7 @@ class RegisterController extends Controller
 
     public function register(Request $request)
     {
-        abort_if(settings('is_private_store', false), 403);
+        abort_if($this->registrationIsClosed(), 403);
 
         if ($this->hasTooManyAttempts($request)) {
             $this->sendLockoutResponse($request);
@@ -104,5 +104,10 @@ class RegisterController extends Controller
     protected function throttleKey(Request $request): string
     {
         return 'register|'.$request->ip();
+    }
+
+    private function registrationIsClosed(): bool
+    {
+        return settings('is_private_store', false) || ! settings('registration', true);
     }
 }

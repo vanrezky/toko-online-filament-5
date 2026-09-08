@@ -55,6 +55,7 @@ class SecurePasswordRegistrationTest extends TestCase
     {
         $settings = app(GeneralSettings::class);
         $settings->secure_password = $enabled;
+        $settings->registration = true;
         $settings->save();
     }
 

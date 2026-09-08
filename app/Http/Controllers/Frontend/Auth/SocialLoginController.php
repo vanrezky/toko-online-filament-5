@@ -99,6 +99,7 @@ class SocialLoginController extends Controller
 
     private function ensureSocialLoginIsAvailable(): void
     {
+        abort_unless(settings('social_login_enabled', true), 404);
         abort_if(settings('is_private_store', false), 403);
     }
 }

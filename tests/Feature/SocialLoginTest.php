@@ -85,6 +85,20 @@ class SocialLoginTest extends TestCase
             ->assertForbidden();
     }
 
+    #[DataProvider('providers')]
+    public function test_it_blocks_social_login_when_disabled(string $provider): void
+    {
+        $settings = app(GeneralSettings::class);
+        $settings->social_login_enabled = false;
+        $settings->save();
+
+        $this->get(route('frontend.auth.social.redirect', ['provider' => $provider]))
+            ->assertNotFound();
+
+        $this->get(route('frontend.auth.social.callback', ['provider' => $provider]))
+            ->assertNotFound();
+    }
+
     public static function providers(): array
     {
         return [

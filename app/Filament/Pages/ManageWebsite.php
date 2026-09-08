@@ -52,6 +52,15 @@ class ManageWebsite extends SettingsPage
             $data['mail_password'],
         );
 
+        $data['social_login_enabled'] = (bool) ($data['social_login_enabled'] ?? true);
+
+        return $data;
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $data['social_login_enabled'] = (bool) ($data['social_login_enabled'] ?? true);
+
         return $data;
     }
 
@@ -169,6 +178,10 @@ class ManageWebsite extends SettingsPage
                                         Toggle::make('registration')
                                             ->label(__('admin/page-manage-website.fields.registration'))
                                             ->helperText(__('admin/page-manage-website.fields.registration_helper')),
+                                        Toggle::make('social_login_enabled')
+                                            ->label(__('admin/page-manage-website.fields.social_login_enabled'))
+                                            ->helperText(__('admin/page-manage-website.fields.social_login_enabled_helper'))
+                                            ->default(true),
                                         Toggle::make('is_private_store')
                                             ->label(__('admin/page-manage-website.fields.private_store'))
                                             ->helperText(__('admin/page-manage-website.fields.private_store_helper')),
