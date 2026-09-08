@@ -10,7 +10,11 @@ import { ref } from "vue";
 import PageShellAuth from "@frontend/components/PageShellAuth.vue";
 
 const { t } = useI18n();
-const isPrivateStore = usePage().props.settings?.is_private_store ?? false;
+const page = usePage();
+const isPrivateStore = page.props.settings?.is_private_store ?? false;
+const registrationEnabled = page.props.settings?.registration ?? true;
+const isRegistrationClosed = isPrivateStore || !registrationEnabled;
+const socialLoginEnabled = page.props.settings?.social_login_enabled ?? true;
 
 const form = useForm({
     email: "",
@@ -42,7 +46,7 @@ const submit = () => {
             <div class="mb-7 space-y-2 text-center sm:mb-8">
                 <h2 class="text-foreground text-2xl font-bold md:text-3xl">{{ t("labels.auth.welcome") }}</h2>
                 <p class="text-muted-foreground text-sm">{{ t("labels.auth.login_subtitle") }}</p>
-                <p v-if="isPrivateStore" class="bg-secondary text-muted-foreground rounded-xl px-4 py-3 text-sm leading-relaxed">
+                <p v-if="isRegistrationClosed" class="bg-secondary text-muted-foreground rounded-xl px-4 py-3 text-sm leading-relaxed">
                     {{ t("labels.auth.registration_closed_description") }}
                 </p>
             </div>
@@ -121,13 +125,13 @@ const submit = () => {
                 </div>
             </form>
 
-            <div v-if="!isPrivateStore" class="my-8 flex items-center gap-3" aria-hidden="true">
+            <div v-if="socialLoginEnabled && !isPrivateStore" class="my-8 flex items-center gap-3" aria-hidden="true">
                 <div class="bg-border h-px flex-1" />
                 <span class="text-muted-foreground text-xs">{{ t("labels.auth.or_continue_with") }}</span>
                 <div class="bg-border h-px flex-1" />
             </div>
 
-            <div v-if="!isPrivateStore" class="flex gap-3">
+            <div v-if="socialLoginEnabled && !isPrivateStore" class="flex gap-3">
                 <Button
                     as="a"
                     :href="route('frontend.auth.social.redirect', { provider: 'google' })"
@@ -158,7 +162,7 @@ const submit = () => {
             </div>
 
             <div class="border-border mt-8 border-t pt-6 text-center">
-                <template v-if="isPrivateStore">
+                <template v-if="isRegistrationClosed">
                     <p class="text-muted-foreground text-sm">
                         {{ t("labels.auth.registration_closed_short") }}
                     </p>

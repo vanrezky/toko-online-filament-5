@@ -82,10 +82,43 @@ class StoreAccessModeTest extends TestCase
         $this->assertAuthenticatedAs($customer, 'customer');
     }
 
+    public function test_disabled_registration_blocks_registration_pages_and_submission(): void
+    {
+        $this->setRegistration(false);
+
+        $this->get(route('frontend.login'))->assertOk();
+        $this->get(route('frontend.forgot-password'))->assertOk();
+        $this->get(route('frontend.signup'))
+            ->assertRedirect(route('frontend.registration-closed'));
+
+        $this->get(route('frontend.registration-closed'))->assertOk();
+
+        $this->post(route('frontend.signup.post'), [
+            'first_name' => 'Disabled',
+            'last_name' => 'Registration',
+            'email' => 'disabled-registration@example.test',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+        ])->assertForbidden();
+
+        $this->assertDatabaseMissing('customers', [
+            'email' => 'disabled-registration@example.test',
+        ]);
+    }
+
     private function setStoreMode(bool $isPrivateStore): void
     {
         $settings = app(GeneralSettings::class);
         $settings->is_private_store = $isPrivateStore;
+        $settings->registration = true;
+        $settings->save();
+    }
+
+    private function setRegistration(bool $enabled): void
+    {
+        $settings = app(GeneralSettings::class);
+        $settings->is_private_store = false;
+        $settings->registration = $enabled;
         $settings->save();
     }
 }

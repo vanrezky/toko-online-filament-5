@@ -94,6 +94,8 @@ class GeneralSettings extends Settings
 
     public bool $is_private_store = false;
 
+    public bool $social_login_enabled = true;
+
     public static function group(): string
     {
         return 'general';

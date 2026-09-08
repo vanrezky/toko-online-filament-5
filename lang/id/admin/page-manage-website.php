@@ -44,6 +44,8 @@ return [
         'twitter' => 'X / Twitter',
         'registration' => 'Pendaftaran Akun',
         'registration_helper' => 'Izinkan pengunjung membuat akun pelanggan.',
+        'social_login_enabled' => 'Login Sosial',
+        'social_login_enabled_helper' => 'Izinkan pelanggan masuk menggunakan Google atau GitHub.',
         'private_store' => 'Toko Private',
         'private_store_helper' => 'Batasi storefront untuk pelanggan yang telah diizinkan.',
         'force_ssl' => 'Paksa HTTPS',
