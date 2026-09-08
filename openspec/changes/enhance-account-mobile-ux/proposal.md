@@ -7,6 +7,8 @@ Issue #94: the customer account navigation is difficult to use on a narrow mobil
 - Replace the cramped mobile account destination row with a clear, touch-friendly account menu while preserving the existing URL-backed destinations and active-state behavior.
 - Add a mobile account identity summary and organize the overview content in the mockup's order: identity, balance and order summaries, default address, recent activity, and account menu.
 - Add mobile context/back treatment for non-overview account destinations without changing their forms, data, or submit actions.
+- Use one shared section title and description for each account destination so content cards do not repeat their page heading; keep the browser document title unchanged.
+- Keep logout in a distinct session-action group in the desktop sidebar and mobile overview menu, without adding logout actions to non-overview destination headers.
 - Preserve the existing desktop account shell and responsive behavior outside the affected mobile composition.
 - Keep all new visible copy localized in Indonesian and English and add focused frontend/browser regression coverage.
 

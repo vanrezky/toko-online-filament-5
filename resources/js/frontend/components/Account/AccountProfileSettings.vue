@@ -26,7 +26,6 @@ const submit = () => form.post(route("frontend.account.update"), { preserveScrol
 
 <template>
     <section class="rounded-2xl border border-border bg-background p-6 shadow-sm md:p-8">
-        <div class="mb-8"><h2 class="text-foreground text-xl font-bold">{{ t("labels.account.settings_heading") }}</h2><p class="text-muted-foreground mt-1 text-sm">{{ t("labels.account.settings_description") }}</p></div>
         <form class="space-y-8" @submit.prevent="submit">
             <div class="flex flex-col items-center gap-4 md:items-start">
                 <div class="relative"><div class="from-secondary to-secondary/50 flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br shadow-inner"><img v-if="imagePreview || user.image || user.profile_photo_url" :src="imagePreview || user.image || user.profile_photo_url" class="h-full w-full object-cover" /><User v-else class="text-muted-foreground h-12 w-12" /></div><Button type="button" class="absolute -right-1 -bottom-1 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform hover:scale-105" :aria-label="t('labels.account.profile_photo')" @click="fileInput?.element?.click()"><Camera class="h-4 w-4" /></Button><FormFile ref="fileInput" class="hidden" accept="image/*" @change="handleImageChange" /></div>

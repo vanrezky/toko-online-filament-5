@@ -7,6 +7,8 @@ import Card from "../UI/Card.vue";
 
 const props = defineProps({
     activeDestination: { type: String, default: "overview" },
+    activeTitle: { type: String, default: "" },
+    activeDescription: { type: String, default: "" },
     user: { type: Object, default: null },
     balanceEnabled: { type: Boolean, default: false },
 });
@@ -58,6 +60,7 @@ const activeDestinationName = computed(() => {
 
     return t("labels.account.heading");
 });
+const mobileContextTitle = computed(() => props.activeTitle || activeDestinationName.value);
 </script>
 
 <template>
@@ -161,11 +164,10 @@ const activeDestinationName = computed(() => {
                 </Link>
                 <div class="min-w-0">
                     <p class="text-muted-foreground text-xs font-semibold tracking-wide uppercase">{{ t("labels.account.heading") }}</p>
-                    <p class="text-foreground truncate text-lg font-bold">{{ activeDestinationName }}</p>
+                    <p class="text-foreground truncate text-lg font-bold">{{ mobileContextTitle }}</p>
+                    <p v-if="activeDescription" class="text-muted-foreground text-sm leading-5">{{ activeDescription }}</p>
                 </div>
             </header>
-
-            <slot />
 
             <nav
                 v-if="isOverview"
@@ -203,7 +205,21 @@ const activeDestinationName = computed(() => {
                         </Link>
                     </template>
                 </div>
+                <div class="border-border border-t p-2">
+                    <Link
+                        data-test="mobile-account-logout"
+                        :href="route('frontend.logout')"
+                        method="post"
+                        as="button"
+                        class="text-destructive hover:bg-destructive/10 focus-visible:ring-destructive flex min-h-12 w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                    >
+                        <LogOut class="h-5 w-5" aria-hidden="true" />
+                        <span>{{ t("labels.actions.logout") }}</span>
+                    </Link>
+                </div>
             </nav>
+
+            <slot />
         </main>
     </div>
 </template>

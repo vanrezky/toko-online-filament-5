@@ -46,6 +46,35 @@ Mobile account destinations other than the overview SHALL provide a clear accoun
 - **THEN** the page identifies the active destination and provides a visible navigation affordance back to the account overview
 - **AND** the destination's existing content and actions remain available
 
+### Requirement: Account section headings are single-source and task-oriented
+
+Each account destination SHALL expose its localized title and description in the shared page header on desktop and in the mobile destination context. Destination content cards SHALL begin with their fields or content without repeating the same title and description. The browser document title SHALL remain the account-level title `Akun Saya - Toko Online`.
+
+#### Scenario: Customer opens a settings or password destination
+
+- **WHEN** the customer opens account settings or password management
+- **THEN** the active section title and description are shown in the shared page header/context
+- **AND** the profile or password card does not repeat the same title and description
+
+#### Scenario: Customer views the account document title
+
+- **WHEN** the customer navigates between account destinations
+- **THEN** the browser document title remains `Akun Saya - Toko Online`
+
+### Requirement: Logout remains a distinct session action
+
+Logout SHALL remain visually separated from ordinary account and shopping destinations. It SHALL be available in the desktop sidebar and the mobile overview menu, and SHALL NOT appear as a duplicate action in non-overview destination headers.
+
+#### Scenario: Customer views the account overview
+
+- **WHEN** the customer opens the account overview on desktop or mobile
+- **THEN** logout is available in the distinct session-action group
+
+#### Scenario: Customer views a non-overview destination
+
+- **WHEN** the customer opens settings, password, balance, or an address destination
+- **THEN** the destination header contains context/back navigation without a duplicate logout action
+
 ### Requirement: Account mobile UX remains localized and responsive
 
 The mobile account experience SHALL use the active Indonesian or English locale for all newly introduced visible labels and SHALL leave the existing desktop account navigation and functionality intact.

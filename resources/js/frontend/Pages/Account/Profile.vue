@@ -40,6 +40,7 @@ const getSectionFromUrl = () => {
 };
 
 const activeSection = ref(getSectionFromUrl());
+const editingAddress = ref(null);
 
 watch(
     () => page.url,
@@ -48,7 +49,36 @@ watch(
     },
 );
 
-const editingAddress = ref(null);
+const sectionMeta = computed(() => {
+    const metadata = {
+        overview: {
+            title: t("labels.account.heading"),
+            description: t("labels.account.settings_description"),
+        },
+        balance: {
+            title: t("labels.account.balance_heading"),
+            description: t("labels.account.balance_page_description"),
+        },
+        settings: {
+            title: t("labels.account.settings_heading"),
+            description: t("labels.account.settings_description"),
+        },
+        password: {
+            title: t("labels.account.password_heading"),
+            description: t("labels.account.password_description"),
+        },
+        addresses: {
+            title: t("labels.address.heading"),
+            description: t("labels.address.description"),
+        },
+        address_form: {
+            title: t(editingAddress.value ? "labels.address.edit_heading" : "labels.address.new_heading"),
+            description: t(editingAddress.value ? "labels.address.edit_description" : "labels.address.new_description"),
+        },
+    };
+
+    return metadata[activeSection.value] || metadata.overview;
+});
 
 const districts = ref([]);
 const subDistricts = ref([]);
@@ -207,10 +237,16 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                     <span class="text-foreground font-medium">{{ t("labels.account.heading") }}</span>
                 </div>
 
-                <AccountShell :user="user" :balance-enabled="balanceEnabled" :active-destination="activeSection">
-                    <header class="hidden space-y-2 lg:block">
-                        <h1 class="text-foreground text-2xl font-bold">{{ t("labels.account.heading") }}</h1>
-                        <p class="text-muted-foreground text-sm">{{ t("labels.account.settings_description") }}</p>
+                <AccountShell
+                    :user="user"
+                    :balance-enabled="balanceEnabled"
+                    :active-destination="activeSection"
+                    :active-title="sectionMeta.title"
+                    :active-description="sectionMeta.description"
+                >
+                    <header data-test="account-page-header" class="hidden space-y-2 lg:block">
+                        <h1 class="text-foreground text-2xl font-bold">{{ sectionMeta.title }}</h1>
+                        <p class="text-muted-foreground text-sm">{{ sectionMeta.description }}</p>
                     </header>
                     <!-- OVERVIEW SECTION -->
                     <div v-if="activeSection === 'overview'" class="space-y-6">
@@ -226,7 +262,7 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                             <div class="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-xl">
                                                 <Wallet class="text-primary h-5 w-5" />
                                             </div>
-                                            <span class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">{{
+                                            <span class="text-muted-foreground text-sm font-semibold tracking-wider uppercase">{{
                                                 t("labels.account.balance")
                                             }}</span>
                                         </div>
@@ -234,7 +270,7 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                     </div>
                                 </div>
                                 <div class="border-border/60 mt-4 border-t pt-3">
-                                    <p class="text-muted-foreground line-clamp-1 text-xs">{{ t("labels.account.balance_description") }}</p>
+                                    <p class="text-muted-foreground line-clamp-2 text-sm leading-5">{{ t("labels.account.balance_description") }}</p>
                                 </div>
                             </div>
                             <div
@@ -246,7 +282,7 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                             <div class="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-xl">
                                                 <Package class="text-primary h-5 w-5" />
                                             </div>
-                                            <span class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">{{
+                                            <span class="text-muted-foreground text-sm font-semibold tracking-wider uppercase">{{
                                                 t("labels.account.total_orders")
                                             }}</span>
                                         </div>
@@ -254,7 +290,7 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                     </div>
                                 </div>
                                 <div class="border-border/60 mt-auto flex items-center justify-between border-t pt-3">
-                                    <span class="text-muted-foreground text-xs">{{ t("labels.account.all_time") }}</span>
+                                        <span class="text-muted-foreground text-sm">{{ t("labels.account.all_time") }}</span>
                                     <Link
                                         :href="route('frontend.orders')"
                                         class="text-primary hover:text-primary/80 inline-flex items-center gap-1 text-xs font-semibold transition-colors outline-none focus:outline-none focus-visible:ring-0 focus-visible:outline-none"
@@ -274,7 +310,7 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                             <div class="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-xl">
                                                 <MapPin class="text-primary h-5 w-5" />
                                             </div>
-                                            <span class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">{{
+                                            <span class="text-muted-foreground text-sm font-semibold tracking-wider uppercase">{{
                                                 t("labels.account.default_address")
                                             }}</span>
                                         </div>
@@ -293,10 +329,7 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                         <p v-else class="text-muted-foreground py-2 text-sm">{{ t("labels.address.no_default") }}</p>
                                     </div>
                                 </div>
-                                <div class="border-border/60 mt-auto flex items-center justify-between border-t pt-3">
-                                    <span class="text-muted-foreground text-xs">{{
-                                        featuredAddress ? t("labels.address.default_badge") : t("labels.address.no_default")
-                                    }}</span>
+                                <div class="border-border/60 mt-auto flex items-center justify-end border-t pt-3">
                                     <Button
                                         @click="activeSection = 'addresses'"
                                         class="text-primary hover:text-primary/80 inline-flex items-center gap-1 text-xs font-semibold transition-colors"
@@ -307,8 +340,8 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                         </div>
 
                         <!-- Recent Activity -->
-                        <div class="border-border bg-background rounded-2xl border p-6 shadow-sm">
-                            <h3 class="text-foreground mb-6 flex items-center gap-2 text-lg font-bold">
+                        <div class="border-border bg-background rounded-2xl border p-4 shadow-sm sm:p-6">
+                            <h3 class="text-foreground mb-4 flex items-center gap-2 text-lg font-bold sm:mb-6">
                                 <Clock class="text-primary h-5 w-5" />
                                 {{ t("labels.account.recent_activity") }}
                             </h3>
@@ -317,25 +350,26 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                     v-for="order in recentOrders"
                                     :key="order.id"
                                     :href="route('frontend.orders.show', order.id)"
-                                    class="group border-border hover:bg-secondary/40 flex items-center justify-between gap-4 rounded-xl border bg-white px-4 py-3 transition-all"
+                                    data-test="account-recent-order"
+                                    class="group border-border hover:bg-secondary/40 flex flex-col gap-2 rounded-xl border bg-background px-4 py-3 transition-all sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                                 >
                                     <div class="min-w-0">
-                                        <p class="text-foreground truncate text-sm font-semibold">
+                                        <p class="text-foreground text-sm leading-5 font-semibold sm:truncate">
                                             {{ t("labels.order.order_number", { id: order.code }) }}
                                         </p>
-                                        <p class="text-muted-foreground mt-0.5 text-xs">
+                                        <p class="text-muted-foreground mt-1 text-sm">
                                             {{ formatDate(order.created_at, dateFormat, localeCode) }}
                                         </p>
                                     </div>
-                                    <div class="flex flex-shrink-0 items-center gap-3">
+                                    <div class="flex w-full shrink-0 items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-3">
                                         <span
-                                            class="rounded-full px-2.5 py-0.5 text-[10px] leading-none font-medium"
+                                            class="shrink-0 rounded-full px-2.5 py-1 text-xs leading-none font-medium"
                                             :class="getOrderStatusColor(order.status)"
                                         >
                                             {{ getOrderStatusLabel(order.status, t) }}
                                         </span>
-                                        <p class="text-primary text-sm font-bold">{{ formatCurrency(order.total, localeCode) }}</p>
-                                        <ChevronRight class="text-muted-foreground group-hover:text-foreground h-4 w-4 transition-colors" />
+                                        <p class="text-primary ml-auto whitespace-nowrap text-sm font-bold">{{ formatCurrency(order.total, localeCode) }}</p>
+                                        <ChevronRight class="text-muted-foreground group-hover:text-foreground h-4 w-4 shrink-0 transition-colors" />
                                     </div>
                                 </Link>
                                 <Link
@@ -374,11 +408,6 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                     <AccountPasswordForm v-if="activeSection === 'password'" :password-requirements-enabled="passwordRequirementsEnabled" />
 
                     <div v-if="activeSection === 'balance' && balanceEnabled" data-test="balance-section" class="space-y-6">
-                        <header class="space-y-2">
-                            <h2 class="text-foreground text-xl font-bold">{{ t("labels.account.balance_heading") }}</h2>
-                            <p class="text-muted-foreground text-sm">{{ t("labels.account.balance_page_description") }}</p>
-                        </header>
-
                         <div data-test="balance-summary" class="border-border bg-background rounded-2xl border p-6 shadow-sm">
                             <div class="flex items-center gap-3">
                                 <div class="bg-primary/10 flex h-11 w-11 items-center justify-center rounded-xl">
@@ -421,12 +450,8 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                     </div>
 
                     <div v-if="activeSection === 'addresses'" class="space-y-6">
-                        <div class="border-border flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">
-                            <div class="space-y-2">
-                                <h2 class="text-foreground text-xl font-bold">{{ t("labels.address.heading") }}</h2>
-                                <p class="text-muted-foreground text-sm">{{ t("labels.address.description") }}</p>
-                            </div>
-                            <Button v-if="!isPrivateStore" variant="primary" :icon="Plus" @click="openAddressForm()">
+                        <div v-if="!isPrivateStore" class="flex justify-end">
+                            <Button variant="primary" :icon="Plus" @click="openAddressForm()">
                                 {{ t("labels.address.add") }}
                             </Button>
                         </div>
@@ -514,15 +539,6 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                     </div>
 
                     <div v-if="activeSection === 'address_form' && !isPrivateStore" class="space-y-6">
-                        <div>
-                            <h2 class="text-foreground text-xl font-bold">
-                                {{ editingAddress ? t("labels.address.edit_heading") : t("labels.address.new_heading") }}
-                            </h2>
-                            <p class="text-muted-foreground mt-1 text-sm">
-                                {{ editingAddress ? t("labels.address.edit_description") : t("labels.address.new_description") }}
-                            </p>
-                        </div>
-
                         <form class="border-border bg-background space-y-5 rounded-2xl border p-6 shadow-sm" @submit.prevent="submitAddress">
                             <div class="grid gap-4 md:grid-cols-2">
                                 <label class="text-foreground space-y-2 text-sm font-semibold">

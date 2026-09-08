@@ -4,6 +4,8 @@
 - [x] 1.2 Add the mobile overview identity summary and arrange the account menu after the existing summary/activity content without changing data contracts or actions.
 - [x] 1.3 Add compact mobile context and back-to-overview treatment for non-overview account destinations.
 - [x] 1.4 Preserve desktop navigation, wallet feature gating, address-form active state, and existing account URLs.
+- [x] 1.5 Move active section title and description into the shared page/context header and remove duplicate destination-card headings.
+- [x] 1.6 Keep logout isolated to the desktop sidebar and mobile overview session-action group.
 
 ## 2. Localization and frontend coverage
 
@@ -15,4 +17,4 @@
 - [x] 3.1 Run focused Vitest coverage for the account shell and profile page, then run the complete frontend test suite.
 - [x] 3.2 Run the production frontend build and strict OpenSpec validation.
 - [x] 3.3 Verify `/account` and representative non-overview account destinations at mobile and desktop viewports in the existing browser, including keyboard focus and no horizontal menu overflow.
-- [x] 3.4 Run the Impeccable mechanical detector and `git diff --check`, then review the final diff against Issue #94 and the OpenSpec requirements.
+- [x] 3.4 Run the Impeccable quality-floor review and `git diff --check`, then review the final diff against Issue #94 and the OpenSpec requirements.

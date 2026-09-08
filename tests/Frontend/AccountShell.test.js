@@ -15,7 +15,7 @@ const mountShell = (activeDestination = "overview") =>
             },
         },
         slots: {
-            default: "<p>Account content</p>",
+            default: '<p data-test="account-content">Account content</p>',
         },
     });
 
@@ -38,6 +38,7 @@ describe("AccountShell navigation", () => {
 
         expect(wrapper.findAll('a[href="/frontend.orders"]')).toHaveLength(2);
         expect(wrapper.findAll('a[href="/frontend.wishlist"]')).toHaveLength(2);
+        expect(wrapper.find('[data-test="mobile-account-logout"]').exists()).toBe(true);
     });
 
     it("marks the URL-backed active destination in both responsive navigation variants", () => {
@@ -85,6 +86,7 @@ describe("AccountShell navigation", () => {
 
         expect(wrapper.find('[data-test="mobile-account-identity"]').exists()).toBe(true);
         expect(mainHtml.indexOf('data-test="mobile-account-identity"')).toBeLessThan(mainHtml.indexOf('data-test="account-mobile-navigation"'));
+        expect(mainHtml.indexOf('data-test="account-mobile-navigation"')).toBeLessThan(mainHtml.indexOf('data-test="account-content"'));
     });
 
     it("shows the mobile account menu only on the overview", () => {
@@ -92,5 +94,6 @@ describe("AccountShell navigation", () => {
 
         expect(wrapper.find('[data-test="account-mobile-navigation"]').exists()).toBe(false);
         expect(wrapper.find('[data-test="mobile-account-context"]').text()).toContain("Settings");
+        expect(wrapper.find('[data-test="mobile-account-context-logout"]').exists()).toBe(false);
     });
 });
