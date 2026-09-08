@@ -1,40 +1,47 @@
 <script setup>
-import Button from "@frontend/components/UI/Button.vue";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import axios from "axios";
 import { useI18n } from "vue-i18n";
-import { Link, usePage, router } from "@inertiajs/vue3";
+import { Link, router, usePage } from "@inertiajs/vue3";
+import { cn, formatCompactNumber, formatCurrency } from "../../lib/utils";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import PageShell from "../../components/PageShell.vue";
 import FormInput from "../../components/UI/FormInput.vue";
-import { formatCompactNumber, formatCurrency } from "../../lib/utils";
+import Button from "@frontend/components/UI/Button.vue";
 import {
-    ShoppingBag,
-    Heart,
-    ShieldCheck,
-    Truck,
-    RefreshCw,
+    BadgeCheck,
+    ChevronDown,
     ChevronLeft,
     ChevronRight,
-    ChevronDown,
     ChevronUp,
-    Plus,
-    Minus,
+    CircleCheck,
+    FileText,
+    Heart,
+    ImageOff,
+    List,
     MapPin,
+    Minus,
+    Plus,
+    RefreshCw,
+    Ruler,
     Scale,
+    ShieldCheck,
+    ShoppingBag,
     Star,
     Tag,
-    MessageCircle,
-    ZoomIn,
+    Truck,
     X,
+    ZoomIn,
 } from "lucide-vue-next";
 
 const props = defineProps({
-    product: Object,
+    product: { type: Object, required: true },
+    relatedProducts: { type: Array, default: () => [] },
 });
 
 const page = usePage();
-const selectedImage = ref(props.product.thumbnail);
+const { t, locale } = useI18n();
+const selectedImageIndex = ref(0);
 const isImageZoomOpen = ref(false);
 const zoomDialog = ref(null);
 const imageZoomTrigger = ref(null);
@@ -44,6 +51,8 @@ const visibleThumbnailIndexes = ref(new Set([0]));
 const quantity = ref(1);
 const selectedAttributes = ref({});
 const activeFaq = ref(null);
+const activeDesktopTab = ref("description");
+const activeMobileDetail = ref("description");
 const isDescriptionExpanded = ref(false);
 const reviews = ref([]);
 const ratingData = ref(null);
@@ -53,40 +62,56 @@ const isLoadingReviews = ref(false);
 const hasMoreReviews = ref(true);
 const selectedReviewRating = ref("all");
 const reviewsError = ref(false);
-const { t, locale } = useI18n();
 
 const formatProductCount = (count) => formatCompactNumber(count, locale.value);
 const localeCode = computed(() => (locale.value === "id" ? "id-ID" : "en-US"));
-const galleryImages = computed(() => {
-    const images = Array.isArray(props.product.images) ? props.product.images.filter(Boolean) : [];
+const galleryMedia = computed(() => {
+    const originals = Array.isArray(props.product.images) ? props.product.images.filter(Boolean) : [];
+    const thumbnails = Array.isArray(props.product.image_thumbnails) ? props.product.image_thumbnails : [];
+    const media = originals.map((url, index) => ({
+        url,
+        thumbnail: thumbnails[index] || url,
+    }));
 
-    if (props.product.thumbnail && !images.includes(props.product.thumbnail)) {
-        return [props.product.thumbnail, ...images];
-    }
+    if (media.length) return media;
 
-    return images.length ? images : props.product.thumbnail ? [props.product.thumbnail] : [];
+    return props.product.thumbnail ? [{ url: props.product.thumbnail, thumbnail: props.product.thumbnail }] : [];
 });
-const selectedImageIndex = computed(() => {
-    const imageIndex = galleryImages.value.indexOf(selectedImage.value);
+const selectedImage = computed(() => galleryMedia.value[selectedImageIndex.value]?.url || null);
+const selectedImageNumber = computed(() => (selectedImage.value ? selectedImageIndex.value + 1 : 0));
+const relatedItems = computed(() => {
+    if (Array.isArray(props.relatedProducts)) return props.relatedProducts;
 
-    return imageIndex >= 0 ? imageIndex : 0;
-});
-const selectedImageNumber = computed(() => {
-    return selectedImageIndex.value + 1;
+    return props.relatedProducts?.data || [];
 });
 
-const selectGalleryImage = (image) => {
-    selectedImage.value = image;
+watch(
+    galleryMedia,
+    (media) => {
+        if (!media.length) {
+            selectedImageIndex.value = 0;
+            return;
+        }
+
+        if (selectedImageIndex.value >= media.length) selectedImageIndex.value = 0;
+    },
+    { immediate: true },
+);
+
+const selectGalleryImage = (index) => {
+    selectedImageIndex.value = index;
 };
 
 const cycleGalleryImage = (direction) => {
-    if (galleryImages.value.length < 2) return;
+    if (galleryMedia.value.length < 2) return;
 
-    const nextIndex = (selectedImageIndex.value + direction + galleryImages.value.length) % galleryImages.value.length;
-    selectedImage.value = galleryImages.value[nextIndex];
+    selectedImageIndex.value =
+        (selectedImageIndex.value + direction + galleryMedia.value.length) % galleryMedia.value.length;
 };
 
 const openImageZoom = async () => {
+    if (!selectedImage.value) return;
+
     isImageZoomOpen.value = true;
     await nextTick();
     zoomDialog.value?.focus();
@@ -95,36 +120,27 @@ const openImageZoom = async () => {
 const closeImageZoom = async () => {
     isImageZoomOpen.value = false;
     await nextTick();
-    imageZoomTrigger.value?.focus();
+    imageZoomTrigger.value?.$el?.focus();
 };
 
-const isWishlisted = computed(() => {
-    return page.props.wishlist_product_ids?.includes(props.product.id);
-});
+const isWishlisted = computed(() => page.props.wishlist_product_ids?.includes(props.product.id));
 
 const toggleWishlist = () => {
     router.post(
         route("frontend.wishlist.toggle"),
-        {
-            product_id: props.product.id,
-        },
-        {
-            preserveScroll: true,
-        },
+        { product_id: props.product.id },
+        { preserveScroll: true },
     );
 };
 
 const hasVariants = computed(() => props.product.variants && props.product.variants.length > 0);
-
 const attributeGroups = computed(() => {
     if (!hasVariants.value) return {};
 
     const groups = {};
     props.product.variants.forEach((variant) => {
         variant.attributes.forEach((attr) => {
-            if (!groups[attr.name]) {
-                groups[attr.name] = new Set();
-            }
+            if (!groups[attr.name]) groups[attr.name] = new Set();
             groups[attr.name].add(attr.option);
         });
     });
@@ -135,20 +151,26 @@ const attributeGroups = computed(() => {
 
     return groups;
 });
-
+const requiredAttributes = computed(() => Object.keys(attributeGroups.value));
 const selectedVariant = computed(() => {
     if (!hasVariants.value) return null;
 
     const selectedKeys = Object.keys(selectedAttributes.value);
     if (selectedKeys.length !== Object.keys(attributeGroups.value).length) return null;
 
-    return props.product.variants.find((variant) => {
-        return variant.attributes.every((attr) => selectedAttributes.value[attr.name] === attr.option);
-    });
+    return props.product.variants.find((variant) =>
+        variant.attributes.every((attr) => selectedAttributes.value[attr.name] === attr.option),
+    );
 });
+const optionClasses = (name, option) =>
+    cn(
+        "min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-primary/30",
+        selectedAttributes.value[name] === option
+            ? "border-primary bg-primary/5 text-primary"
+            : "border-border bg-white text-foreground hover:border-primary/50",
+    );
 
 const activeFlashsale = computed(() => props.product.pricing?.flashsale ?? null);
-
 const displayPrice = computed(() => {
     let basePrice = parseFloat(props.product.pricing?.final_price ?? props.product.sale_price ?? props.product.price);
 
@@ -164,57 +186,109 @@ const displayPrice = computed(() => {
     if (props.product.wholesales && props.product.wholesales.length > 0) {
         const minOrder = props.product.min_order || 1;
         const applicableWholesale = [...props.product.wholesales]
-            .filter((w) => w.min_qty > minOrder)
+            .filter((wholesale) => wholesale.min_qty > minOrder)
             .sort((a, b) => b.min_qty - a.min_qty)
-            .find((w) => quantity.value >= w.min_qty);
+            .find((wholesale) => quantity.value >= wholesale.min_qty);
 
         if (applicableWholesale) return parseFloat(applicableWholesale.price);
     }
 
     return basePrice;
 });
-
-const displayOriginalPrice = computed(() => {
-    return selectedVariant.value
+const displayOriginalPrice = computed(() =>
+    selectedVariant.value
         ? parseFloat(selectedVariant.value.price)
-        : parseFloat(props.product.pricing?.original_price ?? props.product.price);
-});
-
+        : parseFloat(props.product.pricing?.original_price ?? props.product.price),
+);
 const activeWholesale = computed(() => {
-    if (activeFlashsale.value) return null;
-    if (!props.product.wholesales || props.product.wholesales.length === 0) return null;
+    if (activeFlashsale.value || !props.product.wholesales?.length) return null;
+
     const minOrder = props.product.min_order || 1;
     return [...props.product.wholesales]
-        .filter((w) => w.min_qty > minOrder)
+        .filter((wholesale) => wholesale.min_qty > minOrder)
         .sort((a, b) => b.min_qty - a.min_qty)
-        .find((w) => quantity.value >= w.min_qty);
+        .find((wholesale) => quantity.value >= wholesale.min_qty);
 });
-
 const nextWholesale = computed(() => {
-    if (activeFlashsale.value) return null;
-    if (!props.product.wholesales || props.product.wholesales.length === 0) return null;
-    return [...props.product.wholesales].sort((a, b) => a.min_qty - b.min_qty).find((w) => quantity.value < w.min_qty);
-});
+    if (activeFlashsale.value || !props.product.wholesales?.length) return null;
 
+    return [...props.product.wholesales]
+        .sort((a, b) => a.min_qty - b.min_qty)
+        .find((wholesale) => quantity.value < wholesale.min_qty);
+});
 const displayStock = computed(() => {
     const productStock = selectedVariant.value ? selectedVariant.value.stock : props.product.stock;
+
     return activeFlashsale.value ? Math.min(productStock, activeFlashsale.value.stock) : productStock;
 });
+const isSale = computed(() => ["sale", "flashsale"].includes(props.product.pricing?.source));
+const hasPositiveRatingSummary = computed(
+    () => ratingData.value?.summary.count > 0 && ratingData.value.summary.average >= 4,
+);
 
-const isSale = computed(() => ['sale', 'flashsale'].includes(props.product.pricing?.source));
-const requiredAttributes = computed(() => Object.keys(attributeGroups.value));
-const hasPositiveRatingSummary = computed(() => ratingData.value?.summary.count > 0 && ratingData.value.summary.average >= 4);
+const trustItems = computed(() => [
+    { icon: Truck, title: t("labels.trust.free_shipping"), note: t("labels.trust.free_shipping_note") },
+    { icon: ShieldCheck, title: t("labels.trust.secure_payment"), note: t("labels.trust.secure_payment_note") },
+    { icon: RefreshCw, title: t("labels.trust.easy_returns"), note: t("labels.trust.easy_returns_note") },
+    { icon: BadgeCheck, title: t("labels.product.original_product"), note: t("labels.product.original_product_note") },
+]);
+const benefitItems = computed(() => [
+    t("labels.product.benefit_lightweight"),
+    t("labels.product.benefit_comfortable"),
+    t("labels.product.benefit_versatile"),
+    t("labels.product.benefit_quality"),
+    t("labels.product.benefit_choices"),
+    t("labels.product.benefit_design"),
+]);
+const specRows = computed(() => [
+    { label: t("labels.product.spec_code"), value: props.product.code || "—" },
+    { label: t("labels.product.spec_category"), value: props.product.category?.name || "—" },
+    { label: t("labels.product.spec_weight"), value: ((props.product.weight || 0) / 1000).toFixed(2) + " kg" },
+    { label: t("labels.product.spec_warehouse"), value: props.product.warehouse?.name || t("labels.product.default_warehouse") },
+]);
+const paymentMethods = ["BCA", "BRI", "Mandiri", "BNI", "DANA", "GoPay", "OVO", "Visa", "Mastercard"];
+
+const mobileDetailSections = computed(() => [
+    { key: "description", label: t("labels.product.description"), icon: FileText },
+    { key: "specifications", label: t("labels.product.specifications"), icon: List },
+    { key: "size", label: t("labels.product.size_guide"), icon: Ruler },
+    { key: "shipping", label: t("labels.product.shipping_returns"), icon: Truck },
+    {
+        key: "reviews",
+        label: ratingData.value
+            ? t("labels.product.reviews_heading") + " (" + formatProductCount(ratingData.value.summary.count) + ")"
+            : t("labels.product.reviews_heading"),
+        icon: Star,
+    },
+]);
 
 const seoTitle = computed(() => props.product.meta?.title || props.product.name);
 const seoDescription = computed(() => props.product.meta?.description || props.product.description?.substring(0, 160));
 const seoKeywords = computed(() => props.product.meta?.keyword);
 
-const updateQuantity = (val) => {
+const updateQuantity = (value) => {
     const maxStock = selectedVariant.value ? selectedVariant.value.stock : props.product.stock;
-    const newQty = quantity.value + val;
-    if (newQty >= (props.product.min_order || 1) && newQty <= maxStock) {
-        quantity.value = newQty;
+    const newQuantity = quantity.value + value;
+
+    if (newQuantity >= (props.product.min_order || 1) && newQuantity <= maxStock) quantity.value = newQuantity;
+};
+
+const normalizeQuantity = () => {
+    const minOrder = props.product.min_order || 1;
+    const maxStock = selectedVariant.value ? selectedVariant.value.stock : props.product.stock;
+    const enteredQuantity = Number.parseInt(quantity.value, 10);
+
+    if (maxStock <= 0) {
+        quantity.value = minOrder;
+        return;
     }
+
+    if (!Number.isFinite(enteredQuantity)) {
+        quantity.value = minOrder;
+        return;
+    }
+
+    quantity.value = Math.min(Math.max(enteredQuantity, minOrder), maxStock);
 };
 
 const selectAttribute = (name, option) => {
@@ -226,20 +300,33 @@ const toggleFaq = (index) => {
     activeFaq.value = activeFaq.value === index ? null : index;
 };
 
+const toggleMobileDetail = (key) => {
+    activeMobileDetail.value = activeMobileDetail.value === key ? null : key;
+
+    if (key === "reviews" && activeMobileDetail.value === key && !ratingData.value) fetchReviews(1, true);
+};
+
+const openReviews = async () => {
+    activeDesktopTab.value = "reviews";
+    await nextTick();
+    ratingSection.value?.scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
 const ratingPercent = (rating) => {
     const total = ratingData.value?.summary.count || 0;
+
     return total ? ((ratingData.value.summary.distribution?.[rating] || 0) / total) * 100 : 0;
 };
 
-const fetchReviews = async (page = 1, replace = false) => {
-    if (isLoadingReviews.value || !hasMoreReviews.value) return;
+const fetchReviews = async (pageNumber = 1, replace = false) => {
+    if (isLoadingReviews.value || (!hasMoreReviews.value && !replace)) return;
 
     isLoadingReviews.value = true;
     reviewsError.value = false;
     try {
         const response = await axios.get(route("frontend.products.reviews", props.product.slug), {
             params: {
-                page,
+                page: pageNumber,
                 ...(selectedReviewRating.value !== "all" ? { rating: selectedReviewRating.value } : {}),
             },
         });
@@ -262,12 +349,6 @@ const filterReviews = (rating) => {
     selectedReviewRating.value = rating;
     reviewPage.value = 0;
     hasMoreReviews.value = true;
-
-    if (rating === "all") {
-        fetchReviews(1, true);
-        return;
-    }
-
     fetchReviews(1, true);
 };
 
@@ -290,11 +371,14 @@ onMounted(() => {
             entries.forEach((entry) => {
                 if (!entry.isIntersecting) return;
 
-                visibleThumbnailIndexes.value = new Set([...visibleThumbnailIndexes.value, Number(entry.target.dataset.index)]);
+                visibleThumbnailIndexes.value = new Set([
+                    ...visibleThumbnailIndexes.value,
+                    Number(entry.target.dataset.index),
+                ]);
                 thumbnailObserver.unobserve(entry.target);
             });
         },
-    { root: galleryThumbnails.value, rootMargin: "120px 0px" },
+        { root: galleryThumbnails.value, rootMargin: "120px 0px" },
     );
 
     thumbnailElements.value.forEach((element) => thumbnailObserver.observe(element));
@@ -317,10 +401,15 @@ const addToCart = () => {
             product_variant_id: selectedVariant.value?.id,
             quantity: quantity.value,
         },
-        {
-            preserveScroll: true,
-            preserveState: true,
-        },
+        { preserveScroll: true, preserveState: true },
+    );
+};
+
+const addRelatedToCart = (relatedProduct) => {
+    router.post(
+        route("frontend.cart.store"),
+        { product_id: relatedProduct.id, quantity: 1 },
+        { preserveScroll: true, preserveState: true },
     );
 };
 
@@ -332,62 +421,71 @@ const buyNow = async () => {
             quantity: quantity.value,
         });
 
-        router.visit(route("frontend.checkout", {
-            cart_item_ids: [response.data.cart_item_id],
-        }));
+        router.visit(route("frontend.checkout", { cart_item_ids: [response.data.cart_item_id] }));
     } catch (error) {
         console.error("Failed to add Buy Now item to cart", error);
     }
 };
-
 </script>
 
 <template>
-    <TemplateWrapper :shell="false" :title="seoTitle" :description="seoDescription" :keywords="seoKeywords" :social-image="product.thumbnail">
-        <PageShell container class="pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-0">
-                <nav class="text-muted-foreground mb-6 hidden items-center gap-2 text-xs sm:mb-8 sm:flex">
-                    <Link :href="route('frontend.home')" class="hover:text-foreground transition-colors">{{ t("labels.breadcrumb.home") }}</Link>
-                    <ChevronRight class="h-3 w-3" />
-                    <Link :href="route('frontend.products')" class="hover:text-foreground transition-colors">{{
-                        t("labels.breadcrumb.products")
-                    }}</Link>
-                    <ChevronRight v-if="product.category" class="h-3 w-3" />
+    <TemplateWrapper
+        :shell="false"
+        :title="seoTitle"
+        :description="seoDescription"
+        :keywords="seoKeywords"
+        :social-image="product.thumbnail"
+    >
+        <PageShell container class="overflow-x-clip pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-0">
+            <nav class="text-muted-foreground mb-5 hidden items-center gap-2 text-xs md:mb-7 md:flex" :aria-label="t('labels.product.breadcrumb')">
+                <Link :href="route('frontend.home')" class="rounded-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30">
+                    {{ t("labels.breadcrumb.home") }}
+                </Link>
+                <ChevronRight class="h-3.5 w-3.5" aria-hidden="true" />
+                <Link :href="route('frontend.products')" class="rounded-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30">
+                    {{ t("labels.breadcrumb.products") }}
+                </Link>
+                <template v-if="product.category">
+                    <ChevronRight class="h-3.5 w-3.5" aria-hidden="true" />
                     <Link
-                        v-if="product.category"
                         :href="route('frontend.products', { category: product.category.slug })"
-                        class="hover:text-foreground transition-colors"
+                        class="rounded-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                     >
                         {{ product.category.name }}
                     </Link>
-                </nav>
+                </template>
+                <ChevronRight class="h-3.5 w-3.5" aria-hidden="true" />
+                <span class="max-w-[18rem] truncate text-foreground">{{ product.name }}</span>
+            </nav>
 
-                <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start lg:gap-12">
-                    <div class="space-y-3 lg:sticky lg:top-20 lg:self-start">
-                        <div class="flex w-full items-start gap-3">
-                            <div
-                                v-if="galleryImages.length > 1"
-                                ref="galleryThumbnails"
-                                class="flex max-h-[28rem] w-14 shrink-0 flex-col gap-2 overflow-y-auto pb-1 [scrollbar-width:none] sm:w-20 sm:gap-3 [&::-webkit-scrollbar]:hidden"
-                            >
+            <div class="product-detail-grid grid min-w-0 gap-6 xl:gap-8">
+                <section class="min-w-0" :aria-label="t('labels.product.gallery')">
+                    <div class="flex min-w-0 items-start gap-3 md:gap-4">
+                        <div
+                            v-if="galleryMedia.length > 1"
+                            ref="galleryThumbnails"
+                            class="flex max-h-[32rem] w-16 shrink-0 flex-col gap-2 overflow-y-auto pb-1 [scrollbar-width:none] md:w-[4.5rem] md:gap-3 [&::-webkit-scrollbar]:hidden"
+                        >
                             <Button
-                                v-for="(image, index) in galleryImages"
-                                :key="index"
+                                v-for="(media, index) in galleryMedia"
+                                :key="media.url + '-' + index"
                                 :ref="(element) => setThumbnailElement(element?.$el || element, index)"
                                 :data-index="index"
-                                @click="selectGalleryImage(image)"
+                                type="button"
                                 :aria-label="t('labels.product.view_image', { number: index + 1 })"
-                                :aria-pressed="selectedImage === image"
-                                class="border-border h-16 w-16 shrink-0 overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow-md sm:h-20 sm:w-20 sm:rounded-xl"
-                                :class="
-                                    selectedImage === image
-                                        ? 'border-primary shadow-sm'
-                                        : 'hover:border-primary/40 opacity-60 hover:opacity-100'
-                                "
+                                :aria-pressed="selectedImageIndex === index"
+                                :class="cn(
+                                    'h-16 w-16 shrink-0 overflow-hidden rounded-xl border bg-white p-0 shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-primary/40 md:h-[4.5rem] md:w-[4.5rem]',
+                                    selectedImageIndex === index
+                                        ? 'border-primary ring-1 ring-primary/30'
+                                        : 'border-border opacity-65 hover:border-primary/50 hover:opacity-100',
+                                )"
+                                @click="selectGalleryImage(index)"
                             >
                                 <img
                                     v-if="visibleThumbnailIndexes.has(index)"
-                                    :src="image"
-                                    :alt="`${product.name} ${index + 1}`"
+                                    :src="media.thumbnail"
+                                    :alt="product.name + ' ' + (index + 1)"
                                     loading="lazy"
                                     decoding="async"
                                     fetchpriority="low"
@@ -395,442 +493,596 @@ const buyNow = async () => {
                                 />
                             </Button>
                         </div>
-                            <div class="relative min-w-0 flex-1 lg:max-w-[560px]">
-                                <Button
-                                    ref="imageZoomTrigger"
-                                    @click="openImageZoom"
-                                    :aria-label="t('labels.product.view_image', { number: selectedImageNumber })"
-                                    aria-haspopup="dialog"
-                                    class="border-border group relative block aspect-square w-full overflow-hidden rounded-2xl border bg-white p-0 shadow-md transition-shadow hover:shadow-lg focus-visible:ring-offset-4"
+
+                        <div class="relative min-w-0 flex-1">
+                            <Button
+                                v-if="selectedImage"
+                                ref="imageZoomTrigger"
+                                type="button"
+                                :aria-label="t('labels.product.view_image', { number: selectedImageNumber })"
+                                aria-haspopup="dialog"
+                                class="group relative block aspect-square w-full overflow-hidden rounded-2xl border border-border bg-secondary/20 p-0 shadow-sm transition-shadow hover:shadow-lg focus-visible:ring-offset-4"
+                                @click="openImageZoom"
+                            >
+                                <img
+                                    :src="selectedImage"
+                                    :alt="product.name"
+                                    fetchpriority="high"
+                                    decoding="async"
+                                    class="h-full w-full object-cover"
+                                />
+                                <span
+                                    class="pointer-events-none absolute right-4 bottom-4 hidden h-10 w-10 items-center justify-center rounded-full bg-white/95 text-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 sm:flex"
+                                    aria-hidden="true"
                                 >
-                                    <img
-                                        :src="selectedImage || 'https://placehold.co/800x1000?text=No+Image'"
-                                        :alt="product.name"
-                                        fetchpriority="high"
-                                        decoding="async"
-                                        class="h-full w-full object-cover"
-                                    />
-                                    <span
-                                        class="text-foreground pointer-events-none absolute right-4 bottom-4 hidden h-10 w-10 items-center justify-center rounded-full bg-white/95 opacity-0 shadow-sm transition-all duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 sm:flex"
-                                        aria-hidden="true"
-                                    >
-                                        <ZoomIn class="h-5 w-5" />
-                                    </span>
-                                </Button>
-                                <template v-if="galleryImages.length > 1">
-                                    <Button
-                                        @click.stop="cycleGalleryImage(-1)"
-                                        :icon="ChevronLeft"
-                                        size="icon"
-                                        :aria-label="t('labels.carousel.previous')"
-                                        class="absolute top-1/2 left-3 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-foreground shadow-md hover:bg-white focus-visible:ring-2 focus-visible:ring-white sm:left-5"
-                                    />
-                                    <Button
-                                        @click.stop="cycleGalleryImage(1)"
-                                        :icon="ChevronRight"
-                                        size="icon"
-                                        :aria-label="t('labels.carousel.next')"
-                                        class="absolute top-1/2 right-3 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-foreground shadow-md hover:bg-white focus-visible:ring-2 focus-visible:ring-white sm:right-5"
-                                    />
-                                </template>
+                                    <ZoomIn class="h-5 w-5" />
+                                </span>
+                            </Button>
+                            <div v-else class="flex aspect-square w-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-secondary/20 text-center">
+                                <ImageOff class="h-10 w-10 text-muted-foreground" aria-hidden="true" />
+                                <p class="mt-3 text-sm font-medium text-muted-foreground">{{ t("labels.product.no_image") }}</p>
                             </div>
+
+                            <template v-if="galleryMedia.length > 1">
+                                <Button
+                                    type="button"
+                                    :aria-label="t('labels.carousel.previous')"
+                                    class="absolute top-1/2 left-2 flex h-10 w-10 -translate-y-1/2 justify-center rounded-full border-0 bg-white/95 p-0 text-foreground shadow-md hover:bg-white focus-visible:ring-2 focus-visible:ring-primary/40 md:left-4"
+                                    @click.stop="cycleGalleryImage(-1)"
+                                >
+                                    <ChevronLeft class="h-5 w-5" aria-hidden="true" />
+                                </Button>
+                                <Button
+                                    type="button"
+                                    :aria-label="t('labels.carousel.next')"
+                                    class="absolute top-1/2 right-2 flex h-10 w-10 -translate-y-1/2 justify-center rounded-full border-0 bg-white/95 p-0 text-foreground shadow-md hover:bg-white focus-visible:ring-2 focus-visible:ring-primary/40 md:right-4"
+                                    @click.stop="cycleGalleryImage(1)"
+                                >
+                                    <ChevronRight class="h-5 w-5" aria-hidden="true" />
+                                </Button>
+                                <span class="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-foreground/75 px-2.5 py-1 text-[11px] font-semibold text-white md:hidden">
+                                    {{ selectedImageNumber }} / {{ galleryMedia.length }}
+                                </span>
+                            </template>
                         </div>
                     </div>
+                </section>
 
-                    <div class="space-y-4 sm:space-y-6">
-                        <div class="space-y-5 rounded-2xl bg-white p-5 sm:p-6">
-                            <div class="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
-                                <span v-if="product.category" class="flex items-center gap-1.5"><Tag class="text-primary h-3.5 w-3.5" />{{ product.category.name }}</span>
-                                <span v-if="product.category" class="text-border">|</span>
-                                <span class="flex items-center gap-1.5"
-                                    ><MapPin class="text-primary h-3.5 w-3.5" />
-                                    {{ product.warehouse?.name || t("labels.product.default_warehouse") }}</span
-                                >
-                                <span class="text-border">|</span>
-                                <span class="flex items-center gap-1.5"
-                                    ><Scale class="text-primary h-3.5 w-3.5" />
-                                    {{ t("labels.product.weight_unit", { weight: ((product.weight || 0) / 1000).toFixed(2) }) }}</span
-                                >
-                            </div>
-                            <h1 class="text-foreground text-xl leading-7 font-bold sm:text-2xl md:text-3xl">
-                                {{ product.name }}
-                            </h1>
-                            <div v-if="ratingData" class="border-border flex flex-wrap items-center gap-2.5 border-b pb-4 text-sm">
-                                <span class="text-muted-foreground">{{ formatProductCount(product.sold_count) }} {{ t("labels.product.sold") }}</span>
-                                <span class="text-border">|</span>
-                                <span class="text-muted-foreground"
-                                    >({{ formatProductCount(ratingData.summary.count) }} {{ t("labels.product.reviews") }})</span
-                                >
-                                <span class="text-border">|</span>
-                                <span class="text-foreground flex items-center gap-1 font-bold"
-                                    ><Star class="h-4 w-4 fill-[#e8a167] text-[#e8a167]" /> {{ ratingData.summary.average.toFixed(1) }}</span
-                                >
-                                <span class="text-border">|</span>
-                                <Button @click="toggleWishlist" class="text-muted-foreground hover:text-primary ml-auto flex items-center gap-1 transition-colors">
-                                    <Heart class="h-4 w-4" :class="isWishlisted ? 'fill-red-500 text-red-500' : ''" />
-                                    {{ isWishlisted ? t("labels.product.saved") : t("labels.product.save") }}
-                                </Button>
-                            </div>
-
-                            <div class="flex flex-wrap items-center gap-3">
-                                <template v-if="isSale && !activeWholesale">
-                                    <span class="text-primary text-2xl font-bold sm:text-3xl">{{ formatCurrency(displayPrice, localeCode) }}</span>
-                                    <span class="text-muted-foreground text-base line-through sm:text-lg">{{ formatCurrency(displayOriginalPrice, localeCode) }}</span>
-                                    <span v-if="activeFlashsale || product.discount_percentage" class="rounded-full bg-red-500 px-2 py-0.5 text-[10px] leading-4 font-bold text-white sm:px-3 sm:py-1 sm:text-xs">
-                                        {{ t("labels.product.discount_off", { discount: activeFlashsale?.discount_percentage ?? product.discount_percentage }) }}
-                                    </span>
-                                </template>
-                                <template v-else>
-                                    <span class="text-primary text-2xl font-bold sm:text-3xl">{{ formatCurrency(displayPrice, localeCode) }}</span>
-                                </template>
-                            </div>
-
-                            <p v-if="activeWholesale" class="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700">
-                                {{
-                                    t("labels.product.wholesale_active", {
-                                        qty: activeWholesale.min_qty,
-                                        price: formatCurrency(activeWholesale.price, localeCode),
-                                    })
-                                }}
-                            </p>
-                            <p v-else-if="nextWholesale" class="bg-secondary text-muted-foreground rounded-xl p-3 text-sm">
-                                {{
-                                    t("labels.product.wholesale_next", {
-                                        qty: nextWholesale.min_qty,
-                                        price: formatCurrency(nextWholesale.price, localeCode),
-                                    })
-                                }}
-                            </p>
-
-                            <div v-if="hasVariants" class="border-border space-y-4 border-t pt-4">
-                                <div v-for="(options, name) in attributeGroups" :key="name" class="space-y-3">
-                                    <label class="flex items-center justify-between text-sm font-semibold">
-                                        <span>{{ name }}</span>
-                                        <span v-if="selectedAttributes[name]" class="text-muted-foreground font-normal">{{
-                                            selectedAttributes[name]
-                                        }}</span>
-                                    </label>
-                                    <div class="flex flex-wrap gap-2">
-                                        <Button
-                                            v-for="option in options"
-                                            :key="option"
-                                            @click="selectAttribute(name, option)"
-                                            :aria-pressed="selectedAttributes[name] === option"
-                                            class="rounded-lg border-2 px-4 py-2 text-sm font-semibold transition-all"
-                                            :class="
-                                                selectedAttributes[name] === option
-                                                    ? 'border-primary bg-primary text-primary-foreground'
-                                                    : 'border-border text-foreground hover:border-primary/50 bg-white'
-                                            "
-                                        >
-                                            {{ option }}
-                                        </Button>
-                                    </div>
-                                </div>
-                                <p v-if="!selectedVariant" id="product-option-guidance" class="text-muted-foreground text-sm" aria-live="polite">
-                                    {{ t("labels.product.select_options_hint", { options: requiredAttributes.join(", ") }) }}
-                                </p>
-                            </div>
-
-                            <div class="border-border border-t pt-4">
-                                <div class="flex flex-wrap items-center justify-between gap-4">
-                                    <div>
-                                        <label for="product-quantity" class="text-sm font-semibold">{{ t("labels.product.quantity") }}</label>
-                                        <p :class="displayStock > 0 ? 'text-green-600' : 'text-red-500'" class="mt-1 text-sm">
-                                            {{
-                                                displayStock > 0
-                                                    ? t("labels.product.stock", { stock: displayStock })
-                                                    : t("labels.product.out_of_stock")
-                                            }}
-                                        </p>
-                                    </div>
-                                    <div class="border-border flex w-fit items-center rounded-xl border bg-white">
-                                        <Button
-                                            @click="updateQuantity(-1)"
-                                            :aria-label="t('labels.product.decrease_quantity')"
-                                            class="hover:bg-secondary flex h-11 w-11 items-center justify-center rounded-l-xl transition-colors"
-                                            :disabled="quantity <= (product.min_order || 1)"
-                                        >
-                                            <Minus class="h-4 w-4" />
-                                        </Button>
-                                        <FormInput
-                                            type="number"
-                                            id="product-quantity"
-                                            v-model="quantity"
-                                            readonly
-                                            wrapper-class="flex w-14 items-center justify-center"
-                                            class="h-11 w-full appearance-none rounded-none border-x border-y-0 bg-transparent px-0 text-center font-semibold leading-5"
-                                        />
-                                        <Button
-                                            @click="updateQuantity(1)"
-                                            :aria-label="t('labels.product.increase_quantity')"
-                                            class="hover:bg-secondary flex h-11 w-11 items-center justify-center rounded-r-xl transition-colors"
-                                            :disabled="quantity >= displayStock"
-                                        >
-                                            <Plus class="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                                <p v-if="product.min_order && product.min_order > 1" class="text-muted-foreground text-xs">
-                                    {{ t("labels.product.min_order", { min: product.min_order }) }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="divide-border divide-y rounded-2xl border border-border bg-white px-5 sm:px-6">
-                            <div class="flex items-center gap-4 py-5">
-                                <Truck class="text-primary h-6 w-6 shrink-0" />
-                                <div class="min-w-0 flex-1">
-                                    <h4 class="text-sm font-semibold">{{ t("labels.trust.free_shipping") }}</h4>
-                                    <p class="text-muted-foreground mt-1 text-xs">{{ t("labels.trust.free_shipping_note") }}</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-4 py-5">
-                                <ShieldCheck class="text-primary h-6 w-6 shrink-0" />
-                                <div class="min-w-0 flex-1">
-                                    <h4 class="text-sm font-semibold">{{ t("labels.trust.secure_payment") }}</h4>
-                                    <p class="text-muted-foreground mt-1 text-xs">{{ t("labels.trust.secure_payment_note") }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="hidden space-y-3 rounded-2xl bg-white p-2 sm:block">
-                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                <Button
-                                    @click="addToCart"
-                                    :disabled="displayStock <= 0 || (hasVariants && !selectedVariant)"
-                                    class="border-primary text-primary hover:bg-primary/5 flex items-center justify-center gap-2 rounded-full border-2 px-5 py-3.5 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    <ShoppingBag class="h-5 w-5" />
-                                    <span>{{
-                                        hasVariants && !selectedVariant ? t("labels.actions.select_options") : t("labels.actions.add_to_cart")
-                                    }}</span>
-                                </Button>
-                                <Button
-                                    @click="buyNow"
-                                    :disabled="displayStock <= 0 || (hasVariants && !selectedVariant)"
-                                    class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center rounded-full px-5 py-3.5 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    {{ t("labels.product.buy_now") }}
-                                </Button>
-                            </div>
-                        </div>
-
-                        <section v-if="product.description" class="rounded-2xl bg-white p-6">
-                            <h2 class="text-foreground text-xl font-bold md:text-2xl">{{ t("labels.product.description") }}</h2>
-                            <div
-                                class="prose prose-sm text-muted-foreground mt-4 max-w-none overflow-hidden text-base leading-relaxed transition-[max-height] duration-300 ease-in-out motion-reduce:transition-none"
-                                :class="isDescriptionExpanded ? 'max-h-none' : 'max-h-[4.5rem]'"
-                                v-html="product.description"
-                            ></div>
+                <section class="min-w-0 space-y-5 lg:space-y-6" :aria-label="t('labels.product.purchase_information')">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <span v-if="product.category" class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                                <Tag class="h-3.5 w-3.5" aria-hidden="true" />
+                                {{ product.category.name }}
+                            </span>
+                            <span v-else></span>
                             <Button
                                 type="button"
-                                @click="isDescriptionExpanded = !isDescriptionExpanded"
-                                class="text-primary hover:text-primary/80 mt-4 flex items-center gap-1.5 text-sm font-semibold transition-colors"
+                                :aria-label="isWishlisted ? t('labels.product.saved_to_wishlist') : t('labels.product.save_to_wishlist')"
+                                :aria-pressed="isWishlisted"
+                                class="h-11 w-11 rounded-full border border-border bg-white p-0 text-foreground hover:border-primary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+                                @click="toggleWishlist"
                             >
-                                <ChevronUp v-if="isDescriptionExpanded" class="h-4 w-4" />
-                                <ChevronDown v-else class="h-4 w-4" />
-                                {{ isDescriptionExpanded ? t("labels.product.show_less") : t("labels.product.read_more") }}
+                                <Heart class="h-5 w-5" :class="isWishlisted ? 'fill-primary text-primary' : ''" aria-hidden="true" />
                             </Button>
-                        </section>
-                    </div>
-                </div>
+                        </div>
 
-                <Teleport to="body">
-                    <div
-                        v-if="isImageZoomOpen"
-                        ref="zoomDialog"
-                        role="dialog"
-                        aria-modal="true"
-                        :aria-label="t('labels.product.view_image', { number: selectedImageNumber })"
-                        tabindex="-1"
-                        class="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/90 p-4 backdrop-blur-sm sm:p-8"
-                        @click.self="closeImageZoom"
-                        @keydown.esc="closeImageZoom"
-                    >
-                        <Button
-                            @click="closeImageZoom"
-                            :aria-label="t('labels.product.close_image_viewer')"
-                            class="absolute top-4 right-4 z-10 rounded-full bg-white/95 p-2 text-foreground shadow-md hover:bg-white sm:top-6 sm:right-6"
-                        >
-                            <X class="h-5 w-5" />
-                        </Button>
-                        <img
-                            :src="selectedImage || 'https://placehold.co/800x1000?text=No+Image'"
-                            :alt="product.name"
-                            decoding="async"
-                            class="max-h-full max-w-full rounded-xl object-contain shadow-2xl"
-                        />
-                    </div>
-                </Teleport>
+                        <div>
+                            <h1 class="text-foreground text-2xl font-bold leading-tight tracking-[-0.025em] md:text-3xl">{{ product.name }}</h1>
+                            <div v-if="product.description" class="prose prose-sm mt-2 max-w-none line-clamp-3 text-muted-foreground leading-relaxed" v-html="product.description"></div>
+                        </div>
 
-                <div
-                    class="border-border fixed inset-x-0 bottom-0 z-40 border-t bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur sm:hidden"
-                >
-                    <div class="container mx-auto grid grid-cols-2 gap-3">
+                        <div v-if="ratingData" class="text-muted-foreground flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm">
+                            <span class="flex items-center gap-1 font-semibold text-foreground">
+                                <Star class="h-4 w-4 fill-primary text-primary" aria-hidden="true" />
+                                {{ ratingData.summary.average.toFixed(1) }}
+                            </span>
+                            <span>({{ formatProductCount(ratingData.summary.count) }} {{ t("labels.product.reviews") }})</span>
+                            <span class="text-border">|</span>
+                            <span>{{ formatProductCount(product.sold_count) }} {{ t("labels.product.sold") }}</span>
+                            <span class="text-border">|</span>
+                            <span class="flex items-center gap-1.5">
+                                <Scale class="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                                {{ t("labels.product.weight_unit", { weight: ((product.weight || 0) / 1000).toFixed(2) }) }}
+                            </span>
+                        </div>
+                        <div v-else class="text-muted-foreground flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm">
+                            <span>{{ formatProductCount(product.sold_count) }} {{ t("labels.product.sold") }}</span>
+                            <span class="text-border">|</span>
+                            <span class="flex items-center gap-1.5">
+                                <Scale class="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                                {{ t("labels.product.weight_unit", { weight: ((product.weight || 0) / 1000).toFixed(2) }) }}
+                            </span>
+                        </div>
+
+                        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <span class="text-3xl font-bold tracking-[-0.03em] text-primary md:text-4xl">{{ formatCurrency(displayPrice, localeCode) }}</span>
+                            <span v-if="isSale && !activeWholesale" class="text-base text-muted-foreground line-through">{{ formatCurrency(displayOriginalPrice, localeCode) }}</span>
+                            <span v-if="activeFlashsale || product.discount_percentage" class="rounded-full bg-destructive px-2.5 py-1 text-xs font-bold text-white">
+                                {{ t("labels.product.discount_off", { discount: activeFlashsale?.discount_percentage ?? product.discount_percentage }) }}
+                            </span>
+                        </div>
+
+                        <p v-if="activeWholesale" class="rounded-xl bg-green-50 px-3.5 py-3 text-sm font-medium text-green-700">
+                            {{ t("labels.product.wholesale_active", { qty: activeWholesale.min_qty, price: formatCurrency(activeWholesale.price, localeCode) }) }}
+                        </p>
+                        <p v-else-if="nextWholesale" class="rounded-xl bg-secondary px-3.5 py-3 text-sm text-muted-foreground">
+                            {{ t("labels.product.wholesale_next", { qty: nextWholesale.min_qty, price: formatCurrency(nextWholesale.price, localeCode) }) }}
+                        </p>
+                    </div>
+
+                    <div v-if="hasVariants" class="space-y-5 border-t border-border pt-5">
+                        <div v-for="(options, name) in attributeGroups" :key="name" class="space-y-3">
+                            <div class="flex items-center justify-between gap-3">
+                                <label class="text-sm font-semibold text-foreground">{{ name }}</label>
+                                <span v-if="selectedAttributes[name]" class="text-sm text-muted-foreground">{{ selectedAttributes[name] }}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <Button
+                                    v-for="option in options"
+                                    :key="option"
+                                    type="button"
+                                    :aria-pressed="selectedAttributes[name] === option"
+                                    :class="optionClasses(name, option)"
+                                    @click="selectAttribute(name, option)"
+                                >
+                                    {{ option }}
+                                </Button>
+                            </div>
+                        </div>
+                        <p v-if="!selectedVariant" id="product-option-guidance" class="text-sm text-muted-foreground" aria-live="polite">
+                            {{ t("labels.product.select_options_hint", { options: requiredAttributes.join(", ") }) }}
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
+                        <div>
+                            <label for="product-quantity" class="text-sm font-semibold text-foreground">{{ t("labels.product.quantity") }}</label>
+                            <p :class="displayStock > 0 ? 'text-green-600' : 'text-destructive'" class="mt-1 text-sm">
+                                {{ displayStock > 0 ? t("labels.product.stock", { stock: displayStock }) : t("labels.product.out_of_stock") }}
+                            </p>
+                        </div>
+                        <div class="flex items-center rounded-xl border border-border bg-white">
+                            <Button
+                                type="button"
+                                :aria-label="t('labels.product.decrease_quantity')"
+                                class="h-11 w-11 rounded-l-xl border-0 p-0 hover:bg-secondary disabled:opacity-40"
+                                :disabled="quantity <= (product.min_order || 1)"
+                                @click="updateQuantity(-1)"
+                            >
+                                <Minus class="h-4 w-4" aria-hidden="true" />
+                            </Button>
+                                <FormInput
+                                    id="product-quantity"
+                                    v-model.number="quantity"
+                                    type="number"
+                                    :min="product.min_order || 1"
+                                    :max="displayStock"
+                                    step="1"
+                                    inputmode="numeric"
+                                    @change="normalizeQuantity"
+                                    @blur="normalizeQuantity"
+                                    wrapper-class="flex w-12 items-center justify-center"
+                                    class="h-11 w-full appearance-none rounded-none border-x border-y-0 bg-transparent px-0 py-0 text-center [text-indent:0] font-semibold leading-5"
+                                />
+                            <Button
+                                type="button"
+                                :aria-label="t('labels.product.increase_quantity')"
+                                class="h-11 w-11 rounded-r-xl border-0 p-0 hover:bg-secondary disabled:opacity-40"
+                                :disabled="quantity >= displayStock"
+                                @click="updateQuantity(1)"
+                            >
+                                <Plus class="h-4 w-4" aria-hidden="true" />
+                            </Button>
+                        </div>
+                    </div>
+                    <p v-if="product.min_order && product.min_order > 1" class="-mt-2 text-xs text-muted-foreground">
+                        {{ t("labels.product.min_order", { min: product.min_order }) }}
+                    </p>
+
+                    <div class="hidden gap-3 md:grid md:grid-cols-2">
                         <Button
+                            type="button"
+                            size="sm"
+                            :disabled="displayStock <= 0 || (hasVariants && !selectedVariant)"
+                            class="min-h-11 whitespace-nowrap border-primary bg-white text-primary hover:bg-primary/5 focus-visible:ring-2 focus-visible:ring-primary/30"
                             @click="addToCart"
-                            :disabled="displayStock <= 0 || (hasVariants && !selectedVariant)"
-                            class="border-primary text-primary flex items-center justify-center gap-2 rounded-full border-2 px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            <ShoppingBag class="h-5 w-5" />
-                            <span>{{ t("labels.header.cart") }}</span>
+                            <ShoppingBag class="h-5 w-5" aria-hidden="true" />
+                            {{ hasVariants && !selectedVariant ? t("labels.actions.select_options") : t("labels.actions.add_to_cart") }}
                         </Button>
                         <Button
-                            @click="buyNow"
+                            type="button"
+                            size="sm"
                             :disabled="displayStock <= 0 || (hasVariants && !selectedVariant)"
-                            class="bg-primary text-primary-foreground rounded-full px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                            class="min-h-11 whitespace-nowrap border-primary bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary/40"
+                            @click="buyNow"
                         >
                             {{ t("labels.product.buy_now") }}
                         </Button>
                     </div>
-                </div>
+                </section>
 
-                <section ref="ratingSection" class="mt-12 rounded-2xl bg-white px-4 py-5 md:mt-16 md:px-6 md:py-6">
-                    <div v-if="!ratingData" class="flex min-h-40 items-center justify-center text-center" aria-live="polite">
-                        <div v-if="reviewsError" class="flex flex-col items-center gap-4">
-                            <p class="text-muted-foreground text-sm">{{ t("labels.product.reviews_load_failed") }}</p>
-                            <Button @click="fetchReviews(1, true)" variant="outline" class="rounded-full">
-                                {{ t("labels.actions.retry") }}
+                <aside class="product-detail-support-rail hidden min-w-0 space-y-3" :aria-label="t('labels.product.trust_information')">
+                    <div v-for="item in trustItems" :key="item.title" class="flex items-start gap-3 rounded-2xl border border-border bg-white p-4">
+                        <component :is="item.icon" class="mt-0.5 h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
+                        <div class="min-w-0">
+                            <h2 class="text-sm font-semibold text-foreground">{{ item.title }}</h2>
+                            <p class="mt-1 text-xs leading-5 text-muted-foreground">{{ item.note }}</p>
+                        </div>
+                    </div>
+                    <div class="rounded-2xl bg-primary/5 p-5">
+                        <h2 class="text-sm font-bold text-foreground">{{ t("labels.product.benefits_heading") }}</h2>
+                        <ul class="mt-3 space-y-2.5">
+                            <li v-for="benefit in benefitItems" :key="benefit" class="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
+                                <CircleCheck class="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                                <span>{{ benefit }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </aside>
+            </div>
+
+            <div class="product-detail-trust-row mt-5 flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div v-for="item in trustItems" :key="item.title" class="min-w-[10.5rem] flex-1 rounded-2xl border border-border bg-white p-4 md:min-w-0">
+                    <component :is="item.icon" class="h-6 w-6 text-primary" aria-hidden="true" />
+                    <h2 class="mt-3 text-sm font-semibold text-foreground">{{ item.title }}</h2>
+                    <p class="mt-1 text-xs leading-5 text-muted-foreground">{{ item.note }}</p>
+                </div>
+            </div>
+
+            <div class="product-detail-lower mt-6 grid min-w-0 gap-6">
+                <section class="min-w-0 overflow-hidden rounded-3xl border border-border bg-white" :aria-label="t('labels.product.details_navigation')">
+                    <div class="hidden border-b border-border md:flex md:items-center md:gap-7 md:px-6">
+                        <Button
+                            v-for="tab in [
+                                { key: 'description', label: t('labels.product.description') },
+                                { key: 'specifications', label: t('labels.product.specifications') },
+                                { key: 'size', label: t('labels.product.size_guide') },
+                                { key: 'reviews', label: t('labels.product.reviews_heading') },
+                            ]"
+                            :key="tab.key"
+                            type="button"
+                            :aria-selected="activeDesktopTab === tab.key"
+                            role="tab"
+                            :class="cn(
+                                'relative min-h-14 rounded-none border-0 border-b bg-transparent px-0 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-primary/30',
+                                activeDesktopTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground',
+                            )"
+                            @click="tab.key === 'reviews' ? openReviews() : (activeDesktopTab = tab.key)"
+                        >
+                            {{ tab.label }}
+                            <span v-if="tab.key === 'reviews' && ratingData" class="font-normal">({{ formatProductCount(ratingData.summary.count) }})</span>
+                        </Button>
+                    </div>
+
+                    <div class="hidden p-5 md:block md:p-6">
+                        <div v-if="activeDesktopTab === 'description'" class="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(15rem,.75fr)]">
+                            <div>
+                                <div v-if="product.description" class="prose prose-sm max-w-none text-sm leading-6 text-muted-foreground" :class="isDescriptionExpanded ? '' : 'max-h-28 overflow-hidden'" v-html="product.description"></div>
+                                <p v-else class="text-sm leading-6 text-muted-foreground">{{ t("labels.product.description_unavailable") }}</p>
+                                <Button
+                                    v-if="product.description"
+                                    type="button"
+                                    class="mt-3 border-0 bg-transparent px-0 text-sm font-semibold text-primary hover:bg-transparent hover:text-primary/80"
+                                    @click="isDescriptionExpanded = !isDescriptionExpanded"
+                                >
+                                    <ChevronUp v-if="isDescriptionExpanded" class="h-4 w-4" aria-hidden="true" />
+                                    <ChevronDown v-else class="h-4 w-4" aria-hidden="true" />
+                                    {{ isDescriptionExpanded ? t("labels.product.show_less") : t("labels.product.read_more") }}
+                                </Button>
+                            </div>
+                            <dl class="grid content-start grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 rounded-2xl bg-secondary/45 p-4 text-sm">
+                                <template v-for="spec in specRows" :key="spec.label">
+                                    <dt class="text-muted-foreground">{{ spec.label }}</dt>
+                                    <dd class="min-w-0 font-medium text-foreground">{{ spec.value }}</dd>
+                                </template>
+                            </dl>
+                        </div>
+                        <dl v-else-if="activeDesktopTab === 'specifications'" class="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+                            <div v-for="spec in specRows" :key="spec.label" class="flex items-center justify-between gap-4 border-b border-border pb-3 text-sm">
+                                <dt class="text-muted-foreground">{{ spec.label }}</dt>
+                                <dd class="text-right font-medium text-foreground">{{ spec.value }}</dd>
+                            </div>
+                        </dl>
+                        <div v-else-if="activeDesktopTab === 'size'" class="rounded-2xl bg-secondary/45 p-5 text-sm leading-6 text-muted-foreground">
+                            <div class="flex items-start gap-3">
+                                <Ruler class="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                                <p>{{ t("labels.product.size_guide_note") }}</p>
+                            </div>
+                        </div>
+                        <div v-else class="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-secondary/45 p-5">
+                            <p class="text-sm text-muted-foreground">
+                                {{ ratingData ? t("labels.product.reviews_available", { count: formatProductCount(ratingData.summary.count) }) : t("labels.product.reviews_loading_short") }}
+                            </p>
+                            <Button type="button" class="border-primary bg-white text-primary hover:bg-primary/5" @click="openReviews">
+                                <Star class="h-4 w-4" aria-hidden="true" />
+                                {{ t("labels.product.view_reviews") }}
                             </Button>
                         </div>
-                        <p v-else class="text-muted-foreground text-sm">{{ t("labels.product.loading_reviews") }}</p>
+                    </div>
+
+                    <div class="p-4 md:hidden">
+                        <div class="rounded-2xl bg-primary/5 p-4">
+                            <h2 class="text-base font-bold text-foreground">{{ t("labels.product.benefits_heading") }}</h2>
+                            <ul class="mt-3 grid gap-2.5 sm:grid-cols-2">
+                                <li v-for="benefit in benefitItems" :key="benefit" class="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
+                                    <CircleCheck class="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                                    <span>{{ benefit }}</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4 divide-y divide-border border-y border-border">
+                            <div v-for="section in mobileDetailSections" :key="section.key">
+                                <Button
+                                    type="button"
+                                    :aria-expanded="activeMobileDetail === section.key"
+                                    :aria-controls="'mobile-detail-' + section.key"
+                                    class="flex min-h-14 w-full items-center justify-between rounded-none border-0 bg-transparent px-1 py-3 text-left hover:bg-transparent focus-visible:ring-2 focus-visible:ring-primary/30"
+                                    @click="toggleMobileDetail(section.key)"
+                                >
+                                    <span class="flex items-center gap-3 text-sm font-semibold text-foreground">
+                                        <component :is="section.icon" class="h-5 w-5 text-primary" aria-hidden="true" />
+                                        {{ section.label }}
+                                    </span>
+                                    <ChevronUp v-if="activeMobileDetail === section.key" class="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                                    <ChevronDown v-else class="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                                </Button>
+
+                                <div v-show="activeMobileDetail === section.key" :id="'mobile-detail-' + section.key" class="pb-4">
+                                    <div v-if="section.key === 'description' && product.description" class="prose prose-sm max-w-none text-sm leading-6 text-muted-foreground" v-html="product.description"></div>
+                                    <p v-else-if="section.key === 'description'" class="text-sm text-muted-foreground">{{ t("labels.product.description_unavailable") }}</p>
+                                    <dl v-else-if="section.key === 'specifications'" class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 rounded-xl bg-secondary/45 p-4 text-sm">
+                                        <template v-for="spec in specRows" :key="spec.label">
+                                            <dt class="text-muted-foreground">{{ spec.label }}</dt>
+                                            <dd class="font-medium text-foreground">{{ spec.value }}</dd>
+                                        </template>
+                                    </dl>
+                                    <div v-else-if="section.key === 'size'" class="flex items-start gap-3 rounded-xl bg-secondary/45 p-4 text-sm leading-6 text-muted-foreground">
+                                        <Ruler class="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                                        <p>{{ t("labels.product.size_guide_note") }}</p>
+                                    </div>
+                                    <div v-else-if="section.key === 'shipping'" class="space-y-3 rounded-xl bg-secondary/45 p-4 text-sm text-muted-foreground">
+                                        <div v-for="item in trustItems.slice(0, 3)" :key="item.title" class="flex items-start gap-3">
+                                            <component :is="item.icon" class="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                                            <span><strong class="font-semibold text-foreground">{{ item.title }}</strong><br />{{ item.note }}</span>
+                                        </div>
+                                    </div>
+                                    <div v-else>
+                                        <div v-if="!ratingData" class="flex min-h-24 items-center justify-center text-sm text-muted-foreground" aria-live="polite">
+                                            {{ isLoadingReviews ? t("labels.product.loading_reviews") : t("labels.product.reviews_loading_short") }}
+                                        </div>
+                                        <template v-else>
+                                            <div class="flex items-center gap-4 rounded-xl bg-secondary/45 p-4">
+                                                <div class="w-20 shrink-0 text-center">
+                                                    <p class="text-3xl font-bold text-foreground">{{ ratingData.summary.average.toFixed(1) }}</p>
+                                                    <div class="mt-1 flex justify-center gap-0.5">
+                                                        <Star v-for="star in 5" :key="star" class="h-3.5 w-3.5" :class="star <= Math.round(ratingData.summary.average) ? 'fill-primary text-primary' : 'text-border'" aria-hidden="true" />
+                                                    </div>
+                                                    <p class="mt-1 text-[11px] text-muted-foreground">{{ formatProductCount(ratingData.summary.count) }} {{ t("labels.product.reviews") }}</p>
+                                                </div>
+                                                <div class="min-w-0 flex-1 space-y-1.5">
+                                                    <div v-for="rating in [5, 4, 3, 2, 1]" :key="rating" class="flex items-center gap-2 text-xs">
+                                                        <span class="w-5 text-muted-foreground">{{ rating }}</span>
+                                                        <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-border"><div class="h-full rounded-full bg-primary" :style="{ width: ratingPercent(rating) + '%' }"></div></div>
+                                                        <span class="w-5 text-right text-muted-foreground">{{ ratingData.summary.distribution?.[rating] || 0 }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-4 space-y-3">
+                                                <article v-for="review in reviews.slice(0, 2)" :key="review.id" class="rounded-xl border border-border p-3">
+                                                    <div class="flex items-start justify-between gap-3">
+                                                        <p class="text-xs font-semibold text-foreground">{{ review.reviewer_name }}</p>
+                                                        <div class="flex gap-0.5"><Star v-for="star in 5" :key="star" class="h-3 w-3" :class="star <= review.rating ? 'fill-primary text-primary' : 'text-border'" aria-hidden="true" /></div>
+                                                    </div>
+                                                    <p v-if="review.review" class="mt-1.5 text-xs leading-5 text-muted-foreground">{{ review.review }}</p>
+                                                </article>
+                                            </div>
+                                            <Button v-if="hasMoreReviews" type="button" class="mt-4 w-full border-primary bg-white text-primary hover:bg-primary/5" :loading="isLoadingReviews" @click="loadMoreReviews">
+                                                {{ t("labels.product.load_more_reviews") }}
+                                            </Button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section ref="ratingSection" class="hidden min-w-0 rounded-3xl border border-border bg-white p-5 md:block md:p-6" :aria-label="t('labels.product.reviews_heading')">
+                    <div v-if="!ratingData" class="flex min-h-40 items-center justify-center text-center" aria-live="polite">
+                        <div v-if="reviewsError" class="flex flex-col items-center gap-4">
+                            <p class="text-sm text-muted-foreground">{{ t("labels.product.reviews_load_failed") }}</p>
+                            <Button type="button" class="border-primary bg-white text-primary hover:bg-primary/5" @click="fetchReviews(1, true)">{{ t("labels.actions.retry") }}</Button>
+                        </div>
+                        <p v-else class="text-sm text-muted-foreground">{{ t("labels.product.loading_reviews") }}</p>
                     </div>
                     <template v-else>
-                        <div class="mb-6 flex items-center gap-2">
-                            <MessageCircle class="text-primary h-5 w-5" />
-                            <h2 class="text-foreground text-xl font-bold md:text-2xl">
-                                {{ t("labels.product.reviews_heading") }} <span class="font-normal">({{ formatProductCount(ratingData.summary.count) }})</span>
-                            </h2>
+                        <div class="flex items-center justify-between gap-3">
+                            <h2 class="text-lg font-bold text-foreground">{{ t("labels.product.reviews_heading") }}</h2>
+                            <span class="text-sm text-muted-foreground">{{ formatProductCount(ratingData.summary.count) }} {{ t("labels.product.reviews") }}</span>
                         </div>
-                        <p v-if="hasPositiveRatingSummary" class="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                            💬 {{ t("labels.product.rated_as") }} <strong>{{ t("labels.product.good_quality") }}</strong>
+                        <p v-if="hasPositiveRatingSummary" class="mt-4 rounded-xl bg-amber-50 px-3.5 py-3 text-sm text-amber-800">
+                            {{ t("labels.product.rated_as") }} <strong>{{ t("labels.product.good_quality") }}</strong>
                         </p>
-                        <div class="bg-secondary/50 flex items-center gap-4 rounded-2xl p-4 sm:gap-5 sm:p-5">
-                            <div class="w-24 shrink-0 text-center sm:w-28">
-                                <p class="text-foreground text-3xl font-bold sm:text-4xl">{{ ratingData.summary.average.toFixed(1) }}</p>
+                        <div class="mt-5 flex items-center gap-4 rounded-2xl bg-secondary/45 p-4">
+                            <div class="w-20 shrink-0 text-center">
+                                <p class="text-3xl font-bold text-foreground">{{ ratingData.summary.average.toFixed(1) }}</p>
                                 <div class="mt-1.5 flex justify-center gap-0.5">
-                                    <Star
-                                        v-for="star in 5"
-                                        :key="star"
-                                        class="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                                        :class="star <= Math.round(ratingData.summary.average) ? 'fill-[#e8a167] text-[#e8a167]' : 'text-gray-300'"
-                                    />
+                                    <Star v-for="star in 5" :key="star" class="h-3.5 w-3.5" :class="star <= Math.round(ratingData.summary.average) ? 'fill-primary text-primary' : 'text-border'" aria-hidden="true" />
                                 </div>
-                                <p class="text-muted-foreground mt-1.5 text-xs sm:text-sm">
-                                    {{ formatProductCount(ratingData.summary.count) }} {{ t("labels.product.reviews") }}
-                                </p>
+                                <p class="mt-1.5 text-xs text-muted-foreground">{{ formatProductCount(ratingData.summary.count) }} {{ t("labels.product.reviews") }}</p>
                             </div>
-                            <div class="min-w-0 flex-1 space-y-2.5">
-                                <div v-for="rating in [5, 4, 3, 2, 1]" :key="rating" class="flex items-center gap-3 text-sm">
-                                    <span class="text-muted-foreground w-7"
-                                        >{{ rating }}<Star class="inline h-3.5 w-3.5 fill-[#e8a167] text-[#e8a167]"
-                                    /></span>
-                                    <div class="h-2 flex-1 overflow-hidden rounded-full bg-gray-200">
-                                        <div class="h-full rounded-full bg-[#e8a167]" :style="{ width: `${ratingPercent(rating)}%` }"></div>
-                                    </div>
-                                    <span class="text-muted-foreground w-6 text-right">{{ ratingData.summary.distribution?.[rating] || 0 }}</span>
+                            <div class="min-w-0 flex-1 space-y-2">
+                                <div v-for="rating in [5, 4, 3, 2, 1]" :key="rating" class="flex items-center gap-2 text-xs">
+                                    <span class="flex w-5 items-center gap-0.5 text-muted-foreground">{{ rating }}<Star class="h-3 w-3 fill-primary text-primary" aria-hidden="true" /></span>
+                                    <div class="h-2 flex-1 overflow-hidden rounded-full bg-border"><div class="h-full rounded-full bg-primary" :style="{ width: ratingPercent(rating) + '%' }"></div></div>
+                                    <span class="w-5 text-right text-muted-foreground">{{ ratingData.summary.distribution?.[rating] || 0 }}</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-5 flex [scrollbar-width:none] gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
+                        <div class="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             <Button
                                 v-for="rating in ['all', 5, 4, 3, 2, 1]"
                                 :key="rating"
-                                @click="filterReviews(rating)"
+                                type="button"
                                 :aria-pressed="selectedReviewRating === rating"
-                                class="shrink-0 rounded-full border px-3 py-1.5 text-xs whitespace-nowrap transition-colors sm:px-4 sm:py-2 sm:text-sm"
-                                :class="
-                                    selectedReviewRating === rating
-                                        ? 'border-primary bg-primary font-semibold text-primary-foreground'
-                                        : 'border-border text-muted-foreground bg-white hover:border-primary hover:text-primary'
-                                "
+                                :class="cn(
+                                    'shrink-0 rounded-full px-3 py-1.5 text-xs focus-visible:ring-2 focus-visible:ring-primary/30',
+                                    selectedReviewRating === rating ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-white text-muted-foreground hover:border-primary hover:text-primary',
+                                )"
+                                @click="filterReviews(rating)"
                             >
                                 <template v-if="rating === 'all'">{{ t("labels.product.all") }} ({{ formatProductCount(ratingData.summary.count) }})</template>
-                                <template v-else
-                                    >{{ t("labels.product.stars", { rating }) }} ({{ formatProductCount(ratingData.summary.distribution?.[rating] || 0) }})</template
-                                >
+                                <template v-else>{{ t("labels.product.stars", { rating }) }} ({{ formatProductCount(ratingData.summary.distribution?.[rating] || 0) }})</template>
                             </Button>
-                            </div>
-                        <div class="mt-6 grid gap-3 md:grid-cols-2">
-                            <article v-for="review in reviews" :key="review.id" class="border-border rounded-lg border p-3.5">
+                        </div>
+                        <div class="mt-5 space-y-3">
+                            <article v-for="review in reviews.slice(0, 3)" :key="review.id" class="rounded-xl border border-border p-3">
                                 <div class="flex items-start justify-between gap-3">
                                     <div>
-                                        <p class="text-foreground text-sm leading-tight font-semibold">{{ review.reviewer_name }}</p>
-                                        <p class="text-muted-foreground mt-0.5 text-[11px] leading-tight">
-                                            {{ review.created_at }}
-                                            <span v-if="!review.is_admin" class="text-primary">• {{ t("labels.product.verified_purchase") }}</span>
-                                        </p>
+                                        <p class="text-sm font-semibold text-foreground">{{ review.reviewer_name }}</p>
+                                        <p class="mt-0.5 text-[11px] text-muted-foreground">{{ review.created_at }}<span v-if="!review.is_admin" class="text-primary"> · {{ t("labels.product.verified_purchase") }}</span></p>
                                     </div>
-                                    <div class="flex gap-0.5">
-                                        <Star
-                                            v-for="star in 5"
-                                            :key="star"
-                                            class="h-3.5 w-3.5"
-                                            :class="star <= review.rating ? 'fill-[#e8a167] text-[#e8a167]' : 'text-gray-300'"
-                                        />
-                                    </div>
+                                    <div class="flex gap-0.5"><Star v-for="star in 5" :key="star" class="h-3.5 w-3.5" :class="star <= review.rating ? 'fill-primary text-primary' : 'text-border'" aria-hidden="true" /></div>
                                 </div>
-                                <p v-if="review.review" class="text-muted-foreground mt-2 text-xs leading-5">{{ review.review }}</p>
-                                <div v-if="review.images?.length" class="mt-2.5 flex gap-2">
-                                <img
-                                    v-for="(image, imageIndex) in review.images"
-                                    :key="image"
-                                    :src="image"
-                                    :alt="t('labels.product.review_image_alt', { number: imageIndex + 1 })"
-                                    loading="lazy"
-                                    decoding="async"
-                                    class="h-16 w-16 rounded-md object-cover"
-                                />
-                                </div>
+                                <p v-if="review.review" class="mt-2 text-xs leading-5 text-muted-foreground">{{ review.review }}</p>
                             </article>
-                            <p v-if="!reviews.length" class="text-muted-foreground text-sm">{{ t("labels.product.no_reviews") }}</p>
+                            <p v-if="!reviews.length" class="text-sm text-muted-foreground">{{ t("labels.product.no_reviews") }}</p>
                         </div>
-                        <div v-if="reviewsError" class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-secondary px-4 py-3">
-                            <p class="text-muted-foreground text-sm">{{ t("labels.product.reviews_load_failed") }}</p>
-                            <Button @click="fetchReviews(reviewPage + 1)" variant="outline" size="sm" class="rounded-full">
-                                {{ t("labels.actions.retry") }}
-                            </Button>
-                        </div>
-                        <div v-if="hasMoreReviews" class="mt-6 text-center">
-                            <Button
-                                @click="loadMoreReviews"
-                                :disabled="isLoadingReviews"
-                                class="border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-full border-2 px-6 py-2.5 text-sm font-semibold transition-colors disabled:opacity-60"
-                            >
-                                {{ isLoadingReviews ? t("labels.product.loading_reviews") : t("labels.product.load_more_reviews") }}
-                            </Button>
-                        </div>
+                        <div v-if="reviewsError" class="mt-4 rounded-xl bg-secondary px-3.5 py-3 text-sm text-muted-foreground">{{ t("labels.product.reviews_load_failed") }}</div>
+                        <Button v-if="hasMoreReviews" type="button" class="mt-5 w-full border-primary bg-white text-primary hover:bg-primary/5" :loading="isLoadingReviews" @click="loadMoreReviews">
+                            {{ t("labels.product.load_more_reviews") }}
+                        </Button>
                     </template>
                 </section>
+            </div>
 
-                <div v-if="product.faqs && product.faqs.length > 0" class="mt-12 md:mt-16">
-                    <div class="mb-6 text-center md:mb-8">
-                        <h2 class="text-foreground text-xl font-bold md:text-2xl">{{ t("labels.faq.heading") }}</h2>
-                        <p class="text-muted-foreground mt-2 text-sm">{{ t("labels.faq.subheading", { name: product.name }) }}</p>
+            <section v-if="relatedItems.length" class="mt-8" :aria-label="t('labels.product.related_products')">
+                <div class="mb-4 flex items-end justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{{ t("labels.product.related_eyebrow") }}</p>
+                        <h2 class="mt-1 text-xl font-bold tracking-[-0.02em] text-foreground md:text-2xl">{{ t("labels.product.related_products") }}</h2>
                     </div>
-
-                    <div class="mx-auto max-w-3xl space-y-3">
-                        <div v-for="(faq, index) in product.faqs" :key="faq.id" class="overflow-hidden rounded-xl bg-white">
-                            <Button
-                                @click="toggleFaq(index)"
-                                :aria-expanded="activeFaq === index"
-                                class="hover:bg-secondary/50 flex w-full items-center justify-between p-5 text-left transition-colors"
-                            >
-                                <span class="pr-4 text-sm font-semibold">{{ faq.question }}</span>
-                                <div class="bg-secondary flex h-7 w-7 shrink-0 items-center justify-center rounded-full">
-                                    <Plus v-if="activeFaq !== index" class="text-foreground h-4 w-4" />
-                                    <Minus v-else class="text-primary h-4 w-4" />
-                                </div>
-                            </Button>
-
-                            <div v-show="activeFaq === index" class="px-5 pb-5">
-                                <div class="prose prose-sm text-muted-foreground max-w-none text-sm leading-relaxed" v-html="faq.answer"></div>
+                    <Link :href="route('frontend.products', product.category ? { category: product.category.slug } : {})" class="hidden items-center gap-1 rounded-sm text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:flex">
+                        {{ t("labels.product.view_all_products") }} <ChevronRight class="h-4 w-4" aria-hidden="true" />
+                    </Link>
+                </div>
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                    <article v-for="related in relatedItems" :key="related.id" class="group min-w-0 overflow-hidden rounded-2xl border border-border bg-white p-2.5 transition-shadow hover:shadow-lg">
+                        <Link :href="route('frontend.product-detail', related.slug)" class="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+                            <div class="relative aspect-square overflow-hidden rounded-xl bg-secondary/45">
+                                <img v-if="related.thumbnail" :src="related.thumbnail" :alt="related.name" loading="lazy" decoding="async" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                <div v-else class="flex h-full items-center justify-center"><ImageOff class="h-7 w-7 text-muted-foreground" aria-hidden="true" /></div>
                             </div>
+                            <h3 class="mt-2 line-clamp-2 min-h-10 text-xs font-semibold leading-5 text-foreground">{{ related.name }}</h3>
+                        </Link>
+                        <div class="mt-2 flex items-end justify-between gap-2">
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-bold text-primary">{{ formatCurrency(related.pricing?.final_price ?? related.price, localeCode) }}</p>
+                                <p v-if="related.pricing?.original_price > (related.pricing?.final_price ?? related.price)" class="truncate text-[11px] text-muted-foreground line-through">{{ formatCurrency(related.pricing.original_price, localeCode) }}</p>
+                            </div>
+                            <Button type="button" :aria-label="t('labels.product.add_related_to_cart', { name: related.name })" class="h-9 w-9 shrink-0 rounded-lg border-primary bg-white p-0 text-primary hover:bg-primary hover:text-primary-foreground" @click="addRelatedToCart(related)">
+                                <ShoppingBag class="h-4 w-4" aria-hidden="true" />
+                            </Button>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section v-if="product.faqs?.length" class="mt-8" :aria-label="t('labels.faq.heading')">
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold text-foreground md:text-2xl">{{ t("labels.faq.heading") }}</h2>
+                    <p class="mt-1 text-sm text-muted-foreground">{{ t("labels.faq.subheading", { name: product.name }) }}</p>
+                </div>
+                <div class="mx-auto max-w-3xl space-y-2">
+                    <div v-for="(faq, index) in product.faqs" :key="faq.id" class="overflow-hidden rounded-2xl border border-border bg-white">
+                        <Button type="button" :aria-expanded="activeFaq === index" class="flex w-full items-center justify-between rounded-none border-0 bg-transparent p-4 text-left hover:bg-secondary/50 focus-visible:ring-2 focus-visible:ring-primary/30" @click="toggleFaq(index)">
+                            <span class="pr-4 text-sm font-semibold text-foreground">{{ faq.question }}</span>
+                            <Plus v-if="activeFaq !== index" class="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                            <Minus v-else class="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                        </Button>
+                        <div v-show="activeFaq === index" class="px-4 pb-4">
+                            <div class="prose prose-sm max-w-none text-sm leading-6 text-muted-foreground" v-html="faq.answer"></div>
                         </div>
                     </div>
                 </div>
+            </section>
 
+            <section class="mt-8 hidden rounded-3xl border border-border bg-secondary/30 p-5 md:block md:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-base font-bold text-foreground">{{ t("labels.product.payment_methods") }}</h2>
+                        <p class="mt-1 text-sm text-muted-foreground">{{ t("labels.product.payment_methods_note") }}</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2" :aria-label="t('labels.product.payment_methods')">
+                        <span v-for="method in paymentMethods" :key="method" class="rounded-lg border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-foreground">{{ method }}</span>
+                    </div>
+                </div>
+            </section>
         </PageShell>
+
+        <Teleport to="body">
+            <div
+                v-if="isImageZoomOpen && selectedImage"
+                ref="zoomDialog"
+                role="dialog"
+                aria-modal="true"
+                :aria-label="t('labels.product.view_image', { number: selectedImageNumber })"
+                tabindex="-1"
+                class="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/90 p-4 backdrop-blur-sm sm:p-8"
+                @click.self="closeImageZoom"
+                @keydown.esc="closeImageZoom"
+            >
+                <Button type="button" :aria-label="t('labels.product.close_image_viewer')" class="absolute top-4 right-4 z-10 h-11 w-11 rounded-full border-0 bg-white/95 p-0 text-foreground hover:bg-white focus-visible:ring-2 focus-visible:ring-white" @click="closeImageZoom">
+                    <X class="h-5 w-5" aria-hidden="true" />
+                </Button>
+                <img :src="selectedImage" :alt="product.name" decoding="async" class="max-h-full max-w-full rounded-xl object-contain shadow-2xl" />
+            </div>
+        </Teleport>
+
+        <div class="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur md:hidden">
+            <div class="mx-auto grid max-w-md grid-cols-2 gap-3">
+                <Button type="button" :aria-label="t('labels.actions.add_to_cart')" :disabled="displayStock <= 0 || (hasVariants && !selectedVariant)" class="whitespace-nowrap border-primary bg-white px-2 text-sm text-primary hover:bg-primary/5" @click="addToCart">
+                    <ShoppingBag class="h-5 w-5 shrink-0" aria-hidden="true" />
+                    {{ t("labels.actions.add_to_cart_short") }}
+                </Button>
+                <Button type="button" :disabled="displayStock <= 0 || (hasVariants && !selectedVariant)" class="whitespace-nowrap border-primary bg-primary px-3 text-sm text-primary-foreground hover:bg-primary/90" @click="buyNow">
+                    {{ t("labels.product.buy_now") }}
+                </Button>
+            </div>
+        </div>
     </TemplateWrapper>
 </template>
+
+<style scoped>
+.product-detail-grid,
+.product-detail-lower {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+    .product-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .product-detail-lower {
+        grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.75fr);
+    }
+}
+
+@media (min-width: 1280px) {
+    .product-detail-support-rail {
+        display: block;
+    }
+
+    .product-detail-trust-row {
+        display: none;
+    }
+
+    .product-detail-grid {
+        grid-template-columns: minmax(0, 1.35fr) minmax(20rem, 1fr) 16.5rem;
+    }
+}
+</style>

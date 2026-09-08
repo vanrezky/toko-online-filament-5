@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\FlashsalePricingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,7 +15,7 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $pricing = app(\App\Services\FlashsalePricingService::class)->resolve($this->resource, null, 1);
+        $pricing = app(FlashsalePricingService::class)->resolve($this->resource, null, 1);
         $customer = auth('customer')->user();
         $resellerId = $customer?->reseller_id;
 
@@ -61,10 +62,15 @@ class ProductResource extends JsonResource
             'thumbnail' => $this->getFirstMediaUrl(),
             'category' => CategoryResource::make($this->category),
             'images' => $this->resource->getMedia()->map(function ($media) {
-                return $media->getUrl('thumb');
+                return $media->getUrl();
+            }),
+            'image_thumbnails' => $this->resource->getMedia()->map(function ($media) {
+                return $media->hasGeneratedConversion('thumb')
+                    ? $media->getUrl('thumb')
+                    : $media->getUrl();
             }),
             'warehouse' => WarehouseResource::make($this->warehouse),
-            'variants' => $this->productVariants->map(function ($variant) use ($targetPrice) {
+            'variants' => $this->productVariants->map(function ($variant) {
                 return [
                     'id' => $variant->uuid,
                     'variant_name' => $variant->variant_name,
@@ -81,7 +87,7 @@ class ProductResource extends JsonResource
                 ];
             }),
             'wholesales' => $wholesales->count() > 0
-                ? $wholesales->map(fn($w) => [
+                ? $wholesales->map(fn ($w) => [
                     'min_qty' => $w->min_qty,
                     'price' => $w->price,
                     'raw_price' => $w->price,

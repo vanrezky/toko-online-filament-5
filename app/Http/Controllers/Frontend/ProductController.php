@@ -8,6 +8,7 @@ use App\Http\Resources\ProductResource;
 use App\Http\Resources\ProductSimpleResource;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\CacheService;
 use App\Services\ProductSearchService;
 use App\Services\ProductStatsService;
 use Illuminate\Http\Request;
@@ -17,6 +18,10 @@ use Inertia\Inertia;
 class ProductController extends Controller
 {
     private const PAGE_SIZES = [12, 24, 36];
+
+    private const RELATED_PRODUCTS_LIMIT = 6;
+
+    private const RELATED_PRODUCTS_CACHE_TTL = 300;
 
     private const VARIANT_ATTRIBUTE_ALIASES = [
         'color' => ['Warna', 'Color'],
@@ -262,6 +267,10 @@ class ProductController extends Controller
                 'productAttributeOption',
             ]),
             'warehouse',
+            'media',
+            'flashsaleProducts' => fn ($query) => $query
+                ->whereHas('flashsale', fn ($query) => $query->current())
+                ->select(['id', 'product_id', 'discount_percentage', 'stock']),
             'faqs',
             'meta',
             'wholesales',
@@ -270,8 +279,52 @@ class ProductController extends Controller
 
         ProductStatsService::attachSales(collect([$product]));
 
+        $resellerId = auth('customer')->user()?->reseller_id;
+        $relatedProductIds = array_map('intval', CacheService::rememberManaged(
+            'product-catalog',
+            'related-product-ids:'.($product->category_id ?? 'none').':'.$product->id,
+            self::RELATED_PRODUCTS_CACHE_TTL,
+            fn () => Product::query()
+                ->active()
+                ->where('category_id', $product->category_id)
+                ->where('id', '!=', $product->id)
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->limit(self::RELATED_PRODUCTS_LIMIT)
+                ->pluck('id')
+                ->all(),
+        ));
+
+        $relatedProducts = Product::query()
+            ->select([
+                'id', 'uuid', 'name', 'slug', 'digital', 'code',
+                'stock', 'sale_price', 'price', 'min_order', 'fake_sold_count', 'created_at',
+            ])
+            ->active()
+            ->whereKey($relatedProductIds)
+            ->with([
+                'media',
+                'flashsaleProducts' => fn ($query) => $query
+                    ->whereHas('flashsale', fn ($query) => $query->current())
+                    ->select(['id', 'product_id', 'discount_percentage', 'stock']),
+                'wholesales' => fn ($query) => $query
+                    ->where('min_qty', '<=', 1)
+                    ->select(['id', 'product_id', 'min_qty', 'price']),
+            ])
+            ->when($resellerId, fn ($query) => $query->with([
+                'resellerPrices' => fn ($query) => $query
+                    ->where('reseller_id', $resellerId)
+                    ->select(['id', 'product_id', 'reseller_id', 'price']),
+            ]))
+            ->get()
+            ->sortBy(fn (Product $relatedProduct) => array_search($relatedProduct->id, $relatedProductIds, true))
+            ->values();
+
+        ProductStatsService::attachCatalogStats($relatedProducts);
+
         return Inertia::render('Products/Show', [
             'product' => ProductResource::make($product),
+            'relatedProducts' => ProductSimpleResource::collection($relatedProducts),
         ]);
     }
 }

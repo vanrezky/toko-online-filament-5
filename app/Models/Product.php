@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Modules\Platform\Audit\Concerns\HasPlatformAuditMetadata;
+use App\Services\CacheService;
 use App\Services\FlashsalePricingService;
 use App\Services\ProductStatsService;
 use App\Traits\HasMeta;
@@ -75,6 +76,9 @@ class Product extends Model implements HasMedia
                 ProductStatsService::bustProduct($product->id);
             }
         });
+
+        static::saved(fn () => CacheService::clearManagedGroup('product-catalog'));
+        static::deleted(fn () => CacheService::clearManagedGroup('product-catalog'));
     }
 
     public function getRouteKeyName(): string

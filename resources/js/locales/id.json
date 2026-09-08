@@ -565,7 +565,8 @@
             "view_products": "Lihat Koleksi Produk",
             "voucher_list": "List Voucher",
             "add_first_address": "Tambah Alamat Pertama",
-            "add_to_cart": "Tambah ke Keranjang"
+            "add_to_cart": "Tambah ke Keranjang",
+            "add_to_cart_short": "Tambah Keranjang"
         },
 
         "sort": {
@@ -696,7 +697,41 @@
             "increase_quantity": "Tambah jumlah",
             "view_image": "Lihat gambar {number}",
             "review_image_alt": "Foto ulasan {number}",
-            "close_image_viewer": "Tutup tampilan gambar"
+            "close_image_viewer": "Tutup tampilan gambar",
+            "breadcrumb": "Navigasi detail produk",
+            "gallery": "Galeri produk",
+            "purchase_information": "Informasi pembelian",
+            "trust_information": "Informasi kepercayaan toko",
+            "category": "Kategori",
+            "code": "SKU",
+            "spec_code": "Kode produk",
+            "spec_category": "Kategori",
+            "spec_weight": "Berat",
+            "spec_warehouse": "Gudang",
+            "original_product": "Produk Original",
+            "original_product_note": "Produk asli dan bergaransi",
+            "benefits_heading": "Keunggulan Produk",
+            "benefit_lightweight": "Bahan ringan dan nyaman digunakan",
+            "benefit_comfortable": "Nyaman dipakai sehari-hari",
+            "benefit_versatile": "Cocok untuk berbagai kebutuhan",
+            "benefit_quality": "Dibuat dengan kualitas yang diperhatikan",
+            "benefit_choices": "Tersedia dalam pilihan yang beragam",
+            "benefit_design": "Desain praktis untuk keseharian",
+            "specifications": "Spesifikasi",
+            "size_guide": "Panduan Ukuran",
+            "shipping_returns": "Pengiriman & Pengembalian",
+            "details_navigation": "Detail produk",
+            "size_guide_note": "Gunakan informasi ukuran atau spesifikasi yang tercantum pada produk ini sebelum memilih jumlah yang akan dibeli.",
+            "description_unavailable": "Deskripsi produk belum tersedia.",
+            "reviews_available": "Ada {count} ulasan dari pelanggan.",
+            "reviews_loading_short": "Ulasan akan dimuat saat bagian ini dibuka.",
+            "view_reviews": "Lihat Ulasan",
+            "related_products": "Produk Serupa",
+            "related_eyebrow": "Pilihan Lain Untuk Anda",
+            "view_all_products": "Lihat Semua",
+            "add_related_to_cart": "Tambahkan {name} ke keranjang",
+            "payment_methods": "Metode Pembayaran",
+            "payment_methods_note": "Pilihan pembayaran yang tersedia akan dikonfirmasi saat checkout."
         },
         "installment": {
             "status": {
