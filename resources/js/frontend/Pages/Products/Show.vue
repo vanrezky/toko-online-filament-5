@@ -6,7 +6,7 @@ import { Link, router, usePage } from "@inertiajs/vue3";
 import { cn, formatCompactNumber, formatCurrency } from "../../lib/utils";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import PageShell from "../../components/PageShell.vue";
-import FormInput from "../../components/UI/FormInput.vue";
+import QuantityStepper from "../../components/UI/QuantityStepper.vue";
 import Button from "@frontend/components/UI/Button.vue";
 import {
     BadgeCheck,
@@ -47,7 +47,7 @@ const imageZoomTrigger = ref(null);
 const galleryThumbnails = ref(null);
 const thumbnailElements = ref([]);
 const visibleThumbnailIndexes = ref(new Set([0]));
-const quantity = ref(1);
+const quantity = ref(props.product.min_order || 1);
 const selectedAttributes = ref({});
 const activeFaq = ref(null);
 const activeDesktopTab = ref("description");
@@ -163,10 +163,10 @@ const selectedVariant = computed(() => {
 });
 const optionClasses = (name, option) =>
     cn(
-        "min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-primary/30",
+        "min-h-10 rounded-lg border px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-primary/30",
         selectedAttributes.value[name] === option
-            ? "border-primary bg-primary/5 text-primary"
-            : "border-border bg-white text-foreground hover:border-primary/50",
+            ? "border-primary bg-primary/10 text-primary shadow-sm"
+            : "border-border bg-white text-foreground hover:border-primary/50 hover:bg-primary/5",
     );
 
 const activeFlashsale = computed(() => props.product.pricing?.flashsale ?? null);
@@ -255,34 +255,17 @@ const seoTitle = computed(() => props.product.meta?.title || props.product.name)
 const seoDescription = computed(() => props.product.meta?.description || props.product.description?.substring(0, 160));
 const seoKeywords = computed(() => props.product.meta?.keyword);
 
-const updateQuantity = (value) => {
-    const maxStock = selectedVariant.value ? selectedVariant.value.stock : props.product.stock;
-    const newQuantity = quantity.value + value;
-
-    if (newQuantity >= (props.product.min_order || 1) && newQuantity <= maxStock) quantity.value = newQuantity;
-};
-
-const normalizeQuantity = () => {
+const updateQuantity = (nextQuantity) => {
     const minOrder = props.product.min_order || 1;
-    const maxStock = selectedVariant.value ? selectedVariant.value.stock : props.product.stock;
-    const enteredQuantity = Number.parseInt(quantity.value, 10);
+    const maxStock = Math.max(displayStock.value, minOrder);
+    const value = Number(nextQuantity);
 
-    if (maxStock <= 0) {
-        quantity.value = minOrder;
-        return;
-    }
-
-    if (!Number.isFinite(enteredQuantity)) {
-        quantity.value = minOrder;
-        return;
-    }
-
-    quantity.value = Math.min(Math.max(enteredQuantity, minOrder), maxStock);
+    if (Number.isFinite(value)) quantity.value = Math.min(Math.max(value, minOrder), maxStock);
 };
 
 const selectAttribute = (name, option) => {
     selectedAttributes.value[name] = option;
-    quantity.value = 1;
+    quantity.value = props.product.min_order || 1;
 };
 
 const toggleFaq = (index) => {
@@ -537,10 +520,10 @@ const buyNow = async () => {
                     </div>
                 </section>
 
-                <section class="min-w-0 space-y-5 lg:space-y-6" :aria-label="t('labels.product.purchase_information')">
-                    <div class="space-y-4">
+                <section class="min-w-0 space-y-4 lg:space-y-5" :aria-label="t('labels.product.purchase_information')">
+                    <div class="space-y-3">
                         <div class="flex items-center justify-between gap-3">
-                            <span v-if="product.category" class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                            <span v-if="product.category" class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
                                 <Tag class="h-3.5 w-3.5" aria-hidden="true" />
                                 {{ product.category.name }}
                             </span>
@@ -557,11 +540,11 @@ const buyNow = async () => {
                         </div>
 
                         <div>
-                            <h1 class="text-foreground text-2xl font-bold leading-tight tracking-[-0.025em] md:text-3xl">{{ product.name }}</h1>
+                            <h1 class="text-foreground text-xl font-bold leading-tight tracking-[-0.025em] md:text-2xl">{{ product.name }}</h1>
                             <div v-if="product.description" class="prose prose-sm mt-2 max-w-none line-clamp-3 text-muted-foreground leading-relaxed" v-html="product.description"></div>
                         </div>
 
-                        <div v-if="ratingData" class="text-muted-foreground flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm">
+                        <div v-if="ratingData" class="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
                             <span class="flex items-center gap-1 font-semibold text-foreground">
                                 <Star class="h-4 w-4 fill-primary text-primary" aria-hidden="true" />
                                 {{ ratingData.summary.average.toFixed(1) }}
@@ -575,7 +558,7 @@ const buyNow = async () => {
                                 {{ t("labels.product.weight_unit", { weight: ((product.weight || 0) / 1000).toFixed(2) }) }}
                             </span>
                         </div>
-                        <div v-else class="text-muted-foreground flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm">
+                        <div v-else class="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
                             <span>{{ formatProductCount(product.sold_count) }} {{ t("labels.product.sold") }}</span>
                             <span class="text-border">|</span>
                             <span class="flex items-center gap-1.5">
@@ -600,13 +583,13 @@ const buyNow = async () => {
                         </p>
                     </div>
 
-                    <div v-if="hasVariants" class="space-y-5 border-t border-border pt-5">
+                    <div v-if="hasVariants" class="space-y-4 border-t border-border pt-4">
                         <div v-for="(options, name) in attributeGroups" :key="name" class="space-y-3">
                             <div class="flex items-center justify-between gap-3">
                                 <label class="text-sm font-semibold text-foreground">{{ name }}</label>
                                 <span v-if="selectedAttributes[name]" class="text-sm text-muted-foreground">{{ selectedAttributes[name] }}</span>
                             </div>
-                            <div class="flex flex-wrap gap-2">
+                            <div class="flex flex-wrap gap-1.5">
                                 <Button
                                     v-for="option in options"
                                     :key="option"
@@ -624,46 +607,24 @@ const buyNow = async () => {
                         </p>
                     </div>
 
-                    <div class="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
                         <div>
-                            <label for="product-quantity" class="text-sm font-semibold text-foreground">{{ t("labels.product.quantity") }}</label>
+                            <span class="text-sm font-semibold text-foreground">{{ t("labels.product.quantity") }}</span>
                             <p :class="displayStock > 0 ? 'text-green-600' : 'text-destructive'" class="mt-1 text-sm">
                                 {{ displayStock > 0 ? t("labels.product.stock", { stock: displayStock }) : t("labels.product.out_of_stock") }}
                             </p>
                         </div>
-                        <div class="flex items-center rounded-xl border border-border bg-white">
-                            <Button
-                                type="button"
-                                :aria-label="t('labels.product.decrease_quantity')"
-                                class="h-11 w-11 rounded-l-xl border-0 p-0 hover:bg-secondary disabled:opacity-40"
-                                :disabled="quantity <= (product.min_order || 1)"
-                                @click="updateQuantity(-1)"
-                            >
-                                <Minus class="h-4 w-4" aria-hidden="true" />
-                            </Button>
-                                <FormInput
-                                    id="product-quantity"
-                                    v-model.number="quantity"
-                                    type="number"
-                                    :min="product.min_order || 1"
-                                    :max="displayStock"
-                                    step="1"
-                                    inputmode="numeric"
-                                    @change="normalizeQuantity"
-                                    @blur="normalizeQuantity"
-                                    wrapper-class="flex w-12 items-center justify-center"
-                                    class="h-11 w-full appearance-none rounded-none border-x border-y-0 bg-transparent px-0 py-0 text-center [text-indent:0] font-semibold leading-5"
-                                />
-                            <Button
-                                type="button"
-                                :aria-label="t('labels.product.increase_quantity')"
-                                class="h-11 w-11 rounded-r-xl border-0 p-0 hover:bg-secondary disabled:opacity-40"
-                                :disabled="quantity >= displayStock"
-                                @click="updateQuantity(1)"
-                            >
-                                <Plus class="h-4 w-4" aria-hidden="true" />
-                            </Button>
-                        </div>
+                        <QuantityStepper
+                            :model-value="quantity"
+                            :min="product.min_order || 1"
+                            :max="displayStock"
+                            :disabled="displayStock <= 0"
+                            :decrease-label="t('labels.product.decrease_quantity')"
+                            :increase-label="t('labels.product.increase_quantity')"
+                            :quantity-label="t('labels.product.quantity')"
+                            class="w-24 shrink-0"
+                            @update:model-value="updateQuantity"
+                        />
                     </div>
                     <p v-if="product.min_order && product.min_order > 1" class="-mt-2 text-xs text-muted-foreground">
                         {{ t("labels.product.min_order", { min: product.min_order }) }}

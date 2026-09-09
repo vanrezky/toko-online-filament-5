@@ -2,10 +2,11 @@
 import { computed, getCurrentInstance, onBeforeUnmount, ref, watch } from "vue";
 import { Link, router } from "@inertiajs/vue3";
 import { useI18n } from "vue-i18n";
-import { ArrowRight, ChevronRight, Heart, Minus, Plus, ShoppingBag, Trash2 } from "lucide-vue-next";
+import { ArrowRight, ChevronRight, Heart, ShoppingBag, Trash2 } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import FormCheckbox from "../../components/UI/FormCheckbox.vue";
+import QuantityStepper from "../../components/UI/QuantityStepper.vue";
 import CartSummary from "./CartSummary.vue";
 import CartRecommendations from "./CartRecommendations.vue";
 import { cn, formatCurrency } from "../../lib/utils";
@@ -77,9 +78,9 @@ const flushQuantities = () => {
         },
     );
 };
-const changeQuantity = (item, delta) => {
-    if (busy.value || item.quantity + delta < 1) return;
-    item.quantity += delta;
+const changeQuantity = (item, nextQuantity) => {
+    if (busy.value || nextQuantity === item.quantity || nextQuantity < 1) return;
+    item.quantity = nextQuantity;
     pendingQuantities.value.set(item.id, item.quantity);
     clearTimeout(quantityTimer);
     quantityTimer = setTimeout(flushQuantities, 300);
@@ -224,29 +225,16 @@ onBeforeUnmount(() => {
                                     >{{ t("labels.cart.ui.discount", { percent: discount(item) }) }}</span
                                 >
                             </div>
-                            <div
-                                class="cart-quantity border-border col-start-4 row-start-1 grid h-8 grid-cols-3 self-start overflow-hidden rounded-lg border sm:h-9 xl:col-start-5"
-                            >
-                                <button
-                                    class="text-foreground hover:bg-secondary/60 hover:text-primary inline-flex items-center justify-center transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-                                    :disabled="busy || item.quantity <= 1"
-                                    :aria-label="t('labels.cart.ui.decrease', { name: item.product?.name })"
-                                    @click="changeQuantity(item, -1)"
-                                >
-                                    <Minus class="h-3.5 w-3.5" aria-hidden="true" /></button
-                                ><output
-                                    class="border-border inline-flex items-center justify-center border-x text-xs font-semibold"
-                                    :aria-label="t('labels.cart.ui.quantity', { name: item.product?.name })"
-                                    >{{ item.quantity }}</output
-                                ><button
-                                    class="text-foreground hover:bg-secondary/60 hover:text-primary inline-flex items-center justify-center transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-                                    :disabled="busy"
-                                    :aria-label="t('labels.cart.ui.increase', { name: item.product?.name })"
-                                    @click="changeQuantity(item, 1)"
-                                >
-                                    <Plus class="h-3.5 w-3.5" aria-hidden="true" />
-                                </button>
-                            </div>
+                            <QuantityStepper
+                                :model-value="item.quantity"
+                                :max="item.product?.stock"
+                                :disabled="busy"
+                                :decrease-label="t('labels.cart.ui.decrease', { name: item.product?.name })"
+                                :increase-label="t('labels.cart.ui.increase', { name: item.product?.name })"
+                                :quantity-label="t('labels.cart.ui.quantity', { name: item.product?.name })"
+                                class="cart-quantity col-start-4 row-start-1 xl:col-start-5"
+                                @update:model-value="changeQuantity(item, $event)"
+                            />
                             <div class="cart-item-subtotal hidden min-w-0 xl:col-start-6 xl:row-start-1 xl:block">
                                 <span class="text-muted-foreground block text-xs">{{ t("labels.cart.subtotal") }}</span
                                 ><strong class="text-primary mt-1 block text-base font-semibold whitespace-nowrap">{{
