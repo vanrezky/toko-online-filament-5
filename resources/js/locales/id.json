@@ -605,7 +605,7 @@
             "view_products": "Lihat Koleksi Produk",
             "voucher_list": "List Voucher",
             "add_first_address": "Tambah Alamat Pertama",
-            "add_to_cart": "Tambah ke Keranjang",
+            "add_to_cart": "Tambah Keranjang",
             "add_to_cart_short": "Tambah Keranjang"
         },
 
@@ -798,6 +798,7 @@
             "wishlist": "Wishlist",
             "account": "Akun Saya",
             "login": "Masuk",
+            "open_search": "Buka pencarian",
             "search_placeholder": "Cari di {site}..",
             "search_products": "Ketik produk yang Anda cari..."
         },

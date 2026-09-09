@@ -1,6 +1,6 @@
 <script setup>
 import { Link, router, usePage } from "@inertiajs/vue3";
-import { computed, ref } from "vue";
+import { computed, nextTick, ref } from "vue";
 import { Menu, Search, ShoppingCart, User, X } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import Button from "@frontend/components/UI/Button.vue";
@@ -13,6 +13,8 @@ const { t } = useI18n();
 const settings = computed(() => page.props.settings ?? {});
 const currentUrl = computed(() => page.url);
 const searchQuery = ref("");
+const searchInput = ref(null);
+const isSearchOpen = ref(false);
 const isMobileMenuOpen = ref(false);
 
 const cartItemCount = computed(() => page.props.cart_total || 0);
@@ -35,6 +37,15 @@ const handleSearch = () => {
     if (!search) return;
 
     router.get(route("frontend.products"), { search }, { preserveState: true, preserveScroll: true });
+};
+
+const toggleSearch = async () => {
+    isSearchOpen.value = !isSearchOpen.value;
+
+    if (isSearchOpen.value) {
+        await nextTick();
+        searchInput.value?.focus();
+    }
 };
 </script>
 
@@ -77,6 +88,17 @@ const handleSearch = () => {
                 </form>
 
                 <div class="ml-auto flex shrink-0 items-center gap-1 md:gap-2">
+                    <Button
+                        type="button"
+                        class="text-foreground hover:text-primary rounded-full p-2 lg:hidden"
+                        :aria-expanded="isSearchOpen"
+                        aria-controls="mobile-product-search"
+                        :aria-label="isSearchOpen ? t('labels.actions.close') : t('labels.header.open_search')"
+                        @click="toggleSearch"
+                    >
+                        <X v-if="isSearchOpen" class="h-5 w-5" aria-hidden="true" />
+                        <Search v-else class="h-5 w-5" aria-hidden="true" />
+                    </Button>
                     <Link
                         :href="route('frontend.account')"
                         class="text-foreground hover:text-primary focus-visible:ring-primary/30 flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:outline-none"
@@ -111,8 +133,9 @@ const handleSearch = () => {
                 </div>
             </div>
 
-            <form class="pb-3 lg:hidden" @submit.prevent="handleSearch">
+            <form v-if="isSearchOpen" id="mobile-product-search" class="pb-3 lg:hidden" @submit.prevent="handleSearch">
                 <FormInput
+                    ref="searchInput"
                     v-model="searchQuery"
                     type="search"
                     :placeholder="searchPlaceholder"

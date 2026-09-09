@@ -9,7 +9,6 @@ import PageShell from "../../components/PageShell.vue";
 import QuantityStepper from "../../components/UI/QuantityStepper.vue";
 import Button from "@frontend/components/UI/Button.vue";
 import {
-    BadgeCheck,
     ChevronDown,
     ChevronLeft,
     ChevronRight,
@@ -21,14 +20,10 @@ import {
     MapPin,
     Minus,
     Plus,
-    RefreshCw,
-    Ruler,
     Scale,
-    ShieldCheck,
     ShoppingBag,
     Star,
     Tag,
-    Truck,
     X,
     ZoomIn,
 } from "lucide-vue-next";
@@ -56,6 +51,7 @@ const isDescriptionExpanded = ref(false);
 const reviews = ref([]);
 const ratingData = ref(null);
 const ratingSection = ref(null);
+const reviewsTabPanel = ref(null);
 const reviewPage = ref(0);
 const isLoadingReviews = ref(false);
 const hasMoreReviews = ref(true);
@@ -225,12 +221,6 @@ const hasPositiveRatingSummary = computed(
     () => ratingData.value?.summary.count > 0 && ratingData.value.summary.average >= 4,
 );
 
-const trustItems = computed(() => [
-    { icon: Truck, title: t("labels.trust.free_shipping"), note: t("labels.trust.free_shipping_note") },
-    { icon: ShieldCheck, title: t("labels.trust.secure_payment"), note: t("labels.trust.secure_payment_note") },
-    { icon: RefreshCw, title: t("labels.trust.easy_returns"), note: t("labels.trust.easy_returns_note") },
-    { icon: BadgeCheck, title: t("labels.product.original_product"), note: t("labels.product.original_product_note") },
-]);
 const specRows = computed(() => [
     { label: t("labels.product.spec_code"), value: props.product.code || "—" },
     { label: t("labels.product.spec_category"), value: props.product.category?.name || "—" },
@@ -240,8 +230,6 @@ const specRows = computed(() => [
 const mobileDetailSections = computed(() => [
     { key: "description", label: t("labels.product.description"), icon: FileText },
     { key: "specifications", label: t("labels.product.specifications"), icon: List },
-    { key: "size", label: t("labels.product.size_guide"), icon: Ruler },
-    { key: "shipping", label: t("labels.product.shipping_returns"), icon: Truck },
     {
         key: "reviews",
         label: ratingData.value
@@ -280,8 +268,9 @@ const toggleMobileDetail = (key) => {
 
 const openReviews = async () => {
     activeDesktopTab.value = "reviews";
+    if (!ratingData.value && !isLoadingReviews.value) fetchReviews(1, true);
     await nextTick();
-    ratingSection.value?.scrollIntoView({ behavior: "smooth", block: "start" });
+    reviewsTabPanel.value?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
 const ratingPercent = (rating) => {
@@ -430,7 +419,10 @@ const buyNow = async () => {
                 <span class="max-w-[18rem] truncate text-foreground">{{ product.name }}</span>
             </nav>
 
-            <div class="product-detail-grid grid min-w-0 gap-6 xl:gap-8">
+            <div
+                class="product-detail-grid grid min-w-0 gap-6 xl:gap-8"
+                :class="{ 'product-detail-grid--single-image': galleryMedia.length === 1 }"
+            >
                 <section class="min-w-0" :aria-label="t('labels.product.gallery')">
                     <div class="flex min-w-0 items-start gap-3 md:gap-4">
                         <div
@@ -653,23 +645,6 @@ const buyNow = async () => {
                     </div>
                 </section>
 
-                <aside class="product-detail-support-rail hidden min-w-0 space-y-3" :aria-label="t('labels.product.trust_information')">
-                    <div v-for="item in trustItems" :key="item.title" class="flex items-start gap-3 rounded-2xl border border-border bg-white p-4">
-                        <component :is="item.icon" class="mt-0.5 h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
-                        <div class="min-w-0">
-                            <h2 class="text-sm font-semibold text-foreground">{{ item.title }}</h2>
-                            <p class="mt-1 text-xs leading-5 text-muted-foreground">{{ item.note }}</p>
-                        </div>
-                    </div>
-                </aside>
-            </div>
-
-            <div class="product-detail-trust-row mt-5 hidden gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:flex">
-                <div v-for="item in trustItems" :key="item.title" class="min-w-[10.5rem] flex-1 rounded-2xl border border-border bg-white p-4 md:min-w-0">
-                    <component :is="item.icon" class="h-6 w-6 text-primary" aria-hidden="true" />
-                    <h2 class="mt-3 text-sm font-semibold text-foreground">{{ item.title }}</h2>
-                    <p class="mt-1 text-xs leading-5 text-muted-foreground">{{ item.note }}</p>
-                </div>
             </div>
 
             <div class="product-detail-lower mt-6 grid min-w-0 gap-6">
@@ -679,7 +654,6 @@ const buyNow = async () => {
                             v-for="tab in [
                                 { key: 'description', label: t('labels.product.description') },
                                 { key: 'specifications', label: t('labels.product.specifications') },
-                                { key: 'size', label: t('labels.product.size_guide') },
                                 { key: 'reviews', label: t('labels.product.reviews_heading') },
                             ]"
                             :key="tab.key"
@@ -726,20 +700,53 @@ const buyNow = async () => {
                                 <dd class="text-right font-medium text-foreground">{{ spec.value }}</dd>
                             </div>
                         </dl>
-                        <div v-else-if="activeDesktopTab === 'size'" class="rounded-2xl bg-secondary/45 p-5 text-sm leading-6 text-muted-foreground">
-                            <div class="flex items-start gap-3">
-                                <Ruler class="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                                <p>{{ t("labels.product.size_guide_note") }}</p>
+                        <div v-else ref="reviewsTabPanel" class="space-y-5">
+                            <div v-if="!ratingData" class="flex min-h-40 items-center justify-center text-center" aria-live="polite">
+                                <div v-if="reviewsError" class="flex flex-col items-center gap-4">
+                                    <p class="text-sm text-muted-foreground">{{ t("labels.product.reviews_load_failed") }}</p>
+                                    <Button type="button" class="border-primary bg-white text-primary hover:bg-primary/5" @click="fetchReviews(1, true)">{{ t("labels.actions.retry") }}</Button>
+                                </div>
+                                <p v-else class="text-sm text-muted-foreground">{{ t("labels.product.loading_reviews") }}</p>
                             </div>
-                        </div>
-                        <div v-else class="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-secondary/45 p-5">
-                            <p class="text-sm text-muted-foreground">
-                                {{ ratingData ? t("labels.product.reviews_available", { count: formatProductCount(ratingData.summary.count) }) : t("labels.product.reviews_loading_short") }}
-                            </p>
-                            <Button type="button" class="border-primary bg-white text-primary hover:bg-primary/5" @click="openReviews">
-                                <Star class="h-4 w-4" aria-hidden="true" />
-                                {{ t("labels.product.view_reviews") }}
-                            </Button>
+                            <template v-else>
+                                <div class="flex items-center justify-between gap-3">
+                                    <h3 class="text-lg font-bold text-foreground">{{ t("labels.product.reviews_heading") }}</h3>
+                                    <span class="text-sm text-muted-foreground">{{ formatProductCount(ratingData.summary.count) }} {{ t("labels.product.reviews") }}</span>
+                                </div>
+                                <div class="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                                    <Button
+                                        v-for="rating in ['all', 5, 4, 3, 2, 1]"
+                                        :key="rating"
+                                        type="button"
+                                        :aria-pressed="selectedReviewRating === rating"
+                                        :class="cn(
+                                            'shrink-0 rounded-full px-3 py-1.5 text-xs focus-visible:ring-2 focus-visible:ring-primary/30',
+                                            selectedReviewRating === rating ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-white text-muted-foreground hover:border-primary hover:text-primary',
+                                        )"
+                                        @click="filterReviews(rating)"
+                                    >
+                                        <template v-if="rating === 'all'">{{ t("labels.product.all") }} ({{ formatProductCount(ratingData.summary.count) }})</template>
+                                        <template v-else>{{ t("labels.product.stars", { rating }) }} ({{ formatProductCount(ratingData.summary.distribution?.[rating] || 0) }})</template>
+                                    </Button>
+                                </div>
+                                <div class="space-y-3">
+                                    <article v-for="review in reviews.slice(0, 3)" :key="review.id" class="rounded-xl border border-border p-3">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div>
+                                                <p class="text-sm font-semibold text-foreground">{{ review.reviewer_name }}</p>
+                                                <p class="mt-0.5 text-[11px] text-muted-foreground">{{ review.created_at }}<span v-if="!review.is_admin" class="text-primary"> · {{ t("labels.product.verified_purchase") }}</span></p>
+                                            </div>
+                                            <div class="flex gap-0.5"><Star v-for="star in 5" :key="star" class="h-3.5 w-3.5" :class="star <= review.rating ? 'fill-primary text-primary' : 'text-border'" aria-hidden="true" /></div>
+                                        </div>
+                                        <p v-if="review.review" class="mt-2 text-xs leading-5 text-muted-foreground">{{ review.review }}</p>
+                                    </article>
+                                    <p v-if="!reviews.length" class="text-sm text-muted-foreground">{{ t("labels.product.no_reviews") }}</p>
+                                </div>
+                                <div v-if="reviewsError" class="rounded-xl bg-secondary px-3.5 py-3 text-sm text-muted-foreground">{{ t("labels.product.reviews_load_failed") }}</div>
+                                <Button v-if="hasMoreReviews" type="button" class="w-full border-primary bg-white text-primary hover:bg-primary/5" :loading="isLoadingReviews" @click="loadMoreReviews">
+                                    {{ t("labels.product.load_more_reviews") }}
+                                </Button>
+                            </template>
                         </div>
                     </div>
 
@@ -770,16 +777,6 @@ const buyNow = async () => {
                                             <dd class="font-medium text-foreground">{{ spec.value }}</dd>
                                         </template>
                                     </dl>
-                                    <div v-else-if="section.key === 'size'" class="flex items-start gap-3 rounded-xl bg-secondary/45 p-4 text-sm leading-6 text-muted-foreground">
-                                        <Ruler class="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                                        <p>{{ t("labels.product.size_guide_note") }}</p>
-                                    </div>
-                                    <div v-else-if="section.key === 'shipping'" class="space-y-3 rounded-xl bg-secondary/45 p-4 text-sm text-muted-foreground">
-                                        <div v-for="item in trustItems.slice(0, 3)" :key="item.title" class="flex items-start gap-3">
-                                            <component :is="item.icon" class="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                                            <span><strong class="font-semibold text-foreground">{{ item.title }}</strong><br />{{ item.note }}</span>
-                                        </div>
-                                    </div>
                                     <div v-else>
                                         <div v-if="!ratingData" class="flex min-h-24 items-center justify-center text-sm text-muted-foreground" aria-live="polite">
                                             {{ isLoadingReviews ? t("labels.product.loading_reviews") : t("labels.product.reviews_loading_short") }}
@@ -800,6 +797,22 @@ const buyNow = async () => {
                                                         <span class="w-5 text-right text-muted-foreground">{{ ratingData.summary.distribution?.[rating] || 0 }}</span>
                                                     </div>
                                                 </div>
+                                            </div>
+                                            <div class="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                                                <Button
+                                                    v-for="rating in ['all', 5, 4, 3, 2, 1]"
+                                                    :key="rating"
+                                                    type="button"
+                                                    :aria-pressed="selectedReviewRating === rating"
+                                                    :class="cn(
+                                                        'shrink-0 rounded-full px-3 py-1.5 text-xs focus-visible:ring-2 focus-visible:ring-primary/30',
+                                                        selectedReviewRating === rating ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-white text-muted-foreground hover:border-primary hover:text-primary',
+                                                    )"
+                                                    @click="filterReviews(rating)"
+                                                >
+                                                    <template v-if="rating === 'all'">{{ t("labels.product.all") }} ({{ formatProductCount(ratingData.summary.count) }})</template>
+                                                    <template v-else>{{ t("labels.product.stars", { rating }) }} ({{ formatProductCount(ratingData.summary.distribution?.[rating] || 0) }})</template>
+                                                </Button>
                                             </div>
                                             <div class="mt-4 space-y-3">
                                                 <article v-for="review in reviews.slice(0, 2)" :key="review.id" class="rounded-xl border border-border p-3">
@@ -853,39 +866,6 @@ const buyNow = async () => {
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                            <Button
-                                v-for="rating in ['all', 5, 4, 3, 2, 1]"
-                                :key="rating"
-                                type="button"
-                                :aria-pressed="selectedReviewRating === rating"
-                                :class="cn(
-                                    'shrink-0 rounded-full px-3 py-1.5 text-xs focus-visible:ring-2 focus-visible:ring-primary/30',
-                                    selectedReviewRating === rating ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-white text-muted-foreground hover:border-primary hover:text-primary',
-                                )"
-                                @click="filterReviews(rating)"
-                            >
-                                <template v-if="rating === 'all'">{{ t("labels.product.all") }} ({{ formatProductCount(ratingData.summary.count) }})</template>
-                                <template v-else>{{ t("labels.product.stars", { rating }) }} ({{ formatProductCount(ratingData.summary.distribution?.[rating] || 0) }})</template>
-                            </Button>
-                        </div>
-                        <div class="mt-5 space-y-3">
-                            <article v-for="review in reviews.slice(0, 3)" :key="review.id" class="rounded-xl border border-border p-3">
-                                <div class="flex items-start justify-between gap-3">
-                                    <div>
-                                        <p class="text-sm font-semibold text-foreground">{{ review.reviewer_name }}</p>
-                                        <p class="mt-0.5 text-[11px] text-muted-foreground">{{ review.created_at }}<span v-if="!review.is_admin" class="text-primary"> · {{ t("labels.product.verified_purchase") }}</span></p>
-                                    </div>
-                                    <div class="flex gap-0.5"><Star v-for="star in 5" :key="star" class="h-3.5 w-3.5" :class="star <= review.rating ? 'fill-primary text-primary' : 'text-border'" aria-hidden="true" /></div>
-                                </div>
-                                <p v-if="review.review" class="mt-2 text-xs leading-5 text-muted-foreground">{{ review.review }}</p>
-                            </article>
-                            <p v-if="!reviews.length" class="text-sm text-muted-foreground">{{ t("labels.product.no_reviews") }}</p>
-                        </div>
-                        <div v-if="reviewsError" class="mt-4 rounded-xl bg-secondary px-3.5 py-3 text-sm text-muted-foreground">{{ t("labels.product.reviews_load_failed") }}</div>
-                        <Button v-if="hasMoreReviews" type="button" class="mt-5 w-full border-primary bg-white text-primary hover:bg-primary/5" :loading="isLoadingReviews" @click="loadMoreReviews">
-                            {{ t("labels.product.load_more_reviews") }}
-                        </Button>
                     </template>
                 </section>
             </div>
@@ -984,7 +964,11 @@ const buyNow = async () => {
 
 @media (min-width: 768px) {
     .product-detail-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 1.2fr) minmax(22rem, 0.8fr);
+    }
+
+    .product-detail-grid--single-image {
+        grid-template-columns: minmax(0, 1fr) minmax(22rem, 1.1fr);
     }
 
     .product-detail-lower {
@@ -992,17 +976,4 @@ const buyNow = async () => {
     }
 }
 
-@media (min-width: 1280px) {
-    .product-detail-support-rail {
-        display: block;
-    }
-
-    .product-detail-trust-row {
-        display: none;
-    }
-
-    .product-detail-grid {
-        grid-template-columns: minmax(0, 1.35fr) minmax(20rem, 1fr) 16.5rem;
-    }
-}
 </style>

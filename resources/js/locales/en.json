@@ -565,6 +565,7 @@
             "wishlist": "Wishlist",
             "account": "My Account",
             "login": "Sign In",
+            "open_search": "Open search",
             "search_placeholder": "Search in {site}..",
             "search_products": "Type the product you are looking for..."
         },
