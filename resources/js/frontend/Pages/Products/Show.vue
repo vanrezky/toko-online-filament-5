@@ -366,14 +366,6 @@ const addToCart = () => {
     );
 };
 
-const addRelatedToCart = (relatedProduct) => {
-    router.post(
-        route("frontend.cart.store"),
-        { product_id: relatedProduct.id, quantity: 1 },
-        { preserveScroll: true, preserveState: true },
-    );
-};
-
 const buyNow = async () => {
     try {
         const response = await axios.post(route("frontend.cart.store"), {
@@ -888,16 +880,11 @@ const buyNow = async () => {
                                 <div v-else class="flex h-full items-center justify-center"><ImageOff class="h-7 w-7 text-muted-foreground" aria-hidden="true" /></div>
                             </div>
                             <h3 class="mt-2 line-clamp-2 min-h-10 text-xs font-semibold leading-5 text-foreground">{{ related.name }}</h3>
-                        </Link>
-                        <div class="mt-2 flex items-end justify-between gap-2">
-                            <div class="min-w-0">
+                            <div class="mt-2 min-w-0">
                                 <p class="truncate text-sm font-bold text-primary">{{ formatCurrency(related.pricing?.final_price ?? related.price, localeCode) }}</p>
                                 <p v-if="related.pricing?.original_price > (related.pricing?.final_price ?? related.price)" class="truncate text-[11px] text-muted-foreground line-through">{{ formatCurrency(related.pricing.original_price, localeCode) }}</p>
                             </div>
-                            <Button type="button" :aria-label="t('labels.product.add_related_to_cart', { name: related.name })" class="h-9 w-9 shrink-0 rounded-lg border-primary bg-white p-0 text-primary hover:bg-primary hover:text-primary-foreground" @click="addRelatedToCart(related)">
-                                <ShoppingBag class="h-4 w-4" aria-hidden="true" />
-                            </Button>
-                        </div>
+                        </Link>
                     </article>
                 </div>
             </section>

@@ -2,7 +2,7 @@
 import Button from "@frontend/components/UI/Button.vue";
 import { Link, router, usePage } from "@inertiajs/vue3";
 import { computed } from "vue";
-import { Heart, ShoppingCart, Star } from "lucide-vue-next";
+import { Heart, Star } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { formatCompactNumber, formatCurrency } from "../../lib/utils";
 
@@ -136,14 +136,11 @@ const toggleWishlist = (event) => {
                     <span>({{ formatProductCount(product.review_count) }})</span>
                 </div>
 
-                <div class="border-border mt-3 flex items-end justify-between gap-2 border-t pt-3">
+                <div class="mt-auto flex items-end pt-3">
                     <div class="min-w-0">
                         <p class="text-primary text-sm leading-none font-bold tracking-[-0.025em] sm:text-base">{{ formatCurrency(displayPrice) }}</p>
                         <del v-if="originalPrice" class="text-muted-foreground mt-1 block text-[11px]">{{ formatCurrency(originalPrice) }}</del>
                     </div>
-                    <span class="border-primary/45 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border sm:h-9 sm:w-9" aria-hidden="true">
-                        <ShoppingCart class="h-4 w-4" />
-                    </span>
                 </div>
             </div>
         </Link>
