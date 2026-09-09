@@ -4,7 +4,6 @@ import { computed, ref, watch } from "vue";
 import { Link, router } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import PageShell from "../../components/PageShell.vue";
-import FormInput from "../../components/UI/FormInput.vue";
 import FormSelect from "../../components/UI/FormSelect.vue";
 import ProductCard from "../../components/UI/ProductCard.vue";
 import ProductFilters from "../../components/UI/ProductFilters.vue";
@@ -266,7 +265,7 @@ const pageSize = computed({
                         </div>
                     </div>
 
-                    <div v-if="products.data?.length" class="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    <div v-if="products.data?.length" class="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
                         <ProductCard v-for="product in products.data" :key="product.uuid || product.id" :product="product" />
                     </div>
 

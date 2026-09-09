@@ -872,7 +872,7 @@ When an override creates meaningful risk, warn briefly before proceeding.
 - Full rebuild from scratch: `make fresh`.
 - Backend tests: `./vendor/bin/sail artisan test`.
 - Single backend test: `./vendor/bin/sail artisan test --filter TestName`.
-- Frontend verify: `npm run build`; frontend tests: `npm run test`.
+- Frontend iteration verification: browser/HMR at `http://localhost:81` and focused frontend tests (`npm run test` with relevant filters) when applicable. Run `npm run build` only at a logical checkpoint, final handoff/PR, or when explicitly requested; follow the Vite/HMR workflow below.
 
 ## High-signal gotchas
 
@@ -921,6 +921,16 @@ For frontend verification, always use:
 http://localhost:81
 
 The Vite dev server is already managed by the existing development environment.
+
+### Vite/HMR workflow
+
+- For ordinary Vue/CSS/UI changes, use the existing Vite dev server and verify the rendered result through HMR at `http://localhost:81`. Do not run `npm run build` after every edit.
+- Reserve `npm run build` for a logical batch checkpoint, final handoff/PR validation, or an explicit user request. Build validation does not replace browser verification of the UI.
+- Do not automatically stop, restart, or launch another Vite dev server. Preserve the user's running `npm run dev` process.
+- If changes do not appear, inspect `public/hot`, the JS/CSS URLs actually loaded by the page, the HMR WebSocket connection, and terminal/browser errors before attempting recovery. Confirm that the page is using the active dev server rather than production assets in `public/build`.
+- Laravel uses `public/hot` to select the dev server and otherwise loads built assets. Do not delete or rewrite `public/hot` as routine cleanup or as a workaround for stale UI.
+- A successful production build does not by itself require restarting `npm run dev`. Ordinary component/style edits should update through HMR; some configuration or dependency changes may require a restart. Diagnose and explain that need before restarting, and coordinate with the user who owns the running process.
+- Report browser/HMR verification, focused tests, and production build results separately. If changes are not visible or browser verification is unavailable, state that limitation rather than claiming the UI is verified.
 
 If the application cannot be reached, diagnose the existing Sail environment.
 Do not start a replacement development server.

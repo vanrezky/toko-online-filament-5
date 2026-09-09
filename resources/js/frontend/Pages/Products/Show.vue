@@ -14,7 +14,6 @@ import {
     ChevronLeft,
     ChevronRight,
     ChevronUp,
-    CircleCheck,
     FileText,
     Heart,
     ImageOff,
@@ -232,22 +231,12 @@ const trustItems = computed(() => [
     { icon: RefreshCw, title: t("labels.trust.easy_returns"), note: t("labels.trust.easy_returns_note") },
     { icon: BadgeCheck, title: t("labels.product.original_product"), note: t("labels.product.original_product_note") },
 ]);
-const benefitItems = computed(() => [
-    t("labels.product.benefit_lightweight"),
-    t("labels.product.benefit_comfortable"),
-    t("labels.product.benefit_versatile"),
-    t("labels.product.benefit_quality"),
-    t("labels.product.benefit_choices"),
-    t("labels.product.benefit_design"),
-]);
 const specRows = computed(() => [
     { label: t("labels.product.spec_code"), value: props.product.code || "—" },
     { label: t("labels.product.spec_category"), value: props.product.category?.name || "—" },
     { label: t("labels.product.spec_weight"), value: ((props.product.weight || 0) / 1000).toFixed(2) + " kg" },
     { label: t("labels.product.spec_warehouse"), value: props.product.warehouse?.name || t("labels.product.default_warehouse") },
 ]);
-const paymentMethods = ["BCA", "BRI", "Mandiri", "BNI", "DANA", "GoPay", "OVO", "Visa", "Mastercard"];
-
 const mobileDetailSections = computed(() => [
     { key: "description", label: t("labels.product.description"), icon: FileText },
     { key: "specifications", label: t("labels.product.specifications"), icon: List },
@@ -711,19 +700,10 @@ const buyNow = async () => {
                             <p class="mt-1 text-xs leading-5 text-muted-foreground">{{ item.note }}</p>
                         </div>
                     </div>
-                    <div class="rounded-2xl bg-primary/5 p-5">
-                        <h2 class="text-sm font-bold text-foreground">{{ t("labels.product.benefits_heading") }}</h2>
-                        <ul class="mt-3 space-y-2.5">
-                            <li v-for="benefit in benefitItems" :key="benefit" class="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
-                                <CircleCheck class="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                                <span>{{ benefit }}</span>
-                            </li>
-                        </ul>
-                    </div>
                 </aside>
             </div>
 
-            <div class="product-detail-trust-row mt-5 flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div class="product-detail-trust-row mt-5 hidden gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:flex">
                 <div v-for="item in trustItems" :key="item.title" class="min-w-[10.5rem] flex-1 rounded-2xl border border-border bg-white p-4 md:min-w-0">
                     <component :is="item.icon" class="h-6 w-6 text-primary" aria-hidden="true" />
                     <h2 class="mt-3 text-sm font-semibold text-foreground">{{ item.title }}</h2>
@@ -802,18 +782,8 @@ const buyNow = async () => {
                         </div>
                     </div>
 
-                    <div class="p-4 md:hidden">
-                        <div class="rounded-2xl bg-primary/5 p-4">
-                            <h2 class="text-base font-bold text-foreground">{{ t("labels.product.benefits_heading") }}</h2>
-                            <ul class="mt-3 grid gap-2.5 sm:grid-cols-2">
-                                <li v-for="benefit in benefitItems" :key="benefit" class="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
-                                    <CircleCheck class="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                                    <span>{{ benefit }}</span>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div class="mt-4 divide-y divide-border border-y border-border">
+                <div class="p-4 md:hidden">
+                    <div class="mt-4 divide-y divide-border border-y border-border">
                             <div v-for="section in mobileDetailSections" :key="section.key">
                                 <Button
                                     type="button"
@@ -1010,17 +980,6 @@ const buyNow = async () => {
                 </div>
             </section>
 
-            <section class="mt-8 hidden rounded-3xl border border-border bg-secondary/30 p-5 md:block md:p-6">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-base font-bold text-foreground">{{ t("labels.product.payment_methods") }}</h2>
-                        <p class="mt-1 text-sm text-muted-foreground">{{ t("labels.product.payment_methods_note") }}</p>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2" :aria-label="t('labels.product.payment_methods')">
-                        <span v-for="method in paymentMethods" :key="method" class="rounded-lg border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-foreground">{{ method }}</span>
-                    </div>
-                </div>
-            </section>
         </PageShell>
 
         <Teleport to="body">
