@@ -26,5 +26,5 @@
 ## 5. Final verification and ship
 
 - [x] 5.1 Validate the OpenSpec change strictly and map each Issue #116 acceptance criterion to code/tests/evidence.
-- [ ] 5.2 Review the diff for scope, run the relevant build/checkpoint validation, then commit and push an issue-linked branch targeting `dev`.
-- [ ] 5.3 Open a PR to `dev` linking Issue #116 and the OpenSpec change, with validation results and any environment limitations recorded.
+- [x] 5.2 Review the diff for scope, run the relevant build/checkpoint validation, then commit and push an issue-linked branch targeting `dev`.
+- [x] 5.3 Open a PR to `dev` linking Issue #116 and the OpenSpec change, with validation results and any environment limitations recorded.
