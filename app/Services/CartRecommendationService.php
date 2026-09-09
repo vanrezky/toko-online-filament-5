@@ -14,7 +14,7 @@ final class CartRecommendationService
 
     private const POOL_LIMIT = 24;
 
-    private const RECOMMENDATION_LIMIT = 5;
+    private const RECOMMENDATION_LIMIT = 4;
 
     /** @return Collection<int, Product> */
     public function forCart(Cart $cart, ?int $resellerId = null): Collection

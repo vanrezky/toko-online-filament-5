@@ -76,8 +76,13 @@ describe("Cart mockup presentation preserves cart behavior", () => {
         expect(wrapper.findAll(".cart-item")[1].find(".cart-variant").exists()).toBe(false);
         expect(wrapper.get(".cart-variant").element.tagName).toBe("SPAN");
         expect(wrapper.get(".cart-variant").find("svg").exists()).toBe(false);
-        expect(wrapper.get(".cart-recommendation-name").text()).toBe("Canvas Shoes");
-        expect(wrapper.get(".cart-recommendation-name").attributes("href")).toBe("/frontend.product-detail/canvas-shoes");
+        const recommendation = wrapper.get('.cart-recommendations a.product-recommendation-name[href="/frontend.product-detail/canvas-shoes"]');
+        expect(recommendation.text()).toContain("Canvas Shoes");
+        expect(recommendation.attributes("href")).toBe("/frontend.product-detail/canvas-shoes");
+        expect(wrapper.find(".cart-recommendation-shop").exists()).toBe(false);
+        expect(wrapper.find(".cart-recommendations .product-recommendation-rating").exists()).toBe(false);
+        expect(wrapper.find(".cart-recommendations .product-recommendation-save").exists()).toBe(false);
+        expect(wrapper.get(".cart-recommendation-grid").classes()).toEqual(expect.arrayContaining(["flex", "overflow-x-auto", "lg:grid-cols-4"]));
         expect(wrapper.text()).not.toContain("TWS Wireless Bluetooth");
         expect(wrapper.get('[data-test="cart-subtotal"]').text()).toMatch(/707[,.]000/);
         expect(wrapper.findAll('[data-test="cart-checkout"]')).toHaveLength(1);
@@ -159,11 +164,10 @@ describe("Cart mockup presentation preserves cart behavior", () => {
         router.delete.mock.calls[0][1].onFinish();
         expect(router.delete).toHaveBeenCalledTimes(1);
     });
-    it("keeps saved state local without changing totals or checkout payload", async () => {
+    it("keeps cart item saved state local without changing totals or checkout payload", async () => {
         render();
         const before = wrapper.get('[data-test="cart-subtotal"]').text();
         await wrapper.find(".cart-save").trigger("click");
-        await wrapper.find(".cart-recommendation-save").trigger("click");
         expect(wrapper.find(".cart-save").attributes("aria-pressed")).toBe("true");
         expect(wrapper.get('[data-test="cart-subtotal"]').text()).toBe(before);
         expect(router.post).not.toHaveBeenCalled();

@@ -38,7 +38,7 @@ class CartRecommendationTest extends TestCase
             $cart->load('items.product'),
         );
 
-        $this->assertCount(5, $recommendations);
+        $this->assertCount(4, $recommendations);
         $this->assertSame(
             [$primaryCategory->id, $primaryCategory->id, $secondaryCategory->id],
             $recommendations->take(3)->pluck('category_id')->all(),
@@ -49,10 +49,8 @@ class CartRecommendationTest extends TestCase
         ));
         $this->assertFalse($recommendations->contains('id', $inactive->id));
         $this->assertFalse($recommendations->contains('id', $outOfStock->id));
-        $this->assertEqualsCanonicalizing(
-            $primaryCandidates->concat([$secondaryCandidate])->concat($fallbackCandidates)->pluck('id')->all(),
-            $recommendations->pluck('id')->all(),
-        );
+        $candidateIds = $primaryCandidates->concat([$secondaryCandidate])->concat($fallbackCandidates)->pluck('id')->all();
+        $this->assertTrue($recommendations->pluck('id')->every(fn ($id): bool => in_array($id, $candidateIds, true)));
     }
 
     public function test_it_reuses_candidate_ids_but_rechecks_stock_and_invalidates_on_product_save(): void

@@ -7,6 +7,7 @@ import { cn, formatCompactNumber, formatCurrency } from "../../lib/utils";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import PageShell from "../../components/PageShell.vue";
 import QuantityStepper from "../../components/UI/QuantityStepper.vue";
+import ProductRecommendationCard from "../../components/UI/ProductRecommendationCard.vue";
 import Button from "@frontend/components/UI/Button.vue";
 import {
     ChevronDown,
@@ -872,20 +873,13 @@ const buyNow = async () => {
                         {{ t("labels.product.view_all_products") }} <ChevronRight class="h-4 w-4" aria-hidden="true" />
                     </Link>
                 </div>
-                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                    <article v-for="related in relatedItems" :key="related.id" class="group min-w-0 overflow-hidden rounded-2xl border border-border bg-white p-2.5 transition-shadow hover:shadow-lg">
-                        <Link :href="route('frontend.product-detail', related.slug)" class="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-                            <div class="relative aspect-square overflow-hidden rounded-xl bg-secondary/45">
-                                <img v-if="related.thumbnail" :src="related.thumbnail" :alt="related.name" loading="lazy" decoding="async" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                <div v-else class="flex h-full items-center justify-center"><ImageOff class="h-7 w-7 text-muted-foreground" aria-hidden="true" /></div>
-                            </div>
-                            <h3 class="mt-2 line-clamp-2 min-h-10 text-xs font-semibold leading-5 text-foreground">{{ related.name }}</h3>
-                            <div class="mt-2 min-w-0">
-                                <p class="truncate text-sm font-bold text-primary">{{ formatCurrency(related.pricing?.final_price ?? related.price, localeCode) }}</p>
-                                <p v-if="related.pricing?.original_price > (related.pricing?.final_price ?? related.price)" class="truncate text-[11px] text-muted-foreground line-through">{{ formatCurrency(related.pricing.original_price, localeCode) }}</p>
-                            </div>
-                        </Link>
-                    </article>
+                <div class="scrollbar-hidden flex touch-pan-x snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-2 sm:gap-4 md:gap-5 lg:grid lg:grid-cols-6 lg:gap-3 lg:overflow-visible lg:pb-0">
+                    <ProductRecommendationCard
+                        v-for="related in relatedItems"
+                        :key="related.id"
+                        :product="related"
+                        class="w-[min(40vw,10rem)] shrink-0 snap-start sm:w-40 md:w-44 lg:w-auto lg:max-w-[15rem] lg:shrink lg:justify-self-center"
+                    />
                 </div>
             </section>
 
