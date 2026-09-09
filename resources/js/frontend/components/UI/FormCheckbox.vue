@@ -18,6 +18,11 @@ const props = defineProps({
         v-bind="$attrs"
         v-model="model"
         type="checkbox"
-        :class="cn('h-4 w-4 rounded border-border bg-secondary text-primary outline-none focus-visible:ring-1 focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-60', props.class)"
+        :class="
+            cn(
+                'form-checkbox border-border accent-primary focus-visible:ring-primary/50 h-5 w-5 shrink-0 cursor-pointer rounded bg-white outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60',
+                props.class,
+            )
+        "
     />
 </template>

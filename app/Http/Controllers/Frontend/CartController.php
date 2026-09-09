@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Frontend;
 use App\Enums\CartStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CartResource;
+use App\Http\Resources\ProductSimpleResource;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\CartRecommendationService;
 use App\Services\FlashsalePricingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,9 +18,14 @@ use Inertia\Inertia;
 
 class CartController extends Controller
 {
+    public function __construct(
+        private readonly CartRecommendationService $recommendationService,
+    ) {}
+
     public function __invoke(Request $request)
     {
         $cart = null;
+        $recommendations = collect();
         if (Auth::guard('customer')->check()) {
             $resellerId = Auth::guard('customer')->user()?->reseller_id;
 
@@ -42,12 +49,14 @@ class CartController extends Controller
 
             if ($cart) {
                 app(FlashsalePricingService::class)->syncCart($cart);
+                $recommendations = $this->recommendationService->forCart($cart, $resellerId);
                 $cart = CartResource::make($cart)->resolve();
             }
         }
 
         return Inertia::render('Cart/Index', [
             'cart' => $cart,
+            'recommendations' => ProductSimpleResource::collection($recommendations),
         ]);
     }
 

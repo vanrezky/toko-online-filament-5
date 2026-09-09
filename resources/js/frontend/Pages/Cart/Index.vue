@@ -1,243 +1,304 @@
 <script setup>
-import Button from "@frontend/components/UI/Button.vue";
-import { computed, ref, watch } from "vue";
+import { computed, getCurrentInstance, onBeforeUnmount, ref, watch } from "vue";
 import { Link, router } from "@inertiajs/vue3";
-import TemplateWrapper from "../../components/TemplateWrapper.vue";
-import PageShell from "../../components/PageShell.vue";
-import { Trash2, ShoppingBag, ArrowRight, Minus, Plus } from "lucide-vue-next";
-import { formatCurrency } from "../../lib/utils";
-import Card from "../../components/UI/Card.vue";
-import FormCheckbox from "../../components/UI/FormCheckbox.vue";
-import debounce from "lodash/debounce";
 import { useI18n } from "vue-i18n";
-
-const { t } = useI18n();
+import { ArrowRight, ChevronRight, Heart, Minus, Plus, ShoppingBag, Trash2 } from "lucide-vue-next";
+import { toast } from "vue-sonner";
+import TemplateWrapper from "../../components/TemplateWrapper.vue";
+import FormCheckbox from "../../components/UI/FormCheckbox.vue";
+import CartSummary from "./CartSummary.vue";
+import CartRecommendations from "./CartRecommendations.vue";
+import { cn, formatCurrency } from "../../lib/utils";
 
 const props = defineProps({
-    cart: Object,
+    cart: { type: Object, default: null },
+    recommendations: { type: Array, default: () => [] },
 });
-
-const localItems = ref([...(props.cart?.items || [])]);
+const { t, locale } = useI18n();
+const { proxy } = getCurrentInstance();
+const money = (value) => formatCurrency(value, locale.value === "id" ? "id-ID" : "en-US");
+const localItems = ref((props.cart?.items || []).map((item) => ({ ...item })));
 const selectedItemIds = ref(localItems.value.map((item) => item.id));
-
+const savedIds = ref([]);
+const busy = ref(false);
+const pendingQuantities = ref(new Map());
+let quantityTimer;
+let disposed = false;
 watch(
     () => props.cart?.items,
-    (newItems) => {
-        localItems.value = [...(newItems || [])];
-        selectedItemIds.value = selectedItemIds.value.filter((id) => localItems.value.some((item) => item.id === id));
+    (items) => {
+        localItems.value = (items || []).map((item) => ({ ...item, quantity: pendingQuantities.value.get(item.id) ?? item.quantity }));
+        const ids = new Set(localItems.value.map((item) => item.id));
+        selectedItemIds.value = selectedItemIds.value.filter((id) => ids.has(id));
+        savedIds.value = savedIds.value.filter((id) => ids.has(id));
     },
     { deep: true },
 );
-
-const subtotal = computed(() => {
-    return selectedItems.value.reduce((total, item) => total + item.price * item.quantity, 0);
-});
 const selectedItems = computed(() => localItems.value.filter((item) => selectedItemIds.value.includes(item.id)));
-const isAllSelected = computed(() => localItems.value.length > 0 && selectedItemIds.value.length === localItems.value.length);
-
-const toggleItemSelection = (itemId) => {
-    selectedItemIds.value = selectedItemIds.value.includes(itemId)
-        ? selectedItemIds.value.filter((id) => id !== itemId)
-        : [...selectedItemIds.value, itemId];
+const subtotal = computed(() => selectedItems.value.reduce((total, item) => total + Number(item.price) * item.quantity, 0));
+const allSelected = computed(() => localItems.value.length > 0 && selectedItems.value.length === localItems.value.length);
+const updating = computed(() => busy.value || pendingQuantities.value.size > 0);
+const canCheckout = computed(() => selectedItems.value.length > 0 && !updating.value);
+const toggleAll = () => {
+    selectedItemIds.value = allSelected.value ? [] : localItems.value.map((item) => item.id);
 };
-
-const toggleAllSelection = () => {
-    selectedItemIds.value = isAllSelected.value ? [] : localItems.value.map((item) => item.id);
+const toggleItem = (id) => {
+    selectedItemIds.value = selectedItemIds.value.includes(id)
+        ? selectedItemIds.value.filter((value) => value !== id)
+        : [...selectedItemIds.value, id];
 };
-
+const toggleSaved = (id) => {
+    savedIds.value = savedIds.value.includes(id) ? savedIds.value.filter((value) => value !== id) : [...savedIds.value, id];
+};
 const checkoutSelected = () => {
-    if (selectedItemIds.value.length === 0) return;
-
-    router.visit(route("frontend.checkout", { cart_item_ids: selectedItemIds.value }));
+    if (canCheckout.value) router.visit(route("frontend.checkout", { cart_item_ids: selectedItemIds.value }));
 };
-
-const updateQuantity = debounce((itemId, newQty) => {
-    if (newQty < 1) return;
-
+// Serialize writes so an Inertia visit for one row cannot cancel another row's update.
+const flushQuantities = () => {
+    if (disposed || busy.value || !pendingQuantities.value.size) return;
+    const [id, quantity] = pendingQuantities.value.entries().next().value;
+    pendingQuantities.value.delete(id);
+    busy.value = true;
     router.patch(
-        route("frontend.cart.update", itemId),
-        {
-            quantity: newQty,
-        },
+        route("frontend.cart.update", id),
+        { quantity },
         {
             preserveScroll: true,
+            onError: () => {
+                const original = props.cart?.items?.find((item) => item.id === id);
+                const local = localItems.value.find((item) => item.id === id);
+                if (original && local) local.quantity = original.quantity;
+                toast.error(t("labels.cart.ui.update_error"));
+            },
+            onFinish: () => {
+                busy.value = false;
+                flushQuantities();
+            },
         },
     );
-}, 300);
-
-const handleQuantityChange = (item, delta) => {
-    const newQty = item.quantity + delta;
-    if (newQty < 1) return;
-
-    item.quantity = newQty;
-    updateQuantity(item.id, newQty);
 };
-
-const removeItem = (id) => {
-    router.delete(route("frontend.cart.destroy", id), {
+const changeQuantity = (item, delta) => {
+    if (busy.value || item.quantity + delta < 1) return;
+    item.quantity += delta;
+    pendingQuantities.value.set(item.id, item.quantity);
+    clearTimeout(quantityTimer);
+    quantityTimer = setTimeout(flushQuantities, 300);
+};
+const deleteItems = (ids) => {
+    if (disposed || updating.value || !ids.length) return;
+    busy.value = true;
+    let failed = false;
+    router.delete(route("frontend.cart.destroy", ids[0]), {
         preserveScroll: true,
+        onError: () => {
+            failed = true;
+            toast.error(t("labels.cart.ui.delete_error"));
+        },
+        onCancel: () => {
+            failed = true;
+        },
+        onFinish: () => {
+            busy.value = false;
+            if (!failed) deleteItems(ids.slice(1));
+        },
     });
 };
+const confirmClear = () => {
+    if (updating.value) return;
+    proxy.$confirm({
+        title: t("labels.cart.ui.clear_title"),
+        message: t("labels.cart.ui.clear_description"),
+        button: { yes: t("labels.cart.ui.remove_all"), no: t("labels.actions.cancel") },
+        callback: (confirmed) => {
+            if (confirmed) deleteItems(localItems.value.map((item) => item.id));
+        },
+    });
+};
+const discount = (item) => (item.original_price > item.price ? Math.round((1 - item.price / item.original_price) * 100) : 0);
+const imageFallback = (event) => {
+    event.target.onerror = null;
+    event.target.src = "/images/placeholders/product-snapshot.svg";
+};
+onBeforeUnmount(() => {
+    disposed = true;
+    clearTimeout(quantityTimer);
+});
 </script>
 
 <template>
-    <TemplateWrapper :shell="false" :title="t('labels.cart.heading')">
-        <PageShell container :title="t('labels.cart.heading')">
-            <div v-if="localItems.length > 0">
-                <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
-                    <!-- Cart Items List -->
-                    <div class="space-y-4">
-                        <label class="text-muted-foreground flex cursor-pointer items-center gap-2 px-1 text-sm font-semibold">
-                            <FormCheckbox :model-value="isAllSelected" @update:model-value="toggleAllSelection" />
-                            {{ t("labels.cart.select_all") }}
-                        </label>
-                        <Card v-for="item in localItems" :key="item.id" class="overflow-hidden rounded-2xl border-0 p-3 sm:p-4">
-                            <label class="text-muted-foreground mb-3 flex cursor-pointer items-center gap-2 text-xs font-semibold">
-                                <FormCheckbox :model-value="selectedItemIds.includes(item.id)" @update:model-value="toggleItemSelection(item.id)" />
-                                {{ t("labels.cart.select_item") }}
-                            </label>
-                            <div class="grid grid-cols-[5rem_1fr] gap-3 sm:flex sm:gap-4">
-                                <div class="bg-secondary h-20 w-20 shrink-0 overflow-hidden rounded-xl sm:h-32 sm:w-32">
-                                    <Link :href="route('frontend.product-detail', item.product?.slug)">
-                                        <img
-                                            :src="item.product?.thumbnail || 'https://placehold.co/200x200?text=No+Image'"
-                                            :alt="item.product?.name"
-                                            class="h-full w-full object-cover transition-transform hover:scale-105"
-                                        />
-                                    </Link>
-                                </div>
-
-                                <div class="flex min-w-0 flex-grow flex-col justify-between">
-                                    <div class="flex items-start justify-between gap-3">
-                                        <div class="min-w-0 flex-grow">
-                                            <Link
-                                                :href="route('frontend.product-detail', item.product?.slug)"
-                                                class="text-foreground hover:text-primary line-clamp-2 text-sm leading-snug font-bold transition-colors sm:text-base"
-                                            >
-                                                {{ item.product?.name }}
-                                            </Link>
-                                            <p v-if="item.product_variant" class="text-muted-foreground mt-1 text-xs">
-                                                {{ item.product_variant.variant_name }}
-                                            </p>
-                                            <div class="mt-2 flex items-center gap-2">
-                                                <span class="text-primary text-sm font-bold sm:text-base">
-                                                    {{ formatCurrency(item.price) }}
-                                                </span>
-                                                <span
-                                                    v-if="item.original_price && item.original_price > item.price"
-                                                    class="text-muted-foreground text-xs line-through"
-                                                >
-                                                    {{ formatCurrency(item.original_price) }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            @click="removeItem(item.id)"
-                                            class="text-muted-foreground flex shrink-0 items-center justify-center rounded-full p-2 transition-all hover:bg-red-50 hover:text-red-500"
-                                        >
-                                            <Trash2 class="h-5 w-5" />
-                                        </Button>
-                                    </div>
-
-                                    <div class="col-span-2 mt-1 flex items-center justify-between gap-3 sm:mt-0">
-                                        <div class="border-border bg-secondary/50 flex items-center rounded-full border">
-                                            <Button
-                                                @click="handleQuantityChange(item, -1)"
-                                                class="text-muted-foreground hover:bg-secondary flex h-8 w-8 items-center justify-center rounded-l-full transition-all disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:w-10"
-                                                :disabled="item.quantity <= 1"
-                                            >
-                                                <Minus class="h-4 w-4" />
-                                            </Button>
-                                            <span class="w-8 text-center text-sm font-semibold sm:w-14">{{ item.quantity }}</span>
-                                            <Button
-                                                @click="handleQuantityChange(item, 1)"
-                                                class="text-muted-foreground hover:bg-secondary flex h-8 w-8 items-center justify-center rounded-r-full transition-all sm:h-10 sm:w-10"
-                                            >
-                                                <Plus class="h-4 w-4" />
-                                            </Button>
-                                        </div>
-
-                                        <span class="text-foreground text-base font-bold sm:text-xl">
-                                            {{ formatCurrency(item.price * item.quantity) }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </Card>
+    <TemplateWrapper :shell="false" :title="t('labels.cart.ui.heading')">
+        <div
+            class="cart-page container mx-auto max-w-7xl px-4 py-6 font-sans md:py-8 lg:py-10"
+            :class="localItems.length && 'pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-10'"
+        >
+            <nav
+                class="cart-breadcrumb text-muted-foreground mb-4 hidden items-center gap-3 text-sm md:flex"
+                :aria-label="t('labels.cart.ui.breadcrumb')"
+            >
+                <Link :href="route('frontend.home')">{{ t("labels.actions.home") }}</Link
+                ><ChevronRight class="h-3.5 w-3.5" aria-hidden="true" /><span aria-current="page">{{ t("labels.header.cart") }}</span>
+            </nav>
+            <div
+                v-if="localItems.length"
+                class="cart-layout grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-x-6 xl:grid-cols-[minmax(0,1fr)_22.5rem]"
+            >
+                <section class="cart-items-section min-w-0 lg:col-start-1 lg:row-start-1" :aria-label="t('labels.cart.ui.heading')">
+                    <div class="cart-heading mb-3 flex min-h-9 flex-wrap items-center gap-x-3 gap-y-1 md:mb-4">
+                        <h1 class="text-foreground text-2xl font-bold tracking-tight md:text-3xl">{{ t("labels.cart.ui.heading") }}</h1>
+                        <span class="cart-selected-count text-muted-foreground text-xs sm:text-sm">{{
+                            t("labels.cart.ui.selected", { count: selectedItems.length })
+                        }}</span
+                        ><button
+                            class="cart-text-action cart-remove-all text-destructive ml-auto inline-flex min-h-8 items-center gap-1.5 text-xs whitespace-nowrap hover:underline hover:underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+                            :disabled="updating"
+                            @click="confirmClear"
+                        >
+                            <Trash2 class="h-4 w-4" aria-hidden="true" />{{ t("labels.cart.ui.remove_all") }}
+                        </button>
                     </div>
-
-                    <!-- Order Summary Sidebar (Right) -->
-                    <div>
-                        <div class="sticky top-24 space-y-4">
-                            <Card class="rounded-2xl border-0 p-6">
-                                <h2 class="text-foreground mb-6 text-lg font-bold">{{ t("labels.cart.summary_title") }}</h2>
-
-                                <div class="border-border space-y-4 border-b pb-4">
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-muted-foreground">{{
-                                            t("labels.cart.subtotal_with_count", { count: selectedItems.length })
-                                        }}</span>
-                                        <span class="text-foreground font-medium">{{ formatCurrency(subtotal) }}</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-muted-foreground">{{ t("labels.cart.shipping_cost") }}</span>
-                                        <span class="text-foreground font-medium">{{ t("messages.info.shipping_calculated_at_checkout") }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="py-4">
-                                    <div class="mb-2 flex items-center justify-between">
-                                        <span class="text-foreground text-lg font-bold">{{ t("labels.cart.total") }}</span>
-                                        <span class="text-primary text-2xl font-bold">{{ formatCurrency(subtotal) }}</span>
-                                    </div>
-                                </div>
-
-                                <Button
-                                    @click="checkoutSelected"
-                                    :disabled="selectedItems.length === 0"
-                                    class="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-4 text-sm font-bold shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                    <label
+                        class="cart-select-all bg-secondary/50 text-foreground mb-2 flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold sm:px-4 sm:py-3 sm:text-sm"
+                        ><FormCheckbox
+                            :model-value="allSelected"
+                            :indeterminate="selectedItems.length > 0 && !allSelected"
+                            :aria-label="t('labels.cart.select_all')"
+                            @update:model-value="toggleAll"
+                        /><span>{{ t("labels.cart.ui.select_all_count", { count: localItems.length }) }}</span></label
+                    >
+                    <div class="cart-item-list grid gap-3" :aria-busy="busy">
+                        <article
+                            v-for="item in localItems"
+                            :key="item.id"
+                            class="cart-item border-border grid min-w-0 grid-cols-[1.25rem_4rem_minmax(0,1fr)_4.5rem] gap-x-2 gap-y-2 rounded-xl border bg-white p-3 sm:grid-cols-[1.25rem_5rem_minmax(0,1fr)_5.5rem] sm:gap-x-3 md:grid-cols-[1.25rem_6rem_minmax(0,1fr)_7rem] xl:grid-cols-[1.25rem_6rem_minmax(10rem,1fr)_7rem_6rem_7.5rem] xl:gap-x-4 xl:p-4"
+                            :data-item-id="item.id"
+                        >
+                            <FormCheckbox
+                                class="row-span-3 self-center"
+                                :model-value="selectedItemIds.includes(item.id)"
+                                :aria-label="t('labels.cart.select_item')"
+                                @update:model-value="toggleItem(item.id)"
+                            />
+                            <Link
+                                class="cart-item-image bg-secondary/60 row-span-3 aspect-square self-start overflow-hidden rounded-lg"
+                                :href="route('frontend.product-detail', item.product?.slug)"
+                                ><img
+                                    class="h-full w-full object-cover"
+                                    :src="item.product?.thumbnail || '/images/placeholders/product-snapshot.svg'"
+                                    :alt="item.product?.name"
+                                    @error="imageFallback"
+                            /></Link>
+                            <div class="cart-item-info col-start-3 row-start-1 min-w-0 xl:row-span-2">
+                                <Link
+                                    class="cart-item-name text-foreground hover:text-primary line-clamp-2 text-xs leading-5 font-semibold break-words transition-colors sm:text-sm"
+                                    :href="route('frontend.product-detail', item.product?.slug)"
+                                    >{{ item.product?.name }}</Link
                                 >
-                                    <span>{{ t("labels.cart.checkout_selected") }}</span>
-                                    <ArrowRight class="h-4 w-4" />
-                                </Button>
-                            </Card>
-                        </div>
+                                <span
+                                    v-if="item.product_variant?.variant_name"
+                                    class="cart-variant text-muted-foreground mt-1 block text-[10px] leading-4 break-words sm:text-xs"
+                                    >{{ t("labels.cart.ui.variant") }}: {{ item.product_variant.variant_name }}</span
+                                ><span
+                                    :class="
+                                        cn(
+                                            'cart-stock mt-1 inline-flex items-center gap-1.5 text-[10px] text-green-700 sm:text-xs',
+                                            item.product?.stock === 0 && 'cart-stock--unavailable text-destructive',
+                                        )
+                                    "
+                                    ><i class="h-2 w-2 shrink-0 rounded-full bg-current" />{{
+                                        t(item.product?.stock === 0 ? "labels.cart.ui.stock_unavailable" : "labels.cart.ui.stock_available")
+                                    }}</span
+                                >
+                            </div>
+                            <div class="cart-item-price col-start-3 row-start-2 min-w-0 xl:col-start-4 xl:row-start-1">
+                                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                                    <strong class="text-primary text-xs font-semibold whitespace-nowrap sm:text-sm xl:text-base">{{
+                                        money(item.price)
+                                    }}</strong
+                                    ><del v-if="discount(item)" class="text-muted-foreground text-[10px] whitespace-nowrap sm:text-xs">{{
+                                        money(item.original_price)
+                                    }}</del>
+                                </div>
+                                <span
+                                    v-if="discount(item)"
+                                    class="cart-discount bg-destructive text-destructive-foreground mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold sm:px-2.5 sm:text-xs"
+                                    >{{ t("labels.cart.ui.discount", { percent: discount(item) }) }}</span
+                                >
+                            </div>
+                            <div
+                                class="cart-quantity border-border col-start-4 row-start-1 grid h-8 grid-cols-3 self-start overflow-hidden rounded-lg border sm:h-9 xl:col-start-5"
+                            >
+                                <button
+                                    class="text-foreground hover:bg-secondary/60 hover:text-primary inline-flex items-center justify-center transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                                    :disabled="busy || item.quantity <= 1"
+                                    :aria-label="t('labels.cart.ui.decrease', { name: item.product?.name })"
+                                    @click="changeQuantity(item, -1)"
+                                >
+                                    <Minus class="h-3.5 w-3.5" aria-hidden="true" /></button
+                                ><output
+                                    class="border-border inline-flex items-center justify-center border-x text-xs font-semibold"
+                                    :aria-label="t('labels.cart.ui.quantity', { name: item.product?.name })"
+                                    >{{ item.quantity }}</output
+                                ><button
+                                    class="text-foreground hover:bg-secondary/60 hover:text-primary inline-flex items-center justify-center transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                                    :disabled="busy"
+                                    :aria-label="t('labels.cart.ui.increase', { name: item.product?.name })"
+                                    @click="changeQuantity(item, 1)"
+                                >
+                                    <Plus class="h-3.5 w-3.5" aria-hidden="true" />
+                                </button>
+                            </div>
+                            <div class="cart-item-subtotal hidden min-w-0 xl:col-start-6 xl:row-start-1 xl:block">
+                                <span class="text-muted-foreground block text-xs">{{ t("labels.cart.subtotal") }}</span
+                                ><strong class="text-primary mt-1 block text-base font-semibold whitespace-nowrap">{{
+                                    money(item.price * item.quantity)
+                                }}</strong>
+                            </div>
+                            <div
+                                class="cart-item-actions col-start-4 row-start-2 row-end-4 flex flex-col items-end justify-end gap-1 xl:col-start-4 xl:col-end-7 xl:row-start-2 xl:flex-row xl:gap-5"
+                            >
+                                <button
+                                    class="cart-text-action cart-save text-foreground inline-flex min-h-7 items-center gap-1 text-[10px] whitespace-nowrap hover:underline hover:underline-offset-4 sm:text-xs"
+                                    :class="savedIds.includes(item.id) && 'text-primary'"
+                                    :aria-pressed="savedIds.includes(item.id)"
+                                    @click="toggleSaved(item.id)"
+                                >
+                                    <Heart class="h-4 w-4" :fill="savedIds.includes(item.id) ? 'currentColor' : 'none'" aria-hidden="true" /><span>{{
+                                        t(savedIds.includes(item.id) ? "labels.cart.ui.saved" : "labels.cart.ui.save")
+                                    }}</span
+                                    ><span v-if="!savedIds.includes(item.id)" class="cart-save-suffix hidden xl:inline">{{
+                                        t("labels.cart.ui.for_later")
+                                    }}</span></button
+                                ><button
+                                    class="cart-text-action cart-delete text-destructive inline-flex min-h-7 items-center gap-1 text-[10px] whitespace-nowrap hover:underline hover:underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50 sm:text-xs"
+                                    :disabled="updating"
+                                    :aria-label="t('labels.cart.ui.remove_item', { name: item.product?.name })"
+                                    @click="deleteItems([item.id])"
+                                >
+                                    <Trash2 class="h-4 w-4" aria-hidden="true" />{{ t("labels.actions.delete") }}
+                                </button>
+                            </div>
+                        </article>
                     </div>
-                </div>
-
-                <Card variant="dashed" class="mt-4 rounded-2xl border-2 p-3 sm:p-4">
-                    <div class="grid grid-cols-2 gap-3">
-                        <Link
-                            :href="route('frontend.products')"
-                            class="text-muted-foreground hover:bg-secondary hover:text-primary flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-center text-sm font-semibold transition-colors"
-                        >
-                            <ShoppingBag class="h-4 w-4" />
-                            {{ t("labels.actions.continue_shopping") }}
-                        </Link>
-                        <Link
-                            :href="route('frontend.home')"
-                            class="text-muted-foreground hover:bg-secondary hover:text-primary flex items-center justify-center rounded-lg px-3 py-2 text-center text-sm font-semibold transition-colors"
-                        >
-                            {{ t("labels.actions.home") }}
-                        </Link>
-                    </div>
-                </Card>
+                </section>
+                <CartSummary
+                    :subtotal="subtotal"
+                    :count="selectedItems.length"
+                    :can-checkout="canCheckout"
+                    :updating="updating"
+                    @checkout="checkoutSelected"
+                />
+                <CartRecommendations :recommendations="props.recommendations" />
             </div>
-            <!-- Empty State -->
-            <div v-else class="py-20 text-center">
-                <div class="bg-secondary mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full">
-                    <ShoppingBag class="text-muted-foreground h-12 w-12" />
-                </div>
-                <h2 class="text-foreground mb-2 text-2xl font-bold">{{ t("labels.cart.empty_title") }}</h2>
-                <p class="text-muted-foreground mx-auto mb-8 max-w-md">{{ t("labels.cart.empty_description") }}</p>
+            <section v-else class="cart-empty from-secondary/40 to-secondary rounded-3xl bg-gradient-to-br py-16 text-center md:py-20">
+                <ShoppingBag class="text-primary mx-auto mb-6 h-16 w-16" aria-hidden="true" />
+                <h1 class="text-foreground text-2xl font-bold md:text-3xl">{{ t("labels.cart.empty_title") }}</h1>
+                <p class="text-muted-foreground mx-auto my-3 max-w-lg px-4 text-sm">{{ t("labels.cart.empty_description") }}</p>
                 <Link
+                    class="cart-primary-button bg-primary text-primary-foreground hover:bg-primary/90 mx-auto mt-6 inline-flex min-h-11 w-fit items-center justify-center gap-2 rounded-xl px-7 py-3 text-sm font-semibold transition-colors"
                     :href="route('frontend.products')"
-                    class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-bold shadow-md transition-all hover:shadow-lg"
-                >
-                    <ShoppingBag class="h-5 w-5" />
-                    {{ t("labels.actions.start_shopping") }}
-                </Link>
-            </div>
-        </PageShell>
+                    >{{ t("labels.actions.start_shopping") }}<ArrowRight class="h-4 w-4" aria-hidden="true"
+                /></Link>
+            </section>
+        </div>
     </TemplateWrapper>
 </template>
