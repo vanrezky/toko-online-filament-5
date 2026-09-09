@@ -4,6 +4,13 @@ This repository uses an issue-first development workflow with optional OpenSpec 
 
 The agent must determine the appropriate workflow automatically before editing application code.
 
+## Ponytail
+
+- For every coding task, use the installed `ponytail` skill automatically at `full` intensity.
+- Apply YAGNI: inspect the existing code first, reuse existing patterns, prefer standard-library/native/dependency solutions, and implement the smallest correct change.
+- Continue to follow all repository rules; do not reduce validation, security, accessibility, error handling, or explicit requirements.
+- Do not use Ponytail for non-coding tasks.
+
 ## Mandatory Laravel Sail Policy
 
 All Laravel backend commands MUST run through Laravel Sail.
