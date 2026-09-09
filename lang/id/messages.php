@@ -51,6 +51,8 @@ return [
         'login_required_voucher' => 'Silakan login untuk menggunakan voucher.',
         'login_required_remove_voucher' => 'Silakan login untuk menghapus voucher.',
         'variant_required' => 'Silakan pilih varian produk.',
+        'invalid_product_variant' => 'Varian produk tidak valid.',
+        'stock_insufficient' => 'Stok produk tidak mencukupi.',
         'checkout_failed' => 'Gagal memproses pesanan. Silakan coba lagi.',
         'voucher_invalid' => 'Voucher tidak valid.',
         'voucher_invalid_code' => 'Kode voucher tidak valid.',

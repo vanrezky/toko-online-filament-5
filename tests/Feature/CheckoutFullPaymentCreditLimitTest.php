@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Enums\CartStatus;
+use App\Enums\TransactionStatus;
+use App\Jobs\ExpireTransaction;
 use App\Models\Balance;
 use App\Models\Cart;
 use App\Models\CartItem;
@@ -13,9 +15,11 @@ use App\Models\Installment;
 use App\Models\InstallmentPlan;
 use App\Models\Product;
 use App\Models\ProductFlashsale;
+use App\Models\ProductVariant;
 use App\Models\Transaction;
 use App\Models\Warehouse;
 use App\Services\Gateways\DTOs\PaymentResponse;
+use App\Services\Gateways\DTOs\WebhookResult;
 use App\Services\PaymentGatewayService;
 use App\Services\TransactionCancellationService;
 use App\Settings\GeneralSettings;
@@ -821,6 +825,461 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
         $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
         $this->assertSame(2, $transaction->products()->count());
         $this->assertSame(CartStatus::Checked_out->value, $cart->fresh()->status);
+    }
+
+    public function test_checkout_decrements_variant_and_product_stock_and_restores_once(): void
+    {
+        Queue::fake();
+        $this->mockPaymentGateway();
+
+        $customer = $this->createCustomer(1_000_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $variant = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'sku' => 'VAR-'.Str::upper(Str::random(8)),
+            'price' => 100_000,
+            'stock' => 4,
+        ]);
+        ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'sku' => 'VAR-'.Str::upper(Str::random(8)),
+            'price' => 100_000,
+            'stock' => 6,
+        ]);
+
+        $cart = Cart::query()->create([
+            'customer_id' => $customer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+        CartItem::query()->create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
+            'quantity' => 2,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(
+            route('frontend.checkout.store'),
+            [
+                'address_id' => $address->id,
+                'shipping_methods' => $this->shippingMethods($warehouse, 500),
+                'payment_type' => 'full',
+            ],
+        );
+
+        $response->assertOk()->assertJson(['success' => true]);
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
+
+        $this->assertSame(8, (int) $product->fresh()->stock);
+        $this->assertSame(2, (int) $variant->fresh()->stock);
+        $this->assertSame($variant->id, $transaction->products()->firstOrFail()->product_variant_id);
+
+        app(TransactionCancellationService::class)->cancel($transaction);
+        app(TransactionCancellationService::class)->cancel($transaction->fresh());
+
+        $this->assertSame(10, (int) $product->fresh()->stock);
+        $this->assertSame(4, (int) $variant->fresh()->stock);
+    }
+
+    public function test_checkout_rejects_stale_variant_stock_without_creating_an_order(): void
+    {
+        Queue::fake();
+        $this->mockPaymentGateway();
+
+        $customer = $this->createCustomer(1_000_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $variant = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'sku' => 'VAR-'.Str::upper(Str::random(8)),
+            'price' => 100_000,
+            'stock' => 1,
+        ]);
+        $cart = Cart::query()->create([
+            'customer_id' => $customer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+        CartItem::query()->create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
+            'quantity' => 2,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(
+            route('frontend.checkout.store'),
+            [
+                'address_id' => $address->id,
+                'shipping_methods' => $this->shippingMethods($warehouse, 500),
+                'payment_type' => 'full',
+            ],
+        );
+
+        $response->assertUnprocessable()->assertJsonValidationErrors('cart');
+        $this->assertDatabaseCount('transactions', 0);
+        $this->assertSame(1, (int) $variant->fresh()->stock);
+        $this->assertSame(1, (int) $product->fresh()->stock);
+        $this->assertSame(CartStatus::Active->value, $cart->fresh()->status);
+    }
+
+    public function test_checkout_decrements_non_variant_product_stock(): void
+    {
+        Queue::fake();
+        $this->mockPaymentGateway();
+
+        $customer = $this->createCustomer(1_000_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $product->update(['stock' => 5]);
+        $cart = Cart::query()->create([
+            'customer_id' => $customer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+        CartItem::query()->create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(
+            route('frontend.checkout.store'),
+            [
+                'address_id' => $address->id,
+                'shipping_methods' => $this->shippingMethods($warehouse, 500),
+                'payment_type' => 'full',
+            ],
+        );
+
+        $response->assertOk()->assertJson(['success' => true]);
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
+
+        $this->assertSame(3, (int) $product->fresh()->stock);
+        $this->assertNull($transaction->products()->firstOrFail()->product_variant_id);
+    }
+
+    public function test_completed_order_does_not_restore_normal_stock(): void
+    {
+        Queue::fake();
+        $this->mockPaymentGateway();
+
+        $customer = $this->createCustomer(1_000_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $product->update(['stock' => 5]);
+        $cart = Cart::query()->create([
+            'customer_id' => $customer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+        CartItem::query()->create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(
+            route('frontend.checkout.store'),
+            [
+                'address_id' => $address->id,
+                'shipping_methods' => $this->shippingMethods($warehouse, 500),
+                'payment_type' => 'full',
+            ],
+        );
+
+        $response->assertOk();
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
+        $transaction->update(['status' => TransactionStatus::completed->value]);
+
+        app(TransactionCancellationService::class)->cancel($transaction);
+
+        $this->assertSame(TransactionStatus::completed, $transaction->fresh()->status);
+        $this->assertSame(3, (int) $product->fresh()->stock);
+    }
+
+    public function test_expired_order_restores_normal_stock_once(): void
+    {
+        Queue::fake();
+        $this->mockPaymentGateway();
+
+        $customer = $this->createCustomer(1_000_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $product->update(['stock' => 5]);
+        $cart = Cart::query()->create([
+            'customer_id' => $customer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+        CartItem::query()->create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(
+            route('frontend.checkout.store'),
+            [
+                'address_id' => $address->id,
+                'shipping_methods' => $this->shippingMethods($warehouse, 500),
+                'payment_type' => 'full',
+            ],
+        );
+
+        $response->assertOk();
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
+        $transaction->update(['timelimit' => now('UTC')->subMinute()]);
+        $gateway = Mockery::mock(PaymentGatewayService::class);
+
+        (new ExpireTransaction($transaction->uuid))->handle(
+            $gateway,
+            app(TransactionCancellationService::class),
+        );
+        (new ExpireTransaction($transaction->uuid))->handle(
+            $gateway,
+            app(TransactionCancellationService::class),
+        );
+
+        $this->assertSame(5, (int) $product->fresh()->stock);
+        $this->assertSame(TransactionStatus::cancelled, $transaction->fresh()->status);
+    }
+
+    public function test_cancelled_payment_webhook_restores_normal_stock_once(): void
+    {
+        Queue::fake();
+        $gateway = Mockery::mock(PaymentGatewayService::class);
+        $gateway->shouldReceive('isGatewayAvailable')->with('midtrans')->andReturnTrue();
+        $gateway->shouldReceive('getActiveGatewayAlias')->andReturn('midtrans');
+        $gateway->shouldReceive('createPayment')->andReturn(new PaymentResponse(true, 'trx-123', 'https://pay.test', null));
+        $this->app->instance(PaymentGatewayService::class, $gateway);
+
+        $customer = $this->createCustomer(1_000_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $address = $this->createAddress($customer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $product->update(['stock' => 5]);
+        $cart = Cart::query()->create([
+            'customer_id' => $customer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+        CartItem::query()->create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(
+            route('frontend.checkout.store'),
+            [
+                'address_id' => $address->id,
+                'shipping_methods' => $this->shippingMethods($warehouse, 500),
+                'payment_type' => 'full',
+                'payment_method' => 'midtrans',
+            ],
+        );
+
+        $response->assertOk();
+        $transaction = Transaction::query()->where('customer_id', $customer->id)->latest('id')->firstOrFail();
+        $gateway->shouldReceive('handleWebhook')->twice()->andReturn(new WebhookResult(
+            success: true,
+            action: WebhookResult::ACTION_PROCESS,
+            transactionId: $transaction->uuid,
+            status: 'expired',
+            metadata: ['gross_amount' => (int) round($transaction->total_amount)],
+        ));
+
+        $this->postJson(route('webhooks.payment', 'midtrans'), ['order_id' => $transaction->uuid])
+            ->assertOk()
+            ->assertJson(['status' => 'success']);
+        $this->postJson(route('webhooks.payment', 'midtrans'), ['order_id' => $transaction->uuid])
+            ->assertOk()
+            ->assertJson(['status' => 'success']);
+
+        $this->assertSame(5, (int) $product->fresh()->stock);
+        $this->assertSame(TransactionStatus::cancelled, $transaction->fresh()->status);
+    }
+
+    public function test_product_stock_tracks_variant_create_update_and_delete(): void
+    {
+        $product = Product::factory()->create(['stock' => 100]);
+        $firstVariant = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'sku' => 'VAR-'.Str::upper(Str::random(8)),
+            'price' => 100_000,
+            'stock' => 2,
+        ]);
+        $secondVariant = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'sku' => 'VAR-'.Str::upper(Str::random(8)),
+            'price' => 100_000,
+            'stock' => 3,
+        ]);
+
+        $this->assertSame(5, (int) $product->fresh()->stock);
+
+        $firstVariant->update(['stock' => 7]);
+        $this->assertSame(10, (int) $product->fresh()->stock);
+
+        $secondVariant->delete();
+        $this->assertSame(7, (int) $product->fresh()->stock);
+
+        $firstVariant->delete();
+        $this->assertSame(0, (int) $product->fresh()->stock);
+    }
+
+    public function test_cart_rejects_same_variant_quantity_over_stock_and_preserves_existing_line(): void
+    {
+        $customer = $this->createCustomer(1_000_000);
+        $product = Product::factory()->create(['stock' => 3]);
+        $variant = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'sku' => 'VAR-'.Str::upper(Str::random(8)),
+            'price' => 100_000,
+            'stock' => 3,
+        ]);
+        $cart = Cart::query()->create([
+            'customer_id' => $customer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+        $item = CartItem::query()->create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
+            'quantity' => 2,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(
+            route('frontend.cart.store'),
+            [
+                'product_id' => $product->uuid,
+                'product_variant_id' => $variant->uuid,
+                'quantity' => 2,
+            ],
+        );
+
+        $response->assertUnprocessable()->assertJsonValidationErrors('quantity');
+        $this->assertSame(2, (int) $item->fresh()->quantity);
+    }
+
+    public function test_cart_update_rejects_quantity_over_current_stock(): void
+    {
+        $customer = $this->createCustomer(1_000_000);
+        $product = Product::factory()->create(['stock' => 2]);
+        $variant = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'sku' => 'VAR-'.Str::upper(Str::random(8)),
+            'price' => 100_000,
+            'stock' => 2,
+        ]);
+        $cart = Cart::query()->create([
+            'customer_id' => $customer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+        $item = CartItem::query()->create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
+            'quantity' => 1,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->patchJson(
+            route('frontend.cart.update', $item->uuid),
+            ['quantity' => 3],
+        );
+
+        $response->assertUnprocessable()->assertJsonValidationErrors('quantity');
+        $this->assertSame(1, (int) $item->fresh()->quantity);
+        $this->assertSame(100_000.0, (float) $item->fresh()->price);
+    }
+
+    public function test_cart_validates_each_variant_against_its_own_stock(): void
+    {
+        $customer = $this->createCustomer(1_000_000);
+        $product = Product::factory()->create(['stock' => 0]);
+        $firstVariant = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'sku' => 'VAR-'.Str::upper(Str::random(8)),
+            'price' => 100_000,
+            'stock' => 1,
+        ]);
+        $secondVariant = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'sku' => 'VAR-'.Str::upper(Str::random(8)),
+            'price' => 100_000,
+            'stock' => 2,
+        ]);
+
+        $firstResponse = $this->actingAs($customer, 'customer')->postJson(
+            route('frontend.cart.store'),
+            [
+                'product_id' => $product->uuid,
+                'product_variant_id' => $firstVariant->uuid,
+                'quantity' => 1,
+            ],
+        );
+        $secondResponse = $this->actingAs($customer, 'customer')->postJson(
+            route('frontend.cart.store'),
+            [
+                'product_id' => $product->uuid,
+                'product_variant_id' => $secondVariant->uuid,
+                'quantity' => 2,
+            ],
+        );
+
+        $firstResponse->assertOk();
+        $secondResponse->assertOk();
+        $this->assertSame(1, (int) CartItem::query()->where('product_variant_id', $firstVariant->id)->value('quantity'));
+        $this->assertSame(2, (int) CartItem::query()->where('product_variant_id', $secondVariant->id)->value('quantity'));
+    }
+
+    public function test_cart_rejects_a_variant_that_belongs_to_another_product(): void
+    {
+        $customer = $this->createCustomer(1_000_000);
+        $product = Product::factory()->create(['stock' => 2]);
+        $otherProduct = Product::factory()->create(['stock' => 2]);
+        $variant = ProductVariant::query()->create([
+            'product_id' => $otherProduct->id,
+            'sku' => 'VAR-'.Str::upper(Str::random(8)),
+            'price' => 100_000,
+            'stock' => 2,
+        ]);
+
+        $response = $this->actingAs($customer, 'customer')->postJson(
+            route('frontend.cart.store'),
+            [
+                'product_id' => $product->uuid,
+                'product_variant_id' => $variant->uuid,
+                'quantity' => 1,
+            ],
+        );
+
+        $response->assertUnprocessable()->assertJsonValidationErrors('product_variant_id');
+        $this->assertDatabaseCount('cart_items', 0);
     }
 
     private function mockPaymentGateway(?PaymentResponse $response = null): void

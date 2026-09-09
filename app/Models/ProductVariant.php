@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Services\ProductInventoryService;
 use App\Traits\HasUuidTrait;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -14,7 +15,18 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ProductVariant extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, HasUuidTrait;
+    use HasFactory, HasUuidTrait, InteractsWithMedia;
+
+    protected static function booted(): void
+    {
+        static::saved(function (ProductVariant $variant): void {
+            app(ProductInventoryService::class)->syncProductStock((int) $variant->product_id);
+        });
+
+        static::deleted(function (ProductVariant $variant): void {
+            app(ProductInventoryService::class)->syncProductStock((int) $variant->product_id, true);
+        });
+    }
 
     protected $fillable = ['uuid', 'product_id', 'sku', 'price', 'stock', 'weight', 'dimensions', 'status'];
 
@@ -34,6 +46,7 @@ class ProductVariant extends Model implements HasMedia
                         return $attr->productAttributeOption?->name;
                     })->filter()->implode(' - ');
                 }
+
                 return '';
             }
         );
