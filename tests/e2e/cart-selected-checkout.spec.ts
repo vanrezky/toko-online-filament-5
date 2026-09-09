@@ -46,7 +46,7 @@ test("customer checks out all selected Cart items through the single checkout ac
     await expect(itemCheckboxes).toHaveCount(cartItemCount);
     await expect.poll(() => itemCheckboxes.evaluateAll((items) => items.every((item) => item.checked))).toBe(true);
 
-    const checkoutButton = page.getByRole("button", { name: "Checkout produk terpilih" });
+    const checkoutButton = page.getByRole("button", { name: "Lanjut ke Checkout" });
     await expect(checkoutButton).toHaveCount(1);
     await expect(checkoutButton).toBeEnabled();
     await checkoutButton.click();
