@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import axios from "axios";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Link, router, usePage } from "@inertiajs/vue3";
+import { Deferred, Link, router, usePage } from "@inertiajs/vue3";
 import { cn, formatCompactNumber, formatCurrency } from "../../lib/utils";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import PageShell from "../../components/PageShell.vue";
@@ -32,7 +32,7 @@ import {
 
 const props = defineProps({
     product: { type: Object, required: true },
-    relatedProducts: { type: Array, default: () => [] },
+    relatedProducts: { type: [Array, Object], default: () => [] },
 });
 
 const page = usePage();
@@ -878,25 +878,34 @@ const buyNow = async () => {
                 </section>
             </div>
 
-            <section v-if="relatedItems.length" class="mt-8" :aria-label="t('labels.product.related_products')">
-                <div class="mb-4 flex items-end justify-between gap-4">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{{ t("labels.product.related_eyebrow") }}</p>
-                        <h2 class="mt-1 text-xl font-bold tracking-[-0.02em] text-foreground md:text-2xl">{{ t("labels.product.related_products") }}</h2>
+            <Deferred data="relatedProducts">
+                <section v-if="relatedItems.length" class="mt-8" :aria-label="t('labels.product.related_products')">
+                    <div class="mb-4 flex items-end justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{{ t("labels.product.related_eyebrow") }}</p>
+                            <h2 class="mt-1 text-xl font-bold tracking-[-0.02em] text-foreground md:text-2xl">{{ t("labels.product.related_products") }}</h2>
+                        </div>
+                        <Link :href="route('frontend.products', product.category ? { category: product.category.slug } : {})" class="hidden items-center gap-1 rounded-sm text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:flex">
+                            {{ t("labels.product.view_all_products") }} <ChevronRight class="h-4 w-4" aria-hidden="true" />
+                        </Link>
                     </div>
-                    <Link :href="route('frontend.products', product.category ? { category: product.category.slug } : {})" class="hidden items-center gap-1 rounded-sm text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:flex">
-                        {{ t("labels.product.view_all_products") }} <ChevronRight class="h-4 w-4" aria-hidden="true" />
-                    </Link>
-                </div>
-                <div class="scrollbar-hidden flex touch-pan-x snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-2 sm:gap-4 md:gap-5 lg:grid lg:grid-cols-6 lg:gap-3 lg:overflow-visible lg:pb-0">
-                    <ProductRecommendationCard
-                        v-for="related in relatedItems"
-                        :key="related.id"
-                        :product="related"
-                        class="w-[min(40vw,10rem)] shrink-0 snap-start sm:w-40 md:w-44 lg:w-auto lg:max-w-[15rem] lg:shrink lg:justify-self-center"
-                    />
-                </div>
-            </section>
+                    <div class="scrollbar-hidden flex touch-pan-x snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-2 sm:gap-4 md:gap-5 lg:grid lg:grid-cols-6 lg:gap-3 lg:overflow-visible lg:pb-0">
+                        <ProductRecommendationCard
+                            v-for="related in relatedItems"
+                            :key="related.id"
+                            :product="related"
+                            class="w-[min(40vw,10rem)] shrink-0 snap-start sm:w-40 md:w-44 lg:w-auto lg:max-w-[15rem] lg:shrink lg:justify-self-center"
+                        />
+                    </div>
+                </section>
+                <template #fallback>
+                    <section class="mt-8" :aria-label="t('labels.product.related_products')">
+                        <div class="bg-secondary text-muted-foreground flex min-h-28 items-center justify-center px-4 py-8 text-sm" role="status" aria-live="polite">
+                            {{ t("labels.actions.loading") }}
+                        </div>
+                    </section>
+                </template>
+            </Deferred>
 
             <section v-if="product.faqs?.length" class="mt-8" :aria-label="t('labels.faq.heading')">
                 <div class="mb-4">

@@ -280,51 +280,56 @@ class ProductController extends Controller
         ProductStatsService::attachSales(collect([$product]));
 
         $resellerId = auth('customer')->user()?->reseller_id;
-        $relatedProductIds = array_map('intval', CacheService::rememberManaged(
-            'product-catalog',
-            'related-product-ids:'.($product->category_id ?? 'none').':'.$product->id,
-            self::RELATED_PRODUCTS_CACHE_TTL,
-            fn () => Product::query()
-                ->active()
-                ->where('category_id', $product->category_id)
-                ->where('id', '!=', $product->id)
-                ->orderByDesc('created_at')
-                ->orderByDesc('id')
-                ->limit(self::RELATED_PRODUCTS_LIMIT)
-                ->pluck('id')
-                ->all(),
-        ));
-
-        $relatedProducts = Product::query()
-            ->select([
-                'id', 'uuid', 'name', 'slug', 'digital', 'code',
-                'stock', 'sale_price', 'price', 'min_order', 'fake_sold_count', 'created_at',
-            ])
-            ->active()
-            ->whereKey($relatedProductIds)
-            ->with([
-                'media',
-                'flashsaleProducts' => fn ($query) => $query
-                    ->whereHas('flashsale', fn ($query) => $query->current())
-                    ->select(['id', 'product_id', 'discount_percentage', 'stock']),
-                'wholesales' => fn ($query) => $query
-                    ->where('min_qty', '<=', 1)
-                    ->select(['id', 'product_id', 'min_qty', 'price']),
-            ])
-            ->when($resellerId, fn ($query) => $query->with([
-                'resellerPrices' => fn ($query) => $query
-                    ->where('reseller_id', $resellerId)
-                    ->select(['id', 'product_id', 'reseller_id', 'price']),
-            ]))
-            ->get()
-            ->sortBy(fn (Product $relatedProduct) => array_search($relatedProduct->id, $relatedProductIds, true))
-            ->values();
-
-        ProductStatsService::attachCatalogStats($relatedProducts);
+        $categoryId = $product->category_id;
+        $productId = $product->id;
 
         return Inertia::render('Products/Show', [
             'product' => ProductResource::make($product),
-            'relatedProducts' => ProductSimpleResource::collection($relatedProducts),
+            'relatedProducts' => Inertia::defer(function () use ($categoryId, $productId, $resellerId) {
+                $relatedProductIds = array_map('intval', CacheService::rememberManaged(
+                    'product-catalog',
+                    'related-product-ids:'.($categoryId ?? 'none').':'.$productId,
+                    self::RELATED_PRODUCTS_CACHE_TTL,
+                    fn () => Product::query()
+                        ->active()
+                        ->where('category_id', $categoryId)
+                        ->where('id', '!=', $productId)
+                        ->orderByDesc('created_at')
+                        ->orderByDesc('id')
+                        ->limit(self::RELATED_PRODUCTS_LIMIT)
+                        ->pluck('id')
+                        ->all(),
+                ));
+
+                $relatedProducts = Product::query()
+                    ->select([
+                        'id', 'uuid', 'name', 'slug', 'digital', 'code',
+                        'stock', 'sale_price', 'price', 'min_order', 'fake_sold_count', 'created_at',
+                    ])
+                    ->active()
+                    ->whereKey($relatedProductIds)
+                    ->with([
+                        'media',
+                        'flashsaleProducts' => fn ($query) => $query
+                            ->whereHas('flashsale', fn ($query) => $query->current())
+                            ->select(['id', 'product_id', 'discount_percentage', 'stock']),
+                        'wholesales' => fn ($query) => $query
+                            ->where('min_qty', '<=', 1)
+                            ->select(['id', 'product_id', 'min_qty', 'price']),
+                    ])
+                    ->when($resellerId, fn ($query) => $query->with([
+                        'resellerPrices' => fn ($query) => $query
+                            ->where('reseller_id', $resellerId)
+                            ->select(['id', 'product_id', 'reseller_id', 'price']),
+                    ]))
+                    ->get()
+                    ->sortBy(fn (Product $relatedProduct) => array_search($relatedProduct->id, $relatedProductIds, true))
+                    ->values();
+
+                ProductStatsService::attachCatalogStats($relatedProducts);
+
+                return ProductSimpleResource::collection($relatedProducts);
+            }, 'relatedProducts'),
         ]);
     }
 }
