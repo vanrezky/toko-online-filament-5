@@ -17,4 +17,4 @@
 
 ## 4. Delivery
 
-- [ ] 4.1 Review the final diff for scope, update Issue #121 status, commit only authorized files, push the branch, and open a PR targeting `dev` with issue/OpenSpec traceability and validation evidence.
+- [x] 4.1 Review the final diff for scope, update Issue #121 status, commit only authorized files, push the branch, and open a PR targeting `dev` with issue/OpenSpec traceability and validation evidence.
