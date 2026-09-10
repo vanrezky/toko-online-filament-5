@@ -90,16 +90,35 @@ class CartRecommendationTest extends TestCase
         $cartProduct = $this->addCartProduct($cart, $category->id);
         $candidate = Product::factory()->create(['category_id' => $category->id]);
 
-        $this->actingAs($customer, 'customer')
+        $response = $this->actingAs($customer, 'customer')
             ->get(route('frontend.cart'))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('Cart/Index')
+            ->assertOk();
+        $page = json_decode(json_encode($response->viewData('page')), true);
+
+        $this->assertArrayNotHasKey('recommendations', $page['props']);
+        $this->assertSame(['recommendations'], $page['deferredProps']['recommendations']);
+
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Cart/Index')
+            ->missing('recommendations')
+            ->loadDeferredProps('recommendations', fn (Assert $page) => $page
                 ->where('recommendations.0.id', $candidate->uuid)
                 ->where('recommendations.0.slug', $candidate->slug)
                 ->where('recommendations', fn ($products) => collect($products)
                     ->pluck('id')
-                    ->doesntContain($cartProduct->uuid)));
+                    ->doesntContain($cartProduct->uuid))
+            )
+        );
+    }
+
+    public function test_guest_cart_page_keeps_empty_recommendations(): void
+    {
+        $this->get(route('frontend.cart'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Cart/Index')
+                ->where('recommendations', [])
+            );
     }
 
     private function createCustomer(): Customer

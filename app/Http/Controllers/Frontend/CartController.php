@@ -29,7 +29,7 @@ class CartController extends Controller
     public function __invoke(Request $request)
     {
         $cart = null;
-        $recommendations = collect();
+        $recommendations = ProductSimpleResource::collection(collect());
         if (Auth::guard('customer')->check()) {
             $resellerId = Auth::guard('customer')->user()?->reseller_id;
 
@@ -53,14 +53,21 @@ class CartController extends Controller
 
             if ($cart) {
                 app(FlashsalePricingService::class)->syncCart($cart);
-                $recommendations = $this->recommendationService->forCart($cart, $resellerId);
+                $recommendationCart = $cart;
+                $recommendationService = $this->recommendationService;
+                $recommendations = Inertia::defer(
+                    fn () => ProductSimpleResource::collection(
+                        $recommendationService->forCart($recommendationCart, $resellerId),
+                    ),
+                    'recommendations',
+                );
                 $cart = CartResource::make($cart)->resolve();
             }
         }
 
         return Inertia::render('Cart/Index', [
             'cart' => $cart,
-            'recommendations' => ProductSimpleResource::collection($recommendations),
+            'recommendations' => $recommendations,
         ]);
     }
 

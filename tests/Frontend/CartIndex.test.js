@@ -1,3 +1,4 @@
+import { nextTick, reactive } from "vue";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { router } from "@inertiajs/vue3";
@@ -31,10 +32,31 @@ const recommendations = [
 ];
 let wrapper;
 let confirm;
-const render = (cartItems = items, recommendedProducts = recommendations) => {
+let currentPageProps;
+
+const DeferredStub = {
+    props: { data: { type: [String, Array], required: true } },
+    computed: {
+        isPending() {
+            const keys = Array.isArray(this.data) ? this.data : [this.data];
+
+            return keys.some((key) => currentPageProps[key] === undefined);
+        },
+    },
+    template: `
+        <template v-if="isPending"><slot name="fallback" /></template>
+        <template v-else><slot /></template>
+    `,
+};
+
+const render = (cartItems = items, recommendedProducts = recommendations, { recommendationsPending = false } = {}) => {
+    currentPageProps = reactive({ recommendations: recommendationsPending ? undefined : recommendedProducts });
     wrapper = mount(CartIndex, {
         props: { cart: { items: structuredClone(cartItems) }, recommendations: structuredClone(recommendedProducts) },
-        global: { stubs: { TemplateWrapper: { template: "<div><slot /></div>" } }, config: { globalProperties: { $confirm: confirm } } },
+        global: {
+            stubs: { Deferred: DeferredStub, TemplateWrapper: { template: "<div><slot /></div>" } },
+            config: { globalProperties: { $confirm: confirm } },
+        },
     });
     return wrapper;
 };
@@ -59,6 +81,29 @@ afterEach(() => {
 });
 
 describe("Cart mockup presentation preserves cart behavior", () => {
+    it("keeps the cart shell usable while recommendations load", () => {
+        render(items, recommendations, { recommendationsPending: true });
+
+        const fallback = wrapper.get('[role="status"]');
+
+        expect(fallback.attributes("aria-live")).toBe("polite");
+        expect(fallback.text()).toContain("Loading...");
+        expect(wrapper.find(".cart-recommendations").exists()).toBe(false);
+        expect(wrapper.find(".cart-summary").exists()).toBe(true);
+        expect(checkout().exists()).toBe(true);
+    });
+
+    it("replaces the recommendation fallback after the deferred prop resolves", async () => {
+        render(items, recommendations, { recommendationsPending: true });
+
+        currentPageProps.recommendations = recommendations;
+        await nextTick();
+
+        expect(wrapper.find('[role="status"]').exists()).toBe(false);
+        expect(wrapper.find(".cart-recommendations").exists()).toBe(true);
+        expect(wrapper.text()).toContain("Canvas Shoes");
+    });
+
     it("omits checkout-only sections while retaining the shopping summary", () => {
         render();
         expect(wrapper.find(".cart-voucher").exists()).toBe(false);
