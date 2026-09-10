@@ -48,8 +48,27 @@ describe("ProductsIndex", () => {
         await sizeOption.setValue(true);
         await wrapper.findAll("#mobile-product-filters button").find((button) => button.text().includes("Apply Filters")).trigger("click");
 
-        expect(get).toHaveBeenCalledWith("/frontend.products", expect.objectContaining({ variant_size: "M" }), expect.any(Object));
+        expect(get).toHaveBeenCalledWith(
+            "/frontend.products",
+            expect.objectContaining({ variant_size: "M" }),
+            expect.objectContaining({ only: ["products", "filters"] }),
+        );
         expect(wrapper.find("#mobile-product-filters").exists()).toBe(false);
+        get.mockRestore();
+    });
+
+    it("reloads only product listing props when changing the sort", async () => {
+        const get = vi.spyOn(router, "get").mockImplementation(() => undefined);
+        const wrapper = mountProducts();
+
+        await wrapper.find("#product-sort").setValue("price_low");
+
+        expect(get).toHaveBeenCalledWith(
+            "/frontend.products",
+            { sort: "price_low" },
+            expect.objectContaining({ only: ["products", "filters"] }),
+        );
+
         get.mockRestore();
     });
 

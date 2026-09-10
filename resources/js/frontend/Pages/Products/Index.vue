@@ -21,6 +21,7 @@ const props = defineProps({
 });
 
 const variantKeys = ["color", "size", "gender"];
+const partialReloadProps = ["products", "filters"];
 const isFilterOpen = ref(false);
 const isLoading = ref(false);
 
@@ -139,6 +140,7 @@ const applyFilters = () => {
         preserveState: true,
         preserveScroll: true,
         replace: true,
+        only: partialReloadProps,
         onStart: () => {
             isLoading.value = true;
         },
@@ -199,6 +201,7 @@ const goToPage = (url) => {
         {
             preserveState: true,
             preserveScroll: true,
+            only: partialReloadProps,
             onFinish: () => {
                 isLoading.value = false;
             },
@@ -334,6 +337,7 @@ const pageSize = computed({
                             :key="link.label"
                             :href="link.url || '#'"
                             preserve-scroll
+                            :only="partialReloadProps"
                             class="inline-flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm transition-colors"
                             :class="
                                 link.active
