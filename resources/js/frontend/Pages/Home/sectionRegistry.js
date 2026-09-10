@@ -30,11 +30,13 @@ const registry = {
     },
     flash_sale: {
         component: markRaw(FlashSaleSection),
-        available: ({ flashsales }) => Boolean(flashsales),
+        deferredProps: "flashsales",
+        available: ({ flashsales }) => flashsales === undefined || Boolean(flashsales),
         props: ({ flashsales, template }) => ({ flashsales, template }),
     },
     category_menu: {
         component: markRaw(CategoryMenu),
+        deferredProps: "categories",
         props: ({ categories, filters, template }) => ({
             categories,
             activeCategory: filters?.category,
@@ -43,14 +45,17 @@ const registry = {
     },
     hero_carousel: {
         component: markRaw(HeroCarousel),
+        deferredProps: "sliders",
         props: ({ template, sliders }) => ({ template, slides: sliders }),
     },
     featured_products: {
+        deferredProps: "products",
         component: markRaw(FeaturedProducts),
         available: ({ filters }) => !filters?.category,
         props: ({ products, template }) => ({ products, template }),
     },
     products_grid: {
+        deferredProps: "products",
         component: markRaw(HomeProductsSection),
         props: ({ products, filters, template }) => ({ products, filters, template }),
     },
@@ -95,6 +100,7 @@ export function resolveHomeSections(props) {
                 key: section.uuid || `${section.type}-${index}`,
                 type: section.type,
                 component: definition.component,
+                deferredProps: definition.deferredProps,
                 props: definition.props(props),
             };
         })
