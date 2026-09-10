@@ -33,6 +33,12 @@ describe("ProductsIndex", () => {
         expect(wrapper.findAll("input").some((input) => input.attributes("aria-label") === "Search")).toBe(false);
     });
 
+    it("shows the newest sort option when empty server filters are serialized as an array", () => {
+        const wrapper = mountProducts({ filters: [] });
+
+        expect(wrapper.find("#product-sort").element.value).toBe("newest");
+    });
+
     it("opens the mobile filter sheet and submits the shared variant state", async () => {
         const get = vi.spyOn(router, "get").mockImplementation(() => undefined);
         const wrapper = mountProducts();
