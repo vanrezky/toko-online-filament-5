@@ -29,6 +29,7 @@ const toggleWishlist = (e) => {
     product_id: productData.value.id
   }, {
     preserveScroll: true,
+    only: ['wishlist_product_ids'],
   });
 };
 

@@ -64,6 +64,7 @@ const toggleWishlist = (event) => {
         { product_id: props.product.id },
         {
             preserveScroll: true,
+            only: ["wishlist_product_ids"],
             onError: (errors) => {
                 if (errors?.redirect) window.location.href = errors.redirect;
             },

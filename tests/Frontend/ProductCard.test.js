@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+import { router, usePage } from "@inertiajs/vue3";
 import ProductCard from "../../resources/js/frontend/components/UI/ProductCard.vue";
 
 describe("ProductCard flashsale pricing", () => {
@@ -35,5 +36,42 @@ describe("ProductCard flashsale pricing", () => {
         expect(wrapper.text()).toContain("30%");
         expect(wrapper.find("span.z-10").classes()).toContain("bg-destructive");
         expect(wrapper.find(".text-primary.flex.items-center").text()).toContain("0.0");
+    });
+
+    it("refreshes only wishlist props when toggling wishlist", async () => {
+        vi.mocked(usePage).mockReturnValue({
+            props: {
+                auth: { user: { id: "customer-1" } },
+                wishlist_product_ids: [],
+            },
+        });
+        const post = vi.spyOn(router, "post").mockImplementation(() => undefined);
+        const wrapper = mount(ProductCard, {
+            props: {
+                product: {
+                    id: "product-1",
+                    name: "Produk",
+                    slug: "produk",
+                    price: 100_000,
+                    sale_price: 90_000,
+                    rating_average: 0,
+                    review_count: 0,
+                    sold_count: 0,
+                },
+            },
+        });
+
+        await wrapper.find("button").trigger("click");
+
+        expect(post).toHaveBeenCalledWith(
+            "/frontend.wishlist.toggle",
+            { product_id: "product-1" },
+            expect.objectContaining({
+                preserveScroll: true,
+                only: ["wishlist_product_ids"],
+            }),
+        );
+
+        post.mockRestore();
     });
 });

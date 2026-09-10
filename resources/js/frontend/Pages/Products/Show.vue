@@ -126,7 +126,7 @@ const toggleWishlist = () => {
     router.post(
         route("frontend.wishlist.toggle"),
         { product_id: props.product.id },
-        { preserveScroll: true },
+        { preserveScroll: true, only: ["wishlist_product_ids"] },
     );
 };
 
