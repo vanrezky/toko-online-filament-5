@@ -1,6 +1,6 @@
 <script setup>
 import { computed, getCurrentInstance, onBeforeUnmount, ref, watch } from "vue";
-import { Link, router } from "@inertiajs/vue3";
+import { Deferred, Link, router } from "@inertiajs/vue3";
 import { useI18n } from "vue-i18n";
 import { ArrowRight, ChevronRight, Heart, ShoppingBag, Trash2 } from "lucide-vue-next";
 import { toast } from "vue-sonner";
@@ -275,7 +275,14 @@ onBeforeUnmount(() => {
                     :updating="updating"
                     @checkout="checkoutSelected"
                 />
-                <CartRecommendations :recommendations="props.recommendations" />
+                <Deferred data="recommendations">
+                    <CartRecommendations :recommendations="props.recommendations" />
+                    <template #fallback>
+                        <div class="bg-secondary text-muted-foreground flex min-h-28 items-center justify-center px-4 py-8 text-sm" role="status" aria-live="polite">
+                            {{ t("labels.actions.loading") }}
+                        </div>
+                    </template>
+                </Deferred>
             </div>
             <section v-else class="cart-empty from-secondary/40 to-secondary rounded-3xl bg-gradient-to-br py-16 text-center md:py-20">
                 <ShoppingBag class="text-primary mx-auto mb-6 h-16 w-16" aria-hidden="true" />
