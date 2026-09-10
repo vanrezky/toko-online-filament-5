@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import { usePage } from "@inertiajs/vue3";
+import { Deferred, usePage } from "@inertiajs/vue3";
 import { useI18n } from "vue-i18n";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import { resolveHomeSections } from "./sectionRegistry";
@@ -11,7 +11,7 @@ const props = defineProps({
     filters: { type: Object, default: () => ({}) },
     template: { type: Object, default: null },
     sliders: { type: Object, default: () => ({ data: [] }) },
-    flashsales: { type: Object, default: null },
+    flashsales: { type: Object, default: undefined },
     templatePreview: { type: Boolean, default: false },
 });
 
@@ -34,11 +34,16 @@ const sections = computed(() => resolveHomeSections(props));
         <div v-if="templatePreview" class="border-primary/20 bg-primary/10 text-foreground mx-auto my-4 max-w-[1440px] rounded-xl border px-4 py-3 text-center text-sm font-semibold" role="status">
             {{ t("home.template_preview") }}
         </div>
-        <component
-            :is="section.component"
-            v-for="section in sections"
-            :key="section.key"
-            v-bind="section.props"
-        />
+        <template v-for="section in sections" :key="section.key">
+            <Deferred v-if="section.deferredProps" :data="section.deferredProps">
+                <component :is="section.component" v-bind="section.props" />
+                <template #fallback>
+                    <div class="bg-secondary text-muted-foreground flex min-h-28 items-center justify-center px-4 py-8 text-sm" role="status" aria-live="polite">
+                        {{ t("labels.actions.loading") }}
+                    </div>
+                </template>
+            </Deferred>
+            <component v-else :is="section.component" v-bind="section.props" />
+        </template>
     </TemplateWrapper>
 </template>

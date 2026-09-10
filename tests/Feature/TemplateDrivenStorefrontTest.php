@@ -7,6 +7,7 @@ use App\Models\TemplateSection;
 use App\Models\User;
 use App\Services\TemplateService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -90,6 +91,69 @@ class TemplateDrivenStorefrontTest extends TestCase
                 ->missing('template.sections.2')
                 ->where('colorScheme.foreground', '#101010')
             );
+    }
+
+    public function test_homepage_defers_catalog_props_into_independent_groups(): void
+    {
+        $response = $this->get(route('frontend.home'));
+        $page = json_decode(json_encode($response->viewData('page')), true);
+
+        $this->assertArrayNotHasKey('products', $page['props']);
+        $this->assertArrayNotHasKey('categories', $page['props']);
+        $this->assertArrayNotHasKey('sliders', $page['props']);
+        $this->assertArrayNotHasKey('flashsales', $page['props']);
+        $this->assertSame(['products'], $page['deferredProps']['products']);
+        $this->assertSame(['categories'], $page['deferredProps']['categories']);
+        $this->assertSame(['sliders'], $page['deferredProps']['sliders']);
+        $this->assertSame(['flashsales'], $page['deferredProps']['flashsales']);
+    }
+
+    public function test_homepage_deferred_groups_resolve_successfully(): void
+    {
+        $this->get(route('frontend.home'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->loadDeferredProps(['products', 'categories', 'sliders', 'flashsales'], fn (Assert $page) => $page
+                    ->has('products')
+                    ->has('categories')
+                    ->has('sliders')
+                    ->has('flashsales')
+                )
+            );
+    }
+
+    public function test_homepage_skips_unused_catalog_queries_for_static_template(): void
+    {
+        $template = Template::query()->create([
+            'name' => 'Static template',
+            'code' => 'static-template',
+            'color_scheme' => ['primary' => '#112233'],
+            'is_active' => true,
+        ]);
+
+        $template->sections()->create([
+            'name' => 'Hero',
+            'type' => TemplateSection::TYPE_HERO,
+            'is_active' => true,
+            'order_priority' => 1,
+        ]);
+
+        app(TemplateService::class)->clearCache();
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+
+        $response = $this->get(route('frontend.home'));
+        $page = json_decode(json_encode($response->viewData('page')), true);
+        $queries = collect(DB::getQueryLog())->pluck('query')->map(fn (string $query) => strtolower($query));
+
+        $this->assertArrayNotHasKey('deferredProps', $page);
+        foreach (['products', 'categories', 'sliders', 'flashsales'] as $table) {
+            $this->assertFalse(
+                $queries->contains(fn (string $query) => str_contains($query, "from `$table`")),
+                "Unexpected query against `$table`.",
+            );
+        }
+
+        $response->assertOk();
     }
 
     public function test_template_preview_requires_view_authorization_and_isolated_preview_state(): void

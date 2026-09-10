@@ -1,29 +1,59 @@
-import { describe, expect, it } from "vitest";
+import { nextTick, reactive } from "vue";
+import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+import { usePage } from "@inertiajs/vue3";
 import HomeIndex from "../../resources/js/frontend/pages/Home/Index.vue";
+
+let currentPageProps;
+
+const DeferredStub = {
+    props: { data: { type: [String, Array], required: true } },
+    computed: {
+        isPending() {
+            const keys = Array.isArray(this.data) ? this.data : [this.data];
+
+            return keys.some((key) => currentPageProps[key] === undefined);
+        },
+    },
+    template: `
+        <template v-if="isPending"><slot name="fallback" /></template>
+        <template v-else><slot /></template>
+    `,
+};
 
 const sectionStub = (name) => ({
     template: `<section data-home-section="${name}"></section>`,
 });
 
-const mountHome = (props = {}) =>
-    mount(HomeIndex, {
-        props: {
-            products: { data: [{ id: "product-1", name: "Demo Product", slug: "demo-product" }] },
-            categories: [{ id: "category-1", slug: "fashion", name: "Fashion" }],
-            filters: {},
-            template: null,
-            sliders: { data: [] },
-            flashsales: null,
-            ...props,
-        },
+const mountHome = (props = {}, { unresolved = [] } = {}) => {
+    const resolvedProps = {
+        products: { data: [{ id: "product-1", name: "Demo Product", slug: "demo-product" }] },
+        categories: [{ id: "category-1", slug: "fashion", name: "Fashion" }],
+        filters: {},
+        template: null,
+        sliders: { data: [] },
+        flashsales: null,
+        ...props,
+    };
+
+    currentPageProps = reactive({
+        settings: { site_name: "Test Store" },
+        ...Object.fromEntries(
+            ["products", "categories", "sliders", "flashsales"].map((key) => [key, unresolved.includes(key) ? undefined : resolvedProps[key]]),
+        ),
+    });
+    vi.mocked(usePage).mockReturnValue({ props: currentPageProps });
+
+    return mount(HomeIndex, {
+        props: resolvedProps,
         global: {
             stubs: {
+                Deferred: DeferredStub,
                 TemplateWrapper: { template: "<div data-test=template-wrapper><slot /></div>" },
                 HeroSection: sectionStub("hero"),
                 FlashSaleSection: sectionStub("flash-sale"),
                 CategoryMenu: sectionStub("categories"),
-            HeroCarousel: sectionStub("carousel"),
+                HeroCarousel: sectionStub("carousel"),
                 FeaturedProducts: sectionStub("featured-products"),
                 HomeProductsSection: sectionStub("all-products"),
                 VoucherSection: sectionStub("vouchers"),
@@ -32,8 +62,31 @@ const mountHome = (props = {}) =>
             },
         },
     });
+};
 
 describe("Homepage composition", () => {
+    it("keeps the shell and static sections usable while datasets load", () => {
+        const wrapper = mountHome({ flashsales: undefined }, { unresolved: ["products", "categories", "sliders", "flashsales"] });
+
+        expect(wrapper.findAll('[role="status"]')).toHaveLength(5);
+        expect(wrapper.find('[data-home-section="hero"]').exists()).toBe(true);
+        expect(wrapper.find('[data-home-section="vouchers"]').exists()).toBe(true);
+        expect(wrapper.find('[data-home-section="newsletter"]').exists()).toBe(true);
+        expect(wrapper.find('[data-home-section="trust"]').exists()).toBe(true);
+        expect(wrapper.text()).toContain("Loading...");
+    });
+
+    it("replaces product fallbacks when the deferred prop resolves", async () => {
+        const wrapper = mountHome({ flashsales: undefined }, { unresolved: ["products", "categories", "sliders", "flashsales"] });
+
+        currentPageProps.products = { data: [{ id: "product-1", name: "Demo Product", slug: "demo-product" }] };
+        await nextTick();
+
+        expect(wrapper.findAll('[role="status"]')).toHaveLength(3);
+        expect(wrapper.find('[data-home-section="featured-products"]').exists()).toBe(true);
+        expect(wrapper.find('[data-home-section="all-products"]').exists()).toBe(true);
+    });
+
     it("keeps the reference-led section order and commerce sections", () => {
         const wrapper = mountHome({ flashsales: { id: "flash-sale-1" } });
         const sections = wrapper.findAll("[data-home-section]").map((section) => section.attributes("data-home-section"));

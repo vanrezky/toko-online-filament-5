@@ -84,16 +84,54 @@ class HomeController extends Controller
             || in_array(TemplateSection::TYPE_HERO_CAROUSEL, $configuredSectionTypes, true);
         $resellerId = auth('customer')->user()?->reseller_id;
 
-        $flashsale = null;
+        $flashsales = $isFlashsaleEnabled
+            ? Inertia::defer(function () use ($flashsaleLimit, $resellerId) {
+                $flashsale = Flashsale::query()
+                    ->current()
+                    ->with([
+                        'products' => fn ($query) => $query
+                            ->select(['id', 'flashsale_id', 'product_id', 'discount_percentage', 'stock'])
+                            ->limit($flashsaleLimit),
+                        'products.product' => fn ($query) => $query->select([
+                            'id',
+                            'uuid',
+                            'name',
+                            'slug',
+                            'digital',
+                            'code',
+                            'stock',
+                            'sale_price',
+                            'price',
+                            'min_order',
+                            'fake_sold_count',
+                        ]),
+                        'products.product.media',
+                        'products.product.flashsaleProducts' => fn ($query) => $query
+                            ->whereHas('flashsale', fn ($query) => $query->current())
+                            ->select(['id', 'product_id', 'discount_percentage', 'stock']),
+                        'products.product.wholesales' => fn ($query) => $query
+                            ->where('min_qty', '<=', 1)
+                            ->select(['id', 'product_id', 'min_qty', 'price']),
+                    ])
+                    ->when($resellerId, fn ($query) => $query->with([
+                        'products.product.resellerPrices' => fn ($query) => $query
+                            ->where('reseller_id', $resellerId)
+                            ->select(['id', 'product_id', 'reseller_id', 'price']),
+                    ]))
+                    ->first();
 
-        if ($isFlashsaleEnabled) {
-            $flashsale = Flashsale::query()
-                ->current()
-                ->with([
-                    'products' => fn ($query) => $query
-                        ->select(['id', 'flashsale_id', 'product_id', 'discount_percentage', 'stock'])
-                        ->limit($flashsaleLimit),
-                    'products.product' => fn ($query) => $query->select([
+                if ($flashsale) {
+                    ProductStatsService::attachCatalogStats($flashsale->products->pluck('product')->filter()->values());
+                }
+
+                return $flashsale ? FlashsaleResource::make($flashsale) : null;
+            }, 'flashsales')
+            : null;
+
+        $products = $needsProducts
+            ? Inertia::defer(function () use ($productsCategoryId, $productsLimit, $resellerId) {
+                $products = Product::query()
+                    ->select([
                         'id',
                         'uuid',
                         'name',
@@ -105,95 +143,67 @@ class HomeController extends Controller
                         'price',
                         'min_order',
                         'fake_sold_count',
-                    ]),
-                    'products.product.media',
-                    'products.product.flashsaleProducts' => fn ($query) => $query
-                        ->whereHas('flashsale', fn ($query) => $query->current())
-                        ->select(['id', 'product_id', 'discount_percentage', 'stock']),
-                    'products.product.wholesales' => fn ($query) => $query
-                        ->where('min_qty', '<=', 1)
-                        ->select(['id', 'product_id', 'min_qty', 'price']),
-                ])
-                ->when($resellerId, fn ($query) => $query->with([
-                    'products.product.resellerPrices' => fn ($query) => $query
-                        ->where('reseller_id', $resellerId)
-                        ->select(['id', 'product_id', 'reseller_id', 'price']),
-                ]))
-                ->first();
+                        'created_at',
+                    ])
+                    ->active()
+                    ->when($productsCategoryId > 0, fn ($query) => $query->where('category_id', $productsCategoryId))
+                    ->with([
+                        'media',
+                        'flashsaleProducts' => fn ($query) => $query
+                            ->whereHas('flashsale', fn ($query) => $query->current())
+                            ->select(['id', 'product_id', 'discount_percentage', 'stock']),
+                        'wholesales' => fn ($query) => $query
+                            ->where('min_qty', '<=', 1)
+                            ->select(['id', 'product_id', 'min_qty', 'price']),
+                    ])
+                    ->when($resellerId, fn ($query) => $query->with([
+                        'resellerPrices' => fn ($query) => $query
+                            ->where('reseller_id', $resellerId)
+                            ->select(['id', 'product_id', 'reseller_id', 'price']),
+                    ]))
+                    ->latest()
+                    ->simplePaginate($productsLimit)
+                    ->withQueryString();
 
-            if ($flashsale) {
-                ProductStatsService::attachCatalogStats($flashsale->products->pluck('product')->filter()->values());
-            }
-        }
+                ProductStatsService::attachCatalogStats($products->getCollection());
 
-        $products = collect();
+                return ProductSimpleResource::collection($products);
+            }, 'products')
+            : ProductSimpleResource::collection(collect());
 
-        if ($needsProducts) {
-            $products = Product::query()
-                ->select([
-                    'id',
-                    'uuid',
-                    'name',
-                    'slug',
-                    'digital',
-                    'code',
-                    'stock',
-                    'sale_price',
-                    'price',
-                    'min_order',
-                    'fake_sold_count',
-                    'created_at',
-                ])
-                ->active()
-                ->when($productsCategoryId > 0, fn ($query) => $query->where('category_id', $productsCategoryId))
-                ->with([
-                    'media',
-                    'flashsaleProducts' => fn ($query) => $query
-                        ->whereHas('flashsale', fn ($query) => $query->current())
-                        ->select(['id', 'product_id', 'discount_percentage', 'stock']),
-                    'wholesales' => fn ($query) => $query
-                        ->where('min_qty', '<=', 1)
-                        ->select(['id', 'product_id', 'min_qty', 'price']),
-                ])
-                ->when($resellerId, fn ($query) => $query->with([
-                    'resellerPrices' => fn ($query) => $query
-                        ->where('reseller_id', $resellerId)
-                        ->select(['id', 'product_id', 'reseller_id', 'price']),
-                ]))
-                ->latest()
-                ->simplePaginate($productsLimit)
-                ->withQueryString();
-
-            ProductStatsService::attachCatalogStats($products->getCollection());
-        }
-
-        $sliders = $needsSliders
-            ? CacheService::rememberManaged(
-                'frontend',
-                Slider::CACHE_KEY,
-                Slider::CACHE_TTL,
-                fn () => Slider::query()
-                    ->visible()
-                    ->ordered()
-                    ->with('media')
-                    ->get(),
-            )
-            : collect();
-
-        return Inertia::render('Home/Index', [
-            'categories' => $needsCategories ? function () {
+        $categories = $needsCategories
+            ? Inertia::defer(function () {
                 return CacheService::rememberManaged('frontend', 'frontend_categories', 3600, function () {
                     return CategoryResource::collection(
                         Category::homepage()->with('media')->get()
                     );
                 });
-            } : [],
-            'products' => ProductSimpleResource::collection($products),
+            }, 'categories')
+            : [];
+
+        $sliders = $needsSliders
+            ? Inertia::defer(function () {
+                return SliderResource::collection(CacheService::rememberManaged(
+                    'frontend',
+                    Slider::CACHE_KEY,
+                    Slider::CACHE_TTL,
+                    fn () => Slider::query()
+                        ->visible()
+                        ->ordered()
+                        ->with('media')
+                        ->get(),
+                ));
+            }, 'sliders')
+            : SliderResource::collection(collect());
+
+        return Inertia::render('Home/Index', [
+            'categories' => $categories,
+            'products' => $products,
             'filters' => $request->only(['category', 'search']),
             'template' => $template ? TemplateResource::make($template) : null,
             'colorScheme' => $this->templateService->normalizeColorScheme($template?->color_scheme),
-            'sliders' => SliderResource::collection($sliders),
-            'flashsales' => $flashsale ? FlashsaleResource::make($flashsale) : null,
+            'sliders' => $sliders,
+            'flashsales' => $flashsales,
             'templatePreview' => $isPreview,
         ]);
     }
