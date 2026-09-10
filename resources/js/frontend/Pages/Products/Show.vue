@@ -373,7 +373,7 @@ const addToCart = () => {
                     return;
                 }
 
-                const firstError = Object.values(errors ?? {})[0];
+                const firstError = errors?.quantity ?? Object.values(errors ?? {})[0];
                 const message = Array.isArray(firstError) ? firstError[0] : firstError;
 
                 toast.error(message || t("messages.error.generic"));
