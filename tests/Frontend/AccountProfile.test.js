@@ -2,7 +2,13 @@ import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { mount } from "@vue/test-utils";
 import Profile from "../../resources/js/frontend/pages/Account/Profile.vue";
 
-const mountProfile = (overrides = {}) =>
+const deferredStub = (resolved) => ({
+    props: ["data"],
+    data: () => ({ resolved }),
+    template: '<div data-test="deferred"><slot v-if="resolved" /><slot v-else name="fallback" /></div>',
+});
+
+const mountProfile = (overrides = {}, { deferredResolved = true } = {}) =>
     mount(Profile, {
         props: {
             user: { balance: "125000.00" },
@@ -31,6 +37,7 @@ const mountProfile = (overrides = {}) =>
                     props: ["activeDestination", "balanceEnabled"],
                     template: '<section data-test="account-shell" :data-active-destination="activeDestination"><slot /></section>',
                 },
+                Deferred: deferredStub(deferredResolved),
                 AccountProfileSettings: { template: "<div />" },
                 AccountPasswordForm: { template: "<div />" },
             },
@@ -86,6 +93,15 @@ describe("Account Profile wallet and empty states", () => {
 
         expect(order.classes()).toEqual(expect.arrayContaining(["flex-col", "sm:flex-row", "bg-background"]));
         expect(order.text()).toContain("TRX-202609-RUT53E");
+    });
+
+    it("keeps the account shell visible while secondary data is pending", () => {
+        window.history.pushState({}, "", "/account?section=overview");
+        const wrapper = mountProfile({}, { deferredResolved: false });
+
+        expect(wrapper.get('[data-test="account-page-header"]').exists()).toBe(true);
+        expect(wrapper.findAll('[role="status"]').length).toBeGreaterThan(0);
+        expect(wrapper.find('[data-test="account-recent-order"]').exists()).toBe(false);
     });
 
     it("uses the Wishlist empty-state treatment for shipping addresses", () => {

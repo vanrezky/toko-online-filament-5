@@ -10,7 +10,7 @@ use App\Models\CustomerAddress;
 use App\Models\District;
 use App\Models\Province;
 use App\Models\SubDistrict;
-use App\Models\Transaction;
+use App\Services\AccountProfileService;
 use App\Services\RegionalService;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\Request;
@@ -19,46 +19,27 @@ use Inertia\Inertia;
 
 class AccountController extends Controller
 {
-    protected $regionalService;
-
-    public function __construct(RegionalService $regionalService)
-    {
-        $this->regionalService = $regionalService;
+    public function __construct(
+        private readonly AccountProfileService $profileService,
+        private readonly RegionalService $regionalService,
+    ) {
     }
 
     public function __invoke(Request $request)
     {
         $customer = Auth::guard('customer')->user();
-        $customer->load(['address.province', 'address.district', 'address.subDistrict', 'address.village']);
+        $this->profileService->loadAddresses($customer);
         $balanceEnabled = app(GeneralSettings::class)->balance_enabled;
-
-        $ordersQuery = Transaction::query()
-            ->with([
-                'products' => function ($query) {
-                    $query->select('id', 'transaction_id', 'product_id', 'quantity', 'price', 'discount', 'description');
-                },
-                'products.product' => function ($query) {
-                    $query->select('id', 'uuid', 'name', 'slug');
-                },
-                'products.product.media',
-            ])
-            ->where('customer_id', Auth::guard('customer')->id())
-            ->orderBy('created_at', 'desc');
-
-        $totalOrders = (clone $ordersQuery)->count('id');
-        $recentOrders = (clone $ordersQuery)
-            ->limit(5)
-            ->get(['id', 'uuid', 'code', 'customer_id', 'status', 'shipping_cost', 'cod_fee', 'created_at', 'timelimit']);
 
         return Inertia::render('Account/Profile', [
             'user' => CustomerResource::make($customer),
             'addresses' => AddressResource::collection($customer->address),
-            'provinces' => $this->regionalService->getProvinces()->map(fn ($p) => ['id' => $p->id, 'name' => $p->name]),
-            'totalOrders' => $totalOrders,
-            'recentOrders' => OrderResource::collection($recentOrders),
+            'provinces' => Inertia::defer(fn () => $this->profileService->getProvinces()),
+            'totalOrders' => Inertia::defer(fn () => $this->profileService->getTotalOrders($customer)),
+            'recentOrders' => Inertia::defer(fn () => OrderResource::collection($this->profileService->getRecentOrders($customer))),
             'balanceEnabled' => $balanceEnabled,
             'balanceHistory' => $balanceEnabled
-                ? $customer->balances()->latest()->limit(5)->get(['id', 'amount', 'post_balance', 'trx_type', 'type', 'notes', 'created_at'])
+                ? Inertia::defer(fn () => $this->profileService->getBalanceHistory($customer))
                 : [],
             'passwordRequirementsEnabled' => (bool) app(GeneralSettings::class)->secure_password,
         ]);
