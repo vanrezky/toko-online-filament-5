@@ -18,7 +18,7 @@ const props = defineProps({
         default: "md",
         validator: (value) => ["sm", "md", "lg", "icon"].includes(value),
     },
-    icon: { type: [String, Object], default: null },
+    icon: { type: [String, Object, Function], default: null },
     iconProps: { type: Object, default: () => ({}) },
     iconPosition: {
         type: String,
