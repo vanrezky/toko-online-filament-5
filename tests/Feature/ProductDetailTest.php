@@ -29,6 +29,18 @@ class ProductDetailTest extends TestCase
         $this->assertNotSame($response['images'][0], $response['image_thumbnails'][0]);
     }
 
+    public function test_it_keeps_the_primary_product_eager_and_defers_related_products(): void
+    {
+        $product = Product::factory()->create();
+
+        $response = $this->get(route('frontend.product-detail', $product->slug));
+        $page = json_decode(json_encode($response->viewData('page')), true);
+
+        $this->assertArrayHasKey('product', $page['props']);
+        $this->assertArrayNotHasKey('relatedProducts', $page['props']);
+        $this->assertSame(['relatedProducts'], $page['deferredProps']['relatedProducts']);
+    }
+
     public function test_it_returns_only_active_same_category_related_products_without_the_current_product(): void
     {
         $product = Product::factory()->create();
@@ -39,13 +51,14 @@ class ProductDetailTest extends TestCase
         $response = $this->get(route('frontend.product-detail', $product->slug));
 
         $response->assertOk()->assertInertia(fn ($page) => $page
-            ->where('relatedProducts', function ($products) use ($product, $relatedProducts): bool {
+            ->missing('relatedProducts')
+            ->loadDeferredProps('relatedProducts', fn ($page) => $page->where('relatedProducts', function ($products) use ($product, $relatedProducts): bool {
                 $ids = collect($products)->pluck('id');
 
                 return $ids->count() === 6
                     && ! $ids->contains($product->uuid)
                     && $ids->every(fn ($id) => $relatedProducts->pluck('uuid')->contains($id));
-            })
+            }))
         );
     }
 
@@ -54,15 +67,16 @@ class ProductDetailTest extends TestCase
         $product = Product::factory()->create();
         Product::factory()->count(2)->create(['category_id' => $product->category_id]);
 
-        $this->get(route('frontend.product-detail', $product->slug))->assertOk();
+        $this->get(route('frontend.product-detail', $product->slug))
+            ->assertInertia(fn ($page) => $page->loadDeferredProps('relatedProducts'));
 
         $newProduct = Product::factory()->create(['category_id' => $product->category_id]);
 
         $this->get(route('frontend.product-detail', $product->slug))
             ->assertInertia(fn ($page) => $page
-                ->where('relatedProducts', function ($products) use ($newProduct): bool {
+                ->loadDeferredProps('relatedProducts', fn ($page) => $page->where('relatedProducts', function ($products) use ($newProduct): bool {
                     return collect($products)->pluck('id')->contains($newProduct->uuid);
-                })
+                }))
             );
     }
 
