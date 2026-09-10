@@ -17,4 +17,4 @@
 
 - [ ] 4.1 Run the required Sail environment check and focused backend and frontend tests.
 - [ ] 4.2 Verify the initial and deferred Inertia responses and the Account Profile in the browser, then record before/after response evidence.
-- [ ] 4.3 Validate the OpenSpec change, update Issue #122 status to review when the PR is opened, and open the PR targeting `dev`.
+- [x] 4.3 Validate the OpenSpec change, update Issue #122 status to review when the PR is opened, and open the PR targeting `dev`.
