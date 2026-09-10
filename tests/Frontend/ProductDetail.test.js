@@ -1,7 +1,7 @@
 import { nextTick, reactive } from "vue";
 import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-import { usePage } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 import ProductDetail from "../../resources/js/frontend/pages/Products/Show.vue";
 
 let currentPageProps;
@@ -98,5 +98,25 @@ describe("Product detail related products", () => {
 
         expect(wrapper.find('[role="status"]').exists()).toBe(false);
         expect(wrapper.get('[data-test="related-card"]').text()).toBe("Related Product");
+    });
+
+    it("refreshes only cart total and flash props when adding to cart", async () => {
+        const post = vi.spyOn(router, "post").mockImplementation(() => undefined);
+        const wrapper = mountProductDetail([]);
+        const addToCartButton = wrapper.findAll("button").find((button) => button.text().includes("Add to Cart"));
+
+        await addToCartButton.trigger("click");
+
+        expect(post).toHaveBeenCalledWith(
+            "/frontend.cart.store",
+            { product_id: "product-1", product_variant_id: undefined, quantity: 1 },
+            expect.objectContaining({
+                preserveScroll: true,
+                preserveState: true,
+                only: ["cart_total", "flash"],
+            }),
+        );
+
+        post.mockRestore();
     });
 });

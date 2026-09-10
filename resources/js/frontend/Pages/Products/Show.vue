@@ -367,6 +367,7 @@ const addToCart = () => {
         {
             preserveScroll: true,
             preserveState: true,
+            only: ["cart_total", "flash"],
             onError: (errors) => {
                 if (errors?.redirect) {
                     window.location.href = errors.redirect;
