@@ -17,4 +17,4 @@
 
 ## 4. Delivery
 
-- [ ] 4.1 Review scoped diff, update Issue #120 status, commit authorized files, push branch, and open the PR targeting `dev`.
+- [x] 4.1 Review scoped diff, update Issue #120 to `status:review`, commit authorized files, push branch, and open PR #124 targeting `dev`.
