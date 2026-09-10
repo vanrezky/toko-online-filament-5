@@ -5,7 +5,7 @@
 
 ## 2. Deferred product detail
 
-- [x] 2.1 Move only related-product catalog resolution into the `relatedProducts` Inertia deferred callback, preserving all existing query, cache, pricing, reseller, and statistics behavior.
+- [x] 2.1 Move related-product catalog resolution into `RelatedProductService`, call it from the `relatedProducts` Inertia deferred callback, and preserve all existing query, cache, pricing, reseller, and statistics behavior.
 - [x] 2.2 Wrap the existing related-product section in native `<Deferred>` with an accessible localized loading fallback while preserving resolved links and empty behavior.
 
 ## 3. Verification
