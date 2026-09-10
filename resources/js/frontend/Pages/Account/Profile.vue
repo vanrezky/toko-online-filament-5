@@ -1,7 +1,7 @@
 <script setup>
 import Button from "@frontend/components/UI/Button.vue";
 import { ref, computed, watch, getCurrentInstance } from "vue";
-import { Link, useForm, router, usePage } from "@inertiajs/vue3";
+import { Deferred, Link, useForm, router, usePage } from "@inertiajs/vue3";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
 import PageShell from "../../components/PageShell.vue";
 import FormInput from "../../components/UI/FormInput.vue";
@@ -286,7 +286,14 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                                 t("labels.account.total_orders")
                                             }}</span>
                                         </div>
-                                        <h3 class="text-foreground text-3xl font-bold">{{ totalOrders || 0 }}</h3>
+                                        <Deferred data="totalOrders">
+                                            <template #fallback>
+                                                <div class="bg-secondary h-9 w-20 animate-pulse rounded-lg" role="status" aria-live="polite">
+                                                    <span class="sr-only">{{ t("labels.actions.loading") }}</span>
+                                                </div>
+                                            </template>
+                                            <h3 class="text-foreground text-3xl font-bold">{{ totalOrders || 0 }}</h3>
+                                        </Deferred>
                                     </div>
                                 </div>
                                 <div class="border-border/60 mt-auto flex items-center justify-between border-t pt-3">
@@ -345,57 +352,64 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                 <Clock class="text-primary h-5 w-5" />
                                 {{ t("labels.account.recent_activity") }}
                             </h3>
-                            <div v-if="recentOrders && recentOrders.length > 0" class="space-y-3">
-                                <Link
-                                    v-for="order in recentOrders"
-                                    :key="order.id"
-                                    :href="route('frontend.orders.show', order.id)"
-                                    data-test="account-recent-order"
-                                    class="group border-border hover:bg-secondary/40 flex flex-col gap-2 rounded-xl border bg-background px-4 py-3 transition-all sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-                                >
-                                    <div class="min-w-0">
-                                        <p class="text-foreground text-sm leading-5 font-semibold sm:truncate">
-                                            {{ t("labels.order.order_number", { id: order.code }) }}
-                                        </p>
-                                        <p class="text-muted-foreground mt-1 text-sm">
-                                            {{ formatDate(order.created_at, dateFormat, localeCode) }}
-                                        </p>
+                            <Deferred data="recentOrders">
+                                <template #fallback>
+                                    <div class="bg-secondary text-muted-foreground flex min-h-28 items-center justify-center rounded-xl px-4 py-8 text-sm" role="status" aria-live="polite">
+                                        {{ t("labels.actions.loading") }}
                                     </div>
-                                    <div class="flex w-full shrink-0 items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-3">
-                                        <span
-                                            class="shrink-0 rounded-full px-2.5 py-1 text-xs leading-none font-medium"
-                                            :class="getOrderStatusColor(order.status)"
-                                        >
-                                            {{ getOrderStatusLabel(order.status, t) }}
-                                        </span>
-                                        <p class="text-primary ml-auto whitespace-nowrap text-sm font-bold">{{ formatCurrency(order.total, localeCode) }}</p>
-                                        <ChevronRight class="text-muted-foreground group-hover:text-foreground h-4 w-4 shrink-0 transition-colors" />
-                                    </div>
-                                </Link>
-                                <Link
-                                    :href="route('frontend.orders')"
-                                    class="text-primary hover:text-primary/80 inline-flex items-center gap-2 text-sm font-semibold transition-colors"
-                                >
-                                    {{ t("labels.account.menu.orders") }}
-                                    <ChevronRight class="h-4 w-4" />
-                                </Link>
-                            </div>
-                            <div v-else class="flex flex-col items-center justify-center py-12 text-center">
-                                <div
-                                    class="from-secondary to-secondary/50 mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br shadow-inner"
-                                >
-                                    <Package class="text-muted-foreground h-10 w-10" />
+                                </template>
+                                <div v-if="recentOrders && recentOrders.length > 0" class="space-y-3">
+                                    <Link
+                                        v-for="order in recentOrders"
+                                        :key="order.id"
+                                        :href="route('frontend.orders.show', order.id)"
+                                        data-test="account-recent-order"
+                                        class="group border-border hover:bg-secondary/40 flex flex-col gap-2 rounded-xl border bg-background px-4 py-3 transition-all sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                                    >
+                                        <div class="min-w-0">
+                                            <p class="text-foreground text-sm leading-5 font-semibold sm:truncate">
+                                                {{ t("labels.order.order_number", { id: order.code }) }}
+                                            </p>
+                                            <p class="text-muted-foreground mt-1 text-sm">
+                                                {{ formatDate(order.created_at, dateFormat, localeCode) }}
+                                            </p>
+                                        </div>
+                                        <div class="flex w-full shrink-0 items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-3">
+                                            <span
+                                                class="shrink-0 rounded-full px-2.5 py-1 text-xs leading-none font-medium"
+                                                :class="getOrderStatusColor(order.status)"
+                                            >
+                                                {{ getOrderStatusLabel(order.status, t) }}
+                                            </span>
+                                            <p class="text-primary ml-auto whitespace-nowrap text-sm font-bold">{{ formatCurrency(order.total, localeCode) }}</p>
+                                            <ChevronRight class="text-muted-foreground group-hover:text-foreground h-4 w-4 shrink-0 transition-colors" />
+                                        </div>
+                                    </Link>
+                                    <Link
+                                        :href="route('frontend.orders')"
+                                        class="text-primary hover:text-primary/80 inline-flex items-center gap-2 text-sm font-semibold transition-colors"
+                                    >
+                                        {{ t("labels.account.menu.orders") }}
+                                        <ChevronRight class="h-4 w-4" />
+                                    </Link>
                                 </div>
-                                <p class="text-foreground mb-2 font-semibold">{{ t("labels.account.no_activity") }}</p>
-                                <p class="text-muted-foreground text-sm">{{ t("labels.account.no_activity_description") }}</p>
-                                <Link
-                                    :href="route('frontend.products')"
-                                    class="from-primary to-primary/90 text-primary-foreground shadow-primary/30 hover:shadow-primary/40 mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r px-6 py-3 text-sm font-semibold shadow-lg transition-all hover:shadow-xl"
-                                >
-                                    {{ t("labels.actions.start_shopping") }}
-                                    <ChevronRight class="h-4 w-4" />
-                                </Link>
-                            </div>
+                                <div v-else class="flex flex-col items-center justify-center py-12 text-center">
+                                    <div
+                                        class="from-secondary to-secondary/50 mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br shadow-inner"
+                                    >
+                                        <Package class="text-muted-foreground h-10 w-10" />
+                                    </div>
+                                    <p class="text-foreground mb-2 font-semibold">{{ t("labels.account.no_activity") }}</p>
+                                    <p class="text-muted-foreground text-sm">{{ t("labels.account.no_activity_description") }}</p>
+                                    <Link
+                                        :href="route('frontend.products')"
+                                        class="from-primary to-primary/90 text-primary-foreground shadow-primary/30 hover:shadow-primary/40 mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r px-6 py-3 text-sm font-semibold shadow-lg transition-all hover:shadow-xl"
+                                    >
+                                        {{ t("labels.actions.start_shopping") }}
+                                        <ChevronRight class="h-4 w-4" />
+                                    </Link>
+                                </div>
+                            </Deferred>
                         </div>
                     </div>
 
@@ -430,22 +444,29 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                                 <Wallet class="text-primary h-5 w-5" />
                                 {{ t("labels.account.balance_history") }}
                             </h3>
-                            <div v-if="balanceHistory?.length" class="space-y-3">
-                                <div
-                                    v-for="entry in balanceHistory"
-                                    :key="entry.id"
-                                    class="border-border flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
-                                >
-                                    <div>
-                                        <p class="text-foreground text-sm font-medium">{{ entry.notes }}</p>
-                                        <p class="text-muted-foreground text-xs">{{ formatDate(entry.created_at, dateFormat, localeCode) }}</p>
+                            <Deferred data="balanceHistory">
+                                <template #fallback>
+                                    <div class="bg-secondary text-muted-foreground flex min-h-28 items-center justify-center rounded-xl px-4 py-8 text-sm" role="status" aria-live="polite">
+                                        {{ t("labels.actions.loading") }}
                                     </div>
-                                    <span :class="entry.trx_type === '+' ? 'text-emerald-600' : 'text-red-600'" class="text-sm font-semibold">
-                                        {{ entry.trx_type === "+" ? "+" : "-" }}{{ formatCurrency(entry.amount, localeCode) }}
-                                    </span>
+                                </template>
+                                <div v-if="balanceHistory?.length" class="space-y-3">
+                                    <div
+                                        v-for="entry in balanceHistory"
+                                        :key="entry.id"
+                                        class="border-border flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
+                                    >
+                                        <div>
+                                            <p class="text-foreground text-sm font-medium">{{ entry.notes }}</p>
+                                            <p class="text-muted-foreground text-xs">{{ formatDate(entry.created_at, dateFormat, localeCode) }}</p>
+                                        </div>
+                                        <span :class="entry.trx_type === '+' ? 'text-emerald-600' : 'text-red-600'" class="text-sm font-semibold">
+                                            {{ entry.trx_type === "+" ? "+" : "-" }}{{ formatCurrency(entry.amount, localeCode) }}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <p v-else class="text-muted-foreground text-sm">{{ t("labels.account.balance_history_empty") }}</p>
+                                <p v-else class="text-muted-foreground text-sm">{{ t("labels.account.balance_history_empty") }}</p>
+                            </Deferred>
                         </div>
                     </div>
 
@@ -573,14 +594,21 @@ const dateFormat = { year: "numeric", month: "short", day: "numeric" };
                             <div class="grid gap-4 md:grid-cols-2">
                                 <label class="text-foreground space-y-2 text-sm font-semibold">
                                     {{ t("labels.address.fields.province") }}
-                                    <select
-                                        v-model="addressForm.province_id"
-                                        class="border-border bg-secondary w-full rounded-xl border px-4 py-3 text-sm"
-                                        @change="fetchDistricts(addressForm.province_id)"
-                                    >
-                                        <option value="">{{ t("placeholders.select_province") }}</option>
-                                        <option v-for="province in provinces" :key="province.id" :value="province.id">{{ province.name }}</option>
-                                    </select>
+                                    <Deferred data="provinces">
+                                        <template #fallback>
+                                            <div class="bg-secondary text-muted-foreground flex min-h-10 items-center rounded-xl px-4 py-3 text-sm" role="status" aria-live="polite">
+                                                {{ t("labels.actions.loading") }}
+                                            </div>
+                                        </template>
+                                        <select
+                                            v-model="addressForm.province_id"
+                                            class="border-border bg-secondary w-full rounded-xl border px-4 py-3 text-sm"
+                                            @change="fetchDistricts(addressForm.province_id)"
+                                        >
+                                            <option value="">{{ t("placeholders.select_province") }}</option>
+                                            <option v-for="province in provinces" :key="province.id" :value="province.id">{{ province.name }}</option>
+                                        </select>
+                                    </Deferred>
                                     <span v-if="addressForm.errors.province_id" class="text-destructive text-xs font-medium">{{
                                         addressForm.errors.province_id
                                     }}</span>

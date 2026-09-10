@@ -32,7 +32,7 @@ class AccountController extends Controller
         $customer->load(['address.province', 'address.district', 'address.subDistrict', 'address.village']);
         $balanceEnabled = app(GeneralSettings::class)->balance_enabled;
 
-        $ordersQuery = Transaction::query()
+        $ordersQuery = fn () => Transaction::query()
             ->with([
                 'products' => function ($query) {
                     $query->select('id', 'transaction_id', 'product_id', 'quantity', 'price', 'discount', 'description');
@@ -45,20 +45,17 @@ class AccountController extends Controller
             ->where('customer_id', Auth::guard('customer')->id())
             ->orderBy('created_at', 'desc');
 
-        $totalOrders = (clone $ordersQuery)->count('id');
-        $recentOrders = (clone $ordersQuery)
-            ->limit(5)
-            ->get(['id', 'uuid', 'code', 'customer_id', 'status', 'shipping_cost', 'cod_fee', 'created_at', 'timelimit']);
-
         return Inertia::render('Account/Profile', [
             'user' => CustomerResource::make($customer),
             'addresses' => AddressResource::collection($customer->address),
-            'provinces' => $this->regionalService->getProvinces()->map(fn ($p) => ['id' => $p->id, 'name' => $p->name]),
-            'totalOrders' => $totalOrders,
-            'recentOrders' => OrderResource::collection($recentOrders),
+            'provinces' => Inertia::defer(fn () => $this->regionalService->getProvinces()->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])),
+            'totalOrders' => Inertia::defer(fn () => ($ordersQuery())->count('id')),
+            'recentOrders' => Inertia::defer(fn () => OrderResource::collection(
+                ($ordersQuery())->limit(5)->get(['id', 'uuid', 'code', 'customer_id', 'status', 'shipping_cost', 'cod_fee', 'created_at', 'timelimit']),
+            )),
             'balanceEnabled' => $balanceEnabled,
             'balanceHistory' => $balanceEnabled
-                ? $customer->balances()->latest()->limit(5)->get(['id', 'amount', 'post_balance', 'trx_type', 'type', 'notes', 'created_at'])
+                ? Inertia::defer(fn () => $customer->balances()->latest()->limit(5)->get(['id', 'amount', 'post_balance', 'trx_type', 'type', 'notes', 'created_at']))
                 : [],
             'passwordRequirementsEnabled' => (bool) app(GeneralSettings::class)->secure_password,
         ]);
