@@ -12,6 +12,7 @@ class TransactionCancellationService
 {
     public function __construct(
         private FlashsaleReservationService $flashsaleReservationService,
+        private ProductInventoryService $productInventoryService,
         private BalanceService $balanceService,
         private AuditLogService $auditLogService,
     ) {}
@@ -19,8 +20,11 @@ class TransactionCancellationService
     public function cancel(Transaction $transaction): void
     {
         DB::transaction(function () use ($transaction) {
-            $transaction->refresh();
-            if ($transaction->status === TransactionStatus::cancelled) {
+            $transaction = Transaction::query()
+                ->lockForUpdate()
+                ->findOrFail($transaction->getKey());
+
+            if ($transaction->status !== TransactionStatus::packed) {
                 return;
             }
 
@@ -40,6 +44,7 @@ class TransactionCancellationService
             );
 
             $this->flashsaleReservationService->release($transaction);
+            $this->productInventoryService->release($transaction);
 
             if ($transaction->payment_type === 'balance') {
                 $this->balanceService->refund($transaction);

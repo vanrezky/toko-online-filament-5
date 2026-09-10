@@ -12,14 +12,18 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\CartRecommendationService;
 use App\Services\FlashsalePricingService;
+use App\Services\ProductInventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class CartController extends Controller
 {
     public function __construct(
         private readonly CartRecommendationService $recommendationService,
+        private readonly ProductInventoryService $inventoryService,
     ) {}
 
     public function __invoke(Request $request)
@@ -80,63 +84,78 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
 
-        $product = Product::withCount('productVariants')->where('uuid', $request->product_id)->first();
-        $price = $product->price;
-        $discount = 0;
+        $cartItemId = null;
+        $cartCount = 0;
 
-        if (! $request->product_variant_id && $product->product_variants_count > 0) {
-            if ($request->expectsJson()) {
-                return response()->json(['error' => __('messages.error.variant_required')], 422);
+        DB::transaction(function () use ($request, &$cartItemId, &$cartCount): void {
+            $product = Product::withCount('productVariants')
+                ->where('uuid', $request->product_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $variant = $request->product_variant_id
+                ? ProductVariant::query()
+                    ->where('uuid', $request->product_variant_id)
+                    ->where('product_id', $product->id)
+                    ->lockForUpdate()
+                    ->first()
+                : null;
+
+            if ($request->product_variant_id && ! $variant) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => [__('messages.error.invalid_product_variant')],
+                ]);
             }
 
-            return redirect()->back()->with('error', __('messages.error.variant_required'));
-        }
+            $cart = Cart::query()
+                ->where('customer_id', Auth::guard('customer')->id())
+                ->where('status', CartStatus::Active)
+                ->lockForUpdate()
+                ->first();
 
-        $variant = null;
-        if ($request->product_variant_id) {
-            $variant = ProductVariant::where('uuid', $request->product_variant_id)->first();
-        }
+            if (! $cart) {
+                $cart = Cart::create([
+                    'customer_id' => Auth::guard('customer')->id(),
+                    'status' => CartStatus::Active,
+                ]);
+            }
 
-        $priceInfo = $product->calculatePrice($request->quantity, $variant);
-        $price = $priceInfo['price'];
-        $discount = $priceInfo['discount'];
+            $item = $cart->items()
+                ->where('product_id', $product->id)
+                ->where('product_variant_id', $variant?->id)
+                ->lockForUpdate()
+                ->first();
+            $newQuantity = ($item?->quantity ?? 0) + (int) $request->quantity;
 
-        $cart = Cart::firstOrCreate(
-            ['customer_id' => Auth::guard('customer')->id(), 'status' => CartStatus::Active]
-        );
+            $this->inventoryService->assertAvailable($product, $variant, $newQuantity);
 
-        $item = $cart->items()
-            ->where('product_id', $product->id)
-            ->where('product_variant_id', $variant?->id)
-            ->first();
-
-        if ($item) {
-            $newQuantity = $item->quantity + $request->quantity;
             $priceInfo = $product->calculatePrice($newQuantity, $variant);
-            $item->update([
-                'quantity' => $newQuantity,
-                'price' => $priceInfo['price'],
-                'discount' => $priceInfo['discount'],
-            ]);
-        } else {
-            $cart->items()->create([
-                'product_id' => $product->id,
-                'product_variant_id' => $variant?->id,
-                'quantity' => $request->quantity,
-                'price' => $price,
-                'discount' => $discount,
-            ]);
-        }
+
+            if ($item) {
+                $item->update([
+                    'quantity' => $newQuantity,
+                    'price' => $priceInfo['price'],
+                    'discount' => $priceInfo['discount'],
+                ]);
+            } else {
+                $item = $cart->items()->create([
+                    'product_id' => $product->id,
+                    'product_variant_id' => $variant?->id,
+                    'quantity' => $newQuantity,
+                    'price' => $priceInfo['price'],
+                    'discount' => $priceInfo['discount'],
+                ]);
+            }
+
+            $cartItemId = $item->uuid;
+            $cartCount = (int) $cart->items()->sum('quantity');
+        });
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => __('messages.success.item_added_to_cart'),
-                'cart_count' => $cart->items()->sum('quantity'),
-                'cart_item_id' => $cart->items()
-                    ->where('product_id', $product->id)
-                    ->where('product_variant_id', $variant?->id)
-                    ->value('uuid'),
+                'cart_count' => $cartCount,
+                'cart_item_id' => $cartItemId,
             ]);
         }
 
@@ -149,13 +168,34 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
 
-        $priceInfo = $item->product->calculatePrice($request->quantity, $item->productVariant);
+        abort_unless(
+            $item->cart()->where('customer_id', Auth::guard('customer')->id())->where('status', CartStatus::Active)->exists(),
+            404,
+        );
 
-        $item->update([
-            'quantity' => $request->quantity,
-            'price' => $priceInfo['price'],
-            'discount' => $priceInfo['discount'],
-        ]);
+        DB::transaction(function () use ($request, $item): void {
+            $lockedItem = CartItem::query()
+                ->with(['product' => fn ($query) => $query->withCount('productVariants'), 'productVariant'])
+                ->whereKey($item->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $product = Product::query()
+                ->withCount('productVariants')
+                ->lockForUpdate()
+                ->findOrFail($lockedItem->product_id);
+            $variant = $lockedItem->product_variant_id
+                ? ProductVariant::query()->lockForUpdate()->find($lockedItem->product_variant_id)
+                : null;
+
+            $this->inventoryService->assertAvailable($product, $variant, (int) $request->quantity);
+            $priceInfo = $product->calculatePrice((int) $request->quantity, $variant);
+
+            $lockedItem->update([
+                'quantity' => $request->quantity,
+                'price' => $priceInfo['price'],
+                'discount' => $priceInfo['discount'],
+            ]);
+        });
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => __('messages.success.cart_updated')]);

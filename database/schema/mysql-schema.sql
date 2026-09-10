@@ -1419,6 +1419,7 @@ CREATE TABLE `transcation_products` (
   `customer_id` bigint unsigned NOT NULL,
   `is_digital` tinyint(1) NOT NULL DEFAULT '0',
   `product_id` bigint unsigned NOT NULL,
+  `product_variant_id` bigint unsigned DEFAULT NULL,
   `warehouse_id` bigint unsigned NOT NULL,
   `quantity` bigint unsigned NOT NULL DEFAULT '1',
   `price` decimal(15,2) NOT NULL DEFAULT '0.00',
@@ -1431,11 +1432,13 @@ CREATE TABLE `transcation_products` (
   KEY `transcation_products_customer_id_foreign` (`customer_id`),
   KEY `transcation_products_transaction_id_index` (`transaction_id`),
   KEY `transcation_products_product_id_index` (`product_id`),
+  KEY `transcation_products_product_variant_id_foreign` (`product_variant_id`),
   KEY `transcation_products_warehouse_id_index` (`warehouse_id`),
   KEY `transcation_products_created_at_index` (`created_at`),
   KEY `transcation_products_is_digital_index` (`is_digital`),
   CONSTRAINT `transcation_products_customer_id_foreign` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE,
   CONSTRAINT `transcation_products_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `transcation_products_product_variant_id_foreign` FOREIGN KEY (`product_variant_id`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL,
   CONSTRAINT `transcation_products_transaction_id_foreign` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`) ON DELETE CASCADE,
   CONSTRAINT `transcation_products_warehouse_id_foreign` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouses` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

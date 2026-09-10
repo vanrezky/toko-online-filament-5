@@ -20,6 +20,7 @@ class TransactionProduct extends Model
         'customer_id',
         'is_digital',
         'product_id',
+        'product_variant_id',
         'product_name',
         'product_code',
         'variant_name',
@@ -43,6 +44,7 @@ class TransactionProduct extends Model
         'display_product_name',
         'display_variant_name',
     ];
+
     public function transaction(): BelongsTo
     {
         return $this->belongsTo(Transaction::class);
@@ -69,7 +71,7 @@ class TransactionProduct extends Model
             return (float) $this->line_subtotal;
         }
 
-        return (($this->price - $this->discount) * $this->quantity);
+        return ($this->price - $this->discount) * $this->quantity;
     }
 
     public function getDisplayProductNameAttribute(): string
@@ -77,7 +79,7 @@ class TransactionProduct extends Model
         return (string) (
             $this->product_name
             ?? $this->product_snapshot['product_name']
-            ?? 'Item transaksi historis #' . $this->id
+            ?? 'Item transaksi historis #'.$this->id
         );
     }
 

@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import axios from "axios";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 import { Link, router, usePage } from "@inertiajs/vue3";
 import { cn, formatCompactNumber, formatCurrency } from "../../lib/utils";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
@@ -363,7 +364,21 @@ const addToCart = () => {
             product_variant_id: selectedVariant.value?.id,
             quantity: quantity.value,
         },
-        { preserveScroll: true, preserveState: true },
+        {
+            preserveScroll: true,
+            preserveState: true,
+            onError: (errors) => {
+                if (errors?.redirect) {
+                    window.location.href = errors.redirect;
+                    return;
+                }
+
+                const firstError = errors?.quantity ?? Object.values(errors ?? {})[0];
+                const message = Array.isArray(firstError) ? firstError[0] : firstError;
+
+                toast.error(message || t("messages.error.generic"));
+            },
+        },
     );
 };
 

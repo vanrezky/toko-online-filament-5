@@ -25,6 +25,7 @@ use App\Services\FlashsalePricingService;
 use App\Services\FlashsaleReservationService;
 use App\Services\InstallmentService;
 use App\Services\PaymentGatewayService;
+use App\Services\ProductInventoryService;
 use App\Services\RegionalService;
 use App\Services\TransactionProductImageSnapshotService;
 use App\Services\VoucherCookieService;
@@ -56,6 +57,8 @@ class CheckoutController extends Controller
 
     protected FlashsaleReservationService $flashsaleReservationService;
 
+    protected ProductInventoryService $productInventoryService;
+
     protected BalanceService $balanceService;
 
     protected RegionalService $regionalService;
@@ -68,6 +71,7 @@ class CheckoutController extends Controller
         TransactionProductImageSnapshotService $transactionProductImageSnapshotService,
         FlashsalePricingService $flashsalePricingService,
         FlashsaleReservationService $flashsaleReservationService,
+        ProductInventoryService $productInventoryService,
         BalanceService $balanceService,
         RegionalService $regionalService,
     ) {
@@ -78,6 +82,7 @@ class CheckoutController extends Controller
         $this->transactionProductImageSnapshotService = $transactionProductImageSnapshotService;
         $this->flashsalePricingService = $flashsalePricingService;
         $this->flashsaleReservationService = $flashsaleReservationService;
+        $this->productInventoryService = $productInventoryService;
         $this->balanceService = $balanceService;
         $this->regionalService = $regionalService;
     }
@@ -613,6 +618,7 @@ class CheckoutController extends Controller
                     'customer_id' => $customer->id,
                     'is_digital' => (bool) ($product->digital ?? false),
                     'product_id' => $item->product_id,
+                    'product_variant_id' => $variant?->id,
                     'product_name' => $product->name,
                     'product_code' => $product->code,
                     'variant_name' => $variant?->variant_name,
@@ -636,6 +642,8 @@ class CheckoutController extends Controller
                     ],
                 ]);
             }
+
+            $this->productInventoryService->reserve($transaction, $resolvedCartItems);
 
             foreach (['shipping', 'product'] as $type) {
                 $voucherData = $validatedVouchers[$type] ?? null;

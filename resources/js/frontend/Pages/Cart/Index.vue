@@ -202,11 +202,11 @@ onBeforeUnmount(() => {
                                     :class="
                                         cn(
                                             'cart-stock mt-1 inline-flex items-center gap-1.5 text-[10px] text-green-700 sm:text-xs',
-                                            item.product?.stock === 0 && 'cart-stock--unavailable text-destructive',
+                                            item.available_stock === 0 && 'cart-stock--unavailable text-destructive',
                                         )
                                     "
                                     ><i class="h-2 w-2 shrink-0 rounded-full bg-current" />{{
-                                        t(item.product?.stock === 0 ? "labels.cart.ui.stock_unavailable" : "labels.cart.ui.stock_available")
+                                        t(item.available_stock === 0 ? "labels.cart.ui.stock_unavailable" : "labels.cart.ui.stock_available")
                                     }}</span
                                 >
                             </div>
@@ -227,7 +227,7 @@ onBeforeUnmount(() => {
                             </div>
                             <QuantityStepper
                                 :model-value="item.quantity"
-                                :max="item.product?.stock"
+                                :max="item.available_stock"
                                 :disabled="busy"
                                 :decrease-label="t('labels.cart.ui.decrease', { name: item.product?.name })"
                                 :increase-label="t('labels.cart.ui.increase', { name: item.product?.name })"

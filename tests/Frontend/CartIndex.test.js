@@ -11,10 +11,11 @@ const items = [
         price: 149000,
         original_price: 199000,
         quantity: 1,
+        available_stock: 3,
         product: { slug: "linen-shirt", name: "Linen Shirt", stock: 10, thumbnail: "/shirt.jpg" },
         product_variant: { variant_name: "Cream / M" },
     },
-    { id: "cart-b", price: 279000, original_price: 279000, quantity: 2, product: { slug: "backpack", name: "Backpack", stock: 5 } },
+    { id: "cart-b", price: 279000, original_price: 279000, quantity: 2, available_stock: 5, product: { slug: "backpack", name: "Backpack", stock: 5 } },
 ];
 const recommendations = [
     {
@@ -196,6 +197,20 @@ describe("Cart mockup presentation preserves cart behavior", () => {
         expect(checkout().text()).toContain("Continue to Checkout");
         expect(wrapper.text()).not.toContain("labels.cart");
     });
+    it("uses each cart line's effective stock as its quantity maximum", async () => {
+        render([
+            { ...items[0], quantity: 1, available_stock: 2 },
+            { ...items[1], quantity: 1, available_stock: 1 },
+        ]);
+
+        const quantityButtons = wrapper.findAll(".cart-quantity button");
+        await quantityButtons[1].trigger("click");
+        await quantityButtons[3].trigger("click");
+
+        expect(wrapper.findAll(".cart-quantity output")[0].text()).toBe("2");
+        expect(wrapper.findAll(".cart-quantity output")[1].text()).toBe("1");
+    });
+
     it("clears scheduled quantity updates when leaving the page", async () => {
         render();
         await plus(0).trigger("click");
