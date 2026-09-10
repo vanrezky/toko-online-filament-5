@@ -2,6 +2,7 @@
 
 - [x] 1.1 Refactor `AccountController::__invoke` so profile, addresses, settings, authorization state, and balance visibility remain eager while province options, order activity, and applicable balance history resolve through Inertia Deferred Props.
 - [x] 1.2 Preserve existing regional service calls, recent-order query ordering and limit, total-order count, balance gate, resources, and empty values.
+- [x] 1.3 Extract account profile data retrieval into `AccountProfileService` while keeping resource wrapping and deferred-prop orchestration in the controller.
 
 ## 2. Account Profile Rendering
 

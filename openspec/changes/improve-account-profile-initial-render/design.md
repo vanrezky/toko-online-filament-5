@@ -20,7 +20,8 @@
 - **Keep profile and addresses eager.** These are required by the profile shell and address management, so deferring them would make the page less usable and add no meaningful value.
 - **Defer province options, order activity, and balance history.** These datasets are secondary and can use the existing controller response with a follow-up partial request.
 - **Use the existing Inertia deferred-prop mechanism and one default deferred group.** This minimizes code and request fan-out while letting each Vue section own its loading fallback. Separate grouping is unnecessary until measurement shows the single follow-up request is a bottleneck.
-- **Preserve existing query/resource construction inside deferred callbacks.** This keeps output and business rules stable; only when the work occurs changes.
+- **Extract profile data retrieval into `AccountProfileService`.** The service owns address relation loading, province mapping, order queries, and balance history reads; the controller keeps resource wrapping and Inertia deferred-prop wiring.
+- **Preserve existing query semantics and resource wrapping.** This keeps output and business rules stable while making `AccountController` focus on request orchestration.
 - **Use existing frontend loading and empty-state patterns.** Do not add a new component or dependency for a short-lived fallback.
 
 ## Risks / Trade-offs
