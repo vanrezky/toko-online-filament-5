@@ -128,7 +128,7 @@ describe("Cart mockup presentation preserves cart behavior", () => {
         expect(wrapper.find(".cart-recommendation-shop").exists()).toBe(false);
         expect(wrapper.find(".cart-recommendations .product-recommendation-rating").exists()).toBe(false);
         expect(wrapper.find(".cart-recommendations .product-recommendation-save").exists()).toBe(false);
-        expect(wrapper.get(".cart-recommendation-grid").classes()).toEqual(expect.arrayContaining(["flex", "overflow-x-auto", "lg:grid-cols-4"]));
+        expect(wrapper.get(".cart-recommendation-grid").classes()).toEqual(expect.arrayContaining(["flex", "overflow-x-auto", "lg:grid-cols-5"]));
         expect(wrapper.text()).not.toContain("TWS Wireless Bluetooth");
         expect(wrapper.get('[data-test="cart-subtotal"]').text()).toMatch(/707[,.]000/);
         expect(wrapper.findAll('[data-test="cart-checkout"]')).toHaveLength(1);
