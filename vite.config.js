@@ -8,7 +8,15 @@ export default defineConfig(({ mode }) => {
     const devServerUrl = new URL(env.VITE_DEV_SERVER_URL ?? "http://localhost:5173");
     const appUrl = new URL(env.APP_URL ?? "http://localhost:81");
     const appPort = appUrl.port || (appUrl.protocol === "https:" ? "443" : "80");
-    const appOrigins = [appUrl.origin, `http://127.0.0.1:${appPort}`, `http://${devServerUrl.hostname}:${appPort}`];
+    const octaneAppPort = env.OCTANE_FRANKENPHP_PORT ?? "8081";
+    const appOrigins = [
+        appUrl.origin,
+        `http://127.0.0.1:${appPort}`,
+        `http://${devServerUrl.hostname}:${appPort}`,
+        `http://localhost:${octaneAppPort}`,
+        `http://127.0.0.1:${octaneAppPort}`,
+        `http://${devServerUrl.hostname}:${octaneAppPort}`,
+    ];
     const devServerPort = Number(devServerUrl.port || 5173);
 
     return {

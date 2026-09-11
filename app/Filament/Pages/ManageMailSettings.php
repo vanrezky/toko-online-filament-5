@@ -113,21 +113,21 @@ class ManageMailSettings extends SettingsPage
                                     $settings = app(GeneralSettings::class);
                                     $formData = $this->data;
 
-                                    $settings->loadMailSettingsToConfig([
-                                        'mail_host' => $formData['mail_host'] ?? null,
-                                        'mail_port' => $formData['mail_port'] ?? null,
-                                        'encryption' => $formData['mail_encryption'] ?? null,
-                                        'username' => $formData['mail_username'] ?? null,
-                                        'password' => $formData['mail_password'] ?? null,
-                                        'from_address' => $formData['mail_from'] ?? null,
-                                        'from_name' => $formData['mail_from'] ?? null,
-                                    ]);
-
                                     try {
-                                        Mail::raw(__('admin/page-manage-mail.messages.test_email_body'), function ($message) use ($data): void {
-                                            $message
-                                                ->to($data['recipient_email'])
-                                                ->subject(__('admin/page-manage-mail.messages.test_email_subject'));
+                                        $settings->withMailSettings([
+                                            'mail_host' => $formData['mail_host'] ?? null,
+                                            'mail_port' => $formData['mail_port'] ?? null,
+                                            'encryption' => $formData['mail_encryption'] ?? null,
+                                            'username' => $formData['mail_username'] ?? null,
+                                            'password' => $formData['mail_password'] ?? null,
+                                            'from_address' => $formData['mail_from'] ?? null,
+                                            'from_name' => $formData['mail_from'] ?? null,
+                                        ], function () use ($data): void {
+                                            Mail::raw(__('admin/page-manage-mail.messages.test_email_body'), function ($message) use ($data): void {
+                                                $message
+                                                    ->to($data['recipient_email'])
+                                                    ->subject(__('admin/page-manage-mail.messages.test_email_subject'));
+                                            });
                                         });
 
                                         Notification::make()

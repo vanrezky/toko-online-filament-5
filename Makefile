@@ -1,5 +1,6 @@
-.PHONY: help dev restart-dev
+.PHONY: help dev restart-dev frankenphp-build frankenphp-start frankenphp-ps frankenphp-logs frankenphp-stop
 SAIL = ./vendor/bin/sail
+DOCKER_COMPOSE = docker compose
 CONTAINER_NAME=laravel-toko-online
 VOLUME_DATABASE=toko-online_db-vol
 
@@ -53,3 +54,18 @@ cache: ## clear Cache Project
 
 storage-link: ## Cache Project
 	@${SAIL} artisan storage:link
+
+frankenphp-build: ## Build the FrankenPHP Octane image.
+	@${DOCKER_COMPOSE} --profile frankenphp build laravel.frankenphp
+
+frankenphp-start: ## Start the optional FrankenPHP Octane runtime.
+	@${DOCKER_COMPOSE} --profile frankenphp up -d --build laravel.frankenphp
+
+frankenphp-ps: ## Show the FrankenPHP runtime status.
+	@${DOCKER_COMPOSE} --profile frankenphp ps laravel.frankenphp
+
+frankenphp-logs: ## Follow FrankenPHP runtime logs.
+	@${DOCKER_COMPOSE} --profile frankenphp logs -f laravel.frankenphp
+
+frankenphp-stop: ## Stop the optional FrankenPHP Octane runtime.
+	@${DOCKER_COMPOSE} --profile frankenphp stop laravel.frankenphp

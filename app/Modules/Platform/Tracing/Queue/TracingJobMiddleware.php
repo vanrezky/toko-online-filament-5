@@ -7,6 +7,7 @@ use App\Modules\Platform\Tracing\Services\ActiveSpan;
 use App\Modules\Platform\Tracing\Services\TraceManager;
 use App\Modules\Platform\Tracing\Support\TracingAttributes;
 use Illuminate\Contracts\Queue\Job;
+use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
@@ -22,8 +23,8 @@ use Throwable;
  */
 final class TracingJobMiddleware
 {
-    /** @var array<int, array{span: ActiveSpan, started_at: int}> */
-    private static array $stack = [];
+    /** @var array<string, array{span: ActiveSpan, started_at: int}> */
+    private static array $spans = [];
 
     public static function handleStart(JobProcessing $event): void
     {
@@ -47,17 +48,24 @@ final class TracingJobMiddleware
         ]);
 
         if ($activeSpan !== null) {
-            self::$stack[] = ['span' => $activeSpan, 'started_at' => (int) hrtime(true)];
+            self::$spans[self::jobKey($event->job)] = [
+                'span' => $activeSpan,
+                'started_at' => (int) hrtime(true),
+            ];
         }
     }
 
-    public static function handleEnd(JobProcessed|JobFailed $event): void
+    public static function handleEnd(JobProcessed|JobFailed|JobExceptionOccurred $event): void
     {
-        if (self::$stack === []) {
+        $key = self::jobKey($event->job);
+        $frame = self::$spans[$key] ?? null;
+
+        if ($frame === null) {
             return;
         }
 
-        $frame = array_pop(self::$stack);
+        unset(self::$spans[$key]);
+
         $traceManager = app(TraceManager::class);
 
         $attributes = [
@@ -67,12 +75,17 @@ final class TracingJobMiddleware
         $status = null;
         $statusDescription = null;
 
-        if ($event instanceof JobFailed) {
+        if ($event instanceof JobFailed || $event instanceof JobExceptionOccurred) {
             $status = StatusCode::STATUS_ERROR;
             $statusDescription = $event->exception instanceof Throwable ? $event->exception::class : null;
         }
 
         $traceManager->endSpan($frame['span'], $attributes, $status, $statusDescription);
+    }
+
+    private static function jobKey(Job $job): string
+    {
+        return (string) spl_object_id($job);
     }
 
     private static function jobName(Job $job): string
