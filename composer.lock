@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bebe186eafffc3ea424c4b1ab655ef5e",
+    "content-hash": "eca8ac3567c3084c363b7043418293ea",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -1669,53 +1669,6 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
-        },
-        {
-            "name": "evenement/evenement",
-            "version": "v3.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/igorw/evenement.git",
-                "reference": "0a16b0d71ab13284339abb99d9d2bd813640efbc"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/igorw/evenement/zipball/0a16b0d71ab13284339abb99d9d2bd813640efbc",
-                "reference": "0a16b0d71ab13284339abb99d9d2bd813640efbc",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^9 || ^6"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Evenement\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Igor Wiedler",
-                    "email": "igor@wiedler.ch"
-                }
-            ],
-            "description": "Événement is a very simple event dispatching library for PHP",
-            "keywords": [
-                "event-dispatcher",
-                "event-emitter"
-            ],
-            "support": {
-                "issues": "https://github.com/igorw/evenement/issues",
-                "source": "https://github.com/igorw/evenement/tree/v3.0.2"
-            },
-            "time": "2023-08-08T05:53:35+00:00"
         },
         {
             "name": "ezyang/htmlpurifier",
@@ -3533,67 +3486,6 @@
             "time": "2026-08-20T12:55:36+00:00"
         },
         {
-            "name": "laravel/roster",
-            "version": "v0.2.9",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/laravel/roster.git",
-                "reference": "82bbd0e2de614906811aebdf16b4305956816fa6"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/laravel/roster/zipball/82bbd0e2de614906811aebdf16b4305956816fa6",
-                "reference": "82bbd0e2de614906811aebdf16b4305956816fa6",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/console": "^10.0|^11.0|^12.0",
-                "illuminate/contracts": "^10.0|^11.0|^12.0",
-                "illuminate/routing": "^10.0|^11.0|^12.0",
-                "illuminate/support": "^10.0|^11.0|^12.0",
-                "php": "^8.1|^8.2",
-                "symfony/yaml": "^6.4|^7.2"
-            },
-            "require-dev": {
-                "laravel/pint": "^1.14",
-                "mockery/mockery": "^1.6",
-                "orchestra/testbench": "^8.22.0|^9.0|^10.0",
-                "pestphp/pest": "^2.0|^3.0",
-                "phpstan/phpstan": "^2.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Laravel\\Roster\\RosterServiceProvider"
-                    ]
-                },
-                "branch-alias": {
-                    "dev-master": "1.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Laravel\\Roster\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "Detect packages & approaches in use within a Laravel project",
-            "homepage": "https://github.com/laravel/roster",
-            "keywords": [
-                "dev",
-                "laravel"
-            ],
-            "support": {
-                "issues": "https://github.com/laravel/roster/issues",
-                "source": "https://github.com/laravel/roster"
-            },
-            "time": "2025-10-20T09:56:46+00:00"
-        },
-        {
             "name": "laravel/sanctum",
             "version": "v4.3.3",
             "source": {
@@ -4851,164 +4743,6 @@
                 }
             ],
             "time": "2026-08-31T15:40:58+00:00"
-        },
-        {
-            "name": "lorisleiva/laravel-actions",
-            "version": "v2.12.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/lorisleiva/laravel-actions.git",
-                "reference": "8d58b11d4fbca08fbcdb87243a4607bb3ae1db8d"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/lorisleiva/laravel-actions/zipball/8d58b11d4fbca08fbcdb87243a4607bb3ae1db8d",
-                "reference": "8d58b11d4fbca08fbcdb87243a4607bb3ae1db8d",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/contracts": "^11.0|^12.0|^13.0",
-                "lorisleiva/lody": "^0.7",
-                "php": "^8.2"
-            },
-            "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.0",
-                "larastan/larastan": "^3.0",
-                "orchestra/testbench": "^9.0|^10.0|^11.0",
-                "pestphp/pest": "^3.0|^4.0",
-                "phpstan/extension-installer": "^1.4",
-                "phpstan/phpstan": "^2.1",
-                "phpstan/phpstan-phpunit": "^2.0",
-                "phpunit/phpunit": "^11.5|^12.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": {
-                        "Action": "Lorisleiva\\Actions\\Facades\\Actions"
-                    },
-                    "providers": [
-                        "Lorisleiva\\Actions\\ActionServiceProvider"
-                    ]
-                },
-                "phpstan": {
-                    "includes": [
-                        "extension.neon"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Lorisleiva\\Actions\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Loris Leiva",
-                    "email": "loris.leiva@gmail.com",
-                    "homepage": "https://lorisleiva.com",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Laravel components that take care of one specific task",
-            "homepage": "https://github.com/lorisleiva/laravel-actions",
-            "keywords": [
-                "action",
-                "command",
-                "component",
-                "controller",
-                "job",
-                "laravel",
-                "listener",
-                "object"
-            ],
-            "support": {
-                "issues": "https://github.com/lorisleiva/laravel-actions/issues",
-                "source": "https://github.com/lorisleiva/laravel-actions/tree/v2.12.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/sponsors/lorisleiva",
-                    "type": "github"
-                }
-            ],
-            "time": "2026-08-25T14:17:11+00:00"
-        },
-        {
-            "name": "lorisleiva/lody",
-            "version": "v0.7.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/lorisleiva/lody.git",
-                "reference": "018d3d384872d4b28f5194dae5fd05894db7fabe"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/lorisleiva/lody/zipball/018d3d384872d4b28f5194dae5fd05894db7fabe",
-                "reference": "018d3d384872d4b28f5194dae5fd05894db7fabe",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/contracts": "^11.0|^12.0|^13.0",
-                "php": "^8.2"
-            },
-            "require-dev": {
-                "orchestra/testbench": "^9.0|^10.0|^11.0",
-                "pestphp/pest": "^3.0|^4.0",
-                "phpunit/phpunit": "^11.5|^12.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": {
-                        "Lody": "Lorisleiva\\Lody\\Lody"
-                    },
-                    "providers": [
-                        "Lorisleiva\\Lody\\LodyServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Lorisleiva\\Lody\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Loris Leiva",
-                    "email": "loris.leiva@gmail.com",
-                    "homepage": "https://lorisleiva.com",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Load files and classes as lazy collections in Laravel.",
-            "homepage": "https://github.com/lorisleiva/lody",
-            "keywords": [
-                "classes",
-                "collection",
-                "files",
-                "laravel",
-                "load"
-            ],
-            "support": {
-                "issues": "https://github.com/lorisleiva/lody/issues",
-                "source": "https://github.com/lorisleiva/lody/tree/v0.7.1"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/sponsors/lorisleiva",
-                    "type": "github"
-                }
-            ],
-            "time": "2026-09-01T11:53:49+00:00"
         },
         {
             "name": "maatwebsite/excel",
@@ -7065,71 +6799,6 @@
             "time": "2020-06-27T09:03:43+00:00"
         },
         {
-            "name": "phpdocumentor/reflection-docblock",
-            "version": "6.0.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/phpDocumentor/ReflectionDocBlock.git",
-                "reference": "7bae67520aa9f5ecc506d646810bd40d9da54582"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/7bae67520aa9f5ecc506d646810bd40d9da54582",
-                "reference": "7bae67520aa9f5ecc506d646810bd40d9da54582",
-                "shasum": ""
-            },
-            "require": {
-                "doctrine/deprecations": "^1.1",
-                "ext-filter": "*",
-                "php": "^7.4 || ^8.0",
-                "phpdocumentor/reflection-common": "^2.2",
-                "phpdocumentor/type-resolver": "^2.0",
-                "phpstan/phpdoc-parser": "^2.0",
-                "webmozart/assert": "^1.9.1 || ^2"
-            },
-            "require-dev": {
-                "mockery/mockery": "~1.3.5 || ~1.6.0",
-                "phpstan/extension-installer": "^1.1",
-                "phpstan/phpstan": "^1.8",
-                "phpstan/phpstan-mockery": "^1.1",
-                "phpstan/phpstan-webmozart-assert": "^1.2",
-                "phpunit/phpunit": "^9.5",
-                "psalm/phar": "^5.26",
-                "shipmonk/dead-code-detector": "^0.5.1"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "5.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "phpDocumentor\\Reflection\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Mike van Riel",
-                    "email": "me@mikevanriel.com"
-                },
-                {
-                    "name": "Jaap van Otterdijk",
-                    "email": "opensource@ijaap.nl"
-                }
-            ],
-            "description": "With this component, a library can provide support for annotations via DocBlocks or otherwise retrieve information that is embedded in a DocBlock.",
-            "support": {
-                "issues": "https://github.com/phpDocumentor/ReflectionDocBlock/issues",
-                "source": "https://github.com/phpDocumentor/ReflectionDocBlock/tree/6.0.3"
-            },
-            "time": "2026-03-18T20:49:53+00:00"
-        },
-        {
             "name": "phpdocumentor/type-resolver",
             "version": "2.0.0",
             "source": {
@@ -7811,137 +7480,6 @@
                 }
             ],
             "time": "2026-08-14T23:07:56+00:00"
-        },
-        {
-            "name": "projectsaturnstudios/laravel-design-patterns",
-            "version": "0.1.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/projectsaturnstudios/laravel-design-patterns.git",
-                "reference": "2f036234c8f608a2c74515e435b139ab445bedd9"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/projectsaturnstudios/laravel-design-patterns/zipball/2f036234c8f608a2c74515e435b139ab445bedd9",
-                "reference": "2f036234c8f608a2c74515e435b139ab445bedd9",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8.3|^8.4",
-                "projectsaturnstudios/php-design-patterns": "^0.1.0",
-                "spatie/laravel-data": "^4.22"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "ProjectSaturnStudios\\LaravelDesignPatterns\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Project Saturn Studios, LLC",
-                    "email": "info@projectsaturnstudios.com"
-                }
-            ],
-            "description": "Design patterns for Laravel applications",
-            "support": {
-                "issues": "https://github.com/projectsaturnstudios/laravel-design-patterns/issues",
-                "source": "https://github.com/projectsaturnstudios/laravel-design-patterns/tree/v0.1.1"
-            },
-            "time": "2026-04-17T02:54:16+00:00"
-        },
-        {
-            "name": "projectsaturnstudios/php-design-patterns",
-            "version": "0.1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/projectsaturnstudios/php-design-patterns.git",
-                "reference": "ffd941f23e7a57aa45f45b4218203c9b99a7ffda"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/projectsaturnstudios/php-design-patterns/zipball/ffd941f23e7a57aa45f45b4218203c9b99a7ffda",
-                "reference": "ffd941f23e7a57aa45f45b4218203c9b99a7ffda",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8.2",
-                "react/promise": "^3.2 || ^2.0 || ^1.1"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "ProjectSaturnStudios\\PhpDesignPatterns\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Project Saturn Studios, LLC",
-                    "email": "info@projectsaturnstudios.com"
-                }
-            ],
-            "description": "Design patterns for PHP applications",
-            "support": {
-                "issues": "https://github.com/projectsaturnstudios/php-design-patterns/issues",
-                "source": "https://github.com/projectsaturnstudios/php-design-patterns/tree/v0.1.0"
-            },
-            "time": "2025-08-15T03:00:14+00:00"
-        },
-        {
-            "name": "projectsaturnstudios/quickuuid",
-            "version": "0.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/projectsaturnstudios/quickuuid.git",
-                "reference": "31fc1282b756da43c691e7a349eaf05423b34d10"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/projectsaturnstudios/quickuuid/zipball/31fc1282b756da43c691e7a349eaf05423b34d10",
-                "reference": "31fc1282b756da43c691e7a349eaf05423b34d10",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8.2",
-                "ramsey/uuid": "^4.7"
-            },
-            "require-dev": {
-                "phpstan/phpstan": "^1.10",
-                "phpunit/phpunit": "^10.5 || ^11.0"
-            },
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "src/Helpers/helpers.php"
-                ],
-                "psr-4": {
-                    "ProjectSaturnStudios\\QuickUUID\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Project Saturn Studios, LLC",
-                    "email": "info@projectsaturnstudios.com"
-                }
-            ],
-            "description": "Simple helper functions to easily generate UUIDs (v4 and v5).",
-            "support": {
-                "issues": "https://github.com/projectsaturnstudios/quickuuid/issues",
-                "source": "https://github.com/projectsaturnstudios/quickuuid/tree/v0.2.0"
-            },
-            "time": "2025-07-02T12:36:00+00:00"
         },
         {
             "name": "psr/clock",
@@ -8633,229 +8171,6 @@
             "time": "2026-06-18T03:57:49+00:00"
         },
         {
-            "name": "react/event-loop",
-            "version": "v1.6.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/reactphp/event-loop.git",
-                "reference": "ba276bda6083df7e0050fd9b33f66ad7a4ac747a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/event-loop/zipball/ba276bda6083df7e0050fd9b33f66ad7a4ac747a",
-                "reference": "ba276bda6083df7e0050fd9b33f66ad7a4ac747a",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36"
-            },
-            "suggest": {
-                "ext-pcntl": "For signal handling support when using the StreamSelectLoop"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "React\\EventLoop\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Christian Lück",
-                    "email": "christian@clue.engineering",
-                    "homepage": "https://clue.engineering/"
-                },
-                {
-                    "name": "Cees-Jan Kiewiet",
-                    "email": "reactphp@ceesjankiewiet.nl",
-                    "homepage": "https://wyrihaximus.net/"
-                },
-                {
-                    "name": "Jan Sorgalla",
-                    "email": "jsorgalla@gmail.com",
-                    "homepage": "https://sorgalla.com/"
-                },
-                {
-                    "name": "Chris Boden",
-                    "email": "cboden@gmail.com",
-                    "homepage": "https://cboden.dev/"
-                }
-            ],
-            "description": "ReactPHP's core reactor event loop that libraries can use for evented I/O.",
-            "keywords": [
-                "asynchronous",
-                "event-loop"
-            ],
-            "support": {
-                "issues": "https://github.com/reactphp/event-loop/issues",
-                "source": "https://github.com/reactphp/event-loop/tree/v1.6.0"
-            },
-            "funding": [
-                {
-                    "url": "https://opencollective.com/reactphp",
-                    "type": "open_collective"
-                }
-            ],
-            "time": "2025-11-17T20:46:25+00:00"
-        },
-        {
-            "name": "react/promise",
-            "version": "v3.3.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/reactphp/promise.git",
-                "reference": "23444f53a813a3296c1368bb104793ce8d88f04a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/promise/zipball/23444f53a813a3296c1368bb104793ce8d88f04a",
-                "reference": "23444f53a813a3296c1368bb104793ce8d88f04a",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.1.0"
-            },
-            "require-dev": {
-                "phpstan/phpstan": "1.12.28 || 1.4.10",
-                "phpunit/phpunit": "^9.6 || ^7.5"
-            },
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "src/functions_include.php"
-                ],
-                "psr-4": {
-                    "React\\Promise\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Jan Sorgalla",
-                    "email": "jsorgalla@gmail.com",
-                    "homepage": "https://sorgalla.com/"
-                },
-                {
-                    "name": "Christian Lück",
-                    "email": "christian@clue.engineering",
-                    "homepage": "https://clue.engineering/"
-                },
-                {
-                    "name": "Cees-Jan Kiewiet",
-                    "email": "reactphp@ceesjankiewiet.nl",
-                    "homepage": "https://wyrihaximus.net/"
-                },
-                {
-                    "name": "Chris Boden",
-                    "email": "cboden@gmail.com",
-                    "homepage": "https://cboden.dev/"
-                }
-            ],
-            "description": "A lightweight implementation of CommonJS Promises/A for PHP",
-            "keywords": [
-                "promise",
-                "promises"
-            ],
-            "support": {
-                "issues": "https://github.com/reactphp/promise/issues",
-                "source": "https://github.com/reactphp/promise/tree/v3.3.0"
-            },
-            "funding": [
-                {
-                    "url": "https://opencollective.com/reactphp",
-                    "type": "open_collective"
-                }
-            ],
-            "time": "2025-08-19T18:57:03+00:00"
-        },
-        {
-            "name": "react/stream",
-            "version": "v1.4.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/reactphp/stream.git",
-                "reference": "1e5b0acb8fe55143b5b426817155190eb6f5b18d"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/stream/zipball/1e5b0acb8fe55143b5b426817155190eb6f5b18d",
-                "reference": "1e5b0acb8fe55143b5b426817155190eb6f5b18d",
-                "shasum": ""
-            },
-            "require": {
-                "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
-                "php": ">=5.3.8",
-                "react/event-loop": "^1.2"
-            },
-            "require-dev": {
-                "clue/stream-filter": "~1.2",
-                "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "React\\Stream\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Christian Lück",
-                    "email": "christian@clue.engineering",
-                    "homepage": "https://clue.engineering/"
-                },
-                {
-                    "name": "Cees-Jan Kiewiet",
-                    "email": "reactphp@ceesjankiewiet.nl",
-                    "homepage": "https://wyrihaximus.net/"
-                },
-                {
-                    "name": "Jan Sorgalla",
-                    "email": "jsorgalla@gmail.com",
-                    "homepage": "https://sorgalla.com/"
-                },
-                {
-                    "name": "Chris Boden",
-                    "email": "cboden@gmail.com",
-                    "homepage": "https://cboden.dev/"
-                }
-            ],
-            "description": "Event-driven readable and writable streams for non-blocking I/O in ReactPHP",
-            "keywords": [
-                "event-driven",
-                "io",
-                "non-blocking",
-                "pipe",
-                "reactphp",
-                "readable",
-                "stream",
-                "writable"
-            ],
-            "support": {
-                "issues": "https://github.com/reactphp/stream/issues",
-                "source": "https://github.com/reactphp/stream/tree/v1.4.0"
-            },
-            "funding": [
-                {
-                    "url": "https://opencollective.com/reactphp",
-                    "type": "open_collective"
-                }
-            ],
-            "time": "2024-06-11T12:45:25+00:00"
-        },
-        {
             "name": "ryangjchandler/blade-capture-directive",
             "version": "v1.1.1",
             "source": {
@@ -9522,90 +8837,6 @@
             "time": "2026-03-24T12:33:53+00:00"
         },
         {
-            "name": "spatie/laravel-data",
-            "version": "4.23.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/spatie/laravel-data.git",
-                "reference": "230543769c996e407fec2873930626aed7dd0d3b"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-data/zipball/230543769c996e407fec2873930626aed7dd0d3b",
-                "reference": "230543769c996e407fec2873930626aed7dd0d3b",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/contracts": "^10.0|^11.0|^12.0|^13.0",
-                "php": "^8.1",
-                "phpdocumentor/reflection-common": "^2.2",
-                "phpdocumentor/reflection-docblock": "^5.3 || ^6.0",
-                "phpdocumentor/type-resolver": "^1.7 || ^2.0",
-                "spatie/laravel-package-tools": "^1.9.0",
-                "spatie/php-structure-discoverer": "^2.0"
-            },
-            "require-dev": {
-                "fakerphp/faker": "^1.14",
-                "friendsofphp/php-cs-fixer": "^3.0",
-                "inertiajs/inertia-laravel": "^2.0|^3.0",
-                "livewire/livewire": "^3.0|^4.0",
-                "mockery/mockery": "^1.6",
-                "nesbot/carbon": "^2.63|^3.0",
-                "orchestra/testbench": "^8.37.0|^9.16|^10.9|^11.0",
-                "pestphp/pest": "^2.36|^3.8|^4.3",
-                "pestphp/pest-plugin-laravel": "^2.4|^3.0|^4.0",
-                "pestphp/pest-plugin-livewire": "^2.1|^3.0|^4.0",
-                "phpbench/phpbench": "^1.2",
-                "phpstan/extension-installer": "^1.1",
-                "spatie/invade": "^1.0",
-                "spatie/laravel-typescript-transformer": "^2.5",
-                "spatie/pest-plugin-snapshots": "^2.1",
-                "spatie/test-time": "^1.2"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Spatie\\LaravelData\\LaravelDataServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Spatie\\LaravelData\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ruben Van Assche",
-                    "email": "ruben@spatie.be",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Create unified resources and data transfer objects",
-            "homepage": "https://github.com/spatie/laravel-data",
-            "keywords": [
-                "laravel",
-                "laravel-data",
-                "spatie"
-            ],
-            "support": {
-                "issues": "https://github.com/spatie/laravel-data/issues",
-                "source": "https://github.com/spatie/laravel-data/tree/4.23.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/spatie",
-                    "type": "github"
-                }
-            ],
-            "time": "2026-05-08T14:41:13+00:00"
-        },
-        {
             "name": "spatie/laravel-health",
             "version": "1.40.2",
             "source": {
@@ -10193,85 +9424,6 @@
             "time": "2026-04-23T08:26:29+00:00"
         },
         {
-            "name": "spatie/php-structure-discoverer",
-            "version": "2.4.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/spatie/php-structure-discoverer.git",
-                "reference": "fa2b7dae8e8a22c0306154c4b052420e054f7e2b"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/spatie/php-structure-discoverer/zipball/fa2b7dae8e8a22c0306154c4b052420e054f7e2b",
-                "reference": "fa2b7dae8e8a22c0306154c4b052420e054f7e2b",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/collections": "^11.0|^12.0|^13.0",
-                "php": "^8.3",
-                "spatie/laravel-package-tools": "^1.92.7",
-                "symfony/finder": "^6.0|^7.3.5|^8.0"
-            },
-            "require-dev": {
-                "amphp/parallel": "^2.3.2",
-                "illuminate/console": "^11.0|^12.0|^13.0",
-                "nunomaduro/collision": "^7.0|^8.8.3",
-                "orchestra/testbench": "^9.5|^10.8|^11.0",
-                "pestphp/pest": "^3.8|^4.0",
-                "pestphp/pest-plugin-laravel": "^3.2|^4.0",
-                "phpstan/extension-installer": "^1.4.3",
-                "phpstan/phpstan-deprecation-rules": "^1.2.1",
-                "phpstan/phpstan-phpunit": "^1.4.2",
-                "spatie/laravel-ray": "^1.43.1"
-            },
-            "suggest": {
-                "amphp/parallel": "When you want to use the Parallel discover worker"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Spatie\\StructureDiscoverer\\StructureDiscovererServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Spatie\\StructureDiscoverer\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ruben Van Assche",
-                    "email": "ruben@spatie.be",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Automatically discover structures within your PHP application",
-            "homepage": "https://github.com/spatie/php-structure-discoverer",
-            "keywords": [
-                "discover",
-                "laravel",
-                "php",
-                "php-structure-discoverer"
-            ],
-            "support": {
-                "issues": "https://github.com/spatie/php-structure-discoverer/issues",
-                "source": "https://github.com/spatie/php-structure-discoverer/tree/2.4.4"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/LaravelAutoDiscoverer",
-                    "type": "github"
-                }
-            ],
-            "time": "2026-06-15T07:14:32+00:00"
-        },
-        {
             "name": "spatie/regex",
             "version": "3.1.1",
             "source": {
@@ -10459,457 +9611,6 @@
                 }
             ],
             "time": "2026-06-22T07:55:44+00:00"
-        },
-        {
-            "name": "superconductor/laravel-vibes",
-            "version": "0.6.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/projectsaturnstudios/laravel-vibes.git",
-                "reference": "b5102e2a342c4bb843cce715df921489c9cb21d8"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/projectsaturnstudios/laravel-vibes/zipball/b5102e2a342c4bb843cce715df921489c9cb21d8",
-                "reference": "b5102e2a342c4bb843cce715df921489c9cb21d8",
-                "shasum": ""
-            },
-            "require": {
-                "laravel/roster": "^0.2",
-                "php": "^8.2",
-                "superconductor/mcp": "^20241105.5.0",
-                "superconductor/prompts": "^20241105.5.0",
-                "superconductor/resources": "^20241105.5.0",
-                "superconductor/tools": "^20241105.5.0"
-            },
-            "require-dev": {
-                "mikey179/vfsstream": "^1.6",
-                "mockery/mockery": "^1.4",
-                "orchestra/testbench": "^8.0 || ^9.0",
-                "phpmd/phpmd": "^2.15",
-                "phpstan/phpstan": "^1.10",
-                "phpunit/phpunit": "^10.0 || ^11.0",
-                "squizlabs/php_codesniffer": "^3.8"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Superconductor\\LaravelVibes\\Providers\\LaravelVibesServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Superconductor\\LaravelVibes\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "Laravel Boost augments AI-assisted development to generate high-quality, Laravel-specific code and other capabilities.",
-            "keywords": [
-                "ai",
-                "dev",
-                "laravel",
-                "mcp",
-                "superconductor"
-            ],
-            "support": {
-                "issues": "https://github.com/projectsaturnstudios/laravel-vibes/issues",
-                "source": "https://github.com/projectsaturnstudios/laravel-vibes/tree/v0.6.2"
-            },
-            "time": "2025-09-04T20:04:44+00:00"
-        },
-        {
-            "name": "superconductor/mcp",
-            "version": "20241105.5.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/projectsaturnstudios/superconductor-core.git",
-                "reference": "3cdbb04f335e27652c52db950bc51abdd1688966"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/projectsaturnstudios/superconductor-core/zipball/3cdbb04f335e27652c52db950bc51abdd1688966",
-                "reference": "3cdbb04f335e27652c52db950bc51abdd1688966",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/support": "^10.0|^11.0|^12.0",
-                "lorisleiva/laravel-actions": "^2.6",
-                "php": "^8.2",
-                "projectsaturnstudios/laravel-design-patterns": "^0.1.0",
-                "projectsaturnstudios/quickuuid": "^0.2.0",
-                "spatie/laravel-data": "^4.11",
-                "superconductor/rpc": "^0.3.0",
-                "superconductor/stdio-transport": "^20241105.5.0",
-                "superconductor/streamable-http-transport": "^20241105.5.0"
-            },
-            "require-dev": {
-                "mockery/mockery": "^1.6",
-                "orchestra/testbench": "^10.0",
-                "pestphp/pest": "^3.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Superconductor\\Mcp\\Providers\\McpServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "files": [
-                    "src/Helpers/protocol_versions.php"
-                ],
-                "psr-4": {
-                    "Superconductor\\Mcp\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Project Saturn Studios, LLC",
-                    "email": "info@projectsaturnstudios.com"
-                }
-            ],
-            "description": "A Laravel package for implementing the Machine Control Protocol (MCP) v20241105",
-            "support": {
-                "issues": "https://github.com/projectsaturnstudios/superconductor-core/issues",
-                "source": "https://github.com/projectsaturnstudios/superconductor-core/tree/v20241105.5.0"
-            },
-            "time": "2025-09-04T18:32:08+00:00"
-        },
-        {
-            "name": "superconductor/prompts",
-            "version": "20241105.5.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/projectsaturnstudios/superconductor-prompts.git",
-                "reference": "15145c410fe07c3b69d066a9fe4f6fac8a4f93ec"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/projectsaturnstudios/superconductor-prompts/zipball/15145c410fe07c3b69d066a9fe4f6fac8a4f93ec",
-                "reference": "15145c410fe07c3b69d066a9fe4f6fac8a4f93ec",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8.2",
-                "superconductor/mcp": "^20241105.5.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Superconductor\\Capabilities\\Prompts\\Providers\\PromptCapabilityProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Superconductor\\Capabilities\\Prompts\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Project Saturn Studios, LLC",
-                    "email": "info@projectsaturnstudios.com"
-                }
-            ],
-            "description": "MCP Prompt Management package for Superconductor",
-            "support": {
-                "issues": "https://github.com/projectsaturnstudios/superconductor-prompts/issues",
-                "source": "https://github.com/projectsaturnstudios/superconductor-prompts/tree/v20241105.5.0"
-            },
-            "time": "2025-09-04T19:27:52+00:00"
-        },
-        {
-            "name": "superconductor/resources",
-            "version": "20241105.5.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/projectsaturnstudios/superconductor-resources.git",
-                "reference": "1f7f1c320f7e65209a44fb2b924601c160edfeb6"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/projectsaturnstudios/superconductor-resources/zipball/1f7f1c320f7e65209a44fb2b924601c160edfeb6",
-                "reference": "1f7f1c320f7e65209a44fb2b924601c160edfeb6",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8.2",
-                "superconductor/mcp": "^20241105.5.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Superconductor\\Capabilities\\Resources\\Providers\\ResourcesCapabilityProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Superconductor\\Capabilities\\Resources\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Project Saturn Studios, LLC",
-                    "email": "info@projectsaturnstudios.com"
-                }
-            ],
-            "description": "MCP Resource Management package for Superconductor",
-            "support": {
-                "issues": "https://github.com/projectsaturnstudios/superconductor-resources/issues",
-                "source": "https://github.com/projectsaturnstudios/superconductor-resources/tree/v20241105.5.0"
-            },
-            "time": "2025-09-04T19:31:49+00:00"
-        },
-        {
-            "name": "superconductor/rpc",
-            "version": "0.3.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/projectsaturnstudios/superconductor-rpc.git",
-                "reference": "c0f52d1d5f18c77a1f81cee77d24e6d21b1351d6"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/projectsaturnstudios/superconductor-rpc/zipball/c0f52d1d5f18c77a1f81cee77d24e6d21b1351d6",
-                "reference": "c0f52d1d5f18c77a1f81cee77d24e6d21b1351d6",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "lorisleiva/laravel-actions": "^2.6",
-                "php": "^8.2",
-                "projectsaturnstudios/laravel-design-patterns": "^0.1.0",
-                "spatie/laravel-data": "^4.11"
-            },
-            "require-dev": {
-                "mockery/mockery": "^1.6",
-                "orchestra/testbench": "^9.14",
-                "pestphp/pest": "^3.8",
-                "pestphp/pest-plugin-laravel": "^3.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Superconductor\\Rpc\\Providers\\RpcServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Superconductor\\Rpc\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Project Saturn Studios, LLC",
-                    "email": "info@projectsaturnstudios.com"
-                }
-            ],
-            "description": "A Laravel package for implementing the Remote Procedure Call (RPC) protocol",
-            "support": {
-                "issues": "https://github.com/projectsaturnstudios/superconductor-rpc/issues",
-                "source": "https://github.com/projectsaturnstudios/superconductor-rpc/tree/v0.3.1"
-            },
-            "time": "2025-09-04T21:23:10+00:00"
-        },
-        {
-            "name": "superconductor/stdio-transport",
-            "version": "20241105.5.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/projectsaturnstudios/superconductor-stdio-transport.git",
-                "reference": "36967eda9b55647a73107a7d61ebb8ff5c20451c"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/projectsaturnstudios/superconductor-stdio-transport/zipball/36967eda9b55647a73107a7d61ebb8ff5c20451c",
-                "reference": "36967eda9b55647a73107a7d61ebb8ff5c20451c",
-                "shasum": ""
-            },
-            "require": {
-                "lorisleiva/laravel-actions": "^2.6",
-                "php": "^8.2",
-                "projectsaturnstudios/laravel-design-patterns": "^0.1.0",
-                "projectsaturnstudios/quickuuid": "^0.2.0",
-                "react/event-loop": "^1.5",
-                "react/stream": "^1.4",
-                "superconductor/mcp": "^20241105.5.0"
-            },
-            "require-dev": {
-                "illuminate/container": "^12.0",
-                "illuminate/events": "^12.24",
-                "illuminate/support": "^12.24",
-                "pestphp/pest": "^3.8",
-                "react/event-loop": "^1.5",
-                "react/stream": "^1.4"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": [],
-                    "providers": [
-                        "Superconductor\\Transports\\Stdio\\Providers\\StdioTransportServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Superconductor\\Transports\\Stdio\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Project Saturn Studios, LLC",
-                    "email": "info@projectsaturnstudios.com"
-                }
-            ],
-            "description": "Stdio transport protocol for the Superconductor MCP framework.",
-            "support": {
-                "issues": "https://github.com/projectsaturnstudios/superconductor-stdio-transport/issues",
-                "source": "https://github.com/projectsaturnstudios/superconductor-stdio-transport/tree/v20241105.5.0"
-            },
-            "time": "2025-09-04T19:37:47+00:00"
-        },
-        {
-            "name": "superconductor/streamable-http-transport",
-            "version": "20241105.5.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/projectsaturnstudios/superconductor-mcp-streamable-transport.git",
-                "reference": "1b4c50ce79d0f22a70a19aa4372988ff66473790"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/projectsaturnstudios/superconductor-mcp-streamable-transport/zipball/1b4c50ce79d0f22a70a19aa4372988ff66473790",
-                "reference": "1b4c50ce79d0f22a70a19aa4372988ff66473790",
-                "shasum": ""
-            },
-            "require": {
-                "lorisleiva/laravel-actions": "^2.6",
-                "php": "^8.2",
-                "projectsaturnstudios/laravel-design-patterns": "^0.1.0",
-                "projectsaturnstudios/quickuuid": "^0.2.0",
-                "superconductor/mcp": "^20241105.5.0"
-            },
-            "require-dev": {
-                "illuminate/container": "^12.0",
-                "illuminate/events": "^12.24",
-                "illuminate/support": "^12.24",
-                "pestphp/pest": "^3.8",
-                "react/event-loop": "^1.5",
-                "react/stream": "^1.4"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": [],
-                    "providers": [
-                        "Superconductor\\Transports\\StreamableHttp\\Providers\\StreamableHttpTransportServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "files": [
-                    "src/Helpers/streamable_routing.php"
-                ],
-                "psr-4": {
-                    "Superconductor\\Transports\\StreamableHttp\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Project Saturn Studios, LLC",
-                    "email": "info@projectsaturnstudios.com"
-                }
-            ],
-            "description": "Streamable HTTP transport protocol for the Superconductor MCP framework.",
-            "support": {
-                "issues": "https://github.com/projectsaturnstudios/superconductor-mcp-streamable-transport/issues",
-                "source": "https://github.com/projectsaturnstudios/superconductor-mcp-streamable-transport/tree/v20241105.5.1"
-            },
-            "time": "2025-09-16T04:11:43+00:00"
-        },
-        {
-            "name": "superconductor/tools",
-            "version": "20241105.5.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/projectsaturnstudios/superconductor-tools.git",
-                "reference": "9bde1ecb23dec4d8190e73e26f67fd7364327df5"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/projectsaturnstudios/superconductor-tools/zipball/9bde1ecb23dec4d8190e73e26f67fd7364327df5",
-                "reference": "9bde1ecb23dec4d8190e73e26f67fd7364327df5",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8.2",
-                "superconductor/mcp": "^20241105.5.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Superconductor\\Capabilities\\Tools\\Providers\\ToolCapabilityProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Superconductor\\Capabilities\\Tools\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Project Saturn Studios, LLC",
-                    "email": "info@projectsaturnstudios.com"
-                }
-            ],
-            "description": "MCP Tool Management package for Superconductor",
-            "support": {
-                "issues": "https://github.com/projectsaturnstudios/superconductor-tools/issues",
-                "source": "https://github.com/projectsaturnstudios/superconductor-tools/tree/v20241105.5.1"
-            },
-            "time": "2025-09-16T04:13:11+00:00"
         },
         {
             "name": "symfony/clock",
@@ -13565,82 +12266,6 @@
             "time": "2026-08-30T20:10:52+00:00"
         },
         {
-            "name": "symfony/yaml",
-            "version": "v7.4.18",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/yaml.git",
-                "reference": "4cef939e55b8a21c5780418de0d98ab00d0736e1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/4cef939e55b8a21c5780418de0d98ab00d0736e1",
-                "reference": "4cef939e55b8a21c5780418de0d98ab00d0736e1",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.2",
-                "symfony/deprecation-contracts": "^2.5|^3",
-                "symfony/polyfill-ctype": "^1.8"
-            },
-            "conflict": {
-                "symfony/console": "<6.4"
-            },
-            "require-dev": {
-                "symfony/console": "^6.4|^7.0|^8.0"
-            },
-            "bin": [
-                "Resources/bin/yaml-lint"
-            ],
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Component\\Yaml\\": ""
-                },
-                "exclude-from-classmap": [
-                    "/Tests/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Fabien Potencier",
-                    "email": "fabien@symfony.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Loads and dumps YAML files",
-            "homepage": "https://symfony.com",
-            "support": {
-                "source": "https://github.com/symfony/yaml/tree/v7.4.18"
-            },
-            "funding": [
-                {
-                    "url": "https://symfony.com/sponsor",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/fabpot",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/nicolas-grekas",
-                    "type": "github"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
-                    "type": "tidelift"
-                }
-            ],
-            "time": "2026-08-30T00:47:26+00:00"
-        },
-        {
             "name": "tbachert/spi",
             "version": "v1.0.5",
             "source": {
@@ -14186,72 +12811,6 @@
                 }
             ],
             "time": "2026-04-26T05:33:54+00:00"
-        },
-        {
-            "name": "webmozart/assert",
-            "version": "2.4.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/webmozarts/assert.git",
-                "reference": "2ccb7c2e821038c03a3e6e1700c570c158c55f70"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/webmozarts/assert/zipball/2ccb7c2e821038c03a3e6e1700c570c158c55f70",
-                "reference": "2ccb7c2e821038c03a3e6e1700c570c158c55f70",
-                "shasum": ""
-            },
-            "require": {
-                "ext-ctype": "*",
-                "ext-date": "*",
-                "ext-filter": "*",
-                "php": "^8.2"
-            },
-            "suggest": {
-                "ext-intl": "",
-                "ext-simplexml": "",
-                "ext-spl": ""
-            },
-            "type": "library",
-            "extra": {
-                "psalm": {
-                    "pluginClass": "Webmozart\\Assert\\PsalmPlugin"
-                },
-                "branch-alias": {
-                    "dev-master": "2.0-dev",
-                    "dev-feature/2-0": "2.0-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Webmozart\\Assert\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Bernhard Schussek",
-                    "email": "bschussek@gmail.com"
-                },
-                {
-                    "name": "Woody Gilk",
-                    "email": "woody.gilk@gmail.com"
-                }
-            ],
-            "description": "Assertions to validate method input/output with nice error messages.",
-            "keywords": [
-                "assert",
-                "check",
-                "validate"
-            ],
-            "support": {
-                "issues": "https://github.com/webmozarts/assert/issues",
-                "source": "https://github.com/webmozarts/assert/tree/2.4.1"
-            },
-            "time": "2026-06-15T15:31:57+00:00"
         }
     ],
     "packages-dev": [
@@ -16846,6 +15405,82 @@
             "time": "2026-03-17T12:20:04+00:00"
         },
         {
+            "name": "symfony/yaml",
+            "version": "v7.4.18",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/yaml.git",
+                "reference": "4cef939e55b8a21c5780418de0d98ab00d0736e1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/4cef939e55b8a21c5780418de0d98ab00d0736e1",
+                "reference": "4cef939e55b8a21c5780418de0d98ab00d0736e1",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2",
+                "symfony/deprecation-contracts": "^2.5|^3",
+                "symfony/polyfill-ctype": "^1.8"
+            },
+            "conflict": {
+                "symfony/console": "<6.4"
+            },
+            "require-dev": {
+                "symfony/console": "^6.4|^7.0|^8.0"
+            },
+            "bin": [
+                "Resources/bin/yaml-lint"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Yaml\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Loads and dumps YAML files",
+            "homepage": "https://symfony.com",
+            "support": {
+                "source": "https://github.com/symfony/yaml/tree/v7.4.18"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-08-30T00:47:26+00:00"
+        },
+        {
             "name": "theseer/tokenizer",
             "version": "1.3.1",
             "source": {
@@ -16905,5 +15540,5 @@
         "php": "^8.2"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

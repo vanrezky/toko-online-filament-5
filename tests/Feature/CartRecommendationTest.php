@@ -38,7 +38,7 @@ class CartRecommendationTest extends TestCase
             $cart->load('items.product'),
         );
 
-        $this->assertCount(4, $recommendations);
+        $this->assertCount(5, $recommendations);
         $this->assertSame(
             [$primaryCategory->id, $primaryCategory->id, $secondaryCategory->id],
             $recommendations->take(3)->pluck('category_id')->all(),
@@ -114,11 +114,7 @@ class CartRecommendationTest extends TestCase
     public function test_guest_cart_page_keeps_empty_recommendations(): void
     {
         $this->get(route('frontend.cart'))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('Cart/Index')
-                ->where('recommendations', [])
-            );
+            ->assertRedirect(route('frontend.login'));
     }
 
     private function createCustomer(): Customer

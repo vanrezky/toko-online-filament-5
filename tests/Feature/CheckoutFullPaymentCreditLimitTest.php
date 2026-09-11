@@ -1109,10 +1109,10 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
             metadata: ['gross_amount' => (int) round($transaction->total_amount)],
         ));
 
-        $this->postJson(route('webhooks.payment', 'midtrans'), ['order_id' => $transaction->uuid])
+        $this->postJson(route('frontend.webhooks.payment', 'midtrans'), ['order_id' => $transaction->uuid])
             ->assertOk()
             ->assertJson(['status' => 'success']);
-        $this->postJson(route('webhooks.payment', 'midtrans'), ['order_id' => $transaction->uuid])
+        $this->postJson(route('frontend.webhooks.payment', 'midtrans'), ['order_id' => $transaction->uuid])
             ->assertOk()
             ->assertJson(['status' => 'success']);
 

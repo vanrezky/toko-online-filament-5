@@ -87,12 +87,12 @@ class CustomerResource extends Resource
 
     public static function shouldShowCreditInformation(): bool
     {
-        return app(GeneralSettings::class)->enforce_credit_limit;
+        return settings('enforce_credit_limit', true);
     }
 
     public static function shouldShowBalanceInformation(): bool
     {
-        return app(GeneralSettings::class)->balance_enabled;
+        return settings('balance_enabled', true);
     }
 
     // protected static ?string $navigationLabel = 'Customer';

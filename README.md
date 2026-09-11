@@ -11,8 +11,8 @@ README ini ditulis ulang sebagai referensi operasional repo, bukan template fram
 
 ## Ringkasan Stack
 
-- Backend: Laravel 10, PHP 8.2+
-- Admin panel: Filament v3
+- Backend: Laravel 11, PHP 8.3+
+- Admin panel: Filament v5
 - Frontend app: Inertia.js + Vue 3
 - Build tool: Vite
 - Styling: Tailwind CSS
@@ -67,7 +67,7 @@ Direktori yang paling sering relevan saat development:
 
 ### Prasyarat
 
-- PHP 8.2+
+- PHP 8.3+
 - Composer
 - Node.js dan npm
 - Docker Desktop atau engine yang kompatibel untuk Laravel Sail
