@@ -62,14 +62,14 @@ const isCurrentRoute = (path) => {
             <aside
                 v-if="isOpen"
                 id="mobile-navigation"
-                class="fixed top-0 right-0 bottom-0 z-[70] flex w-full flex-col border-l border-border bg-background shadow-2xl"
+                class="border-border bg-background fixed top-0 right-0 bottom-0 z-[70] flex w-full flex-col border-l shadow-2xl"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="mobile-navigation-title"
             >
                 <div class="flex h-full flex-col overflow-y-auto p-5">
-                    <div class="mb-6 flex items-center justify-between gap-4 border-b border-border pb-5">
-                        <Link id="mobile-navigation-title" :href="route('frontend.home')" class="min-w-0" @click="close">
+                    <div class="border-border mb-6 flex items-center justify-between gap-4 border-b pb-5">
+                        <Link id="mobile-navigation-title" :href="route('frontend.home')" class="min-w-0" :on-start="close">
                             <img
                                 v-if="logo && !hasLogoError"
                                 :src="logo"
@@ -81,7 +81,9 @@ const isCurrentRoute = (path) => {
                                 @error="hasLogoError = true"
                             />
                             <span v-if="!logo || hasLogoError || !isLogoLoaded" class="flex min-w-0 items-center gap-2">
-                                <span class="bg-primary text-primary-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-sm font-semibold">
+                                <span
+                                    class="bg-primary text-primary-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-sm font-semibold"
+                                >
                                     {{ siteInitials }}
                                 </span>
                                 <span class="text-primary block truncate text-xl font-bold">{{ siteName }}</span>
@@ -102,9 +104,11 @@ const isCurrentRoute = (path) => {
                             v-for="item in navigationItems"
                             :key="item.path"
                             :href="item.href"
-                            class="group flex min-h-12 items-center gap-4 rounded-xl px-4 text-base font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-                            :class="isCurrentRoute(item.path) ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-primary/10 hover:text-primary'"
-                            @click="close"
+                            class="group focus-visible:ring-primary flex min-h-12 items-center gap-4 rounded-xl px-4 text-base font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                            :class="
+                                isCurrentRoute(item.path) ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-primary/10 hover:text-primary'
+                            "
+                            :on-start="close"
                         >
                             <component :is="item.icon" class="h-5 w-5 shrink-0 transition-colors" aria-hidden="true" />
                             <span>{{ item.label }}</span>
@@ -112,12 +116,12 @@ const isCurrentRoute = (path) => {
                     </nav>
 
                     <div class="mt-auto pt-6">
-                        <div class="border-t border-border pt-5">
+                        <div class="border-border border-t pt-5">
                             <Link
                                 v-if="isLoggedIn"
                                 :href="route('frontend.account')"
                                 class="group text-foreground hover:bg-primary/10 hover:text-primary focus-visible:ring-primary flex min-h-12 items-center gap-4 rounded-xl px-4 text-base font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
-                                @click="close"
+                                :on-start="close"
                             >
                                 <User class="h-5 w-5 shrink-0" aria-hidden="true" />
                                 <span>{{ t("labels.header.account") }}</span>
@@ -126,7 +130,7 @@ const isCurrentRoute = (path) => {
                                 :href="route('frontend.cart')"
                                 class="group text-foreground hover:bg-primary/10 hover:text-primary focus-visible:ring-primary relative flex min-h-12 items-center gap-4 rounded-xl px-4 text-base font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
                                 :class="isLoggedIn ? 'mt-2' : ''"
-                                @click="close"
+                                :on-start="close"
                             >
                                 <ShoppingCart class="h-5 w-5 shrink-0" aria-hidden="true" />
                                 <span>{{ t("labels.header.cart") }}</span>
@@ -140,20 +144,20 @@ const isCurrentRoute = (path) => {
                             </Link>
                         </div>
 
-                        <div v-if="!isLoggedIn" class="mt-6 rounded-2xl border border-primary/15 bg-primary/10 p-5">
+                        <div v-if="!isLoggedIn" class="border-primary/15 bg-primary/10 mt-6 rounded-2xl border p-5">
                             <div class="flex gap-4">
-                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                                <div class="bg-primary/15 text-primary flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
                                     <Gift class="h-7 w-7" aria-hidden="true" />
                                 </div>
                                 <div class="min-w-0">
-                                    <h2 class="text-base font-bold leading-tight text-foreground">{{ t("labels.mobile_promo.title") }}</h2>
-                                    <p class="mt-2 text-sm leading-5 text-muted-foreground">{{ t("labels.mobile_promo.description") }}</p>
+                                    <h2 class="text-foreground text-base leading-tight font-bold">{{ t("labels.mobile_promo.title") }}</h2>
+                                    <p class="text-muted-foreground mt-2 text-sm leading-5">{{ t("labels.mobile_promo.description") }}</p>
                                 </div>
                             </div>
                             <Link
                                 :href="route('frontend.account')"
-                                class="mt-5 flex min-h-12 items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
-                                @click="close"
+                                class="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary mt-5 flex min-h-12 items-center justify-center rounded-xl px-4 py-3 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                                :on-start="close"
                             >
                                 {{ t("labels.mobile_promo.action") }}
                             </Link>
