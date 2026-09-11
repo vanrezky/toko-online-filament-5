@@ -14,13 +14,13 @@ final class CartRecommendationService
 
     private const POOL_LIMIT = 24;
 
-    private const RECOMMENDATION_LIMIT = 4;
+    private const RECOMMENDATION_LIMIT = 5;
 
     /** @return Collection<int, Product> */
     public function forCart(Cart $cart, ?int $resellerId = null): Collection
     {
         $cartItems = $cart->items
-            ->filter(fn ($item): bool => $item->product !== null)
+            ->filter(fn($item): bool => $item->product !== null)
             ->unique('product_id')
             ->values();
 
@@ -28,14 +28,14 @@ final class CartRecommendationService
             return collect();
         }
 
-        $excludedIds = $cartItems->pluck('product_id')->map(fn ($id): int => (int) $id)->all();
+        $excludedIds = $cartItems->pluck('product_id')->map(fn($id): int => (int) $id)->all();
         $categoryWeights = $cartItems
-            ->filter(fn ($item): bool => $item->product->category_id !== null)
-            ->countBy(fn ($item): int => (int) $item->product->category_id)
+            ->filter(fn($item): bool => $item->product->category_id !== null)
+            ->countBy(fn($item): int => (int) $item->product->category_id)
             ->sortDesc()
             ->take(self::CATEGORY_LIMIT);
 
-        $categoryPools = $categoryWeights->mapWithKeys(fn (int $weight, int $categoryId): array => [
+        $categoryPools = $categoryWeights->mapWithKeys(fn(int $weight, int $categoryId): array => [
             $categoryId => $this->categoryCandidateIds($categoryId, $excludedIds),
         ]);
 
@@ -65,7 +65,7 @@ final class CartRecommendationService
             'product-catalog',
             "cart-recommendation-category-ids:{$categoryId}:v1",
             self::CACHE_TTL,
-            fn (): array => Product::query()
+            fn(): array => Product::query()
                 ->active()
                 ->where('category_id', $categoryId)
                 ->where('stock', '>', 0)
@@ -73,7 +73,7 @@ final class CartRecommendationService
                 ->orderByDesc('id')
                 ->limit(self::POOL_LIMIT)
                 ->pluck('id')
-                ->map(fn ($id): int => (int) $id)
+                ->map(fn($id): int => (int) $id)
                 ->all(),
         );
 
@@ -89,14 +89,14 @@ final class CartRecommendationService
             'product-catalog',
             'cart-recommendation-global-ids:v1',
             self::CACHE_TTL,
-            fn (): array => Product::query()
+            fn(): array => Product::query()
                 ->active()
                 ->where('stock', '>', 0)
                 ->orderByDesc('created_at')
                 ->orderByDesc('id')
                 ->limit(self::POOL_LIMIT)
                 ->pluck('id')
-                ->map(fn ($id): int => (int) $id)
+                ->map(fn($id): int => (int) $id)
                 ->all(),
         );
 
@@ -111,10 +111,10 @@ final class CartRecommendationService
     private function interleave(Collection $categoryPools, Collection $categoryWeights): array
     {
         $schedule = $categoryWeights
-            ->flatMap(fn (int $weight, int $categoryId): array => array_fill(0, $weight, $categoryId))
+            ->flatMap(fn(int $weight, int $categoryId): array => array_fill(0, $weight, $categoryId))
             ->values()
             ->all();
-        $queues = $categoryPools->map(fn (array $ids): array => array_values($ids))->all();
+        $queues = $categoryPools->map(fn(array $ids): array => array_values($ids))->all();
         $selectedIds = [];
 
         while ($schedule !== [] && count($selectedIds) < self::RECOMMENDATION_LIMIT) {
@@ -152,28 +152,39 @@ final class CartRecommendationService
 
         $products = Product::query()
             ->select([
-                'id', 'uuid', 'name', 'slug', 'category_id', 'digital', 'code',
-                'stock', 'sale_price', 'price', 'min_order', 'fake_sold_count', 'created_at',
+                'id',
+                'uuid',
+                'name',
+                'slug',
+                'category_id',
+                'digital',
+                'code',
+                'stock',
+                'sale_price',
+                'price',
+                'min_order',
+                'fake_sold_count',
+                'created_at',
             ])
             ->active()
             ->where('stock', '>', 0)
             ->whereKey($productIds)
             ->with([
                 'media',
-                'flashsaleProducts' => fn ($query) => $query
-                    ->whereHas('flashsale', fn ($query) => $query->current())
+                'flashsaleProducts' => fn($query) => $query
+                    ->whereHas('flashsale', fn($query) => $query->current())
                     ->select(['id', 'product_id', 'discount_percentage', 'stock']),
-                'wholesales' => fn ($query) => $query
+                'wholesales' => fn($query) => $query
                     ->where('min_qty', '<=', 1)
                     ->select(['id', 'product_id', 'min_qty', 'price']),
             ])
-            ->when($resellerId, fn ($query) => $query->with([
-                'resellerPrices' => fn ($query) => $query
+            ->when($resellerId, fn($query) => $query->with([
+                'resellerPrices' => fn($query) => $query
                     ->where('reseller_id', $resellerId)
                     ->select(['id', 'product_id', 'reseller_id', 'price']),
             ]))
             ->get()
-            ->sortBy(fn (Product $product): int|false => array_search($product->id, $productIds, true))
+            ->sortBy(fn(Product $product): int|false => array_search($product->id, $productIds, true))
             ->values();
 
         ProductStatsService::attachCatalogStats($products);

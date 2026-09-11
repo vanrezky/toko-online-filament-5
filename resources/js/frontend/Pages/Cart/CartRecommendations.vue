@@ -23,7 +23,7 @@ defineProps({ recommendations: { type: Array, default: () => [] } });
             /></Link>
         </div>
         <div
-            class="cart-recommendation-grid scrollbar-hidden flex touch-pan-x snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-2 sm:gap-4 md:gap-5 lg:grid lg:grid-cols-4 lg:gap-3 lg:overflow-visible lg:pb-0"
+            class="cart-recommendation-grid scrollbar-hidden flex touch-pan-x snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-2 sm:gap-4 md:gap-5 lg:grid lg:grid-cols-5 lg:gap-3 lg:overflow-visible lg:pb-0"
         >
             <ProductRecommendationCard
                 v-for="product in recommendations"

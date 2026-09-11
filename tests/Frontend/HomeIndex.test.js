@@ -73,7 +73,7 @@ describe("Homepage composition", () => {
         expect(wrapper.find('[data-home-section="vouchers"]').exists()).toBe(true);
         expect(wrapper.find('[data-home-section="newsletter"]').exists()).toBe(true);
         expect(wrapper.find('[data-home-section="trust"]').exists()).toBe(true);
-        expect(wrapper.text()).toContain("Loading...");
+        expect(wrapper.findAll(".skeleton-shimmer").length).toBeGreaterThan(0);
     });
 
     it("replaces product fallbacks when the deferred prop resolves", async () => {

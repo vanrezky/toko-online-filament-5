@@ -53,7 +53,7 @@ watch(
         <div class="container mx-auto px-4 md:px-8">
             <div class="mb-6 flex items-end justify-between gap-4 md:mb-8">
                 <div>
-                    <h2 class="text-foreground text-2xl font-bold tracking-[-0.04em] md:text-3xl">{{ title }}</h2>
+                    <h2 class="text-foreground text-2xl font-bold tracking-[-0.04em]">{{ title }}</h2>
                     <p v-if="!filters?.category" class="text-muted-foreground mt-1 text-sm">{{ subtitle }}</p>
                 </div>
                 <Link

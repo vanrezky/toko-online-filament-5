@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { Deferred, usePage } from "@inertiajs/vue3";
 import { useI18n } from "vue-i18n";
 import TemplateWrapper from "../../components/TemplateWrapper.vue";
+import HomeDeferredSkeleton from "../../components/UI/HomeDeferredSkeleton.vue";
 import { resolveHomeSections } from "./sectionRegistry";
 
 const props = defineProps({
@@ -38,8 +39,8 @@ const sections = computed(() => resolveHomeSections(props));
             <Deferred v-if="section.deferredProps" :data="section.deferredProps">
                 <component :is="section.component" v-bind="section.props" />
                 <template #fallback>
-                    <div class="bg-secondary text-muted-foreground flex min-h-28 items-center justify-center px-4 py-8 text-sm" role="status" aria-live="polite">
-                        {{ t("labels.actions.loading") }}
+                    <div role="status" aria-live="polite" :aria-label="t('labels.actions.loading')">
+                        <HomeDeferredSkeleton :type="section.deferredProps" />
                     </div>
                 </template>
             </Deferred>
