@@ -160,6 +160,16 @@ HTTP server, jadi mode ini tidak memerlukan Nginx. Vite tetap berjalan sebagai
 proses host; jika port runtime atau konfigurasi environment diubah, restart
 Vite agar konfigurasi HMR dibaca ulang.
 
+Untuk benchmark atau runtime production-like, matikan file watcher:
+
+```bash
+OCTANE_WATCH=0 make frankenphp-start
+```
+
+Mode development tetap memakai `OCTANE_WATCH=1` secara default. Setelah kode PHP
+berubah pada mode tanpa watcher, restart service FrankenPHP agar worker memuat
+kode terbaru.
+
 ## Catatan Environment yang Mudah Terlewat
 
 - `phpunit.xml` mengarah ke database test di `127.0.0.1:3307` dengan nama `toko_online_testing`.

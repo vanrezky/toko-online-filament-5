@@ -7,6 +7,7 @@ WORKDIR /var/www/html
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY docker/frankenphp/opcache.ini /usr/local/etc/php/conf.d/99-opcache.ini
+COPY docker/frankenphp/start.sh /usr/local/bin/start-frankenphp
 
 RUN install-php-extensions \
         bcmath \
@@ -21,7 +22,8 @@ RUN install-php-extensions \
         xml \
         zip \
     && groupmod --gid "${WWWGROUP}" www-data \
-    && usermod --uid "${WWWUSER}" --gid "${WWWGROUP}" www-data
+    && usermod --uid "${WWWUSER}" --gid "${WWWGROUP}" www-data \
+    && chmod +x /usr/local/bin/start-frankenphp
 
 USER www-data
 

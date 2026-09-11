@@ -92,15 +92,11 @@ services:
         environment:
             APP_URL: "http://localhost:${OCTANE_FRANKENPHP_PORT:-8081}"
             OCTANE_SERVER: frankenphp
+            OCTANE_WORKERS: "${OCTANE_WORKERS:-1}"
+            OCTANE_MAX_REQUESTS: "${OCTANE_MAX_REQUESTS:-500}"
+            OCTANE_WATCH: "${OCTANE_WATCH:-1}"
         command:
-            - php
-            - artisan
-            - octane:frankenphp
-            - --host=0.0.0.0
-            - --port=8080
-            - "--workers=${OCTANE_WORKERS:-1}"
-            - "--max-requests=${OCTANE_MAX_REQUESTS:-500}"
-            - --watch
+            - /usr/local/bin/start-frankenphp
         volumes:
             - ".:/var/www/html"
         networks:
