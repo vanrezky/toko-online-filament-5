@@ -1,5 +1,7 @@
 # Homepage design references
 
+See the full [design-references](../) collection for other visual references.
+
 These images are the user-provided visual references for the homepage enhancement.
 
 - `bristol-shop-homepage-reference.png`: homepage composition, hero, categories, promotional banners, and product grid.
