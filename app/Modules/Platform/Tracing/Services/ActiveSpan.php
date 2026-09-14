@@ -25,7 +25,10 @@ final class ActiveSpan
 
     public function end(): void
     {
-        $this->scope->detach();
-        $this->span->end();
+        try {
+            $this->scope->detach();
+        } finally {
+            $this->span->end();
+        }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Settings;
 
+use Closure;
 use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 use Spatie\LaravelSettings\Settings;
 
@@ -130,5 +131,36 @@ class GeneralSettings extends Settings
             'mail.from.address' => $data['from_address'] ?? $this->mail_from,
             'mail.from.name' => $data['from_name'] ?? $this->mail_from,
         ]);
+    }
+
+    public function withMailSettings(?array $data, Closure $callback): mixed
+    {
+        $keys = [
+            'mail.mailers.smtp.host',
+            'mail.mailers.smtp.port',
+            'mail.mailers.smtp.encryption',
+            'mail.mailers.smtp.username',
+            'mail.mailers.smtp.password',
+            'mail.from.address',
+            'mail.from.name',
+        ];
+
+        $previous = [];
+
+        foreach ($keys as $key) {
+            $previous[$key] = config($key);
+        }
+
+        try {
+            $this->loadMailSettingsToConfig($data);
+
+            return $callback();
+        } finally {
+            config($previous);
+
+            if (app()->resolved('mail.manager') && method_exists(app('mail.manager'), 'forgetMailers')) {
+                app('mail.manager')->forgetMailers();
+            }
+        }
     }
 }

@@ -129,16 +129,16 @@ class EmailTemplateService
     public function sendNow(EmailLog $emailLog): bool
     {
         try {
-            app(GeneralSettings::class)->loadMailSettingsToConfig();
+            return app(GeneralSettings::class)->withMailSettings(null, function () use ($emailLog): bool {
+                Mail::html($emailLog->body, function ($message) use ($emailLog) {
+                    $message->to($emailLog->recipient_email)
+                        ->subject($emailLog->subject);
+                });
 
-            Mail::html($emailLog->body, function ($message) use ($emailLog) {
-                $message->to($emailLog->recipient_email)
-                    ->subject($emailLog->subject);
+                $emailLog->markAsSent();
+
+                return true;
             });
-
-            $emailLog->markAsSent();
-
-            return true;
         } catch (Exception $e) {
             $emailLog->markAsFailed($e->getMessage());
 

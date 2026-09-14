@@ -11,6 +11,7 @@ use App\Modules\Platform\Tracing\Services\TracerProviderFactory;
 use ArrayObject;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
@@ -71,6 +72,11 @@ class TracingServiceProvider extends ServiceProvider
         $this->app['events']->listen(
             JobFailed::class,
             static fn (JobFailed $event) => TracingJobMiddleware::handleEnd($event),
+        );
+
+        $this->app['events']->listen(
+            JobExceptionOccurred::class,
+            static fn (JobExceptionOccurred $event) => TracingJobMiddleware::handleEnd($event),
         );
     }
 }

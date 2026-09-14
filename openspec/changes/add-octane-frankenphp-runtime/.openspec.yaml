@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-12
+goal: Run the application with FrankenPHP through Laravel Octane without
+  changing the default development runtime.

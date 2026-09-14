@@ -130,6 +130,46 @@ make restart-dev
 Perintah `make restart-dev` menjalankan Vite, Horizon, dan scheduler tanpa
 menjalankan ulang container Sail.
 
+## Optional Laravel Octane + FrankenPHP
+
+Gunakan mode ini ketika ingin mempelajari atau menguji runtime long-running yang
+lebih dekat dengan production. Octane melakukan boot aplikasi sekali lalu
+memakai worker yang sama untuk banyak request; FrankenPHP adalah application
+server yang menjalankan worker tersebut. Karena state proses bertahan lebih
+lama, mode ini membantu menemukan singleton, static state, atau konfigurasi
+request yang tidak dibersihkan dengan benar.
+
+Mode ini opt-in dan tidak menggantikan Sail default:
+
+```bash
+make frankenphp-build
+make frankenphp-start
+make frankenphp-ps
+make frankenphp-logs
+```
+
+Secara default aplikasi tersedia di `http://localhost:8081`. Untuk menghentikan
+mode ini:
+
+```bash
+make frankenphp-stop
+```
+
+Set `OCTANE_FRANKENPHP_PORT` untuk memakai port lain. FrankenPHP sudah menjadi
+HTTP server, jadi mode ini tidak memerlukan Nginx. Vite tetap berjalan sebagai
+proses host; jika port runtime atau konfigurasi environment diubah, restart
+Vite agar konfigurasi HMR dibaca ulang.
+
+Untuk benchmark atau runtime production-like, matikan file watcher:
+
+```bash
+OCTANE_WATCH=0 make frankenphp-start
+```
+
+Mode development tetap memakai `OCTANE_WATCH=1` secara default. Setelah kode PHP
+berubah pada mode tanpa watcher, restart service FrankenPHP agar worker memuat
+kode terbaru.
+
 ## Catatan Environment yang Mudah Terlewat
 
 - `phpunit.xml` mengarah ke database test di `127.0.0.1:3307` dengan nama `toko_online_testing`.
