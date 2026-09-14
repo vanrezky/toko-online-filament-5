@@ -130,6 +130,19 @@ make restart-dev
 Perintah `make restart-dev` menjalankan Vite, Horizon, dan scheduler tanpa
 menjalankan ulang container Sail.
 
+## Production Docker
+
+Production memakai workflow terpisah melalui FrankenPHP/Octane dan
+`docker-compose.production.yml`. Stack ini menjalankan app, queue worker,
+scheduler, MySQL, serta Redis secara opsional dengan batas resource untuk VPS
+2 GB. Konfigurasi production dirender dari satu GitHub Environment value untuk
+setiap key; `PRODUCTION_ENV` multiline tidak digunakan.
+
+Panduan persiapan VPS, daftar key GitHub Environment, OPcache, deployment,
+health check, worker, scheduler, rollback, dan keamanan volume ada di
+[`.github/DEPLOY.md`](.github/DEPLOY.md). Sail dan Compose production tidak
+dijalankan bersamaan pada port yang sama.
+
 ## Optional Laravel Octane + FrankenPHP
 
 Gunakan mode ini ketika ingin mempelajari atau menguji runtime long-running yang
