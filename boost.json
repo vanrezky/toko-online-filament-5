@@ -1,0 +1,23 @@
+{
+    "agents": [
+        "codex",
+        "opencode"
+    ],
+    "cloud": true,
+    "guidelines": true,
+    "mcp": true,
+    "nightwatch": false,
+    "sail": false,
+    "skills": [
+        "infer-conventions",
+        "deploying-to-cloud",
+        "laravel-best-practices",
+        "testing-best-practices",
+        "configuring-horizon",
+        "octane-development",
+        "socialite-development",
+        "livewire-development",
+        "tailwindcss-development",
+        "inertia-vue-development"
+    ]
+}
