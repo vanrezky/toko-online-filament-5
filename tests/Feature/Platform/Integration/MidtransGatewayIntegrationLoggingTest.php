@@ -12,6 +12,7 @@ use App\Models\Warehouse;
 use App\Modules\Platform\Integration\Models\IntegrationLog;
 use App\Modules\Platform\Support\Correlation;
 use App\Services\Gateways\DTOs\PaymentStatus;
+use App\Services\Gateways\DTOs\WebhookResult;
 use App\Services\Gateways\MidtransGateway;
 use App\Services\PaymentGatewayService;
 use App\Settings\PaymentGatewaySettings;
@@ -69,6 +70,13 @@ class MidtransGatewayIntegrationLoggingTest extends TestCase
             amount: (float) $transaction->total_amount,
             currency: 'IDR',
             errorMessage: null,
+            metadata: [
+                'payment_channel' => 'qris',
+                'payment_response' => [
+                    'payment_type' => 'qris',
+                    'transaction_id' => 'midtrans-transaction-123',
+                ],
+            ],
         ));
         $this->app->instance(PaymentGatewayService::class, $gateway);
 
@@ -80,6 +88,10 @@ class MidtransGatewayIntegrationLoggingTest extends TestCase
             'id' => $transaction->id,
             'billing_status' => TransactionBillingStatus::paid->value,
         ]);
+        $paymentResponse = $transaction->fresh()->paymentResponses()->where('source', 'status')->sole();
+        $this->assertSame('midtrans', $paymentResponse->provider);
+        $this->assertSame('qris', $paymentResponse->payment_channel);
+        $this->assertSame('qris', $paymentResponse->response['payment_type']);
     }
 
     public function test_payment_return_does_not_reconcile_a_mismatched_amount(): void
@@ -131,6 +143,7 @@ class MidtransGatewayIntegrationLoggingTest extends TestCase
             'transaction_status' => 'settlement',
             'gross_amount' => 100000,
             'currency' => 'IDR',
+            'payment_type' => 'qris',
         ];
         $this->mockTransactionStatus()->shouldReceive('status')->once()->with($transaction->uuid)->andReturn($result);
         $settings = $this->mockSettings();
@@ -138,6 +151,8 @@ class MidtransGatewayIntegrationLoggingTest extends TestCase
         $status = (new MidtransGateway($settings))->getPaymentStatus($transaction->uuid);
 
         $this->assertSame('success', $status->status);
+        $this->assertSame('qris', $status->metadata['payment_channel']);
+        $this->assertSame('qris', $status->metadata['payment_response']['payment_type']);
 
         $log = IntegrationLog::query()->sole();
         $this->assertSame(IntegrationLog::DIRECTION_OUTBOUND, $log->direction);
@@ -148,6 +163,88 @@ class MidtransGatewayIntegrationLoggingTest extends TestCase
         $this->assertSame('settlement', $log->response_body['transaction_status']);
         $this->assertSame(Transaction::class, $log->subject_type);
         $this->assertSame($transaction->id, $log->subject_id);
+    }
+
+    public function test_verified_qris_webhook_persists_channel_and_response_in_dedicated_table(): void
+    {
+        $transaction = $this->createTransaction();
+        $gateway = Mockery::mock(PaymentGatewayService::class);
+        $gateway->shouldReceive('isGatewayAvailable')->once()->with('midtrans')->andReturnTrue();
+        $gateway->shouldReceive('handleWebhook')->once()->andReturn(new WebhookResult(
+            success: true,
+            action: WebhookResult::ACTION_PROCESS,
+            transactionId: $transaction->uuid,
+            status: 'success',
+            metadata: [
+                'gross_amount' => (int) round($transaction->total_amount),
+                'payment_channel' => 'qris',
+                'payment_response' => [
+                    'payment_type' => 'qris',
+                    'transaction_id' => 'midtrans-transaction-456',
+                ],
+            ],
+        ));
+        $this->app->instance(PaymentGatewayService::class, $gateway);
+
+        $response = $this->postJson(route('frontend.webhooks.payment', 'midtrans'), [
+            'order_id' => $transaction->uuid,
+        ]);
+
+        $response->assertOk()->assertExactJson(['status' => 'success']);
+        $paymentResponse = $transaction->fresh()->paymentResponses()->where('source', 'webhook')->sole();
+        $this->assertSame('midtrans', $paymentResponse->provider);
+        $this->assertSame('qris', $paymentResponse->payment_channel);
+        $this->assertSame('midtrans-transaction-456', $paymentResponse->response['transaction_id']);
+    }
+
+    public function test_rejected_webhook_does_not_persist_payment_response(): void
+    {
+        $transaction = $this->createTransaction();
+        $gateway = Mockery::mock(PaymentGatewayService::class);
+        $gateway->shouldReceive('isGatewayAvailable')->once()->with('midtrans')->andReturnTrue();
+        $gateway->shouldReceive('handleWebhook')->once()->andReturn(new WebhookResult(
+            success: false,
+            action: WebhookResult::ACTION_REJECT,
+            message: 'Invalid signature',
+            transactionId: $transaction->uuid,
+            metadata: [
+                'payment_channel' => 'qris',
+                'payment_response' => ['payment_type' => 'qris'],
+            ],
+        ));
+        $this->app->instance(PaymentGatewayService::class, $gateway);
+
+        $response = $this->postJson(route('frontend.webhooks.payment', 'midtrans'), [
+            'order_id' => $transaction->uuid,
+        ]);
+
+        $response->assertStatus(400);
+        $this->assertDatabaseMissing('transaction_payment_responses', [
+            'transaction_id' => $transaction->id,
+        ]);
+        $this->assertSame(IntegrationLog::STATUS_FAILED, IntegrationLog::query()->sole()->status);
+    }
+
+    public function test_midtrans_webhook_metadata_contains_qris_without_signature(): void
+    {
+        $transaction = $this->createTransaction();
+        $settings = $this->mockSettings();
+        $payload = [
+            'order_id' => $transaction->uuid,
+            'transaction_status' => 'settlement',
+            'status_code' => '200',
+            'gross_amount' => (string) (int) round($transaction->total_amount),
+            'signature_key' => hash('sha512', $transaction->uuid.'200'.(int) round($transaction->total_amount).'SB-Mid-server-test-key'),
+            'payment_type' => 'qris',
+            'transaction_id' => 'midtrans-transaction-789',
+        ];
+
+        $result = (new MidtransGateway($settings))->handleWebhook($payload);
+
+        $this->assertTrue($result->success);
+        $this->assertSame('qris', $result->metadata['payment_channel']);
+        $this->assertSame('qris', $result->metadata['payment_response']['payment_type']);
+        $this->assertArrayNotHasKey('signature_key', $result->metadata['payment_response']);
     }
 
     public function test_get_payment_status_exception_returns_failure_and_logs_failed(): void

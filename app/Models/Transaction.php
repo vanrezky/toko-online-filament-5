@@ -134,9 +134,29 @@ class Transaction extends Model
         return 'uuid';
     }
 
+    public function recordPaymentGatewayResponse(string $source, ?string $paymentChannel, array $response): void
+    {
+        $paymentResponse = $this->paymentResponses()->firstOrNew([
+            'provider' => $this->payment_method,
+            'source' => $source,
+        ]);
+
+        if (filled($paymentChannel)) {
+            $paymentResponse->payment_channel = $paymentChannel;
+        }
+
+        $paymentResponse->response = $response;
+        $paymentResponse->save();
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function paymentResponses(): HasMany
+    {
+        return $this->hasMany(TransactionPaymentResponse::class);
     }
 
     public function products(): HasMany

@@ -51,6 +51,15 @@ final class OrderService
 
         $paymentStatus = $this->paymentGatewayService->getPaymentStatus((string) $transaction->uuid);
 
+        $paymentResponse = $paymentStatus->metadata['payment_response'] ?? null;
+        if (is_array($paymentResponse)) {
+            $transaction->recordPaymentGatewayResponse(
+                'status',
+                $paymentStatus->metadata['payment_channel'] ?? null,
+                $paymentResponse,
+            );
+        }
+
         if ($paymentStatus->transactionId !== (string) $transaction->uuid
             || $paymentStatus->amount === null
             || (int) round($paymentStatus->amount) !== (int) round((float) $transaction->total_amount)) {

@@ -9,7 +9,8 @@ class PaymentStatus
         public readonly ?string $transactionId,
         public readonly ?float $amount,
         public readonly ?string $currency,
-        public readonly ?string $errorMessage
+        public readonly ?string $errorMessage,
+        public readonly array $metadata = [],
     ) {}
 
     public function isPending(): bool
@@ -35,6 +36,7 @@ class PaymentStatus
             'amount' => $this->amount,
             'currency' => $this->currency,
             'error_message' => $this->errorMessage,
+            'metadata' => $this->metadata,
         ];
     }
 }

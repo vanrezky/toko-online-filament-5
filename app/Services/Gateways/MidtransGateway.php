@@ -5,6 +5,7 @@ namespace App\Services\Gateways;
 use App\Models\Transaction;
 use App\Modules\Platform\Integration\Models\IntegrationLog;
 use App\Modules\Platform\Integration\Services\IntegrationLogService;
+use App\Modules\Platform\Integration\Support\IntegrationLogSanitizer;
 use App\Services\Gateways\Contracts\PaymentGatewayInterface;
 use App\Services\Gateways\DTOs\PaymentResponse;
 use App\Services\Gateways\DTOs\PaymentStatus;
@@ -296,11 +297,12 @@ class MidtransGateway implements PaymentGatewayInterface
 
         try {
             $result = \Midtrans\Transaction::status($transactionId);
+            $response = $this->sanitizePaymentResponse($this->resultToArray($result));
 
             $logger->finish($integrationLog, [
                 'status' => IntegrationLog::STATUS_SUCCESS,
                 'status_code' => 200,
-                'response_body' => $this->resultToArray($result),
+                'response_body' => $response,
             ]);
 
             return new PaymentStatus(
@@ -308,7 +310,11 @@ class MidtransGateway implements PaymentGatewayInterface
                 transactionId: $result->order_id ?? $transactionId,
                 amount: (float) ($result->gross_amount ?? 0),
                 currency: $result->currency ?? 'IDR',
-                errorMessage: null
+                errorMessage: null,
+                metadata: [
+                    'payment_channel' => $response['payment_type'] ?? null,
+                    'payment_response' => $response,
+                ],
             );
         } catch (\Exception $e) {
             $status = (int) $e->getCode() === 404 ? 'not_found' : 'unknown';
@@ -366,6 +372,8 @@ class MidtransGateway implements PaymentGatewayInterface
                 );
             }
 
+            $response = $this->sanitizePaymentResponse($payload);
+
             return new WebhookResult(
                 success: true,
                 action: WebhookResult::ACTION_PROCESS,
@@ -376,6 +384,8 @@ class MidtransGateway implements PaymentGatewayInterface
                     'gross_amount' => (int) round((float) $grossAmount),
                     'status_code' => (string) $statusCode,
                     'fraud_status' => strtolower((string) ($payload['fraud_status'] ?? 'accept')),
+                    'payment_channel' => $response['payment_type'] ?? null,
+                    'payment_response' => $response,
                 ]
             );
         } catch (\Exception $e) {
@@ -425,5 +435,12 @@ class MidtransGateway implements PaymentGatewayInterface
         }
 
         return json_decode((string) json_encode($result), true) ?: [];
+    }
+
+    private function sanitizePaymentResponse(array $response): array
+    {
+        unset($response['signature_key']);
+
+        return app(IntegrationLogSanitizer::class)->captureBody($response)['value'] ?? [];
     }
 }
