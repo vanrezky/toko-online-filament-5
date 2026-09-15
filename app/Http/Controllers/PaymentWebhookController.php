@@ -73,6 +73,15 @@ class PaymentWebhookController extends Controller
                     return 'amount_mismatch';
                 }
 
+                $paymentResponse = $result->metadata['payment_response'] ?? null;
+                if (is_array($paymentResponse)) {
+                    $transaction->recordPaymentGatewayResponse(
+                        'webhook',
+                        $result->metadata['payment_channel'] ?? null,
+                        $paymentResponse,
+                    );
+                }
+
                 $billingStatus = $transaction->billing_status?->value ?? (string) $transaction->billing_status;
                 $transactionStatus = $transaction->status?->value ?? (string) $transaction->status;
                 if (in_array($billingStatus, [TransactionBillingStatus::paid->value, TransactionBillingStatus::cancelled->value], true)
