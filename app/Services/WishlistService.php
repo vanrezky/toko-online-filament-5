@@ -7,7 +7,7 @@ namespace App\Services;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Repositories\WishlistRepository;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 
 final class WishlistService
 {
