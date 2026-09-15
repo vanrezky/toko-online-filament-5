@@ -1,11 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { createLatestRequestGate, reconcileShippingMethods } from "../../resources/js/frontend/lib/shippingMethods";
+import { createLatestRequestGate, getCourierLogo, reconcileShippingMethods } from "../../resources/js/frontend/lib/shippingMethods";
 
 const option = (courierCode, price, estimation = "1-2 days") => ({
     courier_code: courierCode,
     courier_name: courierCode,
     price,
     estimation,
+});
+
+describe("checkout courier logos", () => {
+    it("resolves known courier assets and falls back for unknown codes", () => {
+        expect(getCourierLogo("JNE")).toBe("/assets/images/courier/jne.webp");
+        expect(getCourierLogo("saplite")).toBe("/assets/images/courier/sap.png");
+        expect(getCourierLogo("PICKUP")).toBeNull();
+        expect(getCourierLogo("unknown")).toBeNull();
+    });
 });
 
 describe("checkout shipping method reconciliation", () => {

@@ -1,42 +1,44 @@
 ## Context
 
-Checkout currently discovers third-party delivery options only after `form.address_id` changes, but renders the shipping-method card before the address card. The complete customer-address form, dependent regional lookups, and address-storage endpoint already live in the Account surface. This change needs the same form capability in checkout without creating a second validation or region-loading contract.
+Checkout already uses an address-first flow, a shared `AddressForm`, existing customer address routes, and latest-request shipping reconciliation. The requested changes are limited to the checkout presentation and address-edit affordance.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Lead checkout with address selection, then reveal delivery choices for that address.
-- Let customers add a complete, customer-managed address in a reusable modal without leaving checkout.
-- Select the newly created address and use the existing latest-request and courier-reconciliation behavior to refresh delivery choices.
-- Preserve the Account page's existing address-management capabilities.
+- Show complete courier names and readable delivery estimates in responsive shipping cards.
+- Resolve known courier logos from existing public assets in the shared frontend shipping module.
+- Keep pickup and unknown couriers on the current icon fallback.
+- Let customers edit only addresses they are authorized to manage, using the existing form and update route.
+- Refresh shipping quotes when the selected address is edited while preserving the checkout selection contract.
 
 **Non-Goals:**
 
-- Change third-party shipping providers, quotes, checkout payloads, existing address validation rules, or database schema.
-- Add editing or deletion of existing addresses to checkout.
+- Change third-party shipping providers, quotes, payment behavior, checkout payloads, existing validation rules, or database schema.
+- Add new courier image assets.
+- Expose editing for admin-managed addresses.
 
 ## Decisions
 
-### Share the address form as a component
+### Reuse the existing shipping module for logo mapping
 
-Extract the complete add-address form into a reusable frontend component that owns field state, server error rendering, dependent region loading, submit loading, and focusable modal semantics. The Account page and checkout will pass the same initial province data and use the existing storage and lookup routes. This prevents regional-form behavior from drifting. Duplicating the Account form in checkout was rejected because it would duplicate the most validation-heavy customer form.
+Add a small courier-code-to-existing-asset mapping beside `reconcileShippingMethods` in `resources/js/frontend/lib/shippingMethods.js`. The resolver returns `null` for unknown codes, allowing the checkout card to render the existing `Store` or `Truck` icon. A new service or backend response field is unnecessary because the assets are already public and the requirement is presentation-only.
 
-### Keep the existing server endpoint and redirect contract
+### Keep card content flexible
 
-The modal will submit to the existing customer address-store route, preserve its server-side validation, and let the redirect refresh the current Inertia page props. The checkout shell will reconcile the refreshed address list, select the just-created address, close the modal, and rely on the existing `address_id` watcher to request current delivery options. A new API endpoint was rejected because the existing authenticated endpoint already owns authorization and persistence.
+Remove the courier-name truncation and use wrapping-friendly text classes. Increase estimation text to the normal small UI size while keeping price and controls shrink-safe so long names do not overflow neighboring content.
 
-### Treat the modal as a checkout continuation
+### Reuse `AddressForm` for editing
 
-The address card supplies the clear primary “Tambah Alamat” action. The modal opens as a dialog on larger screens and a near-full-height sheet on mobile, keeps the form in logical field order, traps focus, offers an explicit close/cancel action, and blocks duplicate submission while saving. On success the customer returns to the same checkout context; on validation failure the dialog remains open with field-level errors.
+Track the address currently being edited in checkout and pass it to the existing shared form. Render the edit button outside the radio element's interactive region, show it only when `can_customer_manage` is true, and stop its click from changing the selected address.
 
-### Make delivery unavailable until address context exists
+### Refresh only when the edited address affects shipping
 
-Address is numbered and ordered first. The delivery card is numbered second and presents an explanatory empty state until an address is selected; quote loading and multi-warehouse courier reconciliation remain unchanged. This matches the shipping provider's address-dependent quote model rather than implying an unavailable choice is actionable.
+After a successful edit, keep the current address selection. If the edited address is selected, explicitly fetch shipping costs because its id did not change; if another address was edited, preserve the current quote and selection.
 
 ## Risks / Trade-offs
 
-- [Redirected save can refresh checkout props while the dialog is open] → retain the new-address identity before submit and reconcile against refreshed addresses before closing.
-- [Long regional forms can exceed mobile viewport] → use a scrollable dialog body with a fixed action area and retain keyboard-visible inputs.
-- [Address changes can invalidate selected couriers] → retain the existing latest-request gate and `reconcileShippingMethods` warning behavior.
-- [Customer cannot manage addresses in a private-store context] → honor the existing server authorization and show the returned validation/authorization result; do not bypass the existing route.
+- Long courier names increase card height → allow natural wrapping and keep the grid responsive.
+- An asset can be missing or renamed → only map verified existing assets and return the current icon fallback for unmapped codes.
+- Editing a selected address can change its destination → explicitly refresh its shipping quote after the address list reloads.
+- A customer could attempt to edit an admin-managed address → hide the action and retain the server-side authorization guard.

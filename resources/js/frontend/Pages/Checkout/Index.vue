@@ -9,6 +9,7 @@ import {
     Check,
     ChevronRight,
     CreditCard,
+    Edit3,
     Loader2,
     Plus,
     ShieldCheck,
@@ -30,7 +31,7 @@ import FormTextarea from "../../components/UI/FormTextarea.vue";
 import Card from "../../components/UI/Card.vue";
 import AddressForm from "../../components/AddressForm.vue";
 import { formatCurrency } from "../../lib/utils";
-import { createLatestRequestGate, reconcileShippingMethods } from "../../lib/shippingMethods";
+import { createLatestRequestGate, getCourierLogo, reconcileShippingMethods } from "../../lib/shippingMethods";
 
 const props = defineProps({
     cart: Object,
@@ -69,6 +70,7 @@ const voucherError = ref(null);
 const isProcessingOrder = ref(false);
 const shippingRequestGate = createLatestRequestGate();
 const isAddressModalOpen = ref(false);
+const editingAddress = ref(null);
 const showAllAddresses = ref(false);
 const displayedAddresses = computed(() => {
     const addresses = props.addresses || [];
@@ -165,15 +167,34 @@ onMounted(() => {
     validateVouchers();
 });
 
-const addressSaved = (draft) => {
+const openAddressModal = (address = null) => {
+    editingAddress.value = address;
+    isAddressModalOpen.value = true;
+};
+
+const closeAddressModal = () => {
     isAddressModalOpen.value = false;
+    editingAddress.value = null;
+};
+
+const addressSaved = (draft) => {
+    const editedAddressId = editingAddress.value?.id || null;
+    closeAddressModal();
     router.reload({
         only: ["addresses"],
         onSuccess: (page) => {
-            const address = (page.props.addresses || []).find(
-                (item) => item.name === draft.name && item.phone === draft.phone && item.address === draft.address,
+            const address = (page.props.addresses || []).find((item) =>
+                editedAddressId
+                    ? String(item.id) === String(editedAddressId)
+                    : item.name === draft.name && item.phone === draft.phone && item.address === draft.address,
             );
-            if (address) form.address_id = address.id;
+            if (!address) return;
+
+            if (!editedAddressId) {
+                form.address_id = address.id;
+            } else if (String(form.address_id) === String(address.id)) {
+                fetchShippingCosts();
+            }
         },
     });
 };
@@ -525,7 +546,7 @@ const applyVoucher = async () => {
                                 :icon="Plus"
                                 :aria-label="t('labels.address.add')"
                                 class="shrink-0"
-                                @click="isAddressModalOpen = true"
+                                @click="openAddressModal()"
                             >
                                 <span class="hidden whitespace-nowrap sm:inline">{{ t("labels.address.add") }}</span>
                             </Button>
@@ -539,50 +560,66 @@ const applyVoucher = async () => {
                             {{ t("labels.checkout.pickup_no_address_required") }}
                         </div>
 
-                        <div v-else class="mt-5 grid gap-3 sm:grid-cols-2" role="radiogroup" :aria-label="t('labels.checkout.shipping_address')">
-                            <div
-                                v-for="address in displayedAddresses"
-                                :key="address.id"
-                                @click="form.address_id = address.id"
-                                @keydown.enter="form.address_id = address.id"
-                                @keydown.space.prevent="form.address_id = address.id"
-                                role="radio"
-                                tabindex="0"
-                                :aria-checked="form.address_id === address.id"
-                                class="focus-visible:ring-primary/30 relative min-w-0 cursor-pointer rounded-xl border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                                :class="
-                                    form.address_id === address.id
-                                        ? 'border-primary bg-primary/5 ring-primary/20 ring-1'
-                                        : 'border-border bg-background hover:border-primary/50 hover:bg-secondary/40'
-                                "
-                            >
-                                <div class="flex items-start gap-3">
-                                    <span
-                                        class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors"
-                                        :class="
-                                            form.address_id === address.id
-                                                ? 'border-primary bg-primary text-primary-foreground'
-                                                : 'border-muted-foreground/50'
-                                        "
-                                    >
-                                        <Check v-if="form.address_id === address.id" class="h-3 w-3" stroke-width="3" aria-hidden="true" />
-                                    </span>
-                                    <div class="min-w-0 flex-1">
-                                        <h3 class="text-foreground truncate text-sm font-bold">{{ address.name }}</h3>
-                                        <p class="text-muted-foreground mt-0.5 text-xs">{{ address.phone }}</p>
+                        <div
+                            v-else
+                            class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2"
+                            role="radiogroup"
+                            :aria-label="t('labels.checkout.shipping_address')"
+                        >
+                            <div v-for="address in displayedAddresses" :key="address.id" class="relative min-w-0">
+                                <div
+                                    @click="form.address_id = address.id"
+                                    @keydown.enter="form.address_id = address.id"
+                                    @keydown.space.prevent="form.address_id = address.id"
+                                    role="radio"
+                                    tabindex="0"
+                                    :aria-checked="form.address_id === address.id"
+                                    class="focus-visible:ring-primary/30 min-w-0 cursor-pointer rounded-xl border p-4 pr-16 text-left transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                                    :class="
+                                        form.address_id === address.id
+                                            ? 'border-primary bg-primary/5 ring-primary/20 ring-1'
+                                            : 'border-border bg-background hover:border-primary/50 hover:bg-secondary/40'
+                                    "
+                                >
+                                    <div class="flex items-start gap-3">
+                                        <span
+                                            class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors"
+                                            :class="
+                                                form.address_id === address.id
+                                                    ? 'border-primary bg-primary text-primary-foreground'
+                                                    : 'border-muted-foreground/50'
+                                            "
+                                        >
+                                            <Check v-if="form.address_id === address.id" class="h-3 w-3" stroke-width="3" aria-hidden="true" />
+                                        </span>
+                                        <div class="min-w-0 flex-1">
+                                            <h3 class="text-foreground text-sm font-bold">{{ address.name }}</h3>
+                                            <p class="text-muted-foreground mt-0.5 text-xs">{{ address.phone }}</p>
+                                        </div>
+                                        <span
+                                            v-if="address.is_featured"
+                                            class="bg-primary text-primary-foreground shrink-0 rounded-full px-2 py-1 text-[10px] font-bold"
+                                        >
+                                            {{ t("labels.address.default_badge") }}
+                                        </span>
                                     </div>
-                                    <span
-                                        v-if="address.is_featured"
-                                        class="bg-primary text-primary-foreground shrink-0 rounded-full px-2 py-1 text-[10px] font-bold"
-                                    >
-                                        {{ t("labels.address.default_badge") }}
-                                    </span>
+                                    <p class="text-muted-foreground mt-3 line-clamp-3 text-xs leading-relaxed">
+                                        {{ address.address }}<br />
+                                        {{ address.village_name }}, {{ address.sub_district_name }}, {{ address.district_name }},
+                                        {{ address.province_name }}, {{ address.postal_code }}
+                                    </p>
                                 </div>
-                                <p class="text-muted-foreground mt-3 line-clamp-3 text-xs leading-relaxed">
-                                    {{ address.address }}<br />
-                                    {{ address.village_name }}, {{ address.sub_district_name }}, {{ address.district_name }},
-                                    {{ address.province_name }}, {{ address.postal_code }}
-                                </p>
+                                <Button
+                                    v-if="address.can_customer_manage"
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    :aria-label="t('labels.address.edit')"
+                                    class="absolute top-1/2 right-3 -translate-y-1/2"
+                                    @click.stop="openAddressModal(address)"
+                                >
+                                    <Edit3 class="h-4 w-4" />
+                                </Button>
                             </div>
                         </div>
                         <Button
@@ -631,7 +668,7 @@ const applyVoucher = async () => {
 
                         <div
                             v-if="isLoadingShipping"
-                            class="mt-5 grid animate-pulse gap-3 sm:grid-cols-2 xl:grid-cols-3"
+                            class="mt-5 grid animate-pulse gap-3 sm:grid-cols-2"
                             role="status"
                             :aria-label="t('labels.actions.loading')"
                         >
@@ -646,11 +683,11 @@ const applyVoucher = async () => {
                                     <Truck class="text-primary h-4 w-4" aria-hidden="true" />
                                     {{ t("labels.checkout.shipped_from", { warehouse: warehouse.warehouse_name }) }}
                                 </h3>
-                                <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                <div class="grid gap-3 sm:grid-cols-2">
                                     <label
                                         v-for="option in warehouse.options"
                                         :key="option.courier_code"
-                                        class="focus-within:ring-primary/25 flex min-h-16 cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 transition-colors focus-within:ring-2"
+                                        class="focus-within:ring-primary/25 flex min-h-16 cursor-pointer items-start gap-3 rounded-xl border px-3 py-2 transition-colors focus-within:ring-2"
                                         :class="
                                             form.shipping_methods[warehouse.warehouse_id]?.courier_code === option.courier_code
                                                 ? 'border-primary bg-primary/5'
@@ -669,13 +706,25 @@ const applyVoucher = async () => {
                                             :checked="form.shipping_methods[warehouse.warehouse_id]?.courier_code === option.courier_code"
                                             class="h-5 w-5"
                                         />
-                                        <span class="bg-secondary text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
-                                            <Store v-if="String(option.courier_code).toUpperCase() === 'PICKUP'" class="h-5 w-5" aria-hidden="true" />
+                                        <span class="bg-secondary text-primary mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+                                            <img
+                                                v-if="getCourierLogo(option.courier_code)"
+                                                :src="getCourierLogo(option.courier_code)"
+                                                :alt="option.courier_name"
+                                                class="h-7 w-7 object-contain"
+                                            />
+                                            <Store
+                                                v-else-if="String(option.courier_code).toUpperCase() === 'PICKUP'"
+                                                class="h-5 w-5"
+                                                aria-hidden="true"
+                                            />
                                             <Truck v-else class="h-5 w-5" aria-hidden="true" />
                                         </span>
                                         <span class="min-w-0 flex-1">
-                                            <span class="text-foreground block truncate text-sm font-bold">{{ option.courier_name }}</span>
-                                            <span class="text-muted-foreground mt-0.5 block text-xs leading-4 break-words">{{
+                                            <span class="text-foreground block text-sm leading-5 font-bold whitespace-normal">{{
+                                                option.courier_name
+                                            }}</span>
+                                            <span class="text-muted-foreground mt-0.5 block text-sm leading-5 whitespace-normal">{{
                                                 t("labels.checkout.estimation", { estimation: option.estimation })
                                             }}</span>
                                         </span>
@@ -1086,22 +1135,22 @@ const applyVoucher = async () => {
                                         <span>{{ t("labels.actions.apply") }}</span>
                                     </Button>
                                 </div>
-                            <p v-if="voucherError" class="text-destructive mt-2 text-xs" role="alert">{{ voucherError }}</p>
+                                <p v-if="voucherError" class="text-destructive mt-2 text-xs" role="alert">{{ voucherError }}</p>
 
-                            <Link
-                                :href="route('frontend.vouchers')"
-                                class="border-border text-muted-foreground hover:border-primary hover:text-primary mt-3 flex items-center justify-between gap-2 rounded-lg border border-dashed px-3 py-2.5 text-xs font-semibold transition-colors"
-                            >
-                                <span class="flex items-center gap-2">
-                                    <Ticket class="h-4 w-4" aria-hidden="true" />
-                                    <span>{{ t("labels.actions.voucher_list") }}</span>
-                                </span>
-                                <ChevronRight class="h-4 w-4" aria-hidden="true" />
-                            </Link>
-                        </div>
+                                <Link
+                                    :href="route('frontend.vouchers')"
+                                    class="border-border text-muted-foreground hover:border-primary hover:text-primary mt-3 flex items-center justify-between gap-2 rounded-lg border border-dashed px-3 py-2.5 text-xs font-semibold transition-colors"
+                                >
+                                    <span class="flex items-center gap-2">
+                                        <Ticket class="h-4 w-4" aria-hidden="true" />
+                                        <span>{{ t("labels.actions.voucher_list") }}</span>
+                                    </span>
+                                    <ChevronRight class="h-4 w-4" aria-hidden="true" />
+                                </Link>
+                            </div>
 
-                        <!-- List Voucher Link -->
-                        <!-- Order Items (Mini list) -->
+                            <!-- List Voucher Link -->
+                            <!-- Order Items (Mini list) -->
                             <div class="divide-border order-1 divide-y lg:order-4 lg:max-h-[28rem] lg:overflow-y-auto lg:pr-1">
                                 <div v-for="item in items" :key="item.id" class="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
                                     <div class="bg-secondary h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl sm:h-20 sm:w-20">
@@ -1114,12 +1163,10 @@ const applyVoucher = async () => {
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <h4 class="text-foreground line-clamp-2 text-xs leading-4 font-bold sm:text-sm">{{ item.product?.name }}</h4>
-                            <p class="text-muted-foreground mt-1 text-xs">
-                                <template v-if="item.product_variant?.variant_name">
-                                    {{ item.product_variant.variant_name }} ·
-                                </template>
-                                {{ t("labels.checkout.quantity", { count: item.quantity }) }}
-                            </p>
+                                        <p class="text-muted-foreground mt-1 text-xs">
+                                            <template v-if="item.product_variant?.variant_name"> {{ item.product_variant.variant_name }} · </template>
+                                            {{ t("labels.checkout.quantity", { count: item.quantity }) }}
+                                        </p>
                                         <div class="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                                             <p class="text-primary text-sm font-bold">{{ formatCurrency(item.price) }}</p>
                                             <p
@@ -1213,24 +1260,34 @@ const applyVoucher = async () => {
                 v-if="isAddressModalOpen"
                 class="bg-foreground/50 fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center sm:p-6"
                 role="presentation"
-                @click.self="isAddressModalOpen = false"
+                @click.self="closeAddressModal"
             >
                 <section
                     class="bg-background max-h-[92vh] w-full overflow-y-auto rounded-t-2xl p-6 shadow-2xl sm:max-w-2xl sm:rounded-2xl md:p-8"
                     role="dialog"
                     aria-modal="true"
-                    :aria-label="t('labels.address.new_heading')"
+                    :aria-label="t(editingAddress ? 'labels.address.edit_heading' : 'labels.address.new_heading')"
                 >
                     <div class="border-border mb-6 flex items-start justify-between gap-4 border-b pb-4">
                         <div>
-                            <h2 class="text-foreground text-lg font-bold">{{ t("labels.address.new_heading") }}</h2>
-                            <p class="text-muted-foreground mt-1 text-sm">{{ t("labels.address.new_description") }}</p>
+                            <h2 class="text-foreground text-lg font-bold">
+                                {{ t(editingAddress ? "labels.address.edit_heading" : "labels.address.new_heading") }}
+                            </h2>
+                            <p class="text-muted-foreground mt-1 text-sm">
+                                {{ t(editingAddress ? "labels.address.edit_description" : "labels.address.new_description") }}
+                            </p>
                         </div>
-                        <Button type="button" variant="ghost" size="icon" :aria-label="t('labels.dialogs.cancel')" @click="isAddressModalOpen = false"
+                        <Button type="button" variant="ghost" size="icon" :aria-label="t('labels.dialogs.cancel')" @click="closeAddressModal"
                             ><X class="h-5 w-5"
                         /></Button>
                     </div>
-                    <AddressForm :provinces="provinces" @saved="addressSaved" @cancel="isAddressModalOpen = false" />
+                    <AddressForm
+                        :provinces="provinces"
+                        :address="editingAddress"
+                        :submit-label="editingAddress ? t('labels.actions.update') : undefined"
+                        @saved="addressSaved"
+                        @cancel="closeAddressModal"
+                    />
                 </section>
             </div>
         </PageShell>
