@@ -167,7 +167,6 @@ const isExpired = (dateString) => {
                                         :class="getOrderBillingStatusColor(order.billing_status)"
                                         :aria-label="`${t('labels.order.billing_status_label')}: ${getOrderBillingStatusLabel(order.billing_status, t)}`"
                                     >
-                                        <span class="hidden sm:inline">{{ t("labels.order.billing_status_label") }}: </span>
                                         {{ getOrderBillingStatusLabel(order.billing_status, t) }}
                                     </span>
                                     <p class="text-sm font-bold text-[#fa8456]">{{ formatCurrency(order.total) }}</p>
