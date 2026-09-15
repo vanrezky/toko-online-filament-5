@@ -6,6 +6,7 @@ use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Exception;
 use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Infolists\Components\RepeatableEntry;
 use App\Enums\CourierCode;
@@ -258,64 +259,108 @@ class ViewTransaction extends ViewRecord
     {
         return $schema
             ->schema([
-                Section::make(__('admin/transaction-resource.sections.order_information'))
-                    ->icon('heroicon-o-shopping-bag')
+                Grid::make(2)
                     ->schema([
-                        TextEntry::make('uuid')
-                            ->label(__('admin/transaction-resource.entries.order_id'))
-                            ->getStateUsing(fn(Transaction $record): string => $record->code ?? '-')
-                            ->copyable()
-                            ->copyMessage(__('admin/transaction-resource.copy.copied'))
-                            ->copyMessageDuration(1500)
-                            ->weight('bold')
-                            ->size('lg'),
-                        TextEntry::make('status')
-                            ->label(__('admin/transaction-resource.entries.status'))
-                            ->badge()
-                            ->formatStateUsing(function (TransactionStatus|string|null $state): string {
-                                if ($state instanceof TransactionStatus) {
-                                    return (string) $state->getLabel();
-                                }
+                        Section::make(__('admin/transaction-resource.sections.order_information'))
+                            ->icon('heroicon-o-shopping-bag')
+                            ->schema([
+                                TextEntry::make('uuid')
+                                    ->label(__('admin/transaction-resource.entries.order_id'))
+                                    ->getStateUsing(fn (Transaction $record): string => $record->code ?? '-')
+                                    ->copyable()
+                                    ->copyMessage(__('admin/transaction-resource.copy.copied'))
+                                    ->copyMessageDuration(1500)
+                                    ->weight('bold')
+                                    ->size('xl')
+                                    ->columnSpanFull(),
+                                TextEntry::make('status')
+                                    ->label(__('admin/transaction-resource.entries.status'))
+                                    ->badge()
+                                    ->formatStateUsing(function (TransactionStatus|string|null $state): string {
+                                        if ($state instanceof TransactionStatus) {
+                                            return (string) $state->getLabel();
+                                        }
 
-                                if (is_string($state) && $state !== '') {
-                                    return ucfirst(__("admin/transaction-resource.status.{$state}"));
-                                }
+                                        if (is_string($state) && $state !== '') {
+                                            return ucfirst(__("admin/transaction-resource.status.{$state}"));
+                                        }
 
-                                return '-';
-                            }),
+                                        return '-';
+                                    }),
                         TextEntry::make('created_at')
                             ->label(__('admin/transaction-resource.entries.order_date'))
                             ->dateTime('d M Y, H:i'),
+                        TextEntry::make('delivery_date')
+                            ->label(__('admin/transaction-resource.entries.delivery_date'))
+                            ->dateTime('d M Y, H:i')
+                            ->placeholder(__('admin/transaction-resource.entries.not_delivered_yet')),
+                        TextEntry::make('complete_date')
+                            ->label(__('admin/transaction-resource.entries.completed_date'))
+                            ->dateTime('d M Y, H:i')
+                            ->placeholder(__('admin/transaction-resource.entries.not_completed_yet')),
                         // TextEntry::make('timelimit')
-                        //     ->label(__('admin/transaction-resource.entries.payment_deadline'))
-                        //     ->dateTime('d M Y, H:i')
-                        //     ->placeholder(__('admin/transaction-resource.entries.not_set')),
-                    ])->columns(3),
+                                //     ->label(__('admin/transaction-resource.entries.payment_deadline'))
+                                //     ->dateTime('d M Y, H:i')
+                                //     ->placeholder(__('admin/transaction-resource.entries.not_set')),
+                            ])->columns(2),
 
-                Section::make(__('admin/transaction-resource.sections.order_summary'))
-                    ->icon('heroicon-o-currency-dollar')
-                    ->schema([
-                        TextEntry::make('subtotal')
-                            ->label(__('admin/transaction-resource.entries.subtotal'))
-                            ->money('IDR'),
-                        TextEntry::make('total_discount')
-                            ->label(__('admin/transaction-resource.entries.total_discount'))
-                            ->money('IDR')
-                            ->color('danger'),
-                        TextEntry::make('shipping_cost')
-                            ->label(__('admin/transaction-resource.entries.shipping_cost'))
-                            ->money('IDR'),
-                        TextEntry::make('cod_fee')
-                            ->label(__('admin/transaction-resource.entries.cod_fee'))
-                            ->money('IDR')
-                            ->visible(fn(Transaction $record) => $record->cod),
-                        TextEntry::make('total_amount')
-                            ->label(__('admin/transaction-resource.entries.total_amount'))
-                            ->money('IDR')
-                            ->weight('bold')
-                            ->size('lg')
-                            ->color('primary'),
-                    ])->columns(5),
+                        Section::make(__('admin/transaction-resource.sections.order_summary'))
+                            ->icon('heroicon-o-currency-dollar')
+                            ->schema([
+                                TextEntry::make('subtotal')
+                                    ->label(__('admin/transaction-resource.entries.subtotal'))
+                                    ->money('IDR'),
+                                TextEntry::make('total_discount')
+                                    ->label(__('admin/transaction-resource.entries.total_discount'))
+                                    ->money('IDR')
+                                    ->color('danger'),
+                                TextEntry::make('shipping_cost')
+                                    ->label(__('admin/transaction-resource.entries.shipping_cost'))
+                                    ->money('IDR'),
+                                TextEntry::make('cod_fee')
+                                    ->label(__('admin/transaction-resource.entries.cod_fee'))
+                                    ->money('IDR')
+                                    ->visible(fn (Transaction $record) => $record->cod),
+                                TextEntry::make('total_amount')
+                                    ->label(__('admin/transaction-resource.entries.total_amount'))
+                                    ->money('IDR')
+                                    ->weight('bold')
+                                    ->size('lg')
+                                    ->color('primary'),
+                                TextEntry::make('billing_status')
+                                    ->label('Status Tagihan')
+                                    ->badge()
+                                    ->visible(fn(Transaction $record): bool => $record->payment_type === 'full')
+                                    ->color(function (TransactionBillingStatus|string|null $state): string {
+                                        if ($state instanceof TransactionBillingStatus) {
+                                            return is_array($state->getColor()) ? 'gray' : (string) ($state->getColor() ?? 'gray');
+                                        }
+
+                                        if (! is_string($state) || $state === '') {
+                                            return 'gray';
+                                        }
+
+                                        return match ($state) {
+                                            'pending' => 'warning',
+                                            'submitted' => 'info',
+                                            'paid' => 'success',
+                                            'failed', 'cancelled' => 'danger',
+                                            default => 'gray',
+                                        };
+                                    })
+                                    ->formatStateUsing(function (TransactionBillingStatus|string|null $state): string {
+                                        if ($state instanceof TransactionBillingStatus) {
+                                            return (string) $state->getLabel();
+                                        }
+
+                                        if (is_string($state) && $state !== '') {
+                                            return ucfirst(__("admin/transaction-resource.billing_status.{$state}"));
+                                        }
+
+                                        return '-';
+                                    }),
+                            ])->columns(2),
+                    ]),
 
                 Section::make(__('admin/transaction-resource.sections.customer_information'))
                     ->icon('heroicon-o-user')
@@ -496,42 +541,14 @@ class ViewTransaction extends ViewRecord
                 Section::make(__('admin/transaction-resource.sections.additional_information'))
                     ->icon('heroicon-o-information-circle')
                     ->schema([
+                        TextEntry::make('payment_method')
+                            ->label(__('admin/transaction-resource.fields.payment_method'))
+                            ->badge()
+                            ->formatStateUsing(fn (?string $state): string => $state ? ucfirst(str_replace('_', ' ', $state)) : '-'),
                         TextEntry::make('payment_type')
                             ->label(__('admin/transaction-resource.fields.payment_type'))
                             ->badge()
-                            ->formatStateUsing(fn (?string $state): string => TransactionResource::getPaymentTypeLabel($state)),
-                        TextEntry::make('billing_status')
-                            ->label('Status Tagihan')
-                            ->badge()
-                            ->visible(fn(Transaction $record): bool => $record->payment_type === 'full')
-                            ->color(function (TransactionBillingStatus|string|null $state): string {
-                                if ($state instanceof TransactionBillingStatus) {
-                                    return is_array($state->getColor()) ? 'gray' : (string) ($state->getColor() ?? 'gray');
-                                }
-
-                                if (! is_string($state) || $state === '') {
-                                    return 'gray';
-                                }
-
-                                return match ($state) {
-                                    'pending' => 'warning',
-                                    'submitted' => 'info',
-                                    'paid' => 'success',
-                                    'failed', 'cancelled' => 'danger',
-                                    default => 'gray',
-                                };
-                            })
-                            ->formatStateUsing(function (TransactionBillingStatus|string|null $state): string {
-                                if ($state instanceof TransactionBillingStatus) {
-                                    return (string) $state->getLabel();
-                                }
-
-                                if (is_string($state) && $state !== '') {
-                                    return ucfirst(__("admin/transaction-resource.billing_status.{$state}"));
-                                }
-
-                                return '-';
-                            }),
+                            ->formatStateUsing(fn (?string $state): string => $state ? ucfirst(str_replace('_', ' ', $state)) : '-'),
                         TextEntry::make('billing_due_date')
                             ->label('Jatuh Tempo Tagihan')
                             ->date('d M Y')
@@ -544,14 +561,6 @@ class ViewTransaction extends ViewRecord
                         TextEntry::make('notes')
                             ->label(__('admin/transaction-resource.entries.notes'))
                             ->placeholder(__('admin/transaction-resource.entries.no_notes')),
-                        TextEntry::make('delivery_date')
-                            ->label(__('admin/transaction-resource.entries.delivery_date'))
-                            ->dateTime('d M Y, H:i')
-                            ->placeholder(__('admin/transaction-resource.entries.not_delivered_yet')),
-                        TextEntry::make('complete_date')
-                            ->label(__('admin/transaction-resource.entries.completed_date'))
-                            ->dateTime('d M Y, H:i')
-                            ->placeholder(__('admin/transaction-resource.entries.not_completed_yet')),
                     ])->columns(2),
 
                 Section::make('Informasi Cicilan')
