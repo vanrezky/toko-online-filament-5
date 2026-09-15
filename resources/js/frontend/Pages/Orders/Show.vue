@@ -11,7 +11,7 @@ import FormTextarea from "../../components/UI/FormTextarea.vue";
 import Card from "../../components/UI/Card.vue";
 import { formatCurrency, formatDate, formatPhone } from "../../lib/utils";
 import { getOrderStatusColor, getOrderStatusLabel } from "../../lib/order-status";
-import { getOrderPaymentLabel } from "../../lib/order-payment";
+import { getOrderBillingStatusColor, getOrderBillingStatusLabel, getOrderPaymentLabel } from "../../lib/order-payment";
 import { useI18n } from "vue-i18n";
 import { Package, ChevronLeft, MapPin, Truck, CreditCard, Store, Star, X, ArrowRight } from "lucide-vue-next";
 import { toast } from "vue-sonner";
@@ -185,10 +185,10 @@ const resumeMidtransPayment = async () => {
         }
 
         window.snap.pay(payment.snap_token, {
-            onSuccess: () => window.location.reload(),
-            onPending: () => window.location.reload(),
-            onError: () => window.location.reload(),
-            onClose: () => window.location.reload(),
+            onSuccess: () => window.location.href = route("frontend.orders.payment-return", props.order.id),
+            onPending: () => window.location.href = route("frontend.orders.payment-return", props.order.id),
+            onError: () => window.location.href = route("frontend.orders.show", props.order.id),
+            onClose: () => window.location.href = route("frontend.orders.show", props.order.id),
         });
     } catch (error) {
         toast.error(error.response?.data?.error || t("labels.order.payment_actions.initiation_failed"));
@@ -440,6 +440,15 @@ const statusDates = computed(() => {
                                     <div class="flex justify-between">
                                         <span>{{ t('labels.order.payment_method') }}</span>
                                         <span class="font-semibold text-foreground">{{ getPaymentLabel() }}</span>
+                                    </div>
+                                    <div v-if="order.billing_status" class="flex items-center justify-between gap-4">
+                                        <span>{{ t('labels.order.billing_status_label') }}</span>
+                                        <span
+                                            class="inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold"
+                                            :class="getOrderBillingStatusColor(order.billing_status)"
+                                        >
+                                            {{ getOrderBillingStatusLabel(order.billing_status, t) }}
+                                        </span>
                                     </div>
                                     <div v-if="order.installment_plan" class="flex justify-between">
                                         <span>{{ t('labels.order.monthly_amount') }}</span>

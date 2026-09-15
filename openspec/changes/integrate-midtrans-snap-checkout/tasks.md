@@ -22,6 +22,7 @@
 - [ ] 3.2 Verify Midtrans notification structure and signature with `hash_equals`, validate local order ownership/provider/amount, and normalize successful, pending, failed, expired, and cancelled outcomes.
 - [ ] 3.3 Apply webhook outcomes under transaction locking with idempotent, monotonic state transitions and the existing cancellation service for eligible expiry/cancellation.
 - [ ] 3.4 Document sandbox/production credentials, the public Midtrans Notification URL, dashboard configuration, and operational status reconciliation.
+- [x] 3.5 Add an owned Midtrans payment-return route that performs a server-side status lookup with order-ID and amount validation, while keeping the webhook authoritative.
 
 ## 4. Automated verification
 

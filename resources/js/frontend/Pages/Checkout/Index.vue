@@ -438,10 +438,10 @@ const submitOrder = async () => {
 
                 window.snap.pay(payment.snap_token, {
                     onSuccess: function () {
-                        window.location.href = route("frontend.orders.show", response.data.transaction_uuid);
+                        window.location.href = route("frontend.orders.payment-return", response.data.transaction_uuid);
                     },
                     onPending: function () {
-                        window.location.href = route("frontend.orders.show", response.data.transaction_uuid);
+                        window.location.href = route("frontend.orders.payment-return", response.data.transaction_uuid);
                     },
                     onError: function () {
                         window.location.href = route("frontend.orders.show", response.data.transaction_uuid);

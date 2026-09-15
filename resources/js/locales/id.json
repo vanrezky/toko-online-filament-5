@@ -953,7 +953,16 @@
             "payment": "Pembayaran",
             "payment_deadline": "Batas waktu pembayaran",
             "payment_countdown": "Sisa waktu: {time}",
-            "payment_status_label": "Status:",
+        "payment_status_label": "Status:",
+        "billing_status_label": "Status Pembayaran",
+        "billing_status": {
+            "not_applicable": "Tidak Berlaku",
+            "pending": "Menunggu Pembayaran",
+            "submitted": "Diajukan",
+            "paid": "Lunas",
+            "failed": "Gagal",
+            "cancelled": "Dibatalkan"
+        },
             "monthly_amount": "Angsuran per Bulan",
             "summary_title": "Ringkasan Pesanan",
             "subtotal": "Subtotal",

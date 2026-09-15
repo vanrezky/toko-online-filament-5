@@ -8,8 +8,8 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Wishlist;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Collection;
 
 final class WishlistRepository
 {

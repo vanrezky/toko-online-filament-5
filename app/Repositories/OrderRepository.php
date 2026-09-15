@@ -29,7 +29,7 @@ final class OrderRepository
             ->where('customer_id', $customer->getKey())
             ->when($status !== 'all', fn (Builder $query): Builder => $query->where('status', $status))
             ->latest()
-            ->paginate($perPage, ['id', 'uuid', 'code', 'customer_id', 'status', 'shipping_cost', 'cod_fee', 'created_at', 'timelimit'])
+            ->paginate($perPage, ['id', 'uuid', 'code', 'customer_id', 'status', 'billing_status', 'shipping_cost', 'cod_fee', 'created_at', 'timelimit'])
             ->withQueryString();
     }
 

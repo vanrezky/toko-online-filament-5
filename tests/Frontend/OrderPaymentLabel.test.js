@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getOrderPaymentLabel } from "../../resources/js/frontend/lib/order-payment";
+import {
+    getOrderBillingStatusColor,
+    getOrderBillingStatusLabel,
+    getOrderPaymentLabel,
+} from "../../resources/js/frontend/lib/order-payment";
 
 const t = (key, params = {}) => {
     const labels = {
@@ -7,6 +11,8 @@ const t = (key, params = {}) => {
         'labels.payment.full': 'Pay in full from credit limit',
         'labels.payment.installment': 'Pay in installments from credit limit',
         'labels.payment.installment_tenor': `Installment ${params.tenor}x`,
+        'labels.order.billing_status.paid': 'Paid',
+        'labels.order.billing_status.pending': 'Pending Payment',
     };
 
     return labels[key];
@@ -31,5 +37,11 @@ describe('order payment labels', () => {
 
     it('falls back to the full credit-limit label for other payment representations', () => {
         expect(getOrderPaymentLabel({ payment_type: 'full' }, t)).toBe('Pay in full from credit limit');
+    });
+
+    it('maps billing status labels and colors', () => {
+        expect(getOrderBillingStatusLabel('paid', t)).toBe('Paid');
+        expect(getOrderBillingStatusLabel('pending', t)).toBe('Pending Payment');
+        expect(getOrderBillingStatusColor('paid')).toContain('text-emerald-800');
     });
 });

@@ -9,6 +9,7 @@ import { Package, ChevronRight, ChevronLeft } from "lucide-vue-next";
 import { formatCurrency, formatDate } from "../../lib/utils";
 import Card from "../../components/UI/Card.vue";
 import { ORDER_STATUS_FILTERS, getOrderStatusColor, getOrderStatusLabel } from "../../lib/order-status";
+import { getOrderBillingStatusColor, getOrderBillingStatusLabel } from "../../lib/order-payment";
 
 const props = defineProps({
     orders: Object,
@@ -144,7 +145,7 @@ const isExpired = (dateString) => {
                             class="group block space-y-5 rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-sm transition-all hover:shadow-md"
                         >
                             <div class="flex flex-wrap items-center justify-between gap-4">
-                                <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-2 sm:gap-4">
                                     <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#fff5f0]">
                                         <Package class="h-5 w-5 text-[#fa8456]" />
                                     </div>
@@ -159,6 +160,15 @@ const isExpired = (dateString) => {
                                         :class="getOrderStatusColor(order.status, 'bg-[#f5f3fc] text-[#6b5a4d]')"
                                     >
                                         {{ getOrderStatusLabel(order.status, t) }}
+                                    </span>
+                                    <span
+                                        v-if="order.billing_status"
+                                        class="inline-flex whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold sm:px-4"
+                                        :class="getOrderBillingStatusColor(order.billing_status)"
+                                        :aria-label="`${t('labels.order.billing_status_label')}: ${getOrderBillingStatusLabel(order.billing_status, t)}`"
+                                    >
+                                        <span class="hidden sm:inline">{{ t("labels.order.billing_status_label") }}: </span>
+                                        {{ getOrderBillingStatusLabel(order.billing_status, t) }}
                                     </span>
                                     <p class="text-sm font-bold text-[#fa8456]">{{ formatCurrency(order.total) }}</p>
                                     <ChevronRight class="h-5 w-5 text-[#6b5a4d] transition-colors group-hover:text-[#fa8456]" />
