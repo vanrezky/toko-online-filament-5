@@ -1,8 +1,11 @@
-.PHONY: help dev restart-dev frankenphp-build frankenphp-start frankenphp-ps frankenphp-logs frankenphp-stop
+.PHONY: help dev restart-dev frankenphp-build frankenphp-start frankenphp-ps frankenphp-logs frankenphp-stop frankenphp-horizon frankenphp-scheduler
 SAIL = ./vendor/bin/sail
 DOCKER_COMPOSE = docker compose
 CONTAINER_NAME=laravel-toko-online
 VOLUME_DATABASE=toko-online_db-vol
+FRANKENPHP_PROFILE = frankenphp
+FRANKENPHP_SERVICE = laravel.frankenphp
+FRANKENPHP_USER = www-data
 
 help: ## Print help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -69,3 +72,9 @@ frankenphp-logs: ## Follow FrankenPHP runtime logs.
 
 frankenphp-stop: ## Stop the optional FrankenPHP Octane runtime.
 	@${DOCKER_COMPOSE} --profile frankenphp stop laravel.frankenphp
+
+frankenphp-horizon: ## Run Horizon in the FrankenPHP container.
+	@COMPOSE_PROFILES=${FRANKENPHP_PROFILE} APP_SERVICE=${FRANKENPHP_SERVICE} APP_USER=${FRANKENPHP_USER} ${SAIL} artisan horizon
+
+frankenphp-scheduler: ## Run the scheduler in the FrankenPHP container.
+	@COMPOSE_PROFILES=${FRANKENPHP_PROFILE} APP_SERVICE=${FRANKENPHP_SERVICE} APP_USER=${FRANKENPHP_USER} ${SAIL} artisan schedule:work

@@ -83,7 +83,7 @@ final class CheckoutService
             'cartItemIds' => $cartItemUuids,
             'addresses' => $addresses,
             'provinces' => $this->regionalService->getProvinces()->map(
-                fn ($province): array => ['id' => (int) $province->id, 'name' => (string) $province->name],
+                fn($province): array => ['id' => (int) $province->id, 'name' => (string) $province->name],
             ),
             'pendingVouchers' => $pendingVouchers,
             'validatedVouchers' => $validatedVouchers,
@@ -180,14 +180,14 @@ final class CheckoutService
         }
 
         $cartHash = md5($cart->items->sortBy('id')->map(
-            fn (CartItem $item): string => $item->product_id.'-'.($item->product_variant_id ?? '0').'-'.$item->quantity.'-'.$item->price,
+            fn(CartItem $item): string => $item->product_id . '-' . ($item->product_variant_id ?? '0') . '-' . $item->quantity . '-' . $item->price,
         )->implode('|'));
 
         $shippingCostsVersion = (int) Cache::get('shipping_costs_version', 1);
         $cacheKey = "shipping_costs_v{$shippingCostsVersion}_{$customer->id}_{$address->id}_{$cartHash}";
         $shippingResults = CacheService::rememberManaged('shipping', $cacheKey, 1800, function () use ($cart, $address): array {
             $warehouseGroups = $cart->items->groupBy(
-                fn (CartItem $item): int => (int) ($item->product->warehouse_id ?: 0),
+                fn(CartItem $item): int => (int) ($item->product->warehouse_id ?: 0),
             );
 
             $activeCouriers = $this->checkoutRepository->activeCouriers();
@@ -217,7 +217,7 @@ final class CheckoutService
                 }
 
                 $totalWeight = $items->sum(
-                    fn (CartItem $item): float|int => ($item->productVariant?->weight ?: $item->product->weight) * $item->quantity,
+                    fn(CartItem $item): float|int => ($item->productVariant?->weight ?: $item->product->weight) * $item->quantity,
                 );
 
                 $costs = $this->ongkirService->getShippingCost(
@@ -226,9 +226,17 @@ final class CheckoutService
                     $totalWeight,
                 );
 
+
                 $options = [];
-                if (($costs['status'] ?? null) === 'success') {
-                    $options = $costs['result'];
+                if ($costs['is_success'] && !empty($costs['data']['couriers'])) {
+                    foreach ($costs['data']['couriers'] as $courier) {
+                        $options[] = [
+                            'courier_code' => $courier['courier_code'],
+                            'courier_name' => $courier['courier_name'],
+                            'price' => $courier['price'],
+                            'estimation' => $courier['estimation'],
+                        ];
+                    }
                 }
 
                 if ($kurirTokoOption) {
@@ -304,12 +312,12 @@ final class CheckoutService
         $this->flashsalePricingService->syncCart($cart);
 
         $cartWarehouseIds = $cart->items
-            ->map(fn ($item) => (string) ($item->product->warehouse_id ?: 0))
+            ->map(fn($item) => (string) ($item->product->warehouse_id ?: 0))
             ->unique()
             ->sort()
             ->values();
         $shippingWarehouseIds = collect(array_keys($data['shipping_methods']))
-            ->map(fn ($warehouseId) => (string) $warehouseId)
+            ->map(fn($warehouseId) => (string) $warehouseId)
             ->unique()
             ->sort()
             ->values();
@@ -319,7 +327,7 @@ final class CheckoutService
         }
 
         $hasDeliveryMethod = collect($data['shipping_methods'])
-            ->contains(fn ($method) => strtoupper((string) ($method['courier_code'] ?? '')) !== CourierCode::PICKUP->value);
+            ->contains(fn($method) => strtoupper((string) ($method['courier_code'] ?? '')) !== CourierCode::PICKUP->value);
 
         if ($hasDeliveryMethod && ! $data['address_id']) {
             throw new CheckoutException('address_required');
@@ -363,7 +371,7 @@ final class CheckoutService
             $cart->items,
             $totalShippingCost,
             $validatedVouchers,
-            fn (CartItem $item) => [
+            fn(CartItem $item) => [
                 'key' => $item->id,
                 'quantity' => $item->quantity,
                 'original_price' => (float) $item->price + (float) $item->discount,
@@ -420,7 +428,7 @@ final class CheckoutService
                 $resolvedCartItems,
                 $totalShippingCost,
                 $validatedVouchers,
-                fn (array $entry) => [
+                fn(array $entry) => [
                     'key' => $entry['item']->id,
                     'quantity' => $entry['item']->quantity,
                     'original_price' => $entry['pricing']['original_price'],
@@ -550,7 +558,7 @@ final class CheckoutService
             }
 
             $this->cookieService->clear();
-            $this->checkoutRepository->deleteCartItems($resolvedCartItems->pluck('item.id')->map(static fn (int|string $id): int => (int) $id)->all());
+            $this->checkoutRepository->deleteCartItems($resolvedCartItems->pluck('item.id')->map(static fn(int|string $id): int => (int) $id)->all());
 
             if (! $this->checkoutRepository->cartHasItems($lockedCart)) {
                 $this->checkoutRepository->markCartCheckedOut($lockedCart);
