@@ -63,6 +63,23 @@ Direktori yang paling sering relevan saat development:
 - `database/schema/mysql-schema.sql`: referensi field dan tabel aktual
 - `database/settings/`: migration untuk application settings
 
+### Boundary aplikasi
+
+```mermaid
+flowchart TD
+    R[Route] --> FC[Frontend Controller]
+    FC --> FS[Frontend Service]
+    FS --> RP[Concrete Repository]
+    RP --> E[Eloquent Model / Database]
+    R --> AC[API Controller]
+    AC --> FS
+    AP[Filament AdminPanelProvider] --> FR[Resources / Pages / Widgets]
+    FR --> AS[Admin Service atau Eloquent]
+    AS --> E
+```
+
+Frontend controller menjadi adapter HTTP: binding, autentikasi/otorisasi, validasi, dan format Inertia/JSON/redirect. Service menjalankan use case dan transaksi. Repository konkret menangani query/persistensi yang non-trivial; setiap repository hanya memiliki satu implementasi dan tidak memakai interface tambahan. Filament tetap menjadi panel admin terpisah melalui `app/Providers/Filament/AdminPanelProvider.php`, dengan UI di `app/Filament/Resources`, `Pages`, `Widgets`, dan `Clusters`. Resource/Page Filament pada fase ini tidak dirombak; sebagian masih memakai Eloquent langsung, dan operasi bisnis baru dapat memakai service yang sudah ada.
+
 ## Setup Lokal
 
 ### Prasyarat

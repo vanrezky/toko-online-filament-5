@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-15
+goal: Memisahkan boundary HTTP, use-case service, dan persistence repository
+  tanpa mengubah behavior storefront.

@@ -1,29 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\Installment;
-use App\Models\Transaction;
 use App\Services\InstallmentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Inertia\Response;
 
-class InstallmentController extends Controller
+final class InstallmentController extends Controller
 {
-    public function __construct(
-        protected InstallmentService $installmentService
-    ) {}
+    public function __construct(private readonly InstallmentService $installmentService) {}
 
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
-        $customer = auth('customer')->user();
-
+        $customer = $this->customer();
         $installments = $this->installmentService->getCustomerInstallments($customer);
 
         return Inertia::render('Frontend/Installment/Index', [
-            'installments' => $installments->map(function ($installment) {
+            'installments' => $installments->map(function (Installment $installment): array {
                 return [
                     'uuid' => $installment->uuid,
                     'code' => $installment->code,
@@ -32,25 +32,22 @@ class InstallmentController extends Controller
                         'code' => $installment->transaction->code,
                         'created_at' => $installment->transaction->created_at,
                     ],
+                    'status' => $installment->status,
                     'total_amount' => $installment->total_amount,
                     'monthly_amount' => $installment->monthly_amount,
                     'tenor' => $installment->tenor,
                     'paid_installments' => $installment->paid_installments,
-                    'status' => $installment->status,
                     'start_date' => $installment->start_date,
                     'expected_end_date' => $installment->expected_end_date,
                 ];
             }),
-            'monthlyBills' => $this->getMonthlyBills($customer->id),
+            'monthlyBills' => $this->installmentService->getMonthlyBills($customer),
         ]);
     }
 
-    public function show(Request $request, string $uuid)
+    public function show(Request $request, string $uuid): Response
     {
-        $installment = Installment::where('uuid', $uuid)
-            ->where('customer_id', auth('customer')->id())
-            ->firstOrFail();
-
+        $installment = $this->installmentService->findForCustomer($this->customer(), $uuid);
         $schedule = $this->installmentService->getInstallmentSchedule($installment);
 
         return Inertia::render('Frontend/Installment/Show', [
@@ -72,88 +69,26 @@ class InstallmentController extends Controller
                     'fee_percentage' => $installment->installmentPlan->fee_percentage,
                 ],
             ],
-            'schedule' => $schedule->map(function ($payment) {
-                return [
-                    'code' => $payment->code,
-                    'installment_number' => $payment->installment_number,
-                    'amount' => $payment->amount,
-                    'due_date' => $payment->due_date,
-                    'billing_month' => $payment->billing_month,
-                    'paid_amount' => $payment->paid_amount,
-                    'paid_date' => $payment->paid_date,
-                    'status' => $payment->status,
-                    'payment_method' => $payment->payment_method,
-                    'payroll_status' => $payment->payroll_status,
-                ];
-            }),
+            'schedule' => $schedule->map(static fn ($payment): array => [
+                'code' => $payment->code,
+                'installment_number' => $payment->installment_number,
+                'amount' => $payment->amount,
+                'due_date' => $payment->due_date,
+                'billing_month' => $payment->billing_month,
+                'paid_amount' => $payment->paid_amount,
+                'paid_date' => $payment->paid_date,
+                'status' => $payment->status,
+                'payment_method' => $payment->payment_method,
+                'payroll_status' => $payment->payroll_status,
+            ]),
         ]);
     }
 
-    private function getMonthlyBills(int $customerId): array
+    private function customer(): Customer
     {
-        $installmentPayments = Installment::query()
-            ->where('customer_id', $customerId)
-            ->with([
-                'transaction.products.product:id,name',
-                'payments' => function ($query) {
-                    $query->whereIn('status', ['unpaid', 'partial', 'overdue'])
-                        ->orderBy('due_date');
-                },
-            ])
-            ->get()
-            ->flatMap(function (Installment $installment) {
-                $productName = $installment->transaction->products->first()?->product?->name ?? 'Produk';
+        $customer = Auth::guard('customer')->user();
+        abort_unless($customer instanceof Customer, 403);
 
-                return $installment->payments->map(function ($payment) use ($installment, $productName) {
-                    $month = Carbon::parse($payment->billing_month ?? $payment->due_date);
-
-                    return [
-                        'month_key' => $month->format('Y-m'),
-                        'month_label' => $month->translatedFormat('F Y'),
-                        'description' => sprintf('Cicilan ke-%d %s', $payment->installment_number, $productName),
-                        'amount' => (float) $payment->amount,
-                        'status' => $payment->status,
-                        'reference' => $installment->code,
-                    ];
-                });
-            });
-
-        $fullBills = Transaction::query()
-            ->where('customer_id', $customerId)
-            ->where('payment_type', 'full')
-            ->whereIn('billing_status', ['pending', 'submitted', 'failed'])
-            ->whereNotNull('billing_due_date')
-            ->with('products.product:id,name')
-            ->get()
-            ->map(function (Transaction $transaction) {
-                $month = Carbon::parse($transaction->billing_due_date);
-                $productName = $transaction->products->first()?->product?->name ?? 'Produk';
-
-                return [
-                    'month_key' => $month->format('Y-m'),
-                    'month_label' => $month->translatedFormat('F Y'),
-                    'description' => sprintf('Tagihan penuh %s', $productName),
-                    'amount' => (float) $transaction->total_amount,
-                    'status' => $transaction->billing_status,
-                    'reference' => $transaction->code,
-                ];
-            });
-
-        $groups = $installmentPayments
-            ->concat($fullBills)
-            ->groupBy('month_key')
-            ->sortKeys()
-            ->map(function ($items) {
-                return [
-                    'month_label' => $items->first()['month_label'],
-                    'items' => $items->values()->all(),
-                ];
-            })
-            ->values();
-
-        return [
-            'next_month' => $groups->first(),
-            'upcoming' => $groups->slice(1)->values()->all(),
-        ];
+        return $customer;
     }
 }

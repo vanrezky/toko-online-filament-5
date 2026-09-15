@@ -1,23 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Customer;
+use App\Services\CustomerAuthService;
 use Illuminate\Cache\RateLimiter;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Inertia\Response;
 
-class RegisterController extends Controller
+final class RegisterController extends Controller
 {
     protected int $maxAttempts = 5;
 
     protected int $decayMinutes = 30;
 
-    public function __invoke(Request $request)
+    public function __construct(private readonly CustomerAuthService $authService) {}
+
+    public function __invoke(Request $request): Response|RedirectResponse
     {
         if ($this->registrationIsClosed()) {
             return redirect()->route('frontend.registration-closed');
@@ -28,9 +32,11 @@ class RegisterController extends Controller
         ]);
     }
 
-    public function register(Request $request)
+    public function register(Request $request): RedirectResponse
     {
-        abort_if($this->registrationIsClosed(), 403);
+        if ($this->registrationIsClosed()) {
+            abort(403);
+        }
 
         if ($this->hasTooManyAttempts($request)) {
             $this->sendLockoutResponse($request);
@@ -47,67 +53,50 @@ class RegisterController extends Controller
             $rules['terms_accepted'] = ['required', 'accepted'];
         }
 
-        $request->validate($rules);
+        $validated = $request->validate($rules);
 
-        $customer = Customer::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'is_active' => true,
+        $this->authService->register([
+            'first_name' => (string) $validated['first_name'],
+            'last_name' => (string) $validated['last_name'],
+            'email' => (string) $validated['email'],
+            'password' => (string) $validated['password'],
         ]);
-
         $this->clearAttempts($request);
-
-        Auth::guard('customer')->login($customer);
 
         return redirect()->route('frontend.home');
     }
 
-    protected function hasTooManyAttempts(Request $request): bool
+    private function hasTooManyAttempts(Request $request): bool
     {
-        return app(RateLimiter::class)->tooManyAttempts(
-            $this->throttleKey($request),
-            $this->maxAttempts
-        );
+        return app(RateLimiter::class)->tooManyAttempts($this->throttleKey($request), $this->maxAttempts);
     }
 
-    protected function incrementAttempts(Request $request): void
+    private function incrementAttempts(Request $request): void
     {
-        app(RateLimiter::class)->hit(
-            $this->throttleKey($request),
-            $this->decayMinutes * 60
-        );
+        app(RateLimiter::class)->hit($this->throttleKey($request), $this->decayMinutes * 60);
     }
 
-    protected function clearAttempts(Request $request): void
+    private function clearAttempts(Request $request): void
     {
         app(RateLimiter::class)->clear($this->throttleKey($request));
     }
 
-    protected function sendLockoutResponse(Request $request): void
+    private function sendLockoutResponse(Request $request): void
     {
-        $seconds = app(RateLimiter::class)->availableIn(
-            $this->throttleKey($request)
-        );
+        $seconds = app(RateLimiter::class)->availableIn($this->throttleKey($request));
 
         throw ValidationException::withMessages([
-            'email' => [
-                __('auth.throttle', [
-                    'seconds' => $seconds,
-                    'minutes' => ceil($seconds / 60),
-                ]),
-            ],
+            'email' => [__('auth.throttle', ['seconds' => $seconds, 'minutes' => ceil($seconds / 60)])],
         ]);
     }
 
-    protected function throttleKey(Request $request): string
+    private function throttleKey(Request $request): string
     {
         return 'register|'.$request->ip();
     }
 
     private function registrationIsClosed(): bool
     {
-        return settings('is_private_store', false) || ! settings('registration', true);
+        return (bool) settings('is_private_store', false) || ! (bool) settings('registration', true);
     }
 }

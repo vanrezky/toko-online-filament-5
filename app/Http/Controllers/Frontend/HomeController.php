@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
@@ -8,28 +10,23 @@ use App\Http\Resources\FlashsaleResource;
 use App\Http\Resources\ProductSimpleResource;
 use App\Http\Resources\SliderResource;
 use App\Http\Resources\TemplateResource;
-use App\Models\Category;
-use App\Models\Flashsale;
-use App\Models\Product;
-use App\Models\Slider;
 use App\Models\Template;
 use App\Models\TemplateSection;
-use App\Services\CacheService;
-use App\Services\ProductStatsService;
+use App\Services\CatalogService;
 use App\Services\TemplateService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class HomeController extends Controller
 {
-    protected TemplateService $templateService;
+    public function __construct(
+        private readonly TemplateService $templateService,
+        private readonly CatalogService $catalogService,
+    ) {}
 
-    public function __construct(TemplateService $templateService)
-    {
-        $this->templateService = $templateService;
-    }
-
-    public function index(Request $request)
+    public function index(Request $request): Response|RedirectResponse
     {
         if ($request->filled('search')) {
             return redirect()->route('frontend.products', $request->only('search'));
@@ -42,14 +39,14 @@ class HomeController extends Controller
         return $this->renderHome($request, $this->templateService->getActiveTemplate());
     }
 
-    public function preview(Request $request, Template $template)
+    public function preview(Request $request, Template $template): Response
     {
         $this->authorize('view', $template);
 
         return $this->renderHome($request, $this->templateService->getPreviewTemplate($template), true);
     }
 
-    private function renderHome(Request $request, ?Template $template, bool $isPreview = false)
+    private function renderHome(Request $request, ?Template $template, bool $isPreview = false): Response
     {
         $activeSections = $template?->sections->where('is_active', true) ?? collect();
         $configuredSectionTypes = $activeSections->pluck('type')->all();
@@ -86,43 +83,7 @@ class HomeController extends Controller
 
         $flashsales = $isFlashsaleEnabled
             ? Inertia::defer(function () use ($flashsaleLimit, $resellerId) {
-                $flashsale = Flashsale::query()
-                    ->current()
-                    ->with([
-                        'products' => fn ($query) => $query
-                            ->select(['id', 'flashsale_id', 'product_id', 'discount_percentage', 'stock'])
-                            ->limit($flashsaleLimit),
-                        'products.product' => fn ($query) => $query->select([
-                            'id',
-                            'uuid',
-                            'name',
-                            'slug',
-                            'digital',
-                            'code',
-                            'stock',
-                            'sale_price',
-                            'price',
-                            'min_order',
-                            'fake_sold_count',
-                        ]),
-                        'products.product.media',
-                        'products.product.flashsaleProducts' => fn ($query) => $query
-                            ->whereHas('flashsale', fn ($query) => $query->current())
-                            ->select(['id', 'product_id', 'discount_percentage', 'stock']),
-                        'products.product.wholesales' => fn ($query) => $query
-                            ->where('min_qty', '<=', 1)
-                            ->select(['id', 'product_id', 'min_qty', 'price']),
-                    ])
-                    ->when($resellerId, fn ($query) => $query->with([
-                        'products.product.resellerPrices' => fn ($query) => $query
-                            ->where('reseller_id', $resellerId)
-                            ->select(['id', 'product_id', 'reseller_id', 'price']),
-                    ]))
-                    ->first();
-
-                if ($flashsale) {
-                    ProductStatsService::attachCatalogStats($flashsale->products->pluck('product')->filter()->values());
-                }
+                $flashsale = $this->catalogService->homepageFlashsale($flashsaleLimit, $resellerId);
 
                 return $flashsale ? FlashsaleResource::make($flashsale) : null;
             }, 'flashsales')
@@ -130,42 +91,7 @@ class HomeController extends Controller
 
         $products = $needsProducts
             ? Inertia::defer(function () use ($productsCategoryId, $productsLimit, $resellerId) {
-                $products = Product::query()
-                    ->select([
-                        'id',
-                        'uuid',
-                        'name',
-                        'slug',
-                        'digital',
-                        'code',
-                        'stock',
-                        'sale_price',
-                        'price',
-                        'min_order',
-                        'fake_sold_count',
-                        'created_at',
-                    ])
-                    ->active()
-                    ->when($productsCategoryId > 0, fn ($query) => $query->where('category_id', $productsCategoryId))
-                    ->with([
-                        'media',
-                        'flashsaleProducts' => fn ($query) => $query
-                            ->whereHas('flashsale', fn ($query) => $query->current())
-                            ->select(['id', 'product_id', 'discount_percentage', 'stock']),
-                        'wholesales' => fn ($query) => $query
-                            ->where('min_qty', '<=', 1)
-                            ->select(['id', 'product_id', 'min_qty', 'price']),
-                    ])
-                    ->when($resellerId, fn ($query) => $query->with([
-                        'resellerPrices' => fn ($query) => $query
-                            ->where('reseller_id', $resellerId)
-                            ->select(['id', 'product_id', 'reseller_id', 'price']),
-                    ]))
-                    ->latest()
-                    ->simplePaginate($productsLimit)
-                    ->withQueryString();
-
-                ProductStatsService::attachCatalogStats($products->getCollection());
+                $products = $this->catalogService->homepageProducts($productsCategoryId, $productsLimit, $resellerId);
 
                 return ProductSimpleResource::collection($products);
             }, 'products')
@@ -173,26 +99,13 @@ class HomeController extends Controller
 
         $categories = $needsCategories
             ? Inertia::defer(function () {
-                return CacheService::rememberManaged('frontend', 'frontend_categories', 3600, function () {
-                    return CategoryResource::collection(
-                        Category::homepage()->with('media')->get()
-                    );
-                });
+                return CategoryResource::collection($this->catalogService->homepageCategories());
             }, 'categories')
             : [];
 
         $sliders = $needsSliders
             ? Inertia::defer(function () {
-                return SliderResource::collection(CacheService::rememberManaged(
-                    'frontend',
-                    Slider::CACHE_KEY,
-                    Slider::CACHE_TTL,
-                    fn () => Slider::query()
-                        ->visible()
-                        ->ordered()
-                        ->with('media')
-                        ->get(),
-                ));
+                return SliderResource::collection($this->catalogService->visibleSliders());
             }, 'sliders')
             : SliderResource::collection(collect());
 

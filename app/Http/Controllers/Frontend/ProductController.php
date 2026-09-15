@@ -1,19 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\ProductSimpleResource;
-use App\Models\Category;
 use App\Models\Product;
-use App\Services\ProductSearchService;
-use App\Services\ProductStatsService;
-use App\Services\RelatedProductService;
+use App\Services\CatalogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ProductController extends Controller
 {
@@ -25,75 +25,14 @@ class ProductController extends Controller
         'gender' => ['Gender'],
     ];
 
-    public function __invoke(Request $request, ProductSearchService $productSearchService)
+    public function __construct(private readonly CatalogService $catalogService) {}
+
+    public function __invoke(Request $request): Response
     {
         $filters = $this->normalizeFilters($request);
         $resellerId = auth('customer')->user()?->reseller_id;
-
-        $query = Product::query()
-            ->select([
-                'id', 'uuid', 'name', 'slug', 'digital', 'code',
-                'stock', 'sale_price', 'price', 'min_order', 'fake_sold_count', 'created_at',
-            ])
-            ->active()
-            ->with([
-                'media',
-                'flashsaleProducts' => fn ($query) => $query
-                    ->whereHas('flashsale', fn ($query) => $query->current())
-                    ->select(['id', 'product_id', 'discount_percentage', 'stock']),
-                'wholesales' => fn ($query) => $query
-                    ->where('min_qty', '<=', 1)
-                    ->select(['id', 'product_id', 'min_qty', 'price']),
-            ])
-            ->when($resellerId, fn ($query) => $query->with([
-                'resellerPrices' => fn ($query) => $query
-                    ->where('reseller_id', $resellerId)
-                    ->select(['id', 'product_id', 'reseller_id', 'price']),
-            ]));
-
-        if ($filters['categories'] !== []) {
-            $query->whereHas('category', function ($q) use ($filters) {
-                $q->whereIn('slug', $filters['categories']);
-            });
-        }
-
-        if ($filters['search'] !== '') {
-            $productSearchService->apply($query, $filters['search']);
-        }
-
-        if ($filters['price_min'] !== null) {
-            $query->where('price', '>=', $filters['price_min']);
-        }
-
-        if ($filters['price_max'] !== null) {
-            $query->where('price', '<=', $filters['price_max']);
-        }
-
-        $this->applyVariantFilters($query, $filters['variants']);
-        $this->applyCatalogFilters($query, $filters);
-
-        switch ($filters['sort']) {
-            case 'price_low':
-                $query->orderBy('price', 'asc');
-                break;
-            case 'price_high':
-                $query->orderBy('price', 'desc');
-                break;
-            case 'name_asc':
-                $query->orderBy('name', 'asc');
-                break;
-            case 'name_desc':
-                $query->orderBy('name', 'desc');
-                break;
-            case 'newest':
-            default:
-                $query->latest();
-                break;
-        }
-
-        $products = $query->paginate($filters['per_page'])->appends($this->compactQuery($filters['query']));
-        ProductStatsService::attachCatalogStats($products->getCollection());
-        $categories = Category::active()->orderBy('name')->get();
+        $products = $this->catalogService->paginateProducts($filters, $resellerId);
+        $categories = $this->catalogService->activeCategories();
 
         return Inertia::render('Products/Index', [
             'products' => ProductSimpleResource::collection($products),
@@ -102,6 +41,7 @@ class ProductController extends Controller
         ]);
     }
 
+    /** @return array{search: string, categories: list<string>, sort: string, price_min: ?float, price_max: ?float, rating_min: ?float, promos: list<string>, per_page: int, variants: array<string, list<string>>, query: array<string, string|list<string>>} */
     private function normalizeFilters(Request $request): array
     {
         $priceMin = $this->normalizeNumber($request->input('price_min'));
@@ -175,45 +115,6 @@ class ProductController extends Controller
         ];
     }
 
-    private function applyVariantFilters($query, array $variants): void
-    {
-        foreach ($variants as $key => $values) {
-            $attributeNames = self::VARIANT_ATTRIBUTE_ALIASES[$key] ?? [];
-
-            if ($attributeNames === []) {
-                continue;
-            }
-
-            $query->whereHas('productVariants.variantAttributes', function ($attributeQuery) use ($attributeNames, $values): void {
-                $attributeQuery
-                    ->whereHas('productAttribute', fn ($query) => $query->whereIn('name', $attributeNames))
-                    ->whereHas('productAttributeOption', fn ($query) => $query->whereIn('name', $values));
-            });
-        }
-    }
-
-    private function applyCatalogFilters($query, array $filters): void
-    {
-        if ($filters['rating_min'] !== null) {
-            $query->whereRaw(
-                '(SELECT COALESCE(AVG(product_reviews.rating), 0) FROM product_reviews WHERE product_reviews.product_id = products.id) >= ?',
-                [$filters['rating_min']]
-            );
-        }
-
-        foreach ($filters['promos'] as $promo) {
-            match ($promo) {
-                'discount' => $query->where(function ($query): void {
-                    $query->whereColumn('sale_price', '<', 'price')
-                        ->orWhereHas('flashsaleProducts', fn ($query) => $query->whereHas('flashsale', fn ($query) => $query->current()));
-                }),
-                'new' => $query->where('created_at', '>=', now()->subDays(30)),
-                'flash_sale' => $query->whereHas('flashsaleProducts', fn ($query) => $query->whereHas('flashsale', fn ($query) => $query->current())),
-                default => null,
-            };
-        }
-    }
-
     private function normalizeList(mixed $value): array
     {
         if (! is_array($value)) {
@@ -247,40 +148,15 @@ class ProductController extends Controller
         return rtrim(rtrim(number_format($value, 6, '.', ''), '0'), '.');
     }
 
-    private function compactQuery(array $query): array
+    public function show(Request $request, Product $product): Response
     {
-        return collect($query)
-            ->map(fn ($value) => is_array($value) && count($value) === 1 ? $value[0] : $value)
-            ->all();
-    }
-
-    public function show(Request $request, Product $product, RelatedProductService $relatedProductService)
-    {
-        $product->loadMissing([
-            'category',
-            'productVariants.variantAttributes' => fn ($query) => $query->with([
-                'productAttribute',
-                'productAttributeOption',
-            ]),
-            'warehouse',
-            'media',
-            'flashsaleProducts' => fn ($query) => $query
-                ->whereHas('flashsale', fn ($query) => $query->current())
-                ->select(['id', 'product_id', 'discount_percentage', 'stock']),
-            'faqs',
-            'meta',
-            'wholesales',
-            'resellerPrices',
-        ]);
-
-        ProductStatsService::attachSales(collect([$product]));
-
+        $product = $this->catalogService->productDetail($product);
         $resellerId = auth('customer')->user()?->reseller_id;
 
         return Inertia::render('Products/Show', [
             'product' => ProductResource::make($product),
             'relatedProducts' => Inertia::defer(
-                fn () => ProductSimpleResource::collection($relatedProductService->forProduct($product, $resellerId)),
+                fn () => ProductSimpleResource::collection($this->catalogService->relatedProducts($product, $resellerId)),
                 'relatedProducts',
             ),
         ]);

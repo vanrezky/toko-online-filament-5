@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AddressResource;
 use App\Http\Resources\CustomerResource;
 use App\Http\Resources\OrderResource;
+use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\District;
 use App\Models\Province;
@@ -13,21 +16,23 @@ use App\Models\SubDistrict;
 use App\Services\AccountProfileService;
 use App\Services\RegionalService;
 use App\Settings\GeneralSettings;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class AccountController extends Controller
 {
     public function __construct(
         private readonly AccountProfileService $profileService,
         private readonly RegionalService $regionalService,
-    ) {
-    }
+    ) {}
 
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): Response
     {
-        $customer = Auth::guard('customer')->user();
+        $customer = $this->customer();
         $this->profileService->loadAddresses($customer);
         $balanceEnabled = app(GeneralSettings::class)->balance_enabled;
 
@@ -45,9 +50,9 @@ class AccountController extends Controller
         ]);
     }
 
-    public function updateProfile(Request $request)
+    public function updateProfile(Request $request): RedirectResponse
     {
-        $customer = Auth::guard('customer')->user();
+        $customer = $this->customer();
 
         $request->validate([
             'first_name' => 'required|string|max:255',
@@ -57,89 +62,56 @@ class AccountController extends Controller
             'image' => 'nullable|image|max:2048', // 2MB max
         ]);
 
-        $customer->update([
+        $this->profileService->updateProfile($customer, [
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'phone' => $request->phone,
-        ]);
-
-        if ($request->hasFile('image')) {
-            $customer->clearMediaCollection('profile_photos');
-            $media = $customer->addMediaFromRequest('image')
-                ->toMediaCollection('profile_photos', config('filesystems.upload_disk'));
-
-            $customer->update([
-                'image' => $media->getUrl('thumb'),
-            ]);
-        }
+            'phone' => $request->filled('phone') ? (string) $request->input('phone') : null,
+        ], $request->file('image'));
 
         return back()->with('success', __('messages.success.profile_updated'));
     }
 
-    public function updatePassword(Request $request)
+    public function updatePassword(Request $request): RedirectResponse
     {
-        $customer = Auth::guard('customer')->user();
+        $customer = $this->customer();
 
         $validated = $request->validate([
             'current_password' => ['required', 'current_password:customer'],
             'password' => ['required', 'confirmed', securePassword(8)],
         ]);
 
-        $customer->update([
-            'password' => $validated['password'],
-        ]);
+        $this->profileService->updatePassword($customer, (string) $validated['password']);
 
         return back()->with('success', __('messages.success.password_updated'));
     }
 
-    public function storeAddress(Request $request)
+    public function storeAddress(Request $request): RedirectResponse
     {
         $this->ensurePublicStore();
 
-        $customer = Auth::guard('customer')->user();
+        $customer = $this->customer();
         $validated = $this->validatedAddress($request);
-        $isFeatured = (bool) ($validated['is_featured'] ?? false);
-
-        if ($isFeatured) {
-            $customer->address()->update(['is_featured' => false]);
-        }
-
-        $customer->address()->create([
-            ...$validated,
-            'is_featured' => $isFeatured,
-            'source_type' => 'customer',
-        ]);
+        $this->profileService->createAddress($customer, $validated);
 
         return back()->with('success', __('messages.success.address_added'));
     }
 
-    public function updateAddress(Request $request, CustomerAddress $address)
+    public function updateAddress(Request $request, CustomerAddress $address): RedirectResponse
     {
         $this->ensureCustomerCanManageAddress($address);
 
         $validated = $this->validatedAddress($request);
-        $isFeatured = (bool) ($validated['is_featured'] ?? false);
-
-        if ($isFeatured) {
-            CustomerAddress::where('customer_id', $address->customer_id)->update(['is_featured' => false]);
-        } else {
-            unset($validated['is_featured']);
-        }
-
-        $address->update([
-            ...$validated,
-            ...($isFeatured ? ['is_featured' => true] : []),
-        ]);
+        $this->profileService->updateAddress($address, $validated);
 
         return back()->with('success', __('messages.success.address_updated'));
     }
 
-    public function deleteAddress(CustomerAddress $address)
+    public function deleteAddress(CustomerAddress $address): RedirectResponse
     {
         $this->ensureCustomerCanManageAddress($address);
 
-        $address->delete();
+        $this->profileService->deleteAddress($address);
 
         return back()->with('success', __('messages.success.address_deleted'));
     }
@@ -160,9 +132,10 @@ class AccountController extends Controller
         );
     }
 
+    /** @return array{name: string, phone: string, province_id: int, district_id: int, sub_district_id: int, village_id: int, address: string, postal_code: string, is_featured?: bool} */
     private function validatedAddress(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:15', 'regex:/^[0-9]+$/'],
             'province_id' => ['required', 'exists:provinces,id'],
@@ -173,24 +146,49 @@ class AccountController extends Controller
             'postal_code' => ['required', 'string', 'max:255'],
             'is_featured' => ['nullable', 'boolean'],
         ]);
+
+        $address = [
+            'name' => (string) $validated['name'],
+            'phone' => (string) $validated['phone'],
+            'province_id' => (int) $validated['province_id'],
+            'district_id' => (int) $validated['district_id'],
+            'sub_district_id' => (int) $validated['sub_district_id'],
+            'village_id' => (int) $validated['village_id'],
+            'address' => (string) $validated['address'],
+            'postal_code' => (string) $validated['postal_code'],
+        ];
+
+        if (array_key_exists('is_featured', $validated)) {
+            $address['is_featured'] = (bool) $validated['is_featured'];
+        }
+
+        return $address;
     }
 
-    public function getDistricts(Province $province)
+    public function getDistricts(Province $province): JsonResponse
     {
         return response()->json($this->regionalService->getDistricts($province->id)->map(fn ($d) => ['id' => $d->id, 'name' => $d->name]));
     }
 
-    public function getSubDistricts(District $district)
+    public function getSubDistricts(District $district): JsonResponse
     {
         return response()->json($this->regionalService->getSubdistricts($district->id)->map(fn ($s) => ['id' => $s->id, 'name' => $s->name]));
     }
 
-    public function getVillages(SubDistrict $subDistrict)
+    public function getVillages(SubDistrict $subDistrict): JsonResponse
     {
         return response()->json($this->regionalService->getVillages($subDistrict->id)->map(fn ($v) => [
             'id' => $v->id,
             'name' => $v->name,
             'postal_code' => $v->postal_code,
         ]));
+    }
+
+    private function customer(): Customer
+    {
+        $customer = Auth::guard('customer')->user();
+        abort_unless($customer instanceof Customer, 403);
+
+        return $customer;
     }
 }

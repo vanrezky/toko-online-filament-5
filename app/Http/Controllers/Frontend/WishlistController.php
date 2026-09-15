@@ -1,88 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductSimpleResource;
-use App\Models\Product;
-use App\Models\Wishlist;
+use App\Models\Customer;
+use App\Services\WishlistService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use Inertia\Response;
 
-class WishlistController extends Controller
+final class WishlistController extends Controller
 {
-    public function index()
+    public function __construct(private readonly WishlistService $wishlistService) {}
+
+    public function index(): Response
     {
-        $customer = Auth::guard('customer')->user();
-        $wishlistItems = [];
-
-        if ($customer) {
-            $resellerId = $customer->reseller_id;
-
-            $wishlistItems = Wishlist::where('customer_id', $customer->id)
-                ->with([
-                    'product' => fn ($query) => $query->select([
-                        'id', 'uuid', 'name', 'slug', 'digital', 'code',
-                        'stock', 'sale_price', 'price', 'min_order', 'fake_sold_count',
-                    ]),
-                    'product.media',
-                    'product.flashsaleProducts' => fn ($query) => $query
-                        ->whereHas('flashsale', fn ($query) => $query->current())
-                        ->select(['id', 'product_id', 'discount_percentage', 'stock']),
-                    'product.wholesales' => fn ($query) => $query
-                        ->where('min_qty', '<=', 1)
-                        ->select(['id', 'product_id', 'min_qty', 'price']),
-                ])
-                ->when($resellerId, fn ($query) => $query->with([
-                    'product.resellerPrices' => fn ($query) => $query
-                        ->where('reseller_id', $resellerId)
-                        ->select(['id', 'product_id', 'reseller_id', 'price']),
-                ]))
-                ->get()
-                ->pluck('product')
-                ->filter()
-                ->unique('id');
-        }
+        $customer = $this->customer();
 
         return Inertia::render('Wishlist/Index', [
-            'products' => ProductSimpleResource::collection($wishlistItems)
+            'products' => ProductSimpleResource::collection(
+                $this->wishlistService->products($customer, $customer->reseller_id),
+            ),
         ]);
     }
 
-    public function toggle(Request $request)
+    public function toggle(Request $request): JsonResponse|RedirectResponse
     {
         $customer = Auth::guard('customer')->user();
 
-        if (!$customer) {
+        if (! $customer instanceof Customer) {
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'unauthenticated'], 401);
+            }
+
             session()->put('url.intended', url()->previous());
+
             return redirect()->route('frontend.login');
         }
 
-        $request->validate([
-            'product_id' => 'required|exists:products,uuid',
-        ]);
+        $validated = $request->validate(['product_id' => 'required|exists:products,uuid']);
+        $result = $this->wishlistService->toggle($customer, (string) $validated['product_id']);
 
-        $product = Product::select('id')->where('uuid', $request->product_id)->first();
-        $wishlist = Wishlist::where('customer_id', $customer->id)
-            ->where('product_id', $product->id)
-            ->first();
-
-        if ($wishlist) {
-            $wishlist->delete();
-            $status = 'removed';
-        } else {
-            Wishlist::create([
-                'customer_id' => $customer->id,
-                'product_id' => $product->id,
-            ]);
-            $status = 'added';
-        }
-
-        if ($request->wantsJson()) {
-            return response()->json(['status' => $status]);
+        if ($request->expectsJson()) {
+            return response()->json(['status' => $result]);
         }
 
         return back();
+    }
+
+    private function customer(): Customer
+    {
+        $customer = Auth::guard('customer')->user();
+        abort_unless($customer instanceof Customer, 403);
+
+        return $customer;
     }
 }

@@ -1,15 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Settings\GeneralSettings;
+use App\Services\CustomerAuthService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Inertia\Response;
 
-class LoginController extends Controller
+final class LoginController extends Controller
 {
     use ThrottlesAuth;
 
@@ -17,12 +20,14 @@ class LoginController extends Controller
 
     protected int $decayMinutes = 1;
 
-    public function __invoke()
+    public function __construct(private readonly CustomerAuthService $authService) {}
+
+    public function __invoke(): Response
     {
         return Inertia::render('Auth/Login');
     }
 
-    public function login(Request $request)
+    public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -33,7 +38,11 @@ class LoginController extends Controller
             $this->sendLockoutResponse($request);
         }
 
-        if (Auth::guard('customer')->attempt($credentials, $request->boolean('remember'))) {
+        if ($this->authService->authenticate(
+            (string) $credentials['email'],
+            (string) $credentials['password'],
+            $request->boolean('remember'),
+        )) {
             $this->clearLoginAttempts($request);
             $request->session()->regenerate();
 
@@ -42,8 +51,6 @@ class LoginController extends Controller
 
         $this->incrementLoginAttempts($request);
 
-        throw ValidationException::withMessages([
-            'email' => __('auth.failed'),
-        ]);
+        throw ValidationException::withMessages(['email' => __('auth.failed')]);
     }
 }

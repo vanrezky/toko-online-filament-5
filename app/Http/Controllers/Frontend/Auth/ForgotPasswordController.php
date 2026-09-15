@@ -1,11 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Customer;
-use App\Models\User;
-use App\Notifications\CustomerResetPasswordNotification;
+use App\Services\PasswordResetService;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +16,8 @@ use Inertia\Response;
 
 class ForgotPasswordController extends Controller
 {
+    public function __construct(private readonly PasswordResetService $passwordResetService) {}
+
     protected int $maxAttempts = 3;
 
     protected int $decayMinutes = 5;
@@ -25,7 +27,7 @@ class ForgotPasswordController extends Controller
         return Inertia::render('Auth/ForgotPassword');
     }
 
-    public function sendResetLink(Request $request)
+    public function sendResetLink(Request $request): Response
     {
         $request->validate([
             'email' => 'required|email',
@@ -43,10 +45,9 @@ class ForgotPasswordController extends Controller
             $this->sendLockoutResponse($request);
         }
 
-        $model = $guard === 'customer' ? Customer::class : User::class;
-        $user = $model::where('email', $request->email)->first();
+        $userId = $this->passwordResetService->sendResetLink($guard, (string) $request->email);
 
-        if (! $user) {
+        if ($userId === null) {
             $this->incrementAttempts($request);
             Log::info('Password reset requested for non-existent email', [
                 'email' => $request->email,
@@ -58,17 +59,10 @@ class ForgotPasswordController extends Controller
             ]);
         }
 
-        $token = Password::broker($guard === 'customer' ? 'customers' : 'users')->createToken($user);
-
-        $user->notify(
-            (new CustomerResetPasswordNotification($token, $guard))
-                ->onQueue('default')
-        );
-
         Log::info('Password reset link sent', [
             'email' => $request->email,
             'guard' => $guard,
-            'user_id' => $user->id,
+            'user_id' => $userId,
             'ip' => $request->ip(),
         ]);
 

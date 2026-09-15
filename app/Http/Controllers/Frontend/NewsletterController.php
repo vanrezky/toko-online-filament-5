@@ -1,85 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\SendNewsletterJob;
-use App\Models\EmailTemplate;
-use App\Models\NewsletterSubscriber;
-use App\Enums\EmailTemplateCode;
+use App\Services\NewsletterService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class NewsletterController extends Controller
 {
-    public function subscribe(Request $request)
+    public function __construct(private readonly NewsletterService $newsletterService) {}
+
+    public function subscribe(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'email' => 'required|email|max:255',
         ]);
 
-        $existingSubscriber = NewsletterSubscriber::where('email', $validated['email'])->first();
-
-        if ($existingSubscriber) {
-            if ($existingSubscriber->is_active) {
-                return redirect()->back()->with('info', __('messages.info.already_subscribed'));
-            }
-
-            $existingSubscriber->resubscribe();
-
-            // Send welcome newsletter via queue
-            SendNewsletterJob::dispatch($existingSubscriber, 'welcome');
-
-            return redirect()->back()->with('success', __('messages.success.resubscribed'));
-        }
-
-        $subscriber = NewsletterSubscriber::create([
-            'email' => $validated['email'],
-        ]);
-
-        // Send welcome/test newsletter via queue
-        SendNewsletterJob::dispatch($subscriber, 'welcome');
-
-        return redirect()->back()->with('success', __('messages.success.subscribed'));
+        return match ($this->newsletterService->subscribe((string) $validated['email'])) {
+            'already_subscribed' => redirect()->back()->with('info', __('messages.info.already_subscribed')),
+            'resubscribed' => redirect()->back()->with('success', __('messages.success.resubscribed')),
+            default => redirect()->back()->with('success', __('messages.success.subscribed')),
+        };
     }
 
-    public function unsubscribe(Request $request, string $token)
+    public function unsubscribe(Request $request, string $token): Response
     {
-        $subscriber = NewsletterSubscriber::where('token', $token)->firstOrFail();
-
-        if (! $subscriber->is_active) {
-            return Inertia::render('Newsletter/Unsubscribe', [
-                'status' => 'already_unsubscribed',
-                'email' => $subscriber->email,
-            ]);
-        }
-
-        $subscriber->unsubscribe();
+        $result = $this->newsletterService->unsubscribe($token);
 
         return Inertia::render('Newsletter/Unsubscribe', [
-            'status' => 'unsubscribed',
-            'email' => $subscriber->email,
+            'status' => $result['status'],
+            'email' => $result['email'],
         ]);
     }
 
-    public function sendTest(Request $request)
+    public function sendTest(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'email' => 'required|email|max:255',
         ]);
 
-        $template = EmailTemplate::getByCode(EmailTemplateCode::NEWSLETTER->value);
-
-        if (! $template) {
+        if (! $this->newsletterService->sendTest((string) $validated['email'])) {
             return redirect()->back()->with('error', __('messages.error.newsletter_template_not_found'));
         }
-
-        $subscriber = NewsletterSubscriber::firstOrCreate(
-            ['email' => $validated['email']],
-            ['subscribed_at' => now()]
-        );
-
-        SendNewsletterJob::dispatch($subscriber, 'test');
 
         return redirect()->back()->with('success', __('messages.success.test_newsletter_sent', ['email' => $validated['email']]));
     }

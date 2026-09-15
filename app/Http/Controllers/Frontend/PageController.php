@@ -1,21 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MetaResource;
-use App\Models\Page;
+use App\Services\ContentService;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class PageController extends Controller
 {
-    public function show($slug)
+    public function __construct(private readonly ContentService $contentService) {}
+
+    public function show(string $slug): Response
     {
-        $page = Page::where('slug', $slug)
-            ->active()
-            ->with('meta')
-            ->firstOrFail();
+        $page = $this->contentService->findActivePage($slug);
 
         return Inertia::render('Page/Show', [
             'page' => [

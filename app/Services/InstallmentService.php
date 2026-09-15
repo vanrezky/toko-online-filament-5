@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Enums\InstallmentStatus;
@@ -8,10 +10,13 @@ use App\Models\Installment;
 use App\Models\InstallmentPayment;
 use App\Models\InstallmentPlan;
 use App\Models\Transaction;
+use App\Repositories\InstallmentRepository;
 use Illuminate\Support\Collection;
 
 class InstallmentService
 {
+    public function __construct(private readonly InstallmentRepository $installmentRepository) {}
+
     public function createInstallment(Transaction $transaction, InstallmentPlan $plan): Installment
     {
         $principalAmount = $transaction->total_amount;
@@ -102,10 +107,7 @@ class InstallmentService
 
     public function getCustomerInstallments(Customer $customer): Collection
     {
-        return $customer->installments()
-            ->with(['installmentPlan', 'payments'])
-            ->orderByDesc('created_at')
-            ->get();
+        return $this->installmentRepository->forCustomer($customer);
     }
 
     public function getInstallmentSchedule(Installment $installment): Collection
@@ -113,5 +115,16 @@ class InstallmentService
         return $installment->payments()
             ->orderBy('installment_number')
             ->get();
+    }
+
+    public function findForCustomer(Customer $customer, string $uuid): Installment
+    {
+        return $this->installmentRepository->findForCustomer($customer, $uuid);
+    }
+
+    /** @return array{next_month: array<string, int|float|string|bool|null>|null, upcoming: list<array<string, int|float|string|bool|null>>} */
+    public function getMonthlyBills(Customer $customer): array
+    {
+        return $this->installmentRepository->monthlyBills($customer);
     }
 }
