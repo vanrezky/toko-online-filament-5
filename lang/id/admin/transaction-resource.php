@@ -24,6 +24,7 @@ return [
         'order_information' => 'Informasi Pesanan',
         'order_id' => 'ID Pesanan',
         'status' => 'Status',
+        'payment_method' => 'Metode Pembayaran',
         'payment_type' => 'Jenis Pembayaran',
         'receipt_code' => 'Kode Resi',
         'timelimit' => 'Batas Waktu',
