@@ -36,3 +36,14 @@ The system SHALL process duplicate notifications as no-ops and MUST NOT regress 
 #### Scenario: Valid expiration notification arrives for an unpaid transaction
 - **WHEN** a valid expire or cancel notification arrives for an eligible unpaid Midtrans transaction
 - **THEN** the system invokes the established transaction-cancellation flow once and acknowledges duplicate deliveries without repeated side effects
+
+### Requirement: Browser payment return may reconcile through a trusted server lookup
+The system SHALL treat Snap redirect and browser callbacks as routing hints only. For an owned Midtrans order return, it MAY query Midtrans status server-to-server and MUST validate the returned order ID and gross amount before applying the same idempotent local billing transitions. The Dashboard Notification URL MUST remain the authoritative asynchronous reconciliation path.
+
+#### Scenario: Successful browser return matches the local order
+- **WHEN** an authenticated owner returns from Snap and the server-side Midtrans status has the same order ID, successful status, and local gross amount
+- **THEN** the system marks the billing status as paid before redirecting to order detail
+
+#### Scenario: Browser return has an untrusted or mismatched result
+- **WHEN** the return route is accessed with a manipulated marker or the server-side status does not match the local order ID or amount
+- **THEN** the system does not mark the transaction paid and leaves webhook reconciliation responsible for a later valid notification

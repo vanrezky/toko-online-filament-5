@@ -304,6 +304,15 @@
             "initiation_failed": "Midtrans payment could not be started. Please try again."
         },
         "payment_status_label": "Status:",
+        "billing_status_label": "Payment Status",
+        "billing_status": {
+            "not_applicable": "Not Applicable",
+            "pending": "Pending Payment",
+            "submitted": "Submitted",
+            "paid": "Paid",
+            "failed": "Failed",
+            "cancelled": "Cancelled"
+        },
         "summary_title": "Order Summary",
         "subtotal": "Subtotal",
         "shipping": "Shipping",

@@ -97,6 +97,7 @@ Route::name('frontend.')->group(function () {
         Route::get('/orders', [OrderController::class, 'index'])->name('orders');
         Route::get('/orders/{transaction}', [OrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{transaction}/pay', [OrderController::class, 'pay'])->name('orders.pay');
+        Route::get('/orders/{transaction}/payment-return', [OrderController::class, 'paymentReturn'])->name('orders.payment-return');
         Route::post('/orders/{transaction}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
         Route::post('/orders/{transaction}/products/{transactionProduct}/review', [ProductReviewController::class, 'store'])->name('orders.products.review.store');
         Route::post('/orders/{transaction}/reviews', [ProductReviewController::class, 'storeBatch'])->name('orders.reviews.store');

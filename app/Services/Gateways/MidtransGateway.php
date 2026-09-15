@@ -99,6 +99,16 @@ class MidtransGateway implements PaymentGatewayInterface
             // Ensure products and their related product info are loaded
             $transaction->loadMissing(['products.product', 'customer', 'vouchers']);
 
+            $timelimit = $transaction->timelimit?->utc();
+
+            $remainingMinutes = $timelimit
+                ? (int) ceil(max(0, Carbon::now('UTC')->diffInSeconds($timelimit, false)) / 60)
+                : 0;
+
+            if ($remainingMinutes < 5) {
+                throw new \RuntimeException('Midtrans payment cannot be started because the transaction time limit is less than five minutes away.');
+            }
+
             $itemDetails = [];
             $totalAmount = 0;
             $remainingProductDiscount = (float) $transaction->vouchers
@@ -117,11 +127,11 @@ class MidtransGateway implements PaymentGatewayInterface
                     $unitPrice = (int) round($netPrice - $unitDiscount, 0, PHP_ROUND_HALF_UP);
                     $remainingProductDiscount -= $unitDiscount;
                     $itemDetails[] = [
-                        'id' => ($item->product?->uuid ?? $item->id).'-'.$unit,
+                        'id' => ($item->product?->uuid ?? $item->id) . '-' . $unit,
                         'price' => $unitPrice,
                         'quantity' => 1,
                         'name' => Str::substr(
-                            $item->product_name ?? $item->product?->name ?? ('Product #'.$item->product_id),
+                            $item->product_name ?? $item->product?->name ?? ('Product #' . $item->product_id),
                             0,
                             50,
                         ),
@@ -176,15 +186,6 @@ class MidtransGateway implements PaymentGatewayInterface
                 'customer_details' => $customerDetails,
             ];
 
-            $timelimit = $transaction->timelimit?->utc();
-            $remainingMinutes = $timelimit
-                ? (int) ceil(max(0, Carbon::now('UTC')->diffInSeconds($timelimit, false)) / 60)
-                : 0;
-
-            if ($remainingMinutes < 5) {
-                throw new \RuntimeException('Midtrans payment cannot be started because the transaction time limit is less than five minutes away.');
-            }
-
             $payload['expiry'] = [
                 'start_time' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
                 'unit' => 'minute',
@@ -210,6 +211,15 @@ class MidtransGateway implements PaymentGatewayInterface
                 ];
             }
 
+            $paymentReturnUrl = route('frontend.orders.payment-return', [
+                'transaction' => $transaction->uuid,
+            ]);
+            $payload['callbacks'] = [
+                'finish' => $paymentReturnUrl,
+                'unfinish' => $paymentReturnUrl,
+                'error' => $paymentReturnUrl,
+            ];
+
             Log::info('Midtrans: Creating Snap token', [
                 'order_id' => $transaction->uuid,
                 'gross_amount' => $grossAmount,
@@ -222,7 +232,7 @@ class MidtransGateway implements PaymentGatewayInterface
                 'provider' => 'midtrans',
                 'type' => IntegrationLog::TYPE_API,
                 'method' => 'POST',
-                'url' => $this->snapBaseUrl().'/snap/v1/transactions',
+                'url' => $this->snapBaseUrl() . '/snap/v1/transactions',
                 'endpoint' => 'Snap::getSnapToken',
                 'request_body' => $payload,
                 'subject' => $transaction,
@@ -278,7 +288,7 @@ class MidtransGateway implements PaymentGatewayInterface
             'provider' => 'midtrans',
             'type' => IntegrationLog::TYPE_API,
             'method' => 'GET',
-            'url' => $this->apiBaseUrl().'/v2/'.$transactionId.'/status',
+            'url' => $this->apiBaseUrl() . '/v2/' . $transactionId . '/status',
             'endpoint' => 'Transaction::status',
             'request_body' => ['order_id' => $transactionId],
             'subject' => Transaction::query()->where('uuid', $transactionId)->first(),
@@ -342,7 +352,7 @@ class MidtransGateway implements PaymentGatewayInterface
             $serverKey = $creds['server_key'] ?? '';
 
             // Midtrans signature: SHA512(order_id + status_code + gross_amount + server_key)
-            $signature = hash('sha512', $transactionId.$statusCode.$grossAmount.$serverKey);
+            $signature = hash('sha512', $transactionId . $statusCode . $grossAmount . $serverKey);
 
             if (! $signatureKey || ! hash_equals($signature, (string) $signatureKey)) {
                 Log::warning('Midtrans webhook signature mismatch', [

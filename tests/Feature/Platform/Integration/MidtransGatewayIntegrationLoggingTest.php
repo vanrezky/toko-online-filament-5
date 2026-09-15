@@ -11,7 +11,9 @@ use App\Models\Transaction;
 use App\Models\Warehouse;
 use App\Modules\Platform\Integration\Models\IntegrationLog;
 use App\Modules\Platform\Support\Correlation;
+use App\Services\Gateways\DTOs\PaymentStatus;
 use App\Services\Gateways\MidtransGateway;
+use App\Services\PaymentGatewayService;
 use App\Settings\PaymentGatewaySettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -51,8 +53,57 @@ class MidtransGatewayIntegrationLoggingTest extends TestCase
         $this->assertSame(IntegrationLog::STATUS_SUCCESS, $log->status);
         $this->assertSame(['snap_token' => 'snap-token-123'], $log->response_body);
         $this->assertSame($transaction->uuid, $log->request_body['transaction_details']['order_id']);
+        $this->assertSame(route('frontend.orders.payment-return', $transaction->uuid), $log->request_body['callbacks']['finish']);
         $this->assertSame(Transaction::class, $log->subject_type);
         $this->assertSame($transaction->id, $log->subject_id);
+    }
+
+    public function test_payment_return_reconciles_verified_status_before_redirecting(): void
+    {
+        $transaction = $this->createTransaction();
+        $gateway = Mockery::mock(PaymentGatewayService::class);
+        $gateway->shouldReceive('isGatewayAvailable')->once()->with('midtrans')->andReturnTrue();
+        $gateway->shouldReceive('getPaymentStatus')->once()->with($transaction->uuid)->andReturn(new PaymentStatus(
+            status: 'success',
+            transactionId: $transaction->uuid,
+            amount: (float) $transaction->total_amount,
+            currency: 'IDR',
+            errorMessage: null,
+        ));
+        $this->app->instance(PaymentGatewayService::class, $gateway);
+
+        $response = $this->actingAs($transaction->customer, 'customer')
+            ->get(route('frontend.orders.payment-return', $transaction->uuid));
+
+        $response->assertRedirect(route('frontend.orders.show', $transaction->uuid));
+        $this->assertDatabaseHas('transactions', [
+            'id' => $transaction->id,
+            'billing_status' => TransactionBillingStatus::paid->value,
+        ]);
+    }
+
+    public function test_payment_return_does_not_reconcile_a_mismatched_amount(): void
+    {
+        $transaction = $this->createTransaction();
+        $gateway = Mockery::mock(PaymentGatewayService::class);
+        $gateway->shouldReceive('isGatewayAvailable')->once()->with('midtrans')->andReturnTrue();
+        $gateway->shouldReceive('getPaymentStatus')->once()->with($transaction->uuid)->andReturn(new PaymentStatus(
+            status: 'success',
+            transactionId: $transaction->uuid,
+            amount: (float) $transaction->total_amount + 1,
+            currency: 'IDR',
+            errorMessage: null,
+        ));
+        $this->app->instance(PaymentGatewayService::class, $gateway);
+
+        $response = $this->actingAs($transaction->customer, 'customer')
+            ->get(route('frontend.orders.payment-return', $transaction->uuid));
+
+        $response->assertRedirect(route('frontend.orders.show', $transaction->uuid));
+        $this->assertDatabaseHas('transactions', [
+            'id' => $transaction->id,
+            'billing_status' => TransactionBillingStatus::pending->value,
+        ]);
     }
 
     public function test_create_payment_exception_returns_failed_response_and_logs_failed(): void

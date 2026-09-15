@@ -48,6 +48,14 @@ final class OrderController extends Controller
         ]);
     }
 
+    public function paymentReturn(Transaction $transaction): RedirectResponse
+    {
+        $this->ensureOwner($transaction);
+        $this->orderService->synchronizePaymentStatus($transaction);
+
+        return redirect()->route('frontend.orders.show', $transaction->uuid);
+    }
+
     public function pay(Transaction $transaction): JsonResponse
     {
         $this->ensureOwner($transaction);

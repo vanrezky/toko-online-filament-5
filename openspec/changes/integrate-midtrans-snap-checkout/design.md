@@ -60,6 +60,10 @@ Duplicate or stale notifications become no-ops with a successful acknowledgement
 
 The checkout and pay-again flows lazily load the correct Snap script for the configured mode and call `snap.pay` with backend-issued token and client key. The order detail exposes this action only for the owned, packed, pending full Midtrans order. Its label makes clear that Snap can resume payment or choose another available Midtrans channel; it does not mutate the local transaction payment type or billing contract. All callbacks reload or redirect to the owned order detail; they do not set payment state. The visible choice appears only for an active, configured Midtrans adapter; other future gateway tiles remain disabled.
 
+### Reconcile the browser return through the server
+
+Snap finish, unfinish, and error callbacks will point to an owned order return route. That route may query Midtrans status server-to-server to reduce the visible delay after a browser callback, but it must validate the returned order ID and amount before applying the same monotonic local billing transitions. The redirect URL and any query marker are routing hints only; they are never payment proof. The Dashboard Notification URL remains the authoritative asynchronous path and handles retries or callbacks that never reach the browser.
+
 ### Verify webhook delivery configuration operationally
 
 The project documentation will state the exact Notification URL (`/webhooks/payment/midtrans`), public HTTPS/standard-port requirement, dashboard configuration, sandbox credentials, and test instructions. The endpoint must return JSON rapidly and must not log sensitive credentials or full untrusted payload unnecessarily.
