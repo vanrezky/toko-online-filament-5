@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-15
+goal: Run the application in production with independently managed environment
+  values and a reproducible 2 GB server runtime.

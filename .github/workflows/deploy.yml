@@ -1,231 +1,308 @@
-name: Deploy to Production
+name: Deploy Production (Docker)
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: production-deploy
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  packages: write
+
 env:
-  PHP_VERSION: "8.3"
-  NODE_VERSION: "22"
-  DEPLOY_PATH: ${{ secrets.SERVER_DEPLOY_PATH }}
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
   deploy:
-    name: Deploy
-    if: ${{ false }}
+    name: Build and deploy
     runs-on: ubuntu-latest
     environment: production
-    timeout-minutes: 20
+    timeout-minutes: 30
+    env:
+      DEPLOY_PATH: ${{ secrets.SERVER_DEPLOY_PATH }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          php-version: ${{ env.PHP_VERSION }}
-          extensions: mbstring, bcmath, xml, ctype, json, tokenizer, pdo_mysql, curl, zip, gd, intl
-          coverage: none
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Build and push production image
+        uses: docker/build-push-action@v6
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          context: .
+          file: docker/production/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:production
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Install Composer dependencies
-        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-progress --no-scripts
-
-      - name: Install NPM dependencies
-        run: npm ci
-
-      - name: Build assets
-        run: npm run build
-
-      - name: Clean unwanted files
+      - name: Render production environment file
+        shell: bash
+        env:
+          APP_NAME: ${{ vars.APP_NAME || 'TokoOnline' }}
+          APP_ENV: ${{ vars.APP_ENV || 'production' }}
+          APP_KEY: ${{ secrets.APP_KEY }}
+          APP_DEBUG: ${{ vars.APP_DEBUG || 'false' }}
+          APP_URL: ${{ vars.APP_URL }}
+          APP_TIMEZONE: ${{ vars.APP_TIMEZONE || 'Asia/Jakarta' }}
+          LOG_CHANNEL: ${{ vars.LOG_CHANNEL || 'stderr' }}
+          LOG_DEPRECATIONS_CHANNEL: ${{ vars.LOG_DEPRECATIONS_CHANNEL || 'null' }}
+          LOG_LEVEL: ${{ vars.LOG_LEVEL || 'warning' }}
+          LOG_STDERR_FORMATTER: ${{ vars.LOG_STDERR_FORMATTER || 'Monolog\Formatter\JsonFormatter' }}
+          DB_CONNECTION: ${{ vars.DB_CONNECTION || 'mysql' }}
+          DB_HOST: ${{ vars.DB_HOST || 'mysql' }}
+          DB_PORT: ${{ vars.DB_PORT || '3306' }}
+          DB_DATABASE: ${{ vars.DB_DATABASE }}
+          DB_USERNAME: ${{ vars.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          BROADCAST_DRIVER: ${{ vars.BROADCAST_DRIVER || 'log' }}
+          CACHE_DRIVER: ${{ vars.CACHE_DRIVER || 'file' }}
+          FILESYSTEM_DISK: ${{ vars.FILESYSTEM_DISK || 'local' }}
+          QUEUE_CONNECTION: ${{ vars.QUEUE_CONNECTION || 'database' }}
+          SESSION_DRIVER: ${{ vars.SESSION_DRIVER || 'file' }}
+          SESSION_LIFETIME: ${{ vars.SESSION_LIFETIME || '120' }}
+          SESSION_SECURE_COOKIE: ${{ vars.SESSION_SECURE_COOKIE || 'true' }}
+          COMPOSE_PROFILES: ${{ vars.COMPOSE_PROFILES || '' }}
+          REDIS_CLIENT: ${{ vars.REDIS_CLIENT || 'predis' }}
+          REDIS_HOST: ${{ vars.REDIS_HOST || 'redis' }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD || 'null' }}
+          REDIS_PORT: ${{ vars.REDIS_PORT || '6379' }}
+          REDIS_DB: ${{ vars.REDIS_DB || '0' }}
+          REDIS_CACHE_DB: ${{ vars.REDIS_CACHE_DB || '1' }}
+          REDIS_QUEUE: ${{ vars.REDIS_QUEUE || 'default' }}
+          OCTANE_SERVER: ${{ vars.OCTANE_SERVER || 'frankenphp' }}
+          OCTANE_HOST: ${{ vars.OCTANE_HOST }}
+          OCTANE_PORT: ${{ vars.OCTANE_PORT || '443' }}
+          OCTANE_HTTPS: ${{ vars.OCTANE_HTTPS || 'true' }}
+          OCTANE_ADMIN_PORT: ${{ vars.OCTANE_ADMIN_PORT || '2019' }}
+          OCTANE_WORKERS: ${{ vars.OCTANE_WORKERS || '1' }}
+          OCTANE_MAX_REQUESTS: ${{ vars.OCTANE_MAX_REQUESTS || '500' }}
+          OCTANE_LOG_LEVEL: ${{ vars.OCTANE_LOG_LEVEL || 'warn' }}
+          OPCACHE_ENABLE: ${{ vars.OPCACHE_ENABLE || '1' }}
+          OPCACHE_ENABLE_CLI: ${{ vars.OPCACHE_ENABLE_CLI || '1' }}
+          OPCACHE_MEMORY_CONSUMPTION: ${{ vars.OPCACHE_MEMORY_CONSUMPTION || '128' }}
+          OPCACHE_INTERNED_STRINGS_BUFFER: ${{ vars.OPCACHE_INTERNED_STRINGS_BUFFER || '16' }}
+          OPCACHE_MAX_ACCELERATED_FILES: ${{ vars.OPCACHE_MAX_ACCELERATED_FILES || '20000' }}
+          OPCACHE_VALIDATE_TIMESTAMPS: ${{ vars.OPCACHE_VALIDATE_TIMESTAMPS || '0' }}
+          OPCACHE_REVALIDATE_FREQ: ${{ vars.OPCACHE_REVALIDATE_FREQ || '0' }}
+          OPCACHE_SAVE_COMMENTS: ${{ vars.OPCACHE_SAVE_COMMENTS || '1' }}
+          OPCACHE_JIT: ${{ vars.OPCACHE_JIT || 'off' }}
+          OPCACHE_JIT_BUFFER_SIZE: ${{ vars.OPCACHE_JIT_BUFFER_SIZE || '0' }}
+          MAIL_MAILER: ${{ vars.MAIL_MAILER || 'smtp' }}
+          MAIL_HOST: ${{ vars.MAIL_HOST }}
+          MAIL_PORT: ${{ vars.MAIL_PORT || '587' }}
+          MAIL_USERNAME: ${{ vars.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_ENCRYPTION: ${{ vars.MAIL_ENCRYPTION || 'tls' }}
+          MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
+          MAIL_FROM_NAME: ${{ vars.MAIL_FROM_NAME || 'TokoOnline' }}
+          R2_UPLOAD_DISK: ${{ vars.R2_UPLOAD_DISK || 'local' }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_DEFAULT_REGION: ${{ vars.R2_DEFAULT_REGION || 'auto' }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          R2_URL: ${{ vars.R2_URL }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION || 'us-east-1' }}
+          AWS_BUCKET: ${{ vars.AWS_BUCKET }}
+          AWS_ENDPOINT: ${{ vars.AWS_ENDPOINT }}
+          AWS_URL: ${{ vars.AWS_URL }}
+          AWS_USE_PATH_STYLE_ENDPOINT: ${{ vars.AWS_USE_PATH_STYLE_ENDPOINT || 'false' }}
+          PUSHER_APP_ID: ${{ vars.PUSHER_APP_ID }}
+          PUSHER_APP_KEY: ${{ secrets.PUSHER_APP_KEY }}
+          PUSHER_APP_SECRET: ${{ secrets.PUSHER_APP_SECRET }}
+          PUSHER_HOST: ${{ vars.PUSHER_HOST }}
+          PUSHER_PORT: ${{ vars.PUSHER_PORT || '443' }}
+          PUSHER_SCHEME: ${{ vars.PUSHER_SCHEME || 'https' }}
+          PUSHER_APP_CLUSTER: ${{ vars.PUSHER_APP_CLUSTER || 'mt1' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_ORGANIZATION: ${{ vars.OPENAI_ORGANIZATION }}
+          OPENAI_REQUEST_TIMEOUT: ${{ vars.OPENAI_REQUEST_TIMEOUT || '30' }}
+          APICOID_API_KEY: ${{ secrets.APICOID_API_KEY }}
+          APICOID_BASE_URL: ${{ vars.APICOID_BASE_URL || 'https://api.co.id' }}
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REDIRECT_URI: ${{ vars.GOOGLE_REDIRECT_URI }}
+          GITHUB_CLIENT_ID: ${{ vars.GITHUB_CLIENT_ID }}
+          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
+          GITHUB_REDIRECT_URI: ${{ vars.GITHUB_REDIRECT_URI }}
+          HEALTH_DB_CONNECTION: ${{ vars.HEALTH_DB_CONNECTION || 'mysql' }}
+          HEALTH_REDIS_CONNECTION: ${{ vars.HEALTH_REDIS_CONNECTION || 'default' }}
+          HEALTH_QUEUE_NAME: ${{ vars.HEALTH_QUEUE_NAME || 'default' }}
+          HEALTH_QUEUE_FAILURE_MINUTES: ${{ vars.HEALTH_QUEUE_FAILURE_MINUTES || '5' }}
+          HEALTH_DISK_WARNING_PERCENTAGE: ${{ vars.HEALTH_DISK_WARNING_PERCENTAGE || '70' }}
+          HEALTH_DISK_FAILURE_PERCENTAGE: ${{ vars.HEALTH_DISK_FAILURE_PERCENTAGE || '90' }}
+          HEALTH_RESULT_HISTORY_DAYS: ${{ vars.HEALTH_RESULT_HISTORY_DAYS || '5' }}
+          HEALTH_NOTIFICATIONS_ENABLED: ${{ vars.HEALTH_NOTIFICATIONS_ENABLED || 'false' }}
+          HEALTH_TO_ADDRESS: ${{ vars.HEALTH_TO_ADDRESS }}
+          HEALTH_FROM_ADDRESS: ${{ vars.HEALTH_FROM_ADDRESS }}
+          HEALTH_FROM_NAME: ${{ vars.HEALTH_FROM_NAME || 'TokoOnline' }}
+          HEALTH_SECRET_TOKEN: ${{ secrets.HEALTH_SECRET_TOKEN }}
+          AUDIT_LOGGER_ENABLED: ${{ vars.AUDIT_LOGGER_ENABLED || 'true' }}
+          AUDIT_LOG_RETENTION_DAYS: ${{ vars.AUDIT_LOG_RETENTION_DAYS || '180' }}
+          AUDIT_LOG_PRUNING_ENABLED: ${{ vars.AUDIT_LOG_PRUNING_ENABLED || 'false' }}
+          ACTIVITY_LOGGER_TABLE_NAME: ${{ vars.ACTIVITY_LOGGER_TABLE_NAME || 'activity_log' }}
+          INTEGRATION_LOG_PAYLOAD_MAX_BYTES: ${{ vars.INTEGRATION_LOG_PAYLOAD_MAX_BYTES || '65536' }}
+          INTEGRATION_LOG_RETENTION_DAYS: ${{ vars.INTEGRATION_LOG_RETENTION_DAYS || '90' }}
+          FILAMENT_FILESYSTEM_DISK: ${{ vars.FILAMENT_FILESYSTEM_DISK || 'public' }}
+          BCRYPT_ROUNDS: ${{ vars.BCRYPT_ROUNDS || '12' }}
+          SETTINGS_CACHE_ENABLED: ${{ vars.SETTINGS_CACHE_ENABLED || 'true' }}
+          VITE_APP_NAME: ${{ vars.VITE_APP_NAME || 'TokoOnline' }}
         run: |
-          rm -rf .git .phpunit.cache node_modules tests
-          rm -f .env Homestead* auth.json npm-debug.log yarn-error.log .DS_Store
+          set -euo pipefail
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H -p ${{ secrets.SERVER_SSH_PORT || 22 }} ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          required_keys=(
+              APP_KEY APP_URL DB_DATABASE DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD
+              OCTANE_HOST MAIL_HOST MAIL_USERNAME MAIL_PASSWORD MAIL_FROM_ADDRESS
+          )
 
-      - name: "Pre-deploy: release ownership on server"
-        uses: appleboy/ssh-action@v1
+          all_keys=(
+              APP_NAME APP_ENV APP_KEY APP_DEBUG APP_URL APP_TIMEZONE
+              LOG_CHANNEL LOG_DEPRECATIONS_CHANNEL LOG_LEVEL LOG_STDERR_FORMATTER
+              DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD
+              BROADCAST_DRIVER CACHE_DRIVER FILESYSTEM_DISK QUEUE_CONNECTION
+              SESSION_DRIVER SESSION_LIFETIME SESSION_SECURE_COOKIE COMPOSE_PROFILES
+              REDIS_CLIENT REDIS_HOST REDIS_PASSWORD REDIS_PORT REDIS_DB REDIS_CACHE_DB REDIS_QUEUE
+              OCTANE_SERVER OCTANE_HOST OCTANE_PORT OCTANE_HTTPS OCTANE_ADMIN_PORT
+              OCTANE_WORKERS OCTANE_MAX_REQUESTS OCTANE_LOG_LEVEL
+              OPCACHE_ENABLE OPCACHE_ENABLE_CLI OPCACHE_MEMORY_CONSUMPTION
+              OPCACHE_INTERNED_STRINGS_BUFFER OPCACHE_MAX_ACCELERATED_FILES
+              OPCACHE_VALIDATE_TIMESTAMPS OPCACHE_REVALIDATE_FREQ OPCACHE_SAVE_COMMENTS
+              OPCACHE_JIT OPCACHE_JIT_BUFFER_SIZE
+              MAIL_MAILER MAIL_HOST MAIL_PORT MAIL_USERNAME MAIL_PASSWORD MAIL_ENCRYPTION
+              MAIL_FROM_ADDRESS MAIL_FROM_NAME
+              R2_UPLOAD_DISK R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_DEFAULT_REGION
+              R2_BUCKET R2_ENDPOINT R2_URL
+              AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_DEFAULT_REGION AWS_BUCKET
+              AWS_ENDPOINT AWS_URL AWS_USE_PATH_STYLE_ENDPOINT
+              PUSHER_APP_ID PUSHER_APP_KEY PUSHER_APP_SECRET PUSHER_HOST PUSHER_PORT
+              PUSHER_SCHEME PUSHER_APP_CLUSTER
+              OPENAI_API_KEY OPENAI_ORGANIZATION OPENAI_REQUEST_TIMEOUT
+              APICOID_API_KEY APICOID_BASE_URL
+              GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GOOGLE_REDIRECT_URI
+              GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET GITHUB_REDIRECT_URI
+              HEALTH_DB_CONNECTION HEALTH_REDIS_CONNECTION HEALTH_QUEUE_NAME
+              HEALTH_QUEUE_FAILURE_MINUTES HEALTH_DISK_WARNING_PERCENTAGE
+              HEALTH_DISK_FAILURE_PERCENTAGE HEALTH_RESULT_HISTORY_DAYS
+              HEALTH_NOTIFICATIONS_ENABLED HEALTH_TO_ADDRESS HEALTH_FROM_ADDRESS
+              HEALTH_FROM_NAME HEALTH_SECRET_TOKEN
+              AUDIT_LOGGER_ENABLED AUDIT_LOG_RETENTION_DAYS AUDIT_LOG_PRUNING_ENABLED
+              ACTIVITY_LOGGER_TABLE_NAME INTEGRATION_LOG_PAYLOAD_MAX_BYTES
+              INTEGRATION_LOG_RETENTION_DAYS FILAMENT_FILESYSTEM_DISK BCRYPT_ROUNDS
+              SETTINGS_CACHE_ENABLED VITE_APP_NAME
+          )
+
+          for key in "${required_keys[@]}"; do
+              value="${!key-}"
+              if [ -z "$value" ]; then
+                  echo "Missing required production value: $key" >&2
+                  exit 1
+              fi
+              case "$value" in
+                  *$'\n'*|*$'\r'*)
+                      echo "Production value may not contain a newline: $key" >&2
+                      exit 1
+                      ;;
+              esac
+          done
+
+          umask 077
+          : > .env.production
+
+          for key in "${all_keys[@]}"; do
+              value="${!key-}"
+              case "$value" in
+                  *$'\n'*|*$'\r'*)
+                      echo "Production value may not contain a newline: $key" >&2
+                      exit 1
+                      ;;
+              esac
+              escaped=$(printf '%s' "$value" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')
+              printf '%s="%s"\n' "$key" "$escaped" >> .env.production
+          done
+
+          chmod 600 .env.production
+
+      - name: Copy production Compose manifest
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_SSH_PORT || 22 }}
-          script: |
-            set -e
-            echo "=== Releasing ownership to deploy user ==="
-            sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} ${{ env.DEPLOY_PATH }}/storage
-            sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} ${{ env.DEPLOY_PATH }}/bootstrap/cache
-            sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} ${{ env.DEPLOY_PATH }}/public/build
-            sudo chmod -R 775 ${{ env.DEPLOY_PATH }}/storage
-            sudo chmod -R 775 ${{ env.DEPLOY_PATH }}/bootstrap/cache
-            sudo chmod -R 775 ${{ env.DEPLOY_PATH }}/public/build
-            echo "=== Ownership released ==="
+          source: docker-compose.production.yml
+          target: ${{ env.DEPLOY_PATH }}
 
-      - name: Create revision marker
-        run: |
-          echo "${{ github.sha }}" > REVISION
-          echo "Deployed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> REVISION
-
-      - name: Sync files to server
-        run: |
-          rsync -rlptDz --delete \
-            --chmod=D775,F664 \
-            --exclude='.env' \
-            --exclude='.git' \
-            --exclude='.DS_Store' \
-            --exclude='node_modules' \
-            --exclude='public/storage' \
-            --exclude='storage/app/public/' \
-            --exclude='storage/logs/' \
-            --exclude='storage/framework/cache/data/' \
-            --exclude='storage/framework/sessions/' \
-            --exclude='storage/framework/views/' \
-            --exclude='bootstrap/cache/*.php' \
-            -e "ssh -p ${{ secrets.SERVER_SSH_PORT || 22 }}" \
-            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_PATH }}
-
-      - name: Post-deploy on server
-        uses: appleboy/ssh-action@v1
+      - name: Copy production environment
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_SSH_PORT || 22 }}
+          source: .env.production
+          target: ${{ env.DEPLOY_PATH }}
+
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.2.2
+        env:
+          DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          IMAGE_TAG: ${{ github.sha }}
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_TOKEN: ${{ github.token }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_SSH_PORT || 22 }}
+          envs: DEPLOY_PATH,IMAGE_NAME,IMAGE_TAG,GHCR_USERNAME,GHCR_TOKEN
           script: |
-            set -e
-            cd ${{ env.DEPLOY_PATH }}
+            set -eu
+            cd "$DEPLOY_PATH"
 
-            echo "=== Creating .env file ==="
-            cat > .env << ENVEOF
-            APP_NAME="TokoOnline"
-            APP_ENV=${{ secrets.APP_ENV }}
-            APP_KEY=${{ secrets.APP_KEY }}
-            APP_DEBUG=${{ secrets.APP_DEBUG }}
-            APP_URL=${{ secrets.APP_URL }}
+            test -f .env.production || { echo ".env.production is missing" >&2; exit 1; }
+            test -f docker-compose.production.yml || { echo "Compose manifest is missing" >&2; exit 1; }
+            chmod 600 .env.production
 
-            LOG_CHANNEL=${{ secrets.LOG_CHANNEL }}
-            LOG_DEPRECATIONS_CHANNEL=null
-            LOG_LEVEL=${{ secrets.LOG_LEVEL }}
+            trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+            printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
-            DB_CONNECTION=mysql
-            DB_HOST=${{ secrets.DB_HOST }}
-            DB_PORT=${{ secrets.DB_PORT || '3306' }}
-            DB_DATABASE=${{ secrets.DB_DATABASE }}
-            DB_USERNAME=${{ secrets.DB_USERNAME }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            export IMAGE_NAME IMAGE_TAG
+            docker compose -f docker-compose.production.yml --env-file .env.production pull app worker scheduler
+            docker compose -f docker-compose.production.yml --env-file .env.production up -d --wait mysql
+            docker compose -f docker-compose.production.yml --env-file .env.production run --rm --no-deps app php artisan migrate --force
+            docker compose -f docker-compose.production.yml --env-file .env.production up -d --wait --remove-orphans
+            docker compose -f docker-compose.production.yml --env-file .env.production exec -T app php artisan optimize
+            docker compose -f docker-compose.production.yml --env-file .env.production ps
 
-            BROADCAST_DRIVER=log
-            CACHE_DRIVER=file
-            FILESYSTEM_DISK=${{ secrets.FILESYSTEM_DISK || 'local'}}
-            QUEUE_CONNECTION=${{ secrets.QUEUE_CONNECTION || 'redis' }}
-            SESSION_DRIVER=file
-            SESSION_LIFETIME=120
-            SESSION_SECURE_COOKIE=false
-
-            REDIS_HOST=${{ secrets.REDIS_HOST || '127.0.0.1' }}
-            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD || 'null' }}
-            REDIS_PORT=${{ secrets.REDIS_PORT || '6379' }}
-
-            MAIL_MAILER=smtp
-            MAIL_HOST=${{ secrets.MAIL_HOST }}
-            MAIL_PORT=${{ secrets.MAIL_PORT || '587' }}
-            MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-            MAIL_ENCRYPTION=tls
-            MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS }}
-            MAIL_FROM_NAME="TokoOnline"
-
-            VITE_APP_NAME="TokoOnline"
-
-            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-            OPENAI_ORGANIZATION=${{ secrets.OPENAI_ORGANIZATION }}
-            APICOID_API_KEY=${{ secrets.APICOID_API_KEY }}
-            LOG_SLACK_WEBHOOK_URL=${{ secrets.LOG_SLACK_WEBHOOK_URL }}
-
-            R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}
-            R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }}
-            R2_DEFAULT_REGION=${{ secrets.R2_DEFAULT_REGION }}
-            R2_BUCKET=${{ secrets.R2_BUCKET }}
-            R2_ENDPOINT=${{ secrets.R2_ENDPOINT }}
-            R2_URL=${{ secrets.R2_URL }}
-
-            REDIS_CLIENT=${{ secrets.REDIS_CLIENT || 'predis' }}
-            ENVEOF
-
-            echo "=== Creating required directories ==="
-            mkdir -p storage/app/public
-            mkdir -p storage/logs
-            mkdir -p storage/framework/cache/data
-            mkdir -p storage/framework/views
-            mkdir -p storage/framework/sessions
-            mkdir -p storage/framework/testing
-            mkdir -p bootstrap/cache
-            mkdir -p public/build
-
-            echo "=== Ensuring deploy user can write ==="
-            sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} storage bootstrap/cache public/build
-            sudo chmod -R 775 storage bootstrap/cache public/build
-
-            echo "=== Removing stale Laravel cache files ==="
-            sudo rm -f bootstrap/cache/*.php
-
-            echo "=== Ensuring storage link exists ==="
-            sudo rm -rf public/storage
-            php artisan storage:link
-
-            echo "=== Handing runtime paths to www-data ==="
-            sudo chown -R www-data:www-data storage bootstrap/cache public/build
-            sudo chmod -R 775 storage bootstrap/cache public/build
-
-            echo "=== Clearing caches ==="
-            sudo -u www-data php artisan optimize:clear
-
-            echo "=== Running migrations ==="
-            sudo -u www-data php artisan migrate --force
-
-            echo "=== Caching configs ==="
-            sudo -u www-data php artisan config:cache
-            sudo -u www-data php artisan route:cache
-            sudo -u www-data php artisan icons:cache
-            sudo -u www-data php artisan filament:optimize
-
-            # Queue workers are temporarily disabled until Redis is available on the server.
-            # This production workflow does not use Horizon; it only restarts the standard queue workers.
-            # echo "=== Restarting queue workers ==="
-            # sudo -u www-data php artisan queue:restart
-
-            echo "=== Deployment complete! ==="
-
-      - name: Health check
-        run: |
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.APP_URL }})
-          if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 302 ]; then
-            echo "::error::Health check failed with HTTP status $HTTP_STATUS"
-            exit 1
-          fi
-          echo "Health check passed (HTTP $HTTP_STATUS)"
-
-      - name: Notify deployment status
+      - name: Report deployment
         if: always()
         run: |
           if [ "${{ job.status }}" = "success" ]; then
-            echo "Deployment successful for commit ${{ github.sha }}"
+              echo "Production deployment succeeded for ${{ github.sha }}"
           else
-            echo "Deployment failed for commit ${{ github.sha }}"
+              echo "Production deployment failed for ${{ github.sha }}"
           fi
+
+      - name: Remove rendered environment file
+        if: always()
+        run: rm -f .env.production
