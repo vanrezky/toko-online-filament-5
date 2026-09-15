@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Models\Country;
-use App\Models\Province;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -38,17 +39,16 @@ class GetProvinceJob implements ShouldQueue
             }
 
             $provinces = $response->collect();
-            $country = Country::where('iso','ID')->first();
+            $country = Country::where('iso', 'ID')->first();
 
             $insertProvinces = [];
             foreach ($provinces as $province) {
                 $insertProvinces[] = [
-                    'country_id' =>$country->id,
-                    'name' =>  $province['name'],
-                    ''
-                ]
+                    'country_id' => $country->id,
+                    'name' => $province['name'],
+                ];
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error($e->getMessage());
         }
     }
