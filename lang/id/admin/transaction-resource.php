@@ -142,6 +142,8 @@ return [
     'notifications' => [
         'status_updated' => 'Status Diperbarui',
         'status_changed_to' => 'Status pesanan diubah menjadi',
+        'receipt_required' => 'Kode resi belum diisi',
+        'receipt_required_body' => 'Klik tombol Ubah untuk mengisi kode resi sebelum menandai pesanan dikirim.',
         'update_failed' => 'Gagal Memperbarui',
         'receipt_failed' => 'Gagal Membuat Receipt',
         'receipt_none_eligible' => 'Tidak Ada Transaksi yang Dapat Dicetak',

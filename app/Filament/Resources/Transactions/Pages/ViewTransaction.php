@@ -2,26 +2,25 @@
 
 namespace App\Filament\Resources\Transactions\Pages;
 
-use Filament\Actions\Action;
-use Filament\Actions\EditAction;
-use Exception;
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
-use Filament\Infolists\Components\RepeatableEntry;
 use App\Enums\CourierCode;
 use App\Enums\TransactionBillingStatus;
 use App\Enums\TransactionStatus;
-use App\Filament\Resources\Transactions\TransactionResource;
 use App\Filament\Resources\Installments\InstallmentResource;
+use App\Filament\Resources\Transactions\TransactionResource;
 use App\Models\Transaction;
 use App\Modules\TransactionReceipt\Services\TransactionReceiptService;
-use Filament\Actions;
+use Exception;
+use Filament\Actions\Action;
+use Filament\Actions\EditAction;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -88,14 +87,14 @@ class ViewTransaction extends ViewRecord
                         ->icon('heroicon-o-hand-raised')
                         ->color('info')
                         ->requiresConfirmation()
-                        ->action(fn() => $this->updateStatus('picked_up'));
+                        ->action(fn () => $this->updateStatus('picked_up'));
                 } else {
                     $actions[] = Action::make('markInTransit')
                         ->label(__('admin/transaction-resource.actions.mark_as_shipped'))
                         ->icon('heroicon-o-truck')
                         ->color('primary')
                         ->requiresConfirmation()
-                        ->action(fn() => $this->updateStatus('in_transit'));
+                        ->action(fn () => $this->updateStatus('in_transit'));
                 }
                 break;
 
@@ -106,7 +105,7 @@ class ViewTransaction extends ViewRecord
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->action(fn() => $this->updateStatus('delivered'));
+                    ->action(fn () => $this->updateStatus('delivered'));
                 break;
 
             case TransactionStatus::picked_up:
@@ -115,7 +114,7 @@ class ViewTransaction extends ViewRecord
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->action(fn() => $this->updateStatus('completed'));
+                    ->action(fn () => $this->updateStatus('completed'));
                 break;
 
             case TransactionStatus::delivered:
@@ -124,7 +123,7 @@ class ViewTransaction extends ViewRecord
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->action(fn() => $this->updateStatus('completed'));
+                    ->action(fn () => $this->updateStatus('completed'));
                 break;
         }
 
@@ -134,6 +133,16 @@ class ViewTransaction extends ViewRecord
     protected function updateStatus(string $status): void
     {
         $record = $this->getRecord();
+
+        if ($status === 'in_transit' && blank($record->receipt_code)) {
+            Notification::make()
+                ->title(__('admin/transaction-resource.notifications.receipt_required'))
+                ->body(__('admin/transaction-resource.notifications.receipt_required_body'))
+                ->warning()
+                ->send();
+
+            return;
+        }
 
         $updateData = ['status' => $status];
 
@@ -150,7 +159,7 @@ class ViewTransaction extends ViewRecord
 
             Notification::make()
                 ->title(__('admin/transaction-resource.notifications.status_updated'))
-                ->body(__('admin/transaction-resource.notifications.status_changed_to') . " " . __("admin/transaction-resource.status.{$status}"))
+                ->body(__('admin/transaction-resource.notifications.status_changed_to').' '.__("admin/transaction-resource.status.{$status}"))
                 ->success()
                 ->send();
 
@@ -182,7 +191,7 @@ class ViewTransaction extends ViewRecord
                 ->icon('heroicon-o-paper-airplane')
                 ->color('warning')
                 ->requiresConfirmation()
-                ->action(fn() => $this->updateBillingStatus('submitted'));
+                ->action(fn () => $this->updateBillingStatus('submitted'));
         }
 
         if ($record->billing_status === 'submitted') {
@@ -191,14 +200,14 @@ class ViewTransaction extends ViewRecord
                 ->icon('heroicon-o-check-badge')
                 ->color('success')
                 ->requiresConfirmation()
-                ->action(fn() => $this->updateBillingStatus('paid'));
+                ->action(fn () => $this->updateBillingStatus('paid'));
 
             $actions[] = Action::make('markBillingFailed')
                 ->label('Tandai Tagihan Gagal')
                 ->icon('heroicon-o-exclamation-triangle')
                 ->color('danger')
                 ->requiresConfirmation()
-                ->action(fn() => $this->updateBillingStatus('failed'));
+                ->action(fn () => $this->updateBillingStatus('failed'));
         }
 
         return $actions;
@@ -218,7 +227,7 @@ class ViewTransaction extends ViewRecord
 
             Notification::make()
                 ->title('Status tagihan berhasil diperbarui')
-                ->body('Status tagihan sekarang: ' . $status)
+                ->body('Status tagihan sekarang: '.$status)
                 ->success()
                 ->send();
 
@@ -251,7 +260,7 @@ class ViewTransaction extends ViewRecord
         }
 
         return $record->shippingDetails->every(
-            fn($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value
+            fn ($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value
         );
     }
 
@@ -287,18 +296,18 @@ class ViewTransaction extends ViewRecord
 
                                         return '-';
                                     }),
-                        TextEntry::make('created_at')
-                            ->label(__('admin/transaction-resource.entries.order_date'))
-                            ->dateTime('d M Y, H:i'),
-                        TextEntry::make('delivery_date')
-                            ->label(__('admin/transaction-resource.entries.delivery_date'))
-                            ->dateTime('d M Y, H:i')
-                            ->placeholder(__('admin/transaction-resource.entries.not_delivered_yet')),
-                        TextEntry::make('complete_date')
-                            ->label(__('admin/transaction-resource.entries.completed_date'))
-                            ->dateTime('d M Y, H:i')
-                            ->placeholder(__('admin/transaction-resource.entries.not_completed_yet')),
-                        // TextEntry::make('timelimit')
+                                TextEntry::make('created_at')
+                                    ->label(__('admin/transaction-resource.entries.order_date'))
+                                    ->dateTime('d M Y, H:i'),
+                                TextEntry::make('delivery_date')
+                                    ->label(__('admin/transaction-resource.entries.delivery_date'))
+                                    ->dateTime('d M Y, H:i')
+                                    ->placeholder(__('admin/transaction-resource.entries.not_delivered_yet')),
+                                TextEntry::make('complete_date')
+                                    ->label(__('admin/transaction-resource.entries.completed_date'))
+                                    ->dateTime('d M Y, H:i')
+                                    ->placeholder(__('admin/transaction-resource.entries.not_completed_yet')),
+                                // TextEntry::make('timelimit')
                                 //     ->label(__('admin/transaction-resource.entries.payment_deadline'))
                                 //     ->dateTime('d M Y, H:i')
                                 //     ->placeholder(__('admin/transaction-resource.entries.not_set')),
@@ -330,7 +339,7 @@ class ViewTransaction extends ViewRecord
                                 TextEntry::make('billing_status')
                                     ->label('Status Tagihan')
                                     ->badge()
-                                    ->visible(fn(Transaction $record): bool => $record->payment_type === 'full')
+                                    ->visible(fn (Transaction $record): bool => $record->payment_type === 'full')
                                     ->color(function (TransactionBillingStatus|string|null $state): string {
                                         if ($state instanceof TransactionBillingStatus) {
                                             return is_array($state->getColor()) ? 'gray' : (string) ($state->getColor() ?? 'gray');
@@ -389,13 +398,13 @@ class ViewTransaction extends ViewRecord
                                 }
 
                                 return ! $details->every(
-                                    fn($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value
+                                    fn ($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value
                                 );
                             })
                             ->getStateUsing(function (Transaction $record): string {
                                 $details = $record->shippingDetails;
 
-                                if ($details->isNotEmpty() && $details->every(fn($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
+                                if ($details->isNotEmpty() && $details->every(fn ($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
                                     return __('admin/transaction-resource.columns.pickup_no_address');
                                 }
 
@@ -417,7 +426,7 @@ class ViewTransaction extends ViewRecord
 
                 Section::make(__('admin/transaction-resource.sections.products'))
                     ->icon('heroicon-o-shopping-cart')
-                    ->description(fn(Transaction $record) => $record->total_items . ' ' . strtolower(__('admin/transaction-resource.columns.items')))
+                    ->description(fn (Transaction $record) => $record->total_items.' '.strtolower(__('admin/transaction-resource.columns.items')))
                     ->schema([
                         RepeatableEntry::make('products')
                             ->schema([
@@ -468,7 +477,7 @@ class ViewTransaction extends ViewRecord
                                     return __('admin/transaction-resource.entries.not_set');
                                 }
 
-                                if ($details->every(fn($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
+                                if ($details->every(fn ($detail) => strtolower((string) $detail->courier_code) === CourierCode::PICKUP->value)) {
                                     return __('admin/transaction-resource.columns.pickup_only');
                                 }
 
@@ -513,7 +522,7 @@ class ViewTransaction extends ViewRecord
 
                 Section::make(__('admin/transaction-resource.sections.vouchers_applied'))
                     ->icon('heroicon-o-ticket')
-                    ->visible(fn(Transaction $record) => $record->vouchers->count() > 0)
+                    ->visible(fn (Transaction $record) => $record->vouchers->count() > 0)
                     ->schema([
                         RepeatableEntry::make('vouchers')
                             ->schema([
@@ -522,7 +531,7 @@ class ViewTransaction extends ViewRecord
                                 TextEntry::make('voucher_type')
                                     ->label(__('admin/transaction-resource.entries.type'))
                                     ->badge()
-                                    ->formatStateUsing(fn(string $state) => ucfirst($state)),
+                                    ->formatStateUsing(fn (string $state) => ucfirst($state)),
                                 TextEntry::make('formatted_discount')
                                     ->label(__('admin/transaction-resource.entries.discount')),
                             ])->columns(3),
@@ -530,7 +539,7 @@ class ViewTransaction extends ViewRecord
 
                 Section::make(__('admin/transaction-resource.sections.digital_products'))
                     ->icon('heroicon-o-cloud-arrow-down')
-                    ->visible(fn(Transaction $record) => $record->hasDigitalProducts())
+                    ->visible(fn (Transaction $record) => $record->hasDigitalProducts())
                     ->schema([
                         TextEntry::make('digital_products_count')
                             ->label(__('admin/transaction-resource.entries.this_order_contains_digital_products'))
@@ -552,12 +561,12 @@ class ViewTransaction extends ViewRecord
                         TextEntry::make('billing_due_date')
                             ->label('Jatuh Tempo Tagihan')
                             ->date('d M Y')
-                            ->visible(fn(Transaction $record): bool => $record->payment_type === 'full')
+                            ->visible(fn (Transaction $record): bool => $record->payment_type === 'full')
                             ->placeholder(__('admin/transaction-resource.entries.not_set')),
                         TextEntry::make('request_cancellation')
                             ->label(__('admin/transaction-resource.entries.cancellation_request'))
-                            ->formatStateUsing(fn(bool $state) => $state ? __('Yes') : __('No'))
-                            ->color(fn(bool $state) => $state ? 'danger' : 'gray'),
+                            ->formatStateUsing(fn (bool $state) => $state ? __('Yes') : __('No'))
+                            ->color(fn (bool $state) => $state ? 'danger' : 'gray'),
                         TextEntry::make('notes')
                             ->label(__('admin/transaction-resource.entries.notes'))
                             ->placeholder(__('admin/transaction-resource.entries.no_notes')),
@@ -575,7 +584,9 @@ class ViewTransaction extends ViewRecord
                             ->formatStateUsing(fn (Transaction $record): string => sprintf('%d / %d', $record->installment?->paid_installments ?? 0, $record->installment?->tenor ?? 0)),
                         TextEntry::make('installment.status')
                             ->label('Status Cicilan')->badge()
-                            ->color(fn (?string $state): string => match ($state) { 'completed' => 'success', 'overdue' => 'danger', 'defaulted' => 'gray', default => 'warning' })
+                            ->color(fn (?string $state): string => match ($state) {
+                                'completed' => 'success', 'overdue' => 'danger', 'defaulted' => 'gray', default => 'warning'
+                            })
                             ->formatStateUsing(fn (?string $state): string => $state ? __('admin/installment-resource.status_options.'.$state) : '-'),
                         TextEntry::make('installment.start_date')->label('Mulai Cicilan')->date('d M Y'),
                         TextEntry::make('installment.expected_end_date')->label('Estimasi Selesai')->date('d M Y'),
