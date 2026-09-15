@@ -228,7 +228,7 @@ final class CheckoutService
 
 
                 $options = [];
-                if ($costs['is_success'] && !empty($costs['data']['couriers'])) {
+                if (isset($costs['is_success']) && $costs['is_success'] && !empty($costs['data']['couriers'])) {
                     foreach ($costs['data']['couriers'] as $courier) {
                         $options[] = [
                             'courier_code' => $courier['courier_code'],
