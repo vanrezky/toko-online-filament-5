@@ -12,7 +12,7 @@ const props = defineProps({
 const { t } = useI18n();
 const title = computed(() => getSectionContent(props.template, "hero", "title", t("labels.hero.default_title")));
 const subtitle = computed(() => getSectionContent(props.template, "hero", "subtitle", t("labels.hero.default_subtitle")));
-const imageUrl = computed(() => getSectionContent(props.template, "hero", "image_url", ""));
+const imageUrl = computed(() => getSectionContent(props.template, "hero", "image_url", "/images/hero/bristol-products.webp"));
 const eyebrow = computed(() => getSectionContent(props.template, "hero", "eyebrow", t("labels.home.hero_eyebrow")));
 const badge = computed(() => getSectionContent(props.template, "hero", "badge", ""));
 const primaryLabel = computed(() => getSectionContent(props.template, "hero", "button_text", t("labels.actions.start_shopping")));
@@ -49,68 +49,51 @@ const trustPoints = computed(() => {
 </script>
 
 <template>
-    <section class="bg-background py-4 md:py-6">
+    <section class="bg-background py-4 md:py-5">
         <div class="container mx-auto px-4 md:px-8">
-            <div class="hero-layout overflow-hidden rounded-2xl bg-secondary shadow-[0_20px_50px_-38px_hsl(var(--foreground)/0.45)]">
-                <div class="relative isolate min-h-[28rem] overflow-hidden sm:min-h-[28rem] lg:min-h-[24rem]">
-                    <img
-                        v-if="imageUrl"
-                        :src="imageUrl"
-                        :alt="title"
-                        class="absolute inset-0 h-full w-full object-cover"
-                        fetchpriority="high"
-                        decoding="async"
-                    />
-                    <div v-if="imageUrl" class="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/15" aria-hidden="true"></div>
-                    <div v-else class="absolute inset-0 bg-secondary" aria-hidden="true">
-                        <div class="absolute -top-24 left-1/3 h-72 w-72 rounded-full bg-white/45 blur-3xl"></div>
-                        <div class="absolute -right-20 -bottom-32 h-72 w-72 rounded-full bg-primary/10 blur-3xl"></div>
-                    </div>
-
-                    <div class="relative z-10 flex h-full min-h-[28rem] flex-col justify-center p-6 sm:min-h-[28rem] sm:p-8 lg:min-h-[24rem] lg:max-w-3xl lg:p-10">
-                        <p class="mb-3 text-xs font-bold tracking-[0.14em] text-white/80 uppercase" :class="!imageUrl && 'text-primary'">{{ eyebrow }}</p>
-                        <h1 class="max-w-[14ch] text-4xl leading-[0.98] font-bold tracking-[-0.045em] text-balance sm:text-5xl lg:text-[3.7rem]" :class="imageUrl ? 'text-white' : 'text-foreground'">
-                            {{ title }}
-                        </h1>
-                        <p class="mt-4 max-w-md text-sm leading-6 sm:text-base" :class="imageUrl ? 'text-white/80' : 'text-muted-foreground'">{{ subtitle }}</p>
-
-                        <div class="mt-6 flex flex-wrap gap-3">
-                            <Link
-                                :href="primaryLink"
-                                class="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary inline-flex min-h-11 items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold shadow-[0_12px_24px_-16px_hsl(var(--primary)/0.9)] transition-colors focus-visible:ring-2 focus-visible:outline-none motion-reduce:transition-none"
-                            >
-                                {{ primaryLabel }}
-                                <ArrowRight class="h-4 w-4" aria-hidden="true" />
-                            </Link>
-                            <Link
-                                :href="secondaryLink"
-                                class="inline-flex min-h-11 items-center justify-center rounded-xl border px-5 py-3 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:outline-none motion-reduce:transition-none"
-                                :class="imageUrl ? 'border-white text-white hover:bg-white/15 focus-visible:ring-white' : 'border-primary text-primary hover:bg-primary/10 focus-visible:ring-primary'"
-                            >
-                                {{ secondaryLabel }}
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div v-if="badge || promoValue" class="bg-primary text-primary-foreground absolute top-6 right-6 z-20 flex h-24 w-24 rotate-6 flex-col items-center justify-center rounded-full text-center shadow-[0_16px_28px_-18px_hsl(var(--primary)/0.95)] sm:top-10 sm:right-10 sm:h-28 sm:w-28">
-                        <span v-if="badge" class="text-[10px] font-semibold leading-tight">{{ badge }}</span>
-                        <span v-else class="text-[10px] font-semibold leading-tight">{{ promoLabel }}</span>
-                        <strong class="text-2xl leading-none">{{ promoValue }}</strong>
+            <div class="hero-layout overflow-hidden rounded-2xl">
+                <div class="hero-copy relative z-10 flex flex-col justify-center px-6 py-8 lg:py-10">
+                    <p class="text-primary mb-3 text-xs font-semibold uppercase">{{ eyebrow }}</p>
+                    <h1 class="hero-title font-bold text-balance">{{ title }}</h1>
+                    <p class="hero-description mt-4 max-w-sm text-sm leading-5">{{ subtitle }}</p>
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <Link
+                            :href="primaryLink"
+                            class="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary inline-flex min-h-11 items-center justify-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none motion-reduce:transition-none lg:px-5"
+                        >
+                            {{ primaryLabel }}
+                            <ArrowRight class="h-4 w-4 shrink-0" aria-hidden="true" />
+                        </Link>
+                        <Link
+                            :href="secondaryLink"
+                            class="border-primary text-primary bg-background/80 hover:bg-primary/10 focus-visible:ring-primary inline-flex min-h-11 items-center justify-center rounded-lg border px-4 py-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none motion-reduce:transition-none lg:px-5"
+                        >
+                            {{ secondaryLabel }}
+                        </Link>
                     </div>
                 </div>
 
-                <aside class="bg-secondary/80 flex items-center p-6 sm:p-8 lg:p-7" :aria-label="t('labels.home.trust.services_label')">
-                    <div class="w-full">
-                        <p class="text-primary mb-4 text-xs font-bold tracking-[0.14em] uppercase">{{ t("labels.home.trust.services_label") }}</p>
-                        <div class="space-y-5">
-                            <div v-for="point in trustPoints" :key="point.title" class="flex items-start gap-3">
-                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/75 text-primary">
-                                    <component :is="point.icon" class="h-5 w-5" aria-hidden="true" />
-                                </span>
-                                <div>
-                                    <h2 class="text-foreground text-sm font-bold">{{ point.title }}</h2>
-                                    <p class="text-muted-foreground mt-1 text-xs leading-5">{{ point.description }}</p>
-                                </div>
+                <div class="hero-visual relative min-w-0">
+                    <img :src="imageUrl" :alt="title" class="absolute inset-0 h-full w-full object-cover" fetchpriority="high" decoding="async" />
+                    <div class="hero-image-edge absolute inset-0" aria-hidden="true"></div>
+                    <div
+                        v-if="badge || promoValue"
+                        class="hero-promo bg-primary text-primary-foreground absolute top-5 right-5 flex h-24 w-24 flex-col items-center justify-center rounded-full p-3 text-center sm:top-8 sm:right-8 sm:h-28 sm:w-28"
+                    >
+                        <span class="max-w-full text-xs leading-tight break-words">{{ badge || promoLabel }}</span>
+                        <strong class="mt-1 max-w-full text-3xl leading-none break-words">{{ promoValue }}</strong>
+                    </div>
+                </div>
+
+                <aside class="hero-services flex items-center px-6 py-8 lg:px-7" :aria-label="t('labels.home.trust.services_label')">
+                    <div class="w-full space-y-6">
+                        <div v-for="point in trustPoints" :key="point.title" class="flex items-center gap-4">
+                            <span class="text-primary bg-primary/10 flex h-14 w-14 shrink-0 items-center justify-center rounded-full">
+                                <component :is="point.icon" class="h-6 w-6" :stroke-width="1.5" aria-hidden="true" />
+                            </span>
+                            <div class="min-w-0">
+                                <h2 class="text-sm font-semibold">{{ point.title }}</h2>
+                                <p class="hero-description mt-1 text-xs leading-5">{{ point.description }}</p>
                             </div>
                         </div>
                     </div>
@@ -122,12 +105,64 @@ const trustPoints = computed(() => {
 
 <style scoped>
 .hero-layout {
+    --hero-surface: color-mix(in srgb, hsl(var(--primary)) 5%, hsl(var(--background)));
     display: grid;
+    background: var(--hero-surface);
+    color: hsl(var(--foreground));
+}
+
+.hero-title {
+    max-width: 14ch;
+    font-size: clamp(2rem, 3.25vw, 2.75rem);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    overflow-wrap: anywhere;
+}
+
+.hero-description {
+    color: hsl(var(--muted-foreground));
+    overflow-wrap: anywhere;
+}
+
+.hero-visual {
+    aspect-ratio: 3 / 2;
+}
+
+.hero-image-edge {
+    background: linear-gradient(to bottom, var(--hero-surface), transparent 15%, transparent 90%, var(--hero-surface));
+}
+
+@media (min-width: 640px) {
+    .hero-layout {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .hero-visual {
+        aspect-ratio: auto;
+        min-height: 22rem;
+    }
+
+    .hero-image-edge {
+        background: linear-gradient(to right, var(--hero-surface), transparent 15%, transparent 90%, var(--hero-surface));
+    }
+
+    .hero-services {
+        grid-column: 1 / -1;
+    }
 }
 
 @media (min-width: 1024px) {
     .hero-layout {
-        grid-template-columns: minmax(0, 7fr) minmax(18rem, 3fr);
+        grid-template-columns: minmax(0, 34fr) minmax(0, 40fr) minmax(0, 26fr);
+    }
+
+    .hero-copy {
+        padding-left: clamp(2rem, 4.5vw, 4.5rem);
+        padding-right: 0.5rem;
+    }
+
+    .hero-services {
+        grid-column: auto;
     }
 }
 </style>
