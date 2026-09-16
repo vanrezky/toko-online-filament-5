@@ -14,7 +14,9 @@ use App\Services\TemplateService;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 use Inertia\Middleware;
+use Override;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -41,31 +43,6 @@ class HandleInertiaRequests extends Middleware
         $isFrontend = $this->isFrontendRequest($request);
 
         $shared = [
-            'settings' => function () {
-                $settings = app(GeneralSettings::class);
-
-                return [
-                    'logo' => $settings->getLogo() ?? '',
-                    'favicon' => $settings->getFavicon() ?? '',
-                    'site_name' => $settings->site_name ?? '',
-                    'is_private_store' => (bool) ($settings->is_private_store ?? false),
-                    'registration' => (bool) ($settings->registration ?? true),
-                    'social_login_enabled' => (bool) ($settings->social_login_enabled ?? true),
-                    'term_agreement' => (bool) ($settings->term_agreement ?? false),
-                'site_description' => $settings->site_description ?? '',
-                'site_keywords' => $settings->site_keywords ?? '',
-                'social_title' => $settings->social_title ?? '',
-                'social_description' => $settings->social_description ?? '',
-                'social_image' => $settings->social_image ? getUrlImage($settings->social_image) : '',
-                'email' => $settings->email ?? '',
-                'phone' => $settings->phone ?? '',
-                'wa_phone' => $settings->wa_phone ?? '',
-                'address' => $settings->address ?? '',
-                'instagram' => $settings->instagram ?? '',
-                'facebook' => $settings->facebook ?? '',
-                'twitter' => $settings->twitter ?? '',
-            ];
-            },
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
@@ -78,9 +55,11 @@ class HandleInertiaRequests extends Middleware
             return array_merge(parent::share($request), $shared);
         }
 
+
         return array_merge(parent::share($request), $shared, [
             'auth' => [
-                'user' => Auth::guard('customer')->user() ? CustomerResource::make(Auth::guard('customer')->user()) : null,
+                'user' =>  Auth::guard('customer')->user() ?
+                    Inertia::once(fn() => CustomerResource::make(Auth::guard('customer')->user())) : null,
             ],
             'wishlist_product_ids' => function () {
                 if (Auth::guard('customer')->check()) {
@@ -95,7 +74,7 @@ class HandleInertiaRequests extends Middleware
             },
             'cart_total' => function () {
                 if (Auth::guard('customer')->check()) {
-                    return CartItem::with('cart[id,customer_id,status]')->whereHas('cart', fn ($Q) => $Q->where(
+                    return CartItem::with('cart[id,customer_id,status]')->whereHas('cart', fn($Q) => $Q->where(
                         [
                             'customer_id' => Auth::guard('customer')->id(),
                             'status' => CartStatus::Active,
@@ -105,21 +84,55 @@ class HandleInertiaRequests extends Middleware
 
                 return 0;
             },
-            'menu' => function () {
-                return CacheService::rememberManaged('frontend', 'frontend_menu', 3600, function () {
-                    return [
-                        'header' => Page::headerMenu()->get()->map(fn ($page) => [
-                            'name' => $page->title,
-                            'href' => route('frontend.page.show', $page->slug),
-                        ]),
-                        'footer' => Page::footerMenu()->get()->map(fn ($page) => [
-                            'name' => $page->title,
-                            'href' => route('frontend.page.show', $page->slug),
-                        ]),
-                    ];
-                });
-            },
-            'colorScheme' => fn () => $this->templateService->getColorScheme(),
+
         ]);
+    }
+
+    #[Override]
+    public function shareOnce(Request $request): array
+    {
+        if (! $this->isFrontendRequest($request)) {
+            return [];
+        }
+
+        return [
+            'settings' => function () {
+                $settings = app(GeneralSettings::class);
+                return [
+                    'logo' => $settings->getLogo() ?? '',
+                    'favicon' => $settings->getFavicon() ?? '',
+                    'site_name' => $settings->site_name ?? '',
+                    'is_private_store' => (bool) ($settings->is_private_store ?? false),
+                    'registration' => (bool) ($settings->registration ?? true),
+                    'social_login_enabled' => (bool) ($settings->social_login_enabled ?? true),
+                    'term_agreement' => (bool) ($settings->term_agreement ?? false),
+                    'site_description' => $settings->site_description ?? '',
+                    'site_keywords' => $settings->site_keywords ?? '',
+                    'social_title' => $settings->social_title ?? '',
+                    'social_description' => $settings->social_description ?? '',
+                    'social_image' => $settings->social_image ? getUrlImage($settings->social_image) : '',
+                    'email' => $settings->email ?? '',
+                    'phone' => $settings->phone ?? '',
+                    'wa_phone' => $settings->wa_phone ?? '',
+                    'address' => $settings->address ?? '',
+                    'instagram' => $settings->instagram ?? '',
+                    'facebook' => $settings->facebook ?? '',
+                    'twitter' => $settings->twitter ?? '',
+                ];
+            },
+            'colorScheme' => fn() => $this->templateService->getColorScheme(),
+            'menu' => fn() =>  CacheService::rememberManaged('frontend', 'frontend_menu', 3600, function () {
+                return [
+                    'header' => Page::headerMenu()->get()->map(fn($page) => [
+                        'name' => $page->title,
+                        'href' => route('frontend.page.show', $page->slug),
+                    ]),
+                    'footer' => Page::footerMenu()->get()->map(fn($page) => [
+                        'name' => $page->title,
+                        'href' => route('frontend.page.show', $page->slug),
+                    ]),
+                ];
+            }),
+        ];
     }
 }

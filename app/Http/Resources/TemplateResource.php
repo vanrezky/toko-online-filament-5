@@ -16,7 +16,6 @@ class TemplateResource extends JsonResource
         return [
             'uuid' => $this->uuid,
             'name' => $this->name,
-            'color_scheme' => app(TemplateService::class)->normalizeColorScheme($this->color_scheme),
             'sections' => $this->whenLoaded('sections', fn () => $this->sections
                 ->map(fn ($section) => [
                     'uuid' => $section->uuid,

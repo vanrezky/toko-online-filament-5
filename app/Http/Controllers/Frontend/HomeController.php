@@ -114,7 +114,6 @@ class HomeController extends Controller
             'products' => $products,
             'filters' => $request->only(['category', 'search']),
             'template' => $template ? TemplateResource::make($template) : null,
-            'colorScheme' => $this->templateService->normalizeColorScheme($template?->color_scheme),
             'sliders' => $sliders,
             'flashsales' => $flashsales,
             'templatePreview' => $isPreview,
