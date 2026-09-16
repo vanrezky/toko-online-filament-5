@@ -477,7 +477,7 @@ const submitOrder = async () => {
                 form.setError("payment_method", paymentTypeMessage);
             }
         } else {
-            alert(error.response?.data?.error || t("messages.error.checkout_failed"));
+            toast.error(error.response?.data?.error || t("messages.error.checkout_failed"));
         }
     } finally {
         isProcessingOrder.value = false;
