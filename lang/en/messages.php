@@ -46,7 +46,7 @@ return [
         'login_required_remove_voucher' => 'Please login to remove voucher.',
         'variant_required' => 'Please choose the product variant.',
         'invalid_product_variant' => 'The selected product variant is invalid.',
-        'stock_insufficient' => 'Product stock is insufficient.',
+        'stock_insufficient' => 'Product is out of stock.',
         'checkout_failed' => 'Failed to process order. Please try again.',
         'voucher_invalid' => 'Voucher is invalid.',
         'voucher_invalid_code' => 'Voucher code is invalid.',

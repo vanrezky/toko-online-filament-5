@@ -18,6 +18,7 @@ use App\Repositories\CheckoutRepository;
 use App\Settings\CourierSettings;
 use App\Settings\GeneralSettings;
 use Closure;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -301,7 +302,11 @@ final class CheckoutService
         if ($data['payment_type'] === 'balance' && ! $this->generalSettings->balance_enabled) {
             throw new CheckoutException('balance_disabled');
         }
-        $cart = $this->checkoutRepository->checkoutCart($customer);
+        try {
+            $cart = $this->checkoutRepository->checkoutCart($customer);
+        } catch (ModelNotFoundException) {
+            throw new CheckoutException('stock_unavailable');
+        }
         $this->scopeCartItems($cart, $cartItemUuids);
 
         if ($cart->items->isEmpty()) {
@@ -407,7 +412,11 @@ final class CheckoutService
         $billingDueMonthOffset = (int) ($this->generalSettings->billing_due_month_offset ?? 1);
 
         $transaction = DB::transaction(function () use ($customer, $customerTimezone, $cartItemUuids, $totalShippingCost, $totalWeight, $address, $shippingDetails, $billingCutoffDay, $billingDueDay, $billingDueMonthOffset, $isMidtransPayment, $data): Transaction {
-            $lockedCart = $this->checkoutRepository->lockCart($customer);
+            try {
+                $lockedCart = $this->checkoutRepository->lockCart($customer);
+            } catch (ModelNotFoundException) {
+                throw new CheckoutException('stock_unavailable');
+            }
             $this->scopeCartItems($lockedCart, $cartItemUuids);
 
             // Recalculate while product_flashsales rows are locked. This is the final authority.
@@ -535,7 +544,17 @@ final class CheckoutService
                 ]);
             }
 
-            $this->productInventoryService->reserve($transaction, $resolvedCartItems);
+            try {
+                $this->productInventoryService->reserve($transaction, $resolvedCartItems);
+            } catch (ValidationException $exception) {
+                $stockErrors = $exception->errors()['cart'] ?? [];
+
+                if (in_array(__('messages.error.stock_insufficient'), $stockErrors, true)) {
+                    throw new CheckoutException('stock_unavailable');
+                }
+
+                throw $exception;
+            }
 
             foreach (['shipping', 'product'] as $type) {
                 $voucherData = $validatedVouchers[$type] ?? null;

@@ -924,11 +924,96 @@ class CheckoutFullPaymentCreditLimitTest extends TestCase
             ],
         );
 
-        $response->assertUnprocessable()->assertJsonValidationErrors('cart');
+        $response->assertStatus(409)->assertJson([
+            'success' => false,
+            'error' => __('messages.error.stock_insufficient'),
+        ]);
         $this->assertDatabaseCount('transactions', 0);
         $this->assertSame(1, (int) $variant->fresh()->stock);
         $this->assertSame(1, (int) $product->fresh()->stock);
         $this->assertSame(CartStatus::Active->value, $cart->fresh()->status);
+    }
+
+    public function test_checkout_returns_stock_conflict_for_consumed_stock_and_stale_cart(): void
+    {
+        Queue::fake();
+        $this->mockPaymentGateway();
+
+        $firstCustomer = $this->createCustomer(1_000_000);
+        $secondCustomer = $this->createCustomer(1_000_000);
+        $geo = $this->createGeo();
+        $warehouse = $this->createWarehouse((int) $geo['sub_district_id']);
+        $firstAddress = $this->createAddress($firstCustomer->id, $geo);
+        $secondAddress = $this->createAddress($secondCustomer->id, $geo);
+        $product = $this->createProduct((int) $warehouse->id, 100_000);
+        $product->update(['stock' => 1]);
+
+        $firstCart = Cart::query()->create([
+            'customer_id' => $firstCustomer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+        CartItem::query()->create([
+            'cart_id' => $firstCart->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $secondCart = Cart::query()->create([
+            'customer_id' => $secondCustomer->id,
+            'status' => CartStatus::Active->value,
+        ]);
+        CartItem::query()->create([
+            'cart_id' => $secondCart->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 100_000,
+            'discount' => 0,
+        ]);
+
+        $firstResponse = $this->actingAs($firstCustomer, 'customer')->postJson(
+            route('frontend.checkout.store'),
+            [
+                'address_id' => $firstAddress->id,
+                'shipping_methods' => $this->shippingMethods($warehouse, 500),
+                'payment_type' => 'full',
+            ],
+        );
+
+        $firstResponse->assertOk()->assertJson(['success' => true]);
+
+        $secondResponse = $this->actingAs($secondCustomer, 'customer')->postJson(
+            route('frontend.checkout.store'),
+            [
+                'address_id' => $secondAddress->id,
+                'shipping_methods' => $this->shippingMethods($warehouse, 500),
+                'payment_type' => 'full',
+            ],
+        );
+
+        $secondResponse->assertStatus(409)->assertJson([
+            'success' => false,
+            'error' => __('messages.error.stock_insufficient'),
+        ]);
+
+        $staleResponse = $this->actingAs($firstCustomer, 'customer')->postJson(
+            route('frontend.checkout.store'),
+            [
+                'address_id' => $firstAddress->id,
+                'shipping_methods' => $this->shippingMethods($warehouse, 500),
+                'payment_type' => 'full',
+            ],
+        );
+
+        $staleResponse->assertStatus(409)->assertJson([
+            'success' => false,
+            'error' => __('messages.error.stock_insufficient'),
+        ]);
+        $this->assertDatabaseCount('transactions', 1);
+        $this->assertSame(0, (int) $product->fresh()->stock);
+        $this->assertSame(CartStatus::Checked_out->value, $firstCart->fresh()->status);
+        $this->assertSame(CartStatus::Active->value, $secondCart->fresh()->status);
     }
 
     public function test_checkout_decrements_non_variant_product_stock(): void

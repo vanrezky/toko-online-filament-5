@@ -181,6 +181,10 @@ final class CheckoutController extends Controller
                 'error' => __('messages.error.payment_initiation_failed', ['message' => $context['message'] ?? '']),
             ], 422),
             'balance_disabled' => response()->json(['error' => 'Fitur saldo sedang tidak aktif.'], 403),
+            'stock_unavailable' => response()->json([
+                'success' => false,
+                'error' => __('messages.error.stock_insufficient'),
+            ], 409),
             'cart_empty' => $request->wantsJson()
                 ? response()->json(['error' => __('messages.error.cart_empty')], 400)
                 : redirect()->route('frontend.cart')->with('error', __('messages.error.cart_empty')),
