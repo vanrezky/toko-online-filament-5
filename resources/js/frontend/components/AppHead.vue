@@ -10,7 +10,7 @@ const props = defineProps({
 });
 
 const isProductionEnv = import.meta.env.PROD;
-const settings = computed(() => usePage().props.settings);
+const settings = computed(() => usePage().props.settings ?? {});
 
 const ogTitle = computed(() => props.title || settings.value.social_title || settings.value.site_name);
 const ogDescription = computed(() => props.description || settings.value.social_description || settings.value.site_description);
@@ -18,7 +18,7 @@ const ogImage = computed(() => props.socialImage || settings.value.social_image 
 </script>
 
 <template>
-    <Head :title="title ? `${title} - ${settings.site_name}` : settings.site_name">
+    <Head :title="[title, settings.site_name].filter(Boolean).join(' - ')">
         <link v-if="settings.favicon" rel="shortcut icon" type="image/x-icon" :href="settings.favicon" />
 
         <meta v-if="description" name="description" :content="description" />

@@ -3,10 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Enums\CartStatus;
-use App\Http\Resources\CategoryResource;
 use App\Http\Resources\CustomerResource;
 use App\Models\CartItem;
-use App\Models\Category;
 use App\Models\Page;
 use App\Models\Wishlist;
 use App\Services\CacheService;

@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'use_script_element_for_initial_page' => true,
+
     'page_paths' => [
         resource_path('js/frontend/Pages'),
     ],
